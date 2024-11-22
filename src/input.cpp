@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
-#include <conio.h> // For capturing keyboard input (Windows-specific)
+#include <conio.h> // for windows ill add for linux when i find out how ;)
 
 class Input {
 public:
@@ -24,7 +24,7 @@ public:
         inputThread = std::thread(&Input::listenForInput, this);
     }
 
-    // Stop the input thread
+    // Stop the input thread because we dont need it active at all times :)
     void stop() {
         isRunning = false;
         if (inputThread.joinable()) {
@@ -35,7 +35,7 @@ public:
     // Retrieve the latest action and reset it
     Action getAction() {
         Action action = currentAction.load();
-        currentAction = NONE; // Reset after consuming
+        currentAction = NONE; // Reset after giving the info so it can be reused 
         return action;
     }
 
@@ -44,32 +44,28 @@ private:
     std::atomic<bool> isRunning;
     std::thread inputThread;
 
-    // Listen for keyboard inputs
     void listenForInput() {
         while (isRunning) {
-            if (_kbhit()) { // Check if a key is pressed
+            if (_kbhit()) { // Check if a key is pressed for windows
                 char key = _getch(); // Get the key
                 switch (key) {
-                    case 'q':
+                    case 'LEFT' | 'q':
                         currentAction = MOVE_LEFT;
                         break;
-                    case 'd':
+                    case 'RIGHT'| 'd':
                         currentAction = MOVE_RIGHT;
                         break;
-                    case 'z':
+                    case 'UP'| 'z':
                         currentAction = ROTATE;
                         break;
-                    case 's':
+                    case 'DOWN'| 's':
                         currentAction = DROP;
                         break;
                     default:
                         break;
                 }
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // Polling delay
+            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // delay to not overload the cpu
         }
     }
 };
-
-
-
