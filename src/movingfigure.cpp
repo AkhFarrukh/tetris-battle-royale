@@ -11,8 +11,7 @@
 
 
 
-class CurrentFigure {
-    //todo rename to MovingFigure maybe?
+class MovingFigure {
     //todo this class doesnt account for setters and getters for other classes, but it will be chaged
 private:
     Figure  tetromino_;
@@ -24,7 +23,7 @@ private:
 
 public:
     //Constructor
-    CurrentFigure(Figure tetromino);
+    MovingFigure(Figure tetromino);
 
     Point getPosition();
     void setPosition(Point newPosition);
@@ -32,13 +31,13 @@ public:
     void setFigure(Figure newFigure);
 };
 
-CurrentFigure::CurrentFigure(Figure tetromino)
+MovingFigure::MovingFigure(Figure tetromino)
     : tetromino_{tetromino}, {
     position_ = getSpawnPosition(tetromino_.shape);
     updateBlocks();
 }
 
-Point CurrentFigure::getSpawnPosition(FigureShape shape) {
+Point MovingFigure::getSpawnPosition(FigureShape shape) {
     /* Method takes the shape of the figure from enum class and returns
      * a Point of the default position when spawning the figure on grid
      * for given shape. Spawning position is the position of top left corner
@@ -54,7 +53,7 @@ Point CurrentFigure::getSpawnPosition(FigureShape shape) {
     }
 }
 
-void CurrentFigure::updateBlocks() {
+void MovingFigure::updateBlocks() {
     /* This method takes offsets of each block of figure and calculates their
      * actual position
      * */
@@ -69,11 +68,11 @@ void CurrentFigure::updateBlocks() {
     }
 }
 
-Point CurrentFigure::getPosition() {
+Point MovingFigure::getPosition() {
     return position_;
 }
 
-void CurrentFigure::setPosition(int newPosition) {
+void MovingFigure::setPosition(int newPosition) {
     /* This method should be used to change position of figure
      *
      * */
@@ -81,11 +80,11 @@ void CurrentFigure::setPosition(int newPosition) {
     updateBlocks();
 }
 
-Figure CurrentFigure::getPosition() {
+Figure MovingFigure::getPosition() {
     return tetromino_;
 }
 
-void CurrentFigure::setFigure(Figure newFigure) {
+void MovingFigure::setFigure(Figure newFigure) {
     /* This method should be used to change shape of figure relative to corner position
      * in case of rotation for example.
      * */
