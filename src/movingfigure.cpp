@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-
+//comment
 
 class MovingFigure {
     //todo this class doesnt account for setters and getters for other classes, but it will be chaged
