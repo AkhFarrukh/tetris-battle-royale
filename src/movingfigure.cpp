@@ -9,23 +9,32 @@
 #include <string>
 #include <vector>
 
-//comment
+#include "tetrominoshape.cpp"
+#include "coordinates.cpp"
+#include "block.cpp"
+#include "color.cpp"
+#include "figure.cpp"
+
+
 
 class MovingFigure {
-    //todo this class doesnt account for setters and getters for other classes, but it will be chaged
 private:
     Figure  tetromino_;
-    Point   position_; //position of upper left corner of figure in the grid
-    std::vector<Point> blocks_; //vector of actual coordinates of each block
-
-    Point getSpawnPosition(TetrominoShape shape);
+    Coordinates position_; //position of centerpiece of tetromino
+    std::vector<Coordinates> blockPositions_;
+    //vector of actual coordinates of each block
+    //todo not sure if it should be vector of blocks
+    Coordinates getSpawnPosition(TetrominoShape shape);
     void updateBlocks();
 
+    /* todo need some kind of communication between grid or game to know
+     * todo if a move can be made
+     */
 public:
     //Constructor
     MovingFigure(Figure tetromino);
 
-    Point getPosition();
+    Coordinates getPosition();
     void setPosition(Point newPosition);
     Figure getFigure();
     void setFigure(Figure newFigure);
@@ -33,7 +42,8 @@ public:
 
 MovingFigure::MovingFigure(Figure tetromino)
     : tetromino_{tetromino}, {
-    position_ = getSpawnPosition(tetromino_.shape);
+    position_ = getSpawnPosition(tetromino_->getShape);
+    //todo i need to know the shape
     updateBlocks();
 }
 
@@ -45,25 +55,34 @@ Point MovingFigure::getSpawnPosition(FigureShape shape) {
      *
      * Game mechanic reference: https://tetris.com/play-tetris
      * different from Electronika-60, Apple-IIGS and Nintendo GameBoy versions.
-     * */
+     */
     switch (shape) {
-        case FigureShape::I: return {Point(3, 1)};
-        case FigureShape::O: return {Point(4, 0)};
-        default:             return {Point(3, 0)};
+        //todo change based on figure class implementation of each figure
+        case FigureShape::I: return {Coordinates(3, 1)};
+        case FigureShape::O: return {Coordinates(4, 0)};
+        default:             return {Coordinates(3, 0)};
     }
 }
 
 void MovingFigure::updateBlocks() {
     /* This method takes offsets of each block of figure and calculates their
      * actual position
-     * */
-    bool firstInitialization = blocks_.empty();
+     */
+    bool firstInitialization = blocks_.empty(); //checks if vector is empty
     for(int index = 0; i < 4; i++){
         if(firstInitialization){
-            blockRealPosition = position_ //todo + offset tetromino_.blocks[index]
-            blocks_.push_back(tetromino_.blocks[index])
+            //if vector is empty
+            x = position_->getX() + tetromino_->getFigBlocks()[i]->getX();
+            y = position_->getY() + tetromino_->getFigBlocks()[i]->getY();
+            //todo need a method to get individual blocks
+            //todo maybe ignore first block since it'll be (0,0)
+            blockRealPosition = Coordinates(x, y);
+            blockPositions_.push_back(blockRealPosition);
         } else {
-            blocks_[index] = position_ //todo + offset tetromino_.blocks[index]
+            blocks_[index]->getX() = position_->getX() +
+                                     tetromino_->getFigBlocks()[i]->getX();
+            blocks_[index]->getY() = position_->getY() +
+                                     tetromino_->getFigBlocks()[i]->getY();
         }
     }
 }
@@ -75,7 +94,7 @@ Point MovingFigure::getPosition() {
 void MovingFigure::setPosition(int newPosition) {
     /* This method should be used to change position of figure
      *
-     * */
+     */
     position_ = newPosition;
     updateBlocks();
 }
@@ -85,9 +104,9 @@ Figure MovingFigure::getPosition() {
 }
 
 void MovingFigure::setFigure(Figure newFigure) {
-    /* This method should be used to change shape of figure relative to corner position
-     * in case of rotation for example.
-     * */
+    /* This method should be used to change shape of figure
+     * relative to center position in case of rotation for example.
+     */
     tetromino_ = newFigure;
     updateBlocks();
 }
