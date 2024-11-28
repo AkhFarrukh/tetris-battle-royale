@@ -1,7 +1,10 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
-#include <conio.h> // for windows ill add for linux when i find out how ;)
+#include <ncurses.h>
+#include <chrono>
+
+/* The ncurses lib needs to be added to the makefile*/
 
 class Input {
 public:
@@ -17,14 +20,20 @@ public:
 
     ~Input() {
         stop();
+        endwin(); // Restore terminal to normal state
     }
 
     // Start listening for input in a separate thread
     void start() {
+        initscr();       // Initialize ncurses
+        cbreak();        // Disable line buffering
+        noecho();        // Disable echoing of typed characters
+        nodelay(stdscr, TRUE); // Make getch() non-blocking
+        keypad(stdscr, TRUE);  // Enable special keys like arrow keys
         inputThread = std::thread(&Input::listenForInput, this);
     }
 
-    // Stop the input thread because we dont need it active at all times :)
+    // Stop the input thread cuz needed only when listening
     void stop() {
         isRunning = false;
         if (inputThread.joinable()) {
@@ -32,10 +41,9 @@ public:
         }
     }
 
-    // Retrieve the latest action and reset it
     Action getAction() {
         Action action = currentAction.load();
-        currentAction = NONE; // Reset after giving the info so it can be reused 
+        currentAction = NONE; // Reset after giving the info so it can be reused
         return action;
     }
 
@@ -46,26 +54,28 @@ private:
 
     void listenForInput() {
         while (isRunning) {
-            if (_kbhit()) { // Check if a key is pressed for windows
-                char key = _getch(); // Get the key
-                switch (key) {
-                    case 'LEFT' | 'q':
-                        currentAction = MOVE_LEFT;
-                        break;
-                    case 'RIGHT'| 'd':
-                        currentAction = MOVE_RIGHT;
-                        break;
-                    case 'UP'| 'z':
-                        currentAction = ROTATE;
-                        break;
-                    case 'DOWN'| 's':
-                        currentAction = DROP;
-                        break;
-                    default:
-                        break;
-                }
+            int key = getch(); // Non-blocking key press
+            switch (key) {
+                case KEY_LEFT:
+                case 'q': 
+                    currentAction = MOVE_LEFT;
+                    break;
+                case KEY_RIGHT:
+                case 'd': 
+                    currentAction = MOVE_RIGHT;
+                    break;
+                case KEY_UP:
+                case 'z': 
+                    currentAction = ROTATE;
+                    break;
+                case KEY_DOWN:
+                case 's': 
+                    currentAction = DROP;
+                    break;
+                default:
+                    break;
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // delay to not overload the cpu
+            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // Delay to avoid CPU overload
         }
     }
 };
