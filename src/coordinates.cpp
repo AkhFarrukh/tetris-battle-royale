@@ -22,7 +22,7 @@ class Coordinates{
       return Coordinates{x + other.x, y + other.y};
     }
 
-    Coordinates& operator+=(const Coordinates1 other){
+    Coordinates& operator+=(const Coordinates& other){
       x += other.x;
       y += other.y;
       return *this
