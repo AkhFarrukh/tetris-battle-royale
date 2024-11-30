@@ -35,7 +35,7 @@ class Coordinates{
     Coordinates& operator-=(const Coordinates1 other){
       x -= other.x;
       y -= other.y;
-      return *this
+      return *this;
     }
 
     bool operator==(const Coordinates& other) const{
