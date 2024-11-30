@@ -8,6 +8,7 @@
 #include <ranges>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "tetrominoshape.cpp"
 #include "coordinates.cpp"
@@ -21,11 +22,51 @@ class MovingFigure {
 private:
     Figure  tetromino_;
     Coordinates position_; //position of centerpiece of tetromino
-    std::vector<Coordinates> blockPositions_;
+
     //vector of actual coordinates of each block
+    std::vector<Coordinates> blockPositions_;
     //todo not sure if it should be vector of blocks
-    Coordinates getSpawnPosition(TetrominoShape shape);
+
+    //shared pointer to grid
+    std::shared_ptr<Grid> grid_;
+
+    unsigned int rotationState = 0;
+
+
+    Coordinates getSpawnPosition(TetrominoShape shape, );
+
     void updateBlocks();
+    void updateBlocks(
+            const Coordinates& position,
+            const shared_ptr<Figure>& tetromino,
+            std::vector<Coordinates>& blockPositions
+            );
+
+    void checkBlockPositions();
+
+    void initializeBlockPosition(
+            int index,
+            const Coordinates& position,
+            const shared_ptr<Figure>& tetromino,
+            std::vector<Coordinates>& blockPositions
+            );
+
+    void updateBlockPosition(
+            int index,
+            const Coordinates& position,
+            const shared_ptr<Figure>& tetromino,
+            std::vector<Coordinates>& blockPositions
+            );
+
+    bool allowBlock(Coordinates blockPosition);
+    bool allowAction(
+            const Coordinates newPosition,
+            const shared_ptr<Figure>& newFigure
+            );
+
+    void rotateRight();
+    void rotateLeft();
+
 
     /* todo need some kind of communication between grid or game to know
      * todo if a move can be made
@@ -35,10 +76,17 @@ public:
     MovingFigure(Figure tetromino);
 
     Coordinates getPosition();
-    void setPosition(Point newPosition);
+    bool setPosition(const Coordinates newPosition);
     Figure getFigure();
-    void setFigure(Figure newFigure);
+    bool setFigure(const shared_ptr<Figure>& newFigure);
+
+    bool setPosAndFig(
+            const Coordinates newPosition,
+            const shared_ptr<Figure>& newFigure
+    );
 };
+
+
 
 MovingFigure::MovingFigure(Figure tetromino)
     : tetromino_{tetromino}, {
@@ -64,49 +112,150 @@ Point MovingFigure::getSpawnPosition(FigureShape shape) {
     }
 }
 
-void MovingFigure::updateBlocks() {
-    /* This method takes offsets of each block of figure and calculates their
-     * actual position
-     */
-    bool firstInitialization = blocks_.empty(); //checks if vector is empty
-    for(int index = 0; i < 4; i++){
-        if(firstInitialization){
-            //if vector is empty
-            x = position_->getX() + tetromino_->getFigBlocks()[i]->getX();
-            y = position_->getY() + tetromino_->getFigBlocks()[i]->getY();
-            //todo need a method to get individual blocks
-            //todo maybe ignore first block since it'll be (0,0)
-            blockRealPosition = Coordinates(x, y);
-            blockPositions_.push_back(blockRealPosition);
-        } else {
-            blocks_[index]->getX() = position_->getX() +
-                                     tetromino_->getFigBlocks()[i]->getX();
-            blocks_[index]->getY() = position_->getY() +
-                                     tetromino_->getFigBlocks()[i]->getY();
-        }
-    }
+
+/*****************************************************************************
+ * Methods to work with blocks
+ *****************************************************************************/
+
+
+void MovingFigure::initializeBlockPosition(
+        int index,
+        const Coordinates& position,
+        const shared_ptr<Figure>& tetromino,
+        std::vector<Coordinates>& blockPositions
+        ){
+  /* Adds real coordinates of a block to a vector
+   */
+  Coordinates realPosition = position + tetromino->getFigBlocks()[index];
+  blockPositions.push_back(realPosition);
 }
+
+void MovingFigure::updateBlockPosition(
+        int index,
+        const Coordinates& position,
+        const shared_ptr<Figure>& tetromino,
+        std::vector<Coordinates>& blockPositions
+        ){
+  /* Updates real coordinates of a block in a vector
+   */
+  blockPositions[index] = position + tetromino.getFigBlocks()[index];
+}
+void MovingFigure::updateBlocks() {
+  updateBlocks(position_, tetromino_, blockPositions_);
+}
+
+void MovingFigure::updateBlocks(
+        const Coordinates& position,
+        const shared_ptr<Figure>& tetromino,
+        std::vector<Coordinates>& blockPositions
+        ) {
+  /* This method takes offsets of each block of figure and calculates their
+   * actual position
+   */
+  bool firstInitialization = blockPositions.empty(); //checks if vector is empty
+  for(int index = 0; index < 4; index++){
+    if(firstInitialization){
+      //if vector is empty
+      initializeBlockPosition(index, position, tetromino, blockPositions);
+      //todo maybe ignore first block since it'll be (0,0)
+    } else {
+      updateBlockPosition(index);
+    }
+  }
+}
+
+bool MovingFigure::allowBlock(Coordinates blockPosition){
+  return grid_->isBlockFree(blockPosition);
+  //todo use real method from grid when it will be available
+}
+
+
+bool MovingFigure::allowAction(
+        const Coordinates newPosition,
+        const shared_ptr<Figure>& newFigure
+        ){
+  std::vector<Coordinates> newBlockPositions;
+  updateBlocks(newPosition, newFigure, newBlockPositions);
+  for(int index = 0; index < 4; index++){
+    if(!allowBlock(newBlockPositions[index])){
+      return false;
+    }
+  }
+  return true;
+}
+
+
+
 
 Point MovingFigure::getPosition() {
-    return position_;
+  return position_;
 }
 
-void MovingFigure::setPosition(int newPosition) {
-    /* This method should be used to change position of figure
-     *
-     */
+bool MovingFigure::setPosition(const Coordinates newPosition) {
+  /* This method should be used to change position of figure
+   *
+   */
+  if(allowAction(newPosition, tetromino_)){
     position_ = newPosition;
     updateBlocks();
+    return true
+  }
+  return false;
 }
 
-Figure MovingFigure::getPosition() {
+Figure MovingFigure::getFigure() {
     return tetromino_;
 }
 
-void MovingFigure::setFigure(Figure newFigure) {
-    /* This method should be used to change shape of figure
-     * relative to center position in case of rotation for example.
-     */
+bool MovingFigure::setFigure(const shared_ptr<Figure>& newFigure) {
+  /* This method should be used to change shape of figure
+   * relative to center position in case of rotation for example.
+   */
+  if(allowAction(position_, newFigure)){
     tetromino_ = newFigure;
     updateBlocks();
+    return true;
+  }
+  return false;
+}
+
+bool MovingFigure::setPosAndFig(
+        const Coordinates newPosition,
+        const shared_ptr<Figure>& newFigure
+        ){
+  /* Should be used if you need to do a translation at the same time in case
+   * of wall kicks
+   * https://tetris.wiki/Super_Rotation_System
+   */
+  if(allowAction(newPosition, newFigure)){
+    position_ = newPosition;
+    tetromino_ = newFigure;
+    updateBlocks();
+    return true;
+  }
+  return false;
+}
+
+
+unsigned int MovingFigure::getCurrentRotationState(){
+  /* Returns the number of current rotation state that is 0 by default
+   * consult the chart to understand which state corresponds to what position
+   * of blocks
+   * https://tetris.wiki/Super_Rotation_System
+   */
+  return rotationState;
+}
+
+void MovingFigure::rotateRight() {
+  /* updates rotation state value when making a right rotation
+   *
+   */
+  rotationState = (rotationState + 1) % 4;
+}
+
+void MovingFigure::rotateLeft(){
+  /* updates rotation state value when making a left rotation
+ *
+ */
+  rotationState = (rotationState - 1) % 4;
 }
