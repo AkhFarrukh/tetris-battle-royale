@@ -14,6 +14,7 @@ class Block{
         // A constructor
         Block(Color _colour, int _size, Coordinates _position) : 
               colour{_colour}, size{_size}, position{_position}, empty{false} {}
+              colour{_colour}, size{_size}, position{_position}, empty{false} {}
 
         // Getters
         Color getColour()           {return colour;}
@@ -24,6 +25,7 @@ class Block{
         Coordinates getPosition()   {return position;}
         int getX()                  {return position.x;}
         int getY()                  {return position.y;}
+        bool isEmpty()              {return empty;}
 
         // Setters
         void setColour(Color newColour) {colour = newColour;}
