@@ -25,7 +25,6 @@ class Block{
         int getX()                  {return position.x;}
         int getY()                  {return position.y;}
         bool isEmpty()              {return empty;}
-        bool isEmpty()              {return empty;}
 
         // Setters
         void setColour(Color newColour) {colour = newColour;}
