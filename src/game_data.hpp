@@ -28,7 +28,7 @@ class GameData{
     void set_gameMode(const std::string& newGameMode);   // pas utile pour partie 1 
 
     void updateScore(int points);
-    void showData();  
+    void showData() const;  
 
 };
 
