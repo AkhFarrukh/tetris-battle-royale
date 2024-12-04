@@ -3,7 +3,7 @@
 
 
 GameData::GameData(int score, int numberLinesBroken, bool isGameOver, const std::string& gameMode) :
-    score(score), numberBrokenLines(numberBrokenLines), isGameOver(isGameOver), gameMode(gameMode) {}
+    score(score), numberBrokenLines(numberLinesBroken), isGameOver(isGameOver), gameMode(gameMode) {}
 
 int GameData::get_score() const{
     return score;
