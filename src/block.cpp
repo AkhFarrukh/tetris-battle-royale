@@ -31,6 +31,7 @@ class Block{
         void setEmpty(bool newEmpty)    {empty = newEmpty;}
 
         // Position setters
-        void setX(int newX) {position.x = newX;}
-        void setY(int newY) {position.y = newY;}
+        void setPosition(int newX, int newY)    {setX(newX); setY(newY);}
+        void setX(int newX)                     {position.x = newX;}
+        void setY(int newY)                     {position.y = newY;}
 };
