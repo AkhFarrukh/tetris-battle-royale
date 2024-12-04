@@ -2,9 +2,8 @@
 #include "game_data.hpp"
 
 
-
-GameData::GameData(int score, int numberBrokenLines, bool isGameOver, const std::string gameMode)
-:score(score), numberBrokenLines(numberBrokenLines), isGameOver(isGameOver), gameMode(gameMode) {}
+GameData::GameData(int score, int numberLinesBroken, bool isGameOver, const std::string& gameMode) :
+    score(score), numberBrokenLines(numberBrokenLines), isGameOver(isGameOver), gameMode(gameMode) {}
 
 int GameData::get_score() const{
     return score;
@@ -26,7 +25,7 @@ void GameData::set_score(int newScore){
     score = newScore;
 }
 
-void GameData::set_numberBrokenLines(int new_numberBrokenLines ){
+void GameData::set_numberBrokenLines(int new_numberBrokenLines){
     numberBrokenLines = new_numberBrokenLines;
 }
 
@@ -49,9 +48,3 @@ void GameData::showData() const{
     std::cout<< "LINES: " << numberBrokenLines << std::endl;
     
 }
-
-
-
-
-
-
