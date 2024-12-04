@@ -8,9 +8,9 @@ enum class TetrominoShape {
      */
     I, // Line
     O, // Square
-    T, // T-shape
+    T, // T-shape 
     S, // S-shape (left)
     Z, // Z-shape (right)
-    L,  // L-shape (right)
+    L, // L-shape (right)
     J, // J-shape (left)
 };
