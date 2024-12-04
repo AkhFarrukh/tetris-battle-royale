@@ -39,7 +39,7 @@ void GameData::set_gameMode(const std::string& newGameMode){
 }
 
 void GameData::updateScore(int points){
-     // A voir 
+     score = score + points;
     }
 
 void GameData::showData(){
