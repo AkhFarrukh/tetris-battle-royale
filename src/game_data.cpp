@@ -42,17 +42,16 @@ void GameData::updateScore(int points){
      score = score + points;
     }
 
-void GameData::showData(){
-    /*
+void GameData::showData() {
+    
     std::cout<< "Mode:  "<< gameMode << "\n\n";
     std::cout<< "SCORE: "<< score << std::endl;
     std::cout<< "LINES: " << numberBrokenLines << std::endl;
-    */
+    
 }
 
 
-int main(){
-    // un main pour que je puisse compiler 
-}
+
+
 
 
