@@ -24,6 +24,8 @@ class Grid {
     void clearLine(int row);
     void applyDominoEffect(int clearedRow);
     void clearFullLines();
+    void setBlock(Block newblock);
+    Color getBlockColor(int x, int y);
 };
 
 
@@ -72,4 +74,21 @@ void Grid::clearFullLines() {
             applyDominoEffect(y);  // fait decendre les couleur du dessus
         }
     }
+}
+
+void Grid::setBlock(Block newblock) {
+  Coordinates coordinates = newblock.getPosition();
+  int x = coordinates.x;
+  int y = coordinates.y;
+  if ( x >= 0 && x < 10 && y >= 0 && y < 20 ) {
+    matrix[y][x].setColour(newblock.getColour());
+    matrix[y][x].setEmpty(newblock.isEmpty());
+  }
+}
+
+Color Grid::getBlockColor(int x, int y) {
+  if ( x >= 0 && x < 10 && y >= 0 && y < 20 ) {
+    return matrix[y][x].getColour();
+    };
+    return Color::nullcolor;  // Renvoie une couleur de case vide si on sort du tableau
 }
