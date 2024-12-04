@@ -15,7 +15,7 @@ class GameData{
     bool isGameOver;
 
     public:
-    GameData();
+    GameData(int score, int numberLinesBroken, bool isGameOver, const std::string& gameMode);
     
     int get_score() const;
     int get_numberBrokenLines() const;

@@ -3,7 +3,7 @@
 
 
 
-GameData::GameData()
+GameData::GameData(int score, int numberBrokenLines, bool isGameOver, const std::string gameMode)
 :score(score), numberBrokenLines(numberBrokenLines), isGameOver(isGameOver), gameMode(gameMode) {}
 
 int GameData::get_score() const{
@@ -42,7 +42,7 @@ void GameData::updateScore(int points){
      score = score + points;
     }
 
-void GameData::showData() {
+void GameData::showData() const{
     
     std::cout<< "Mode:  "<< gameMode << "\n\n";
     std::cout<< "SCORE: "<< score << std::endl;
