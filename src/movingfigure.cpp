@@ -15,6 +15,7 @@
 #include "block.cpp"
 #include "color.cpp"
 #include "figure.cpp"
+#include "grid.cpp"
 
 
 
@@ -165,8 +166,7 @@ void MovingFigure::updateBlocks(
 }
 
 bool MovingFigure::allowBlock(Coordinates blockPosition){
-  return grid_->isBlockFree(blockPosition);
-  //todo use real method from grid when it will be available
+  return grid_->isLocationFree(blockPosition);
 }
 
 
