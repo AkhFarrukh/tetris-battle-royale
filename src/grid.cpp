@@ -1,6 +1,6 @@
 #include <iostream>
 #include  "block.cpp"
-#include  "coordinate.cpp"
+#include  "coordinates.cpp"
 #include  <vector>
 using namespace std;
 
