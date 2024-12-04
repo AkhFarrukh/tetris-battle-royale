@@ -19,7 +19,7 @@ class Grid {
             matrix.push_back(row);
         }
     }
-    bool isLocationFree(Block bloc);
+    bool isLocationFree(Coordinates blocLocation);
     bool isFullLine(int row);
     void clearLine(int row);
     void applyDominoEffect(int clearedRow);
@@ -29,8 +29,8 @@ class Grid {
 };
 
 
-bool Grid::isLocationFree(Block bloc) {
-  return bloc.isEmpty();
+bool Grid::isLocationFree(Coordinates blocLocation) {  // prend les coordonées d'un bloc situé dans la matrice et dis si il est vide ou non
+  return matrix[blocLocation.y][blocLocation.x].isEmpty();
 }
 
 bool Grid::isFullLine(int row) {
