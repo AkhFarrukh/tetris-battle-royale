@@ -6,7 +6,11 @@
 #include "action.cpp"  // This includes the Action enum class
 
 /* The ncurses lib needs to be added to the makefile in the flags section
-LDFLAGS = -lncurses */
+LDFLAGS = -lncurses 
+
+and write how to install ncurses very important
+
+*/
 
 class Input {
 private:
