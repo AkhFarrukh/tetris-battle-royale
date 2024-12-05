@@ -75,7 +75,7 @@ void Input::listenForInput() {
                 currentAction = Action::ROTATE_RIGHT;
                 break;
             case KEY_DOWN:
-            case 'SPACE':
+            case '32': // The space bar is registered as 32
                 currentAction = Action::DROP;  
                 break;
             case 's':
