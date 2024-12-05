@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include "Input.cpp"  // Assumes your Input class is in this file
+#include "input.cpp"  // Assumes your Input class is in this file
 
 int main() {
     std::cout << "Input Test Program" << std::endl;
