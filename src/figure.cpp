@@ -4,7 +4,7 @@
 #include "figure.hpp"
 
 #include "color.cpp"
-#include "tetrominoshape.cpp"
+#include "tetrominoShape.cpp"
 #include "coordinates.cpp"
 #include "block.cpp"
 

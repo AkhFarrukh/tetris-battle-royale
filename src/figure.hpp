@@ -4,7 +4,7 @@
 #ifndef FIGURE_HPP
 #define FIGURE_HPP
 
-#include "tetrominoshape.cpp"
+#include "tetrominoShape.cpp"
 #include "coordinates.cpp"
 #include "block.cpp"
 
