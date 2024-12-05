@@ -1,0 +1,7 @@
+class nextFigure{
+    private:
+        
+
+    public:
+
+};
