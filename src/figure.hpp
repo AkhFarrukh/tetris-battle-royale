@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <cassert>
+#include <map>
 
 constexpr int BLOCK_SIZE = 150;
 
@@ -21,6 +22,7 @@ class Figure {
         vector<Block> figBlocks; //4 figure's blocks, THE FIRST is the PIVOT, others are OFFSETS
         Coordinates center = Coordinates(0,0);
         TetrominoShape figShape;
+        static const map<TetrominoShape, pair<Color, vector<Coordinates>>> figReferences;
     public:
         //Constructor
         Figure(TetrominoShape _figShape);
