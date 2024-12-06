@@ -31,7 +31,7 @@ private:
     //shared pointer to grid
     std::shared_ptr<Grid> grid_;
 
-    unsigned int rotationState = 0;
+    unsigned int rotationState = 0; //todo
 
 
     Coordinates getSpawnPosition(TetrominoShape shape, );
@@ -139,7 +139,7 @@ void MovingFigure::updateBlockPosition(
         ){
   /* Updates real coordinates of a block in a vector
    */
-  blockPositions[index] = position + tetromino.getFigBlocks()[index];
+  blockPositions[index] = position + tetromino.getFigBlocks()[index]; //todo
 }
 void MovingFigure::updateBlocks() {
   updateBlocks(position_, tetromino_, blockPositions_);
