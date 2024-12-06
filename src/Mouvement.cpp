@@ -1,18 +1,13 @@
-
 #include "input.cpp"
 #include "movingfigure.cpp"
+#include "action.cpp"
 
 
 class Mouvement{
-    Input::Action action_;
+    Action action_;
     Figure* movingFigure_;
   public:
-    Mouvement(Input::Action action, MovingFigure *movFigure):action_(action), movingFigure_{movFigure}{
-      executeAction();
-      for (int i = 0; i < 7; i++){
-
-      }
-    }
+    Mouvement(Action action, MovingFigure *movFigure):action_(action), movingFigure_{movFigure}{executeAction();}
   private:
     void executeAction();
     void moveRight();
@@ -26,19 +21,19 @@ class Mouvement{
 
 void Mouvement::executeAction(){
     switch (action_) {
-        case Input::MOVE_RIGHT:
+        case MOVE_RIGHT:
             moveRight();
             break;
-        case Input::MOVE_LEFT:
+        case MOVE_LEFT:
             moveLeft();
             break;
-        case Input::DROP:
+        case DROP:
             moveDown();
             break;
-        case Input::ROTATE_RIGHT:
+        case ROTATE_RIGHT:
             rotateRight();
             break;
-        case Input::ROTATE_LEFT:
+        case ROTATE_LEFT:
             rotateLeft();
             break;
         default:
