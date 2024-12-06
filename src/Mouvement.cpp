@@ -20,8 +20,8 @@ class Mouvement{
     void moveDown();
     void rotateRight();
     void rotateLeft();
-    Figure rotateFigure(bool clockwiseRotation=true);
-    Figure rotateFigureSpecial(bool clockwiseRotation=true);
+    void rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation=true);
+    void rotateFigureSpecial(shared_ptr<Figure> figure_, bool clockwiseRotation=true);
 };
 
 void Mouvement::executeAction(){
@@ -63,12 +63,12 @@ void Mouvement::moveDown(){
 
 void Mouvement::rotateRight(){
     TetrominoShape figureShape = movingFigure_->getFigShape();
-    std::shared_ptr<Figure> figure_;
+    std::shared_ptr<Figure> figure_ = std::make_shared(movingFigure_->getFigure);
     if (figureShape == TetrominoShape::I || figureShape == TetrominoShape::O){
-        figure_ = std::make_shared<Figure>(rotateFigureSpecial());
+        rotateFigureSpecial(figure_)
     }
     else{
-        figure_ = std::make_shared<Figure>(rotateFigure());
+        rotateFigure(figure_);
     }
     Coordinates vect = ((movingFigure_->getFigure())->getCenter()-(figure_->getCenter()));
     for (int i = 0; i < 4; i++){
@@ -80,12 +80,12 @@ void Mouvement::rotateRight(){
 
 void Mouvement::rotateLeft(){
     TetrominoShape figureShape = movingFigure_->getFigShape();
-    std::shared_ptr<Figure> figure_;
+    std::shared_ptr<Figure> figure_ = std::make_shared(movingFigure_->getFigure);
     if (figureShape == TetrominoShape::I || figureShape == TetrominoShape::O){
-        figure_ = std::make_shared<Figure>(rotateFigureSpecial(false));
+        rotateFigureSpecial(figure_, false);
     }
     else{
-        figure_ = std::make_shared<Figure>(rotateFigure(false));
+        rotateFigure(figure_, false);
     }
     Coordinates vect = ((movingFigure_->getFigure())->getCenter()-(figure_->getCenter()));
     for (int i = 0; i < 4; i++){
@@ -95,8 +95,8 @@ void Mouvement::rotateLeft(){
     movingFigure_->setFigure(figure_);
 }
 
-Figure Mouvement::rotateFigure(bool clockwiseRotation){
-    Figure figure_ = movingFigure_->getFigure();
+
+void Mouvement::rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation){
     if (clockwiseRotation){
         for (int i = 0; i < 4; i++){
             figure_.setPosBlock(i, (-(figure_->getPosBlockY(i)), figure_->getPosBlockX(i)));
@@ -109,11 +109,10 @@ Figure Mouvement::rotateFigure(bool clockwiseRotation){
         }
         figure_->setCenter((figure_.getCenterY(), -(figure_->getCenterX())));
     }
-    return figure_;
 }
 
-Figure Mouvement::rotateFigureSpecial(bool clockwiseRotation){
-  Figure figure_ = movingFigure_->getFigure();
+
+void Mouvement::rotateFigureSpecial(shared_ptr<Figure> figure_, bool clockwiseRotation){
   if (clockwiseRotation){
     for (int i = 0; i < 4; i++){
        figure_.setPosBlock(i, (-(figure_->getPosBlockY(i)), figure_->getPosBlockX(i)+1));
@@ -126,5 +125,4 @@ Figure Mouvement::rotateFigureSpecial(bool clockwiseRotation){
       }
       figure_->setCenter((figure_.getCenterY() + 1, -(figure_->getCenterX())));
   }
-  return figure_;
 }
