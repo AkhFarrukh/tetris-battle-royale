@@ -47,6 +47,13 @@ Figure::Figure(TetrominoShape _figShape): figShape{_figShape}{
     }
 };
 
+Coordinates Figure::getBlockPos(int blockIndex){
+    return figBlocks[blockIndex].getPosition();
+}
+
+void Figure::setBlockPos(int blockIndex, Coordinates blockPos){
+    figBlocks[blockIndex].setPosition(blockPos);
+}
 
 void Figure::invariant() {
     assert(figBlocks.size() == 4 && "Error : Not 4 blocks in the figure ");

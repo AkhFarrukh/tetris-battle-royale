@@ -19,22 +19,23 @@ using namespace std;
 
 class Figure {
     private:
-        vector<Block> figBlocks; //4 figure's blocks, THE FIRST is the PIVOT, others are OFFSETS
+        vector<Block> figBlocks;        //4 figure's blocks, THE FIRST is the PIVOT, others are OFFSETS
         Coordinates center = Coordinates(0,0);
         TetrominoShape figShape;
-        static const map<TetrominoShape, pair<Color, vector<Coordinates>>> figReferences;
+        static const map<TetrominoShape, pair<Color, vector<Coordinates>>> figReferences;       //contient les différentes formes de figures
     public:
         //Constructor
         Figure(TetrominoShape _figShape);
         //Getters
-        vector<Block> getFigBlocks () {return figBlocks;};
-        Coordinates getCenter () {return center;};
-        TetrominoShape getFigShape();
-        Coordinates getBlockCoord(int block);
+        vector<Block> getFigBlocks () {return figBlocks;};      //getter Vector de la figure
+        Coordinates getCenter () {return center;};              //getter center
+        TetrominoShape getFigShape() {return figShape;};        //getter de la shape
+        Coordinates getBlockPos(int blockIndex);                   //getter des coordinates du bloc i
 
         //Setters
         void setFigBlocks (vector<Block> newFigBlocks) {newFigBlocks = figBlocks;};
         void setCenter (Coordinates newCenter) {center = newCenter;};
+        void setBlockPos(int blockIndex, Coordinates blockPos);
         //Other Methods
 
         //Errors handling
