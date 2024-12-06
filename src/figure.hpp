@@ -29,6 +29,8 @@ class Figure {
         //Getters
         vector<Block> getFigBlocks () {return figBlocks;};
         Coordinates getCenter () {return center;};
+        TetrominoShape getFigShape();
+        Coordinates getBlockCoord(int block);
 
         //Setters
         void setFigBlocks (vector<Block> newFigBlocks) {newFigBlocks = figBlocks;};
