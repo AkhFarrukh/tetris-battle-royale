@@ -31,7 +31,10 @@ class Block{
         void setEmpty(bool newEmpty)    {empty = newEmpty;}
 
         // Position setters
-        void setPosition(int newX, int newY)    {setX(newX); setY(newY);}
-        void setX(int newX)                     {position.x = newX;}
-        void setY(int newY)                     {position.y = newY;}
+        void setPosition(int newX, int newY)        {setX(newX); setY(newY);}
+        void setX(int newX)                         {position.x = newX;}
+        void setY(int newY)                         {position.y = newY;}
+
+        // Position setter (passing 'Coordinates' object as paramater)
+        void setPosition(Coordinates newPosition)   {position = newPosition;}
 };
