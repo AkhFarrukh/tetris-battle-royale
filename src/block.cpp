@@ -1,4 +1,3 @@
-#include <iostream>
 #include "color.cpp"
 #include "coordinates.cpp"
 
