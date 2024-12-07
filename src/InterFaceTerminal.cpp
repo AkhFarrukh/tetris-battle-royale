@@ -1,5 +1,20 @@
 #include <iostream>
 
-int main(){
-  return 0;
+class InterfaceTerminal {
+public:
+  InterfaceTerminal();
+  InterfaceTerminal(InterfaceTerminal &&) = default;
+  InterfaceTerminal(const InterfaceTerminal &) = default;
+  InterfaceTerminal &operator=(InterfaceTerminal &&) = default;
+  InterfaceTerminal &operator=(const InterfaceTerminal &) = default;
+  ~InterfaceTerminal();
+
+private:
+  
+};
+
+InterfaceTerminal::InterfaceTerminal() {
+}
+
+InterfaceTerminal::~InterfaceTerminal() {
 }
