@@ -1,6 +1,9 @@
 #include <iostream>
+#include "./game.cpp"
 
 class InterfaceTerminal {
+  Game gameClass;
+
 public:
   InterfaceTerminal();
   InterfaceTerminal(InterfaceTerminal &&) = default;
@@ -14,6 +17,7 @@ private:
 };
 
 InterfaceTerminal::InterfaceTerminal() {
+  gameClass.run();
 }
 
 InterfaceTerminal::~InterfaceTerminal() {
