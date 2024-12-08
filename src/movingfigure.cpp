@@ -8,7 +8,7 @@
 #include <ranges>
 #include <string>
 #include <vector>
-
+#include <memory>
 
 #include "tetrominoshape.cpp"
 #include "coordinates.cpp"
@@ -65,7 +65,7 @@ private:
 
 public:
     //Constructor
-    MovingFigure(Figure tetromino);
+    MovingFigure(Figure tetromino, std::shared_ptr<Grid> grid);
 
     Coordinates getPosition();
     bool setPosition(const Coordinates newPosition);
@@ -83,8 +83,8 @@ public:
 
 
 
-MovingFigure::MovingFigure(Figure tetromino)
-    : tetromino_{tetromino} {
+MovingFigure::MovingFigure(Figure tetromino, std::shared_ptr<Grid> grid)
+    : tetromino_{tetromino}, grid_{grid} {
     position_ = getSpawnPosition(tetromino_->getFigShape());
     updateBlocks();
 }
