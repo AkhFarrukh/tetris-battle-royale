@@ -8,7 +8,7 @@ enum class Color{
      * More colors can be added later.
      * Exact RGB values of each color are defined by the interface palette.
      */
-    nullcolor,  //Empty case
+    nullcolor,  //Empty case 
     cyan,    // Line
     yellow,  // Square
     purple,  // T-shape
