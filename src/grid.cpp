@@ -38,7 +38,7 @@ bool Grid::isLocationFree(Coordinates blocLocation) {  // prend les coordonées 
   std::cerr << "Erreur : Coordonnées (" << x << ", " << y << ") en dehors de la grille. "
               << "Les valeurs doivent être : 0 <= x < 10 et 0 <= y < 20." << std::endl;
 
-    return false; // Retourne false pour indiquer que la vérification a échoué
+  return false; // Retourne false pour indiquer que la vérification a échoué
 }
 
 bool Grid::isFullLine(int row) {
