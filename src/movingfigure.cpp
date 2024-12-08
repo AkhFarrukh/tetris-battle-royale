@@ -8,13 +8,13 @@
 #include <ranges>
 #include <string>
 #include <vector>
-#include <memory>
+
 
 #include "tetrominoshape.cpp"
 #include "coordinates.cpp"
 #include "block.cpp"
 #include "color.cpp"
-#include "figure.cpp"
+#include "figure.hpp"
 #include "grid.cpp"
 
 
@@ -26,15 +26,14 @@ private:
 
     //vector of actual coordinates of each block
     std::vector<Coordinates> blockPositions_;
-    //todo not sure if it should be vector of blocks
 
     //shared pointer to grid
     std::shared_ptr<Grid> grid_;
 
-    unsigned int rotationState = 0; //todo
+    unsigned int rotationState = 0; //todo this attribute is no longer needed
 
 
-    Coordinates getSpawnPosition(TetrominoShape shape, );
+    Coordinates getSpawnPosition(TetrominoShape shape);
 
     void updateBlocks();
     void updateBlocks(
@@ -65,13 +64,6 @@ private:
             const shared_ptr<Figure>& newFigure
             );
 
-    void rotateRight();
-    void rotateLeft();
-
-
-    /* todo need some kind of communication between grid or game to know
-     * todo if a move can be made
-     */
 public:
     //Constructor
     MovingFigure(Figure tetromino);
@@ -85,18 +77,24 @@ public:
             const Coordinates newPosition,
             const shared_ptr<Figure>& newFigure
     );
+
+    bool spawnSucceeded();
+
+    //todo these methods are no longer needed
+    unsigned int getCurrentRotationState();
+    void rotateRight();
+    void rotateLeft();
 };
 
 
 
 MovingFigure::MovingFigure(Figure tetromino)
     : tetromino_{tetromino}, {
-    position_ = getSpawnPosition(tetromino_->getShape);
-    //todo i need to know the shape
+    position_ = getSpawnPosition(tetromino_->getFigShape());
     updateBlocks();
 }
 
-Point MovingFigure::getSpawnPosition(FigureShape shape) {
+Coordinates MovingFigure::getSpawnPosition(TetrominoShape shape) {
     /* Method takes the shape of the figure from enum class and returns
      * a Point of the default position when spawning the figure on grid
      * for given shape. Spawning position is the position of top left corner
@@ -105,12 +103,9 @@ Point MovingFigure::getSpawnPosition(FigureShape shape) {
      * Game mechanic reference: https://tetris.com/play-tetris
      * different from Electronika-60, Apple-IIGS and Nintendo GameBoy versions.
      */
-    switch (shape) {
-        //todo change based on figure class implementation of each figure
-        case FigureShape::I: return {Coordinates(3, 1)};
-        case FigureShape::O: return {Coordinates(4, 0)};
-        default:             return {Coordinates(3, 0)};
-    }
+    return {Coordinates(4, 1)}
+    // Implementation in class figure resulted in each figure conveniently
+    // having a center in the same spawn coordinates
 }
 
 
@@ -127,9 +122,10 @@ void MovingFigure::initializeBlockPosition(
         ){
   /* Adds real coordinates of a block to a vector
    */
-  Coordinates realPosition = position + tetromino->getFigBlocks()[index];
+  Coordinates realPosition = position + tetromino->getBlockPos(index);
   blockPositions.push_back(realPosition);
 }
+
 
 void MovingFigure::updateBlockPosition(
         int index,
@@ -139,11 +135,14 @@ void MovingFigure::updateBlockPosition(
         ){
   /* Updates real coordinates of a block in a vector
    */
-  blockPositions[index] = position + tetromino.getFigBlocks()[index]; //todo
+  blockPositions[index] = position + tetromino->getBlockPos(index);
 }
+
+
 void MovingFigure::updateBlocks() {
   updateBlocks(position_, tetromino_, blockPositions_);
 }
+
 
 void MovingFigure::updateBlocks(
         const Coordinates& position,
@@ -158,12 +157,16 @@ void MovingFigure::updateBlocks(
     if(firstInitialization){
       //if vector is empty
       initializeBlockPosition(index, position, tetromino, blockPositions);
-      //todo maybe ignore first block since it'll be (0,0)
     } else {
       updateBlockPosition(index);
     }
   }
 }
+
+
+/*****************************************************************************
+ * Checkers and Verifiers
+ *****************************************************************************/
 
 bool MovingFigure::allowBlock(Coordinates blockPosition){
   return grid_->isLocationFree(blockPosition);
@@ -184,12 +187,23 @@ bool MovingFigure::allowAction(
   return true;
 }
 
+bool MovingFigure::spawnSucceeded(){
+  /* Tells if newly spawned figure appeared on top of en existing one.
+   * Should be used by game to check for gameover.
+   * Returns true is figure spawned on a free space
+   * Returns false if figure spawned on occupied space
+   */
+  return allowAction(position_,Figure);
+}
 
+/*****************************************************************************
+ * Getters and setters
+ *****************************************************************************/
 
-
-Point MovingFigure::getPosition() {
+Coordinates MovingFigure::getPosition() {
   return position_;
 }
+
 
 bool MovingFigure::setPosition(const Coordinates newPosition) {
   /* This method should be used to change position of figure
@@ -203,9 +217,11 @@ bool MovingFigure::setPosition(const Coordinates newPosition) {
   return false;
 }
 
+
 Figure MovingFigure::getFigure() {
     return tetromino_;
 }
+
 
 bool MovingFigure::setFigure(const shared_ptr<Figure>& newFigure) {
   /* This method should be used to change shape of figure
@@ -237,6 +253,7 @@ bool MovingFigure::setPosAndFig(
 }
 
 
+//todo this method is no longer needed
 unsigned int MovingFigure::getCurrentRotationState(){
   /* Returns the number of current rotation state that is 0 by default
    * consult the chart to understand which state corresponds to what position
@@ -246,6 +263,7 @@ unsigned int MovingFigure::getCurrentRotationState(){
   return rotationState;
 }
 
+//todo this method is no longer needed
 void MovingFigure::rotateRight() {
   /* updates rotation state value when making a right rotation
    *
@@ -253,6 +271,7 @@ void MovingFigure::rotateRight() {
   rotationState = (rotationState + 1) % 4;
 }
 
+//todo this method is no longer needed
 void MovingFigure::rotateLeft(){
   /* updates rotation state value when making a left rotation
  *
