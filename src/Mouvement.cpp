@@ -1,6 +1,7 @@
 #include "input.cpp"
 #include "movingfigure.cpp"
 #include "action.cpp"
+#include "figure.hpp"
 
 
 class Mouvement{
@@ -8,6 +9,7 @@ class Mouvement{
     Figure* movingFigure_;
   public:
     Mouvement(Action action, MovingFigure *movFigure):action_(action), movingFigure_{movFigure}{executeAction();}
+    void setMouvement(Action action);
   private:
     void executeAction();
     void moveRight();
@@ -27,7 +29,7 @@ void Mouvement::executeAction(){
         case MOVE_LEFT:
             moveLeft();
             break;
-        case DROP:
+        case SOFT_DROP:
             moveDown();
             break;
         case ROTATE_RIGHT:
@@ -39,6 +41,11 @@ void Mouvement::executeAction(){
         default:
             break;
         }
+}
+
+void Mouvement::setMouvement(Action action){
+  action_ = action;
+  executeAction();
 }
 
 void Mouvement::moveRight(){
