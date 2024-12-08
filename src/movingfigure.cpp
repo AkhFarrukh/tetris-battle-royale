@@ -84,7 +84,7 @@ public:
 
 
 MovingFigure::MovingFigure(Figure tetromino)
-    : tetromino_{tetromino}, {
+    : tetromino_{tetromino} {
     position_ = getSpawnPosition(tetromino_->getFigShape());
     updateBlocks();
 }
