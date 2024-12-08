@@ -193,7 +193,7 @@ bool MovingFigure::spawnSucceeded(){
    * Returns true is figure spawned on a free space
    * Returns false if figure spawned on occupied space
    */
-  return allowAction(position_,Figure);
+  return allowAction(position_,tetromino_);
 }
 
 /*****************************************************************************
