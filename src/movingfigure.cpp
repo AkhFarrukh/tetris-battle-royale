@@ -30,7 +30,6 @@ private:
     //shared pointer to grid
     std::shared_ptr<Grid> grid_;
 
-    unsigned int rotationState = 0; //todo this attribute is no longer needed
 
 
     Coordinates getSpawnPosition(TetrominoShape shape);
@@ -80,10 +79,6 @@ public:
 
     bool spawnSucceeded();
 
-    //todo these methods are no longer needed
-    unsigned int getCurrentRotationState();
-    void rotateRight();
-    void rotateLeft();
 };
 
 
@@ -253,28 +248,3 @@ bool MovingFigure::setPosAndFig(
 }
 
 
-//todo this method is no longer needed
-unsigned int MovingFigure::getCurrentRotationState(){
-  /* Returns the number of current rotation state that is 0 by default
-   * consult the chart to understand which state corresponds to what position
-   * of blocks
-   * https://tetris.wiki/Super_Rotation_System
-   */
-  return rotationState;
-}
-
-//todo this method is no longer needed
-void MovingFigure::rotateRight() {
-  /* updates rotation state value when making a right rotation
-   *
-   */
-  rotationState = (rotationState + 1) % 4;
-}
-
-//todo this method is no longer needed
-void MovingFigure::rotateLeft(){
-  /* updates rotation state value when making a left rotation
- *
- */
-  rotationState = (rotationState - 1) % 4;
-}
