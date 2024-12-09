@@ -19,9 +19,9 @@
 
 
 
-class MovingFigure {
+class MovingFigure : public Figure{
 private:
-    Figure  tetromino_;
+    Figure*  tetromino_;
     Coordinates position_; //position of centerpiece of tetromino
 
     //vector of actual coordinates of each block
@@ -65,8 +65,9 @@ private:
 
 public:
     //Constructor
-    MovingFigure(Figure tetromino, std::shared_ptr<Grid> grid);
+    MovingFigure(Figure * tetromino, std::shared_ptr<Grid> grid);
 
+    //Getter & Setter
     Coordinates getPosition();
     bool setPosition(const Coordinates newPosition);
     Figure getFigure();
@@ -77,13 +78,14 @@ public:
             const shared_ptr<Figure>& newFigure
     );
 
+    //Public methods
     bool spawnSucceeded();
 
 };
 
 
 
-MovingFigure::MovingFigure(Figure tetromino, std::shared_ptr<Grid> grid)
+MovingFigure::MovingFigure(Figure* tetromino, std::shared_ptr<Grid> grid)
     : tetromino_{tetromino}, grid_{grid} {
     position_ = getSpawnPosition(tetromino_->getFigShape());
     updateBlocks();

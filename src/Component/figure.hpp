@@ -32,6 +32,7 @@ class Figure {
         TetrominoShape getFigShape() {return figShape;};        //getter de la shape
         Coordinates getBlockPos(int blockIndex);                   //getter des coordinates du bloc i
 
+
         //Setters
         void setFigBlocks (vector<Block> newFigBlocks) {newFigBlocks = figBlocks;};
         void setCenter (Coordinates newCenter) {center = newCenter;};
