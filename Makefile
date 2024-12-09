@@ -6,12 +6,12 @@ CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++17 -lncurses -pthread
 
 # Dossiers
-SRC_DIR = .
+SRC_DIR = src
 BUILD_DIR = build
 INCLUDE_DIR = include
 
 # Liste des fichiers source
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+SRCS = $(wildcard $(SRC_DIR)/*/*.cpp)
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
 # Commandes principales
