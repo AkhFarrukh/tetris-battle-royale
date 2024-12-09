@@ -6,7 +6,7 @@
 
 class Mouvement{
     Action action_;
-    movingFigure* movingFigure_;
+    MovingFigure* movingFigure_;
   public:
     Mouvement(Action action, MovingFigure *movFigure):action_(action), movingFigure_{movFigure}{executeAction();}
     void setMouvement(Action action);
