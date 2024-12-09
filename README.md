@@ -1,3 +1,7 @@
-# Class ```Block```
+# Tetris Royal
 
-This branch is created on 21/11/2024 to build a class named ```Block```.
+This project is developed as part of the INFO-F209 "Projet de l'année" at the Université Libre de Bruxelles
+
+## Overview
+
+This project includes 1 main component called 
