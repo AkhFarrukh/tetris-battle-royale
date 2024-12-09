@@ -51,12 +51,12 @@ Coordinates Figure::getBlockPos(int blockIndex){
     return figBlocks[blockIndex].getPosition();
 }
 
-int getPosBlockX(int blockIndex){
-    return (figBlocks[blockIndex].getPosition()).x;
+int Figure::getPosBlockX(int blockIndex){
+    return (getBlockPos(blockIndex)).x;
 }
 
-int getPosBlockY(int blockIndex){
-    return (figBlocks[blockIndex].getPosition()).y;
+int Figure::getPosBlockY(int blockIndex){
+    return (getBlockPos(blockIndex)).y;
 }
 
 void Figure::setBlockPos(int blockIndex, Coordinates blockPos){
