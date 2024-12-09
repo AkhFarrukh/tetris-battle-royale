@@ -1,4 +1,4 @@
-#include "./View/InterFaceTerminal.hpp"
+#include "./InterFaceTerminal.hpp"
 
 int main() {
     InterfaceTerminal terminal;
