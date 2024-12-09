@@ -103,13 +103,13 @@ void Mouvement::rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation)
         for (int i = 0; i < 4; i++){
             figure_->setPosBlock(i, (-(figure_->getPosBlockY(i)), figure_->getPosBlockX(i)));
         }
-        figure_->setCenter((-(figure_.getCenterY()), figure_->getCenterX()));
+        figure_->setCenter((-(figure_->getCenterY()), figure_->getCenterX()));
     }
     else{
         for (int i = 0; i < 4; i++){
-            figure_.setPosBlock(i, (figure_->getPosBlockY(i), -(figure_->getPosBlockX(i))));
+            figure_->setPosBlock(i, (figure_->getPosBlockY(i), -(figure_->getPosBlockX(i))));
         }
-        figure_->setCenter((figure_.getCenterY(), -(figure_->getCenterX())));
+        figure_->setCenter((figure_->getCenterY(), -(figure_->getCenterX())));
     }
 }
 

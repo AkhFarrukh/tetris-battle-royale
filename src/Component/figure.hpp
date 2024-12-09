@@ -28,9 +28,13 @@ class Figure {
         Figure(TetrominoShape _figShape);
         //Getters
         vector<Block> getFigBlocks () {return figBlocks;};      //getter Vector de la figure
-        Coordinates getCenter () {return center;};              //getter center
+        Coordinates getCenter () {return center;};  //getter center
+        int getCenterX() {return center.x}; //getter coordonnée x de center
+        int getCenterY() {return center.y}; //getter coordonnée y de center
         TetrominoShape getFigShape() {return figShape;};        //getter de la shape
-        Coordinates getBlockPos(int blockIndex);                   //getter des coordinates du bloc i
+        Coordinates getBlockPos(int blockIndex);            //getter des coordinates du bloc i
+        int getPosBlockX(int blockIndex);
+        int getPosBlockY(int blockIndex);
 
 
         //Setters
