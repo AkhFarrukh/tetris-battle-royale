@@ -2,7 +2,7 @@
 
 Game::Game()
     : grid(std::make_shared<Grid>()),
-      activeFigure(std::make_shared<Figure>(TetrominoShape::T)),
+      activeFigure(std::make_shared<MovingFigure>(std::make_shared<Figure>(TetrominoShape::T), grid)),
       movement(Action::NONE, activeFigure),
       gameData(0, 0, false, "Endless"),
       isRunning(false) {}
@@ -19,7 +19,7 @@ void Game::run() {
         renderGame();
         checkGameOver();
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  }
+    }
     inputHandler.stop();
 }
 
@@ -30,7 +30,7 @@ void Game::stop() {
 void Game::processInput() {
     Action action = inputHandler.getAction();
     if (action != Action::NONE) {
-        movement.setMouvement(action); 
+        movement.setMouvement(action);  
     }
 }
 
@@ -40,9 +40,9 @@ void Game::updateGame() {
             grid->setBlock(block);
         }
         handleLineCompletion();
-        activeFigure = std::make_shared<Figure>(TetrominoShape::T);
+        activeFigure = std::make_shared<MovingFigure>(std::make_shared<Figure>(TetrominoShape::T), grid);
         movement = Mouvement(Action::NONE, activeFigure);
-        if (!grid->isLocationFree(activeFigure->getCenter())) {
+        if (!activeFigure->spawnSucceeded()) {
             gameData.set_isGameOver(true);
             stop();
         }
@@ -53,10 +53,10 @@ void Game::renderGame() {
     std::cout << "Score: " << gameData.get_score() << "\n";
     std::cout << "Lines: " << gameData.get_numberBrokenLines() << "\n";
 
+    //je peut faire un truc plus presentable apres, c'est juste un test version 
     for (int y = 0; y < 20; ++y) {
         for (int x = 0; x < 10; ++x) {
             if (grid->getBlockColor(x, y) == Color::nullcolor) {
-        //je peut faire un truc plus presentable apres, c'est juste un test version 
                 std::cout << ". ";
             } else {
                 std::cout << "# ";
@@ -85,4 +85,3 @@ void Game::handleLineCompletion() {
         gameData.updateScore(clearedLines * 100); // jsp comment vous aller le faire, mais si on consider que chauqe ligne est 100 point
     }
 }
-
