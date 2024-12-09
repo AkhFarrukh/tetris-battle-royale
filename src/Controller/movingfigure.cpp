@@ -9,6 +9,9 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <utility>
+
+#include "movingfigure.hpp"
 
 #include "tetrominoshape.cpp"
 #include "coordinates.cpp"
@@ -19,79 +22,13 @@
 
 
 
-class MovingFigure : public Figure{
-private:
-    Figure*  tetromino_;
-    Coordinates position_; //position of centerpiece of tetromino
-
-    //vector of actual coordinates of each block
-    std::vector<Coordinates> blockPositions_;
-
-    //shared pointer to grid
-    std::shared_ptr<Grid> grid_;
-
-
-
-    Coordinates getSpawnPosition(TetrominoShape shape);
-
-    void updateBlocks();
-    void updateBlocks(
-            const Coordinates& position,
-            const shared_ptr<Figure>& tetromino,
-            std::vector<Coordinates>& blockPositions
-            );
-
-    void checkBlockPositions();
-
-    void initializeBlockPosition(
-            int index,
-            const Coordinates& position,
-            const shared_ptr<Figure>& tetromino,
-            std::vector<Coordinates>& blockPositions
-            );
-
-    void updateBlockPosition(
-            int index,
-            const Coordinates& position,
-            const shared_ptr<Figure>& tetromino,
-            std::vector<Coordinates>& blockPositions
-            );
-
-    bool allowBlock(Coordinates blockPosition);
-    bool allowAction(
-            const Coordinates newPosition,
-            const shared_ptr<Figure>& newFigure
-            );
-
-public:
-    //Constructor
-    MovingFigure(Figure * tetromino, std::shared_ptr<Grid> grid);
-
-    //Getter & Setter
-    Coordinates getPosition();
-    bool setPosition(const Coordinates newPosition);
-    Figure getFigure();
-    bool setFigure(const shared_ptr<Figure>& newFigure);
-
-    bool setPosAndFig(
-            const Coordinates newPosition,
-            const shared_ptr<Figure>& newFigure
-    );
-
-    //Public methods
-    bool spawnSucceeded();
-
-};
-
-
-
-MovingFigure::MovingFigure(Figure* tetromino, std::shared_ptr<Grid> grid)
-    : tetromino_{tetromino}, grid_{grid} {
-    position_ = getSpawnPosition(tetromino_->getFigShape());
+MovingFigure::MovingFigure(std::shared_ptr<Figure> tetromino, std::shared_ptr<Grid> grid)
+        : tetromino_{std::move(tetromino)}, grid_{std::move(grid)} {
+    position_ = getSpawnPosition();
     updateBlocks();
 }
 
-Coordinates MovingFigure::getSpawnPosition(TetrominoShape shape) {
+Coordinates MovingFigure::getSpawnPosition() {
     /* Method takes the shape of the figure from enum class and returns
      * a Point of the default position when spawning the figure on grid
      * for given shape. Spawning position is the position of top left corner
@@ -100,7 +37,7 @@ Coordinates MovingFigure::getSpawnPosition(TetrominoShape shape) {
      * Game mechanic reference: https://tetris.com/play-tetris
      * different from Electronika-60, Apple-IIGS and Nintendo GameBoy versions.
      */
-    return {Coordinates(4, 1)}
+    return {Coordinates(4, 1)};
     // Implementation in class figure resulted in each figure conveniently
     // having a center in the same spawn coordinates
 }
@@ -136,11 +73,6 @@ void MovingFigure::updateBlockPosition(
 }
 
 
-void MovingFigure::updateBlocks() {
-  updateBlocks(position_, tetromino_, blockPositions_);
-}
-
-
 void MovingFigure::updateBlocks(
         const Coordinates& position,
         const shared_ptr<Figure>& tetromino,
@@ -155,11 +87,15 @@ void MovingFigure::updateBlocks(
       //if vector is empty
       initializeBlockPosition(index, position, tetromino, blockPositions);
     } else {
-      updateBlockPosition(index);
+      updateBlockPosition(index, position, tetromino, blockPositions);
     }
   }
 }
 
+
+void MovingFigure::updateBlocks() {
+  updateBlocks(position_, tetromino_, blockPositions_);
+}
 
 /*****************************************************************************
  * Checkers and Verifiers
@@ -209,15 +145,14 @@ bool MovingFigure::setPosition(const Coordinates newPosition) {
   if(allowAction(newPosition, tetromino_)){
     position_ = newPosition;
     updateBlocks();
-    return true
+    return true;
   }
   return false;
 }
 
 
-Figure MovingFigure::getFigure() {
+shared_ptr<Figure> MovingFigure::getFigure() {
     return tetromino_;
-}
 
 
 bool MovingFigure::setFigure(const shared_ptr<Figure>& newFigure) {
