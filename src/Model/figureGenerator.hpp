@@ -1,3 +1,7 @@
+#ifndef FIGUREGENERATOR_HPP
+#define FIGUREGENERATOR_HPP
+
+
 #include "tetrominoshape.cpp"
 #include "figure.cpp"
 #include "coordinates.cpp"
@@ -20,3 +24,6 @@ public:
     // Working function
     Figure randomFigure();
 };
+
+
+#endif
