@@ -22,9 +22,9 @@ public:
 
 
 private:
-
-  std::unique_ptr<Grid> grid;
-  std::unique_ptr<MovingFigure> activeFigure;
+  std::shared_ptr<Grid> grid;
+  std::shared_ptr<Figure> activeFigure; 
+  Mouvement movement;
   GameData gameData;
   Input inputHandler;
   bool isRunning;
@@ -34,7 +34,6 @@ private:
   void renderGame();
   void checkGameOver();
   void handleLineCompletion();
- 
-};
 
+};
 
