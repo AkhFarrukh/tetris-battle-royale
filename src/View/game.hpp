@@ -5,6 +5,7 @@
 
 #include "grid.cpp"
 #include "movingfigure.cpp"
+#include "Mouvement.cpp"
 #include "game_data.hpp"
 #include "input.cpp"
 
