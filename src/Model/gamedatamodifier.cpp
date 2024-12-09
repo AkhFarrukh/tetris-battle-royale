@@ -13,7 +13,7 @@
 
 class GameDataModifier {
 private:
-    std::shared_ptr<GameData> gameData_;
+    std::shared_ptr<GameData> gameData;
     int timeInterval = BASE_TIME_INTERVAL; //milliseconds
     int level = 1;
 
@@ -23,7 +23,7 @@ private:
 
 
 public:
-    GameDataModifier(const GameData& gameData);
+    GameDataModifier(const std::shared_ptr<GameData> gameData_);
     void registerLines(int lineNumber);
     int getTimeInterval();
 };
@@ -31,9 +31,7 @@ public:
 
 
 
-GameDataModifier::GameDataModifier(std::shared_ptr<GameData> gameData)
-  : gameData_{gameData} {
-}
+GameDataModifier::GameDataModifier(const std::shared_ptr<GameData> gameData_) : gameData{gameData_} {}
 
 int GameDataModifier::getTimeInterval() {
   return timeInterval;
@@ -56,22 +54,22 @@ void GameDataModifier::addScoreFromLines(int lineNumber){
   switch (lineNumber) {
     // using nintendo scoring system https://tetris.wiki/Scoring
     case 1:
-      gameData_->set_score(40 * (level +1));
+      gameData->set_score(40 * (level +1));
       break;
     case 2:
-      gameData_->set_score(100 * (level +1));
+      gameData->set_score(100 * (level +1));
       break;
     case 3:
-      gameData_->set_score(300 * (level +1));
+      gameData->set_score(300 * (level +1));
       break;
     case 4:
-      gameData_->set_score(1200 * (level +1));
+      gameData->set_score(1200 * (level +1));
       break;
   }
 }
 
 void GameDataModifier::levelUp() {
-  if((gameData_->get_numberBrokenLines() % LINES_FOR_LEVEL_UP)== 0){
+  if((gameData->get_numberBrokenLines() % LINES_FOR_LEVEL_UP)== 0){
     level++;
     updateTimeInterval();
   }
@@ -81,7 +79,7 @@ void GameDataModifier::levelUp() {
 
 void GameDataModifier::registerLines(int lineNumber) {
   addScoreFromLines(lineNumber);
-  gameData_->set_numberBrokenLines(
-          gameData_->get_numberBrokenLines() + lineNumber);
+  gameData->set_numberBrokenLines(
+          gameData->get_numberBrokenLines() + lineNumber);
   levelUp();
 }
