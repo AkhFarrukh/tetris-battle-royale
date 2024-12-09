@@ -1,12 +1,16 @@
-#include "./InterFaceTerminal.hpp"
+#include <iostream>
+#include "./game.cpp"
 
-InterfaceTerminal::InterfaceTerminal() : gameClass() {}
+class InterfaceTerminal {
+  Game gameClass;
 
-InterfaceTerminal::~InterfaceTerminal() {}
+public:
+  InterfaceTerminal();
+//  InterfaceTerminal(InterfaceTerminal &&) = default;
+//  InterfaceTerminal(const InterfaceTerminal &) = default;
+//  InterfaceTerminal &operator=(InterfaceTerminal &&) = default;
+//  InterfaceTerminal &operator=(const InterfaceTerminal &) = default;
+  ~InterfaceTerminal();
 
-void InterfaceTerminal::start() {
-    std::cout << "Welcome to Tetris Royale (Terminal Edition)!\n";
-    std::cout << "Press Ctrl+C to exit at any time.\n";
-    gameClass.run();
-}
-
+  void start();
+};
