@@ -1,3 +1,7 @@
+#ifndef INPUT_HPP
+#define INPUT_HPP
+
+
 #include <iostream>
 #include <thread>
 #include <atomic>
@@ -31,3 +35,5 @@ public:
     void stop();
     Action getAction();
 };
+
+#endif

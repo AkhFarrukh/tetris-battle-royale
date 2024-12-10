@@ -1,3 +1,6 @@
+#ifndef INTERFACETERMINAL_HPP
+#define INTERFACETERMINAL_HPP
+
 #include <iostream>
 #include "./game.hpp"
 
@@ -14,3 +17,5 @@ public:
 
   void start();
 };
+
+#endif

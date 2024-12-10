@@ -1,6 +1,3 @@
-#ifndef INPUT_HPP
-#define INPUT_HPP
-
 #include "input.hpp"
 
 Input::Input() : currentAction(Action::NONE), isRunning(true) {}  // Correct initialization with Action::NONE
@@ -63,5 +60,3 @@ void Input::listenForInput() {
         std::this_thread::sleep_for(std::chrono::milliseconds(50)); // Delay to avoid CPU overload
     }
 }
-
-#endif

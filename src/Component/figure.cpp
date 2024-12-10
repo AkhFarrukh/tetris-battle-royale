@@ -8,9 +8,6 @@
 // #include "coordinates.cpp"
 // #include "block.cpp"
 
-#include <vector>
-#include <cassert>
-
 using namespace std;
 
 const map<TetrominoShape, pair<Color, vector<Coordinates>>> Figure::figReferences = {
