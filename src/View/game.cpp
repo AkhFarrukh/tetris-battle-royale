@@ -76,9 +76,10 @@ void Game::renderGame() {
             if(activeFigure.isInFigure(Coordinates(x, y)) != Color::nullcolor){
                 std::cout <<"# ";
             }
-            if (grid->getBlockColor(x, y) == Color::nullcolor) {
+            else if (grid->getBlockColor(x, y) == Color::nullcolor) {
                 std::cout << ". ";
-            } else {
+            } 
+            else {
                 std::cout << "# ";
             }
         }
