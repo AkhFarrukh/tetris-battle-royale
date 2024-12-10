@@ -2,7 +2,7 @@
 #define INTERFACETERMINAL_HPP
 
 #include <iostream>
-#include "./game.hpp"
+#include "game.hpp"
 
 class InterfaceTerminal {
   Game gameClass;

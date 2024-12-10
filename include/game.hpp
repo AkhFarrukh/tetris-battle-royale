@@ -8,14 +8,14 @@
 #include <chrono>
 #include <vector>
 
-#include "../Component/grid.cpp"
-#include "../Controller/movingfigure.cpp"
-#include "../Controller/Mouvement.cpp"
-#include "../Model/game_data.cpp"
-#include "../Controller/input.cpp"
+#include "grid.hpp"
+#include "movingfigure.hpp"
+#include "Mouvement.hpp"
+#include "game_data.hpp"
+#include "input.hpp"
 
-#include "../Model/figureGenerator.cpp"
-#include "../Controller/ControllerEnum.hpp"
+#include "figureGenerator.hpp"
+#include "ControllerEnum.hpp"
 
 class Game {
 public:

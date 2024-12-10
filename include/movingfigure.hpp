@@ -14,12 +14,12 @@
 #include <memory>
 #include <utility>
 
-#include "../Component/ComponentEnum.hpp"
+#include "ComponentEnum.hpp"
 // #include "../Component/coordinates.cpp"
-#include "../Component/block.cpp"
+#include "Block.hpp"
 // #include "../Component/color.cpp"
-#include "../Component/figure.hpp"
-#include "../Component/grid.cpp"
+#include "figure.hpp"
+#include "grid.hpp"
 
 class MovingFigure : public Figure{
 private:

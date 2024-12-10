@@ -3,7 +3,7 @@
 
 #pragma once
 #include <iostream>
-#include  "block.cpp"
+#include  "Block.hpp"
 // #include  "coordinates.cpp"
 #include  <vector>
 using namespace std;

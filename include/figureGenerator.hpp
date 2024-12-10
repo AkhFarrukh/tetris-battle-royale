@@ -2,8 +2,8 @@
 #define FIGUREGENERATOR_HPP
 
 
-#include "../Component/ComponentEnum.hpp"
-#include "../Component/figure.cpp"
+#include "ComponentEnum.hpp"
+#include "figure.hpp"
 // #include "../Component/coordinates.cpp"
 #include <random>
 

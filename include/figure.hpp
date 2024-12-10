@@ -5,8 +5,7 @@
 #define FIGURE_HPP
 
 #include "ComponentEnum.hpp"
-// #include "coordinates.cpp"
-#include "block.cpp"
+#include "Block.hpp"
 
 #include <vector>
 #include <cassert>

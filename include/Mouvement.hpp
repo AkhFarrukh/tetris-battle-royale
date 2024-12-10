@@ -1,12 +1,10 @@
 #ifndef MOUVEMENT_HPP
 #define MOUVEMENT_HPP
 
-#include "input.cpp"
-#include "movingfigure.cpp"
+#include "input.hpp"
+#include "movingfigure.hpp"
 #include "ControllerEnum.hpp"
-// #include "figure.hpp"
-
-#include "../Component/figure.hpp"
+#include "figure.hpp"
 
 
 class Mouvement{
