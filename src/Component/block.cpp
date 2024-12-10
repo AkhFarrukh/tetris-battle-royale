@@ -1,5 +1,5 @@
 #pragma once
-#include "color.cpp"
+#include "ComponentEnum.hpp"
 #include "coordinates.cpp"
 
 

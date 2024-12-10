@@ -7,7 +7,7 @@
 #include <atomic>
 #include <ncurses.h>
 #include <chrono>
-#include "action.cpp"  // This includes the Action enum class
+#include "ControllerEnum.hpp" // This includes the Action enum class
 
 /* The ncurses lib needs to be added to the makefile in the flags section
 LDFLAGS = -lncurses 
