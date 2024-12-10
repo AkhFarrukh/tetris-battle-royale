@@ -1,6 +1,6 @@
 #include "input.cpp"
 #include "movingfigure.hpp"
-#include "action.cpp"
+#include "ControllerEnum.hpp"
 // #include "figure.hpp"
 
 #include "../Component/figure.hpp"

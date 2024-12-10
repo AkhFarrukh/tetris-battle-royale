@@ -1,8 +1,10 @@
+#ifndef COMPONENT_ENUM_HPP
+#define COMPONENT_ENUM_HPP
+
 //
 // Created by farrukh on 23/11/24.
 //
 
-#pragma once
 enum class Color{
     /* This enum class serves to easily distinguish colors without using strings or other data types.
      * It contains generalized names of colors used in the game.
@@ -18,3 +20,18 @@ enum class Color{
     orange,  // L-shape (right)
     blue,    // J-shape (left)
 };
+
+
+enum class TetrominoShape {
+    /* This enum class serves to distinguish the shape of a tetromino figure.
+     *
+     */
+    I, // Line
+    O, // Square
+    T, // T-shape
+    S, // S-shape (left)
+    Z, // Z-shape (right)
+    L,  // L-shape (right)
+    J, // J-shape (left)
+};
+#endif

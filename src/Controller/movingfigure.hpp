@@ -14,7 +14,7 @@
 #include <memory>
 #include <utility>
 
-#include "../Component/tetrominoshape.cpp"
+#include "../Component/ComponentEnum.hpp"
 // #include "../Component/coordinates.cpp"
 #include "../Component/block.cpp"
 // #include "../Component/color.cpp"
