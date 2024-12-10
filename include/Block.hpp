@@ -15,8 +15,7 @@ class Block{
 
     public:
         // A constructor
-        Block(Color _colour, int _size, Coordinates _position) : 
-              colour{_colour}, size{_size}, position{_position}, empty{false} {}
+        Block(Color _colour, int _size, Coordinates _position); 
 
         // Getters
         Color getColour();

@@ -1,6 +1,10 @@
 #include "Block.hpp"
 
 
+Block::Block(Color _colour, int _size, Coordinates _position): colour{_colour}, size{_size}, position{_position}, empty{false} {}
+
+
+
 Color Block::getColour()           {return colour;}
 int Block::getSize()               {return size;}
 bool Block::isEmpty()              {return empty;}
