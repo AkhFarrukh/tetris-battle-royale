@@ -14,19 +14,19 @@ void Game::run() {
     isRunning = true;
     inputHandler.start();
     auto chrono = chrono::steady_clock::now();
+    auto now = std::chrono::steady_clock::now();
     while (isRunning) {
-        auto now = std::chrono::steady_clock::now();
         auto currentTime = chrono::duration_cast<chrono::milliseconds>(chrono-now);
         processInput();
-        if (currentTime > chrono::milliseconds(500))
+        if (currentTime < chrono::milliseconds(500))
         {
             updateGame();
-            auto chrono = chrono::steady_clock::now();
+            auto now = std::chrono::steady_clock::now();
         }
         system("clear");
         renderGame();
         checkGameOver();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
     inputHandler.stop();
 }

@@ -4,3 +4,5 @@
 /backup
 #Object file
 /build/*
+#Exe
+tetris.exe

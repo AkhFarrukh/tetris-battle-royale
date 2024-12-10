@@ -1,5 +1,5 @@
 # Nom de l'exécutable final
-TARGET = tetris
+TARGET = tetris.exe
 
 # Compilateur et options
 CXX = g++
