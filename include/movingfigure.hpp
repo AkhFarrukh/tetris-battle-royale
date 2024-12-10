@@ -14,7 +14,6 @@
 #include <memory>
 #include <utility>
 
-#include "ComponentEnum.hpp"
 // #include "../Component/coordinates.cpp"
 #include "Block.hpp"
 // #include "../Component/color.cpp"

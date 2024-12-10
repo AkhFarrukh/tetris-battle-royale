@@ -8,14 +8,11 @@
 #include <chrono>
 #include <vector>
 
-#include "grid.hpp"
-#include "movingfigure.hpp"
 #include "Mouvement.hpp"
 #include "game_data.hpp"
 #include "input.hpp"
 
 #include "figureGenerator.hpp"
-#include "ControllerEnum.hpp"
 
 class Game {
 public:

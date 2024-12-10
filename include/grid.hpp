@@ -1,7 +1,6 @@
 #ifndef GRID_HPP
 #define GRID_HPP
 
-#pragma once
 #include <iostream>
 #include  "Block.hpp"
 // #include  "coordinates.cpp"
