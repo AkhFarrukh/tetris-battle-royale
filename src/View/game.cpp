@@ -67,8 +67,8 @@ void Game::updateGame() {
 }
 
 void Game::renderGame() {
-    std::cout << "Score: " << gameData.get_score() << "\n";
-    std::cout << "Lines: " << gameData.get_numberBrokenLines() << "\n";
+    std::cout << "Score: " << gameData.get_score() << endl << '\r';
+    std::cout << "Lines: " << gameData.get_numberBrokenLines() << endl << "\r";
 
     //je peut faire un truc plus presentable apres, c'est juste un test version 
     for (int y = 0; y < 20; ++y) {
@@ -79,7 +79,7 @@ void Game::renderGame() {
                 std::cout << "# ";
             }
         }
-        std::cout << "\n";
+        std::cout << endl << '\r';
     }
 }
 
