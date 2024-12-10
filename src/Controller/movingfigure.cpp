@@ -2,14 +2,14 @@
 // Created by farrukh on 22/11/24.
 //
 
-#include <cmath>
-#include <cstdlib>
-#include <numbers>
-#include <ranges>
-#include <string>
-#include <vector>
-#include <memory>
-#include <utility>
+// #include <cmath>
+// #include <cstdlib>
+// #include <numbers>
+// #include <ranges>
+// #include <string>
+// #include <vector>
+// #include <memory>
+// #include <utility>
 
 #include "movingfigure.hpp"
 

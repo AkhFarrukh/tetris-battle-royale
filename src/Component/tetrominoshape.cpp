@@ -1,7 +1,7 @@
 //
 // Created by farrukh on 23/11/24.
 //
-
+#pragma once
 enum class TetrominoShape {
     /* This enum class serves to distinguish the shape of a tetromino figure.
      *

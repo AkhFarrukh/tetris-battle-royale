@@ -10,8 +10,8 @@ SRC_DIR = ./src
 BUILD_DIR = ./build
 
 # Liste des fichiers source
-SRCS = $(wildcard $(SRC_DIR)/**/*.cpp)
-OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
+SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp")
+OBJS = $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%, $(SRCS:.cpp=.o))
 
 # Commandes principales
 .PHONY: all clean run
@@ -24,7 +24,7 @@ $(TARGET): $(OBJS)
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	mkdir -p $(dir $@)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Nettoyage des fichiers générés
@@ -34,3 +34,4 @@ clean:
 # Exécuter le jeu après compilation
 run: all
 	./$(TARGET)
+

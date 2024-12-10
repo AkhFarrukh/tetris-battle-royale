@@ -1,5 +1,5 @@
 #include "input.cpp"
-#include "movingfigure.cpp"
+#include "movingfigure.hpp"
 #include "action.cpp"
 // #include "figure.hpp"
 
@@ -8,64 +8,69 @@
 
 class Mouvement{
     Action action_;
-    MovingFigure* movingFigure_;
+    // MovingFigure* movingFigure_;
+    std::shared_ptr<MovingFigure> movingFigure_;
   public:
-    Mouvement(Action action, MovingFigure *movFigure):action_(action), movingFigure_{movFigure}{executeAction();}
-    void setMouvement(Action action);
+    // Mouvement(Action action, MovingFigure *movFigure):action_(action), movingFigure_{movFigure}{executeAction();}
+    Mouvement(Action action, std::shared_ptr<MovingFigure> movFigure): action_(action), movingFigure_{(movFigure)} {executeAction();}
+    bool setMouvement(Action action);
   private:
-    void executeAction();
-    void moveRight();
-    void moveLeft();
-    void moveDown();
-    void rotateRight();
-    void rotateLeft();
+    bool executeAction();
+    bool moveRight();
+    bool moveLeft();
+    bool moveDown();
+    bool rotateRight();
+    bool rotateLeft();
     void rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation=true);
     void rotateFigureSpecial(shared_ptr<Figure> figure_, bool clockwiseRotation=true);
 };
 
-void Mouvement::executeAction(){
+bool Mouvement::executeAction(){
+    bool s = true;
     switch (action_) {
         case MOVE_RIGHT:
-            moveRight();
+            s = moveRight();
             break;
         case MOVE_LEFT:
-            moveLeft();
+            s = moveLeft();
             break;
         case SOFT_DROP:
-            moveDown();
+            s =  moveDown();
             break;
         case ROTATE_RIGHT:
-            rotateRight();
+            s =  rotateRight();
             break;
         case ROTATE_LEFT:
-            rotateLeft();
+            s = rotateLeft();
             break;
         default:
             break;
         }
+
+    return s;
 }
 
-void Mouvement::setMouvement(Action action){
+bool Mouvement::setMouvement(Action action){
   action_ = action;
-  executeAction();
+  return executeAction();
 }
 
-void Mouvement::moveRight(){
+bool Mouvement::moveRight(){
   Coordinates newPos = movingFigure_->getPosition() + Coordinates {1,0};
-  movingFigure_->setPosition(newPos);
+  return movingFigure_->setPosition(newPos);
 }
 
-void Mouvement::moveLeft(){
+bool Mouvement::moveLeft(){
     Coordinates newPos = movingFigure_->getPosition() + Coordinates {-1,0};
-    movingFigure_->setPosition(newPos);
+    return movingFigure_->setPosition(newPos);
 }
 
-void Mouvement::moveDown(){
+bool Mouvement::moveDown(){
     Coordinates newPos = movingFigure_->getPosition() + Coordinates {0,1};
-    movingFigure_->setPosition(newPos);
+    return movingFigure_->setPosition(newPos);
 }
 
-void Mouvement::rotateRight(){
+bool Mouvement::rotateRight(){
     TetrominoShape figureShape = movingFigure_->getFigShape();
     // std::shared_ptr<Figure> figure_ = std::make_shared(movingFigure_);
     std::shared_ptr<Figure> figure_ = movingFigure_->getFigure();
@@ -81,10 +86,10 @@ void Mouvement::rotateRight(){
         figure_->setBlockPos(i, figure_->getBlockPos(i)+vect);
     }
     figure_->setCenter(figure_->getCenter()+vect);
-    movingFigure_->setFigure(figure_);
+    return movingFigure_->setFigure(figure_);
 }
 
-void Mouvement::rotateLeft(){
+bool Mouvement::rotateLeft(){
     TetrominoShape figureShape = movingFigure_->getFigShape();
     // std::shared_ptr<Figure> figure_ = std::make_shared(movingFigure_);
     std::shared_ptr<Figure> figure_ = movingFigure_->getFigure();
@@ -100,7 +105,7 @@ void Mouvement::rotateLeft(){
       figure_->setBlockPos(i, figure_->getBlockPos(i)+vect);
     }
     figure_->setCenter(figure_->getCenter()+vect);
-    movingFigure_->setFigure(figure_);
+    return movingFigure_->setFigure(figure_);
 }
 
 

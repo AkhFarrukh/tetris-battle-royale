@@ -1,4 +1,3 @@
-#pragma once
 #include "./View/InterFaceTerminal.hpp"
 
 int main() {
@@ -6,5 +5,3 @@ int main() {
     terminal.start();
     return 0;
 }
-
-
