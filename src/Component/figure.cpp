@@ -44,6 +44,12 @@ Figure::Figure(TetrominoShape _figShape): figShape{_figShape}{
     }
 };
 
+vector<Block> Figure::getFigBlocks () {return figBlocks;};      //getter Vector de la figure
+Coordinates Figure::getCenter () {return center;};  //getter center
+int Figure::getCenterX() {return center.x;}; //getter coordonnée x de center
+int Figure::getCenterY() {return center.y;}; //getter coordonnée y de center
+TetrominoShape Figure::getFigShape() {return figShape;}; 
+
 Coordinates Figure::getBlockPos(int blockIndex){
     return figBlocks[blockIndex].getPosition();
 }
@@ -56,6 +62,9 @@ int Figure::getPosBlockY(int blockIndex){
     return (getBlockPos(blockIndex)).y;
 }
 
+//Setters
+void Figure::setFigBlocks (vector<Block> newFigBlocks) {newFigBlocks = figBlocks;};
+void Figure::setCenter (Coordinates newCenter) {center = newCenter;};
 void Figure::setBlockPos(int blockIndex, Coordinates blockPos){
     figBlocks[blockIndex].setPosition(blockPos);
 }

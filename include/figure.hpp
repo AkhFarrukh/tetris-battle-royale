@@ -26,19 +26,19 @@ class Figure {
         //Constructor
         Figure(TetrominoShape _figShape);
         //Getters
-        vector<Block> getFigBlocks () {return figBlocks;};      //getter Vector de la figure
-        Coordinates getCenter () {return center;};  //getter center
-        int getCenterX() {return center.x;}; //getter coordonnée x de center
-        int getCenterY() {return center.y;}; //getter coordonnée y de center
-        TetrominoShape getFigShape() {return figShape;};        //getter de la shape
+        vector<Block> getFigBlocks ();      //getter Vector de la figure
+        Coordinates getCenter ();  //getter center
+        int getCenterX(); //getter coordonnée x de center
+        int getCenterY(); //getter coordonnée y de center
+        TetrominoShape getFigShape();        //getter de la shape
         Coordinates getBlockPos(int blockIndex);            //getter des coordinates du bloc i
         int getPosBlockX(int blockIndex);
         int getPosBlockY(int blockIndex);
 
 
         //Setters
-        void setFigBlocks (vector<Block> newFigBlocks) {newFigBlocks = figBlocks;};
-        void setCenter (Coordinates newCenter) {center = newCenter;};
+        void setFigBlocks (vector<Block> newFigBlocks);
+        void setCenter (Coordinates newCenter);
         void setBlockPos(int blockIndex, Coordinates blockPos);
         //Other Methods
 
