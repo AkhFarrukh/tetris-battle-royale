@@ -7,6 +7,7 @@
 #include <thread>
 #include <chrono>
 #include <vector>
+#include <cstdlib>
 
 #include "Mouvement.hpp"
 #include "game_data.hpp"

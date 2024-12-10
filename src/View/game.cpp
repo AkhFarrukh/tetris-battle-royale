@@ -17,6 +17,7 @@ void Game::run() {
     while (isRunning) {
         processInput();
         updateGame();
+        system("clear");
         renderGame();
         checkGameOver();
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
