@@ -2,3 +2,5 @@
 .vscode
 #backup
 /backup
+#Object file
+/build/*
