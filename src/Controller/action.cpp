@@ -1,3 +1,4 @@
+#pragma once
 enum Action {
             NONE,
             MOVE_LEFT,

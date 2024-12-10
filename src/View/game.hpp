@@ -1,40 +1,44 @@
+
+#ifndef GAME_HPP
+#define GAME_HPP
+
 #include <iostream>
 #include <memory>
 #include <thread>
 #include <chrono>
+#include <vector>
 
-#include "grid.cpp"
-#include "movingfigure.cpp"
-#include "Mouvement.cpp"
-#include "game_data.hpp"
-#include "input.cpp"
+#include "../Component/grid.cpp"
+#include "../Controller/movingfigure.cpp"
+#include "../Controller/Mouvement.cpp"
+#include "../Model/game_data.hpp"
+#include "../Controller/input.cpp"
 
+#include "../Model/figureGenerator.cpp"
+#include "../Controller/action.cpp"
 
 class Game {
 public:
-	Game();
-//	Game(Game &&) = default;
-//	Game(const Game &) = default;
-//	Game &operator=(Game &&) = default;
-//	Game &operator=(const Game &) = default;
-	~Game();
-  void run();
-  void stop();
+    Game();
+    ~Game();
 
+    void run();
+    void stop();
 
 private:
-  std::shared_ptr<Grid> grid;
-  std::shared_ptr<Figure> activeFigure; 
-  Mouvement movement;
-  GameData gameData;
-  Input inputHandler;
-  bool isRunning;
+    std::shared_ptr<Grid> grid;
+    std::shared_ptr<MovingFigure> activeFigure;
+    Mouvement movement;
+    FigureGenerator figureGenerator;
+    GameData gameData;
+    Input inputHandler;
+    bool isRunning;
 
-  void processInput();
-  void updateGame();
-  void renderGame();
-  void checkGameOver();
-  void handleLineCompletion();
-
+    void processInput();
+    void updateGame();
+    void renderGame();
+    void checkGameOver();
+    void handleLineCompletion();
 };
 
+#endif // GAME_HPP

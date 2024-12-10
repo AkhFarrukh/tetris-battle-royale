@@ -13,20 +13,29 @@
 
 #include "movingfigure.hpp"
 
-#include "tetrominoshape.cpp"
-#include "coordinates.cpp"
-#include "block.cpp"
-#include "color.cpp"
-#include "figure.hpp"
-#include "grid.cpp"
+// #include "tetrominoshape.cpp"
+// #include "coordinates.cpp"
+// #include "block.cpp"
+// #include "color.cpp"
+// #include "figure.hpp"
+// #include "grid.cpp"
 
 
+
+// MovingFigure::MovingFigure(std::shared_ptr<Figure> tetromino, std::shared_ptr<Grid> grid)
+//         : tetromino_{std::move(tetromino)}, grid_{std::move(grid)} {
+//     position_ = getSpawnPosition();
+//     updateBlocks();
+// }
 
 MovingFigure::MovingFigure(std::shared_ptr<Figure> tetromino, std::shared_ptr<Grid> grid)
-        : tetromino_{std::move(tetromino)}, grid_{std::move(grid)} {
-    position_ = getSpawnPosition();
+    : Figure(tetromino->getFigShape()),
+      tetromino_{std::move(tetromino)},
+      position_{getSpawnPosition()},
+      grid_{std::move(grid)}{
     updateBlocks();
 }
+
 
 Coordinates MovingFigure::getSpawnPosition() {
     /* Method takes the shape of the figure from enum class and returns
@@ -153,9 +162,9 @@ bool MovingFigure::setPosition(const Coordinates newPosition) {
 
 shared_ptr<Figure> MovingFigure::getFigure() {
     return tetromino_;
+}
 
-
-bool MovingFigure::setFigure(const shared_ptr<Figure>& newFigure) {
+bool MovingFigure::setFigure(const std::shared_ptr<Figure>& newFigure) {
   /* This method should be used to change shape of figure
    * relative to center position in case of rotation for example.
    */

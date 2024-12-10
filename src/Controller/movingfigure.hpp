@@ -14,12 +14,12 @@
 #include <memory>
 #include <utility>
 
-#include "tetrominoshape.cpp"
-#include "coordinates.cpp"
-#include "block.cpp"
-#include "color.cpp"
-#include "figure.hpp"
-#include "grid.cpp"
+#include "../Component/tetrominoshape.cpp"
+// #include "../Component/coordinates.cpp"
+#include "../Component/block.cpp"
+// #include "../Component/color.cpp"
+#include "../Component/figure.hpp"
+#include "../Component/grid.cpp"
 
 class MovingFigure : public Figure{
 private:

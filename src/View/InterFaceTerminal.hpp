@@ -1,5 +1,5 @@
 #include <iostream>
-#include "./game.cpp"
+#include "./game.hpp"
 
 class InterfaceTerminal {
   Game gameClass;

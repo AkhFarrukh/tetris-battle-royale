@@ -4,8 +4,8 @@
 #ifndef FIGURE_HPP
 #define FIGURE_HPP
 
-#include "tetrominoshape.cpp"
-#include "coordinates.cpp"
+// #include "tetrominoshape.cpp"
+// #include "coordinates.cpp"
 #include "block.cpp"
 
 #include <vector>
@@ -45,6 +45,7 @@ class Figure {
 
         //Errors handling
         void invariant ();        //assert (figBlocks.size() == 4)
+
 
 };
 

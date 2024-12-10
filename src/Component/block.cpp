@@ -1,3 +1,4 @@
+#pragma once
 #include "color.cpp"
 #include "coordinates.cpp"
 

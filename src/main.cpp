@@ -1,4 +1,5 @@
-#include "./InterFaceTerminal.hpp"
+#pragma once
+#include "./View/InterFaceTerminal.hpp"
 
 int main() {
     InterfaceTerminal terminal;

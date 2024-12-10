@@ -1,5 +1,6 @@
 #include <string>
 #include <format>
+#include <sstream>
 
 
 class Coordinates{
@@ -10,10 +11,17 @@ class Coordinates{
     // A constructor
     Coordinates(int initialX, int initialY) : x{initialX}, y{initialY} {}
 
-    // Methods
-    std::string toString(){
-        return std::format("({},{})", std::to_string(x), std::to_string(y));
+    // // Methods
+    // std::string toString(){
+    //     return std::format("({},{})", std::to_string(x), std::to_string(y));
+    // }
+
+    std::string toString() {
+      std::ostringstream oss;
+      oss << "(" << x << "," << y << ")";
+      return oss.str();
     }
+
 
     // Operator overload
     Coordinates operator+(const Coordinates& other) const { // "+" operator

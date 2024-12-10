@@ -2,6 +2,7 @@
 // Created by farrukh on 23/11/24.
 //
 
+#pragma once
 enum class Color{
     /* This enum class serves to easily distinguish colors without using strings or other data types.
      * It contains generalized names of colors used in the game.

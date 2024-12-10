@@ -3,15 +3,14 @@ TARGET = tetris
 
 # Compilateur et options
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17 -lncurses -pthread
+CXXFLAGS = -Wall -Wextra -std=c++17 -I./src -lncurses -pthread
 
-# Dossiers
-SRC_DIR = src
-BUILD_DIR = build
-INCLUDE_DIR = include
+# Dossiers sources et objets
+SRC_DIR = ./src
+BUILD_DIR = ./build
 
 # Liste des fichiers source
-SRCS = $(wildcard $(SRC_DIR)/*/*.cpp)
+SRCS = $(wildcard $(SRC_DIR)/**/*.cpp)
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
 # Commandes principales
@@ -25,8 +24,8 @@ $(TARGET): $(OBJS)
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+	mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Nettoyage des fichiers générés
 clean:
@@ -35,4 +34,3 @@ clean:
 # Exécuter le jeu après compilation
 run: all
 	./$(TARGET)
-
