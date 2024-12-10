@@ -13,7 +13,7 @@ class Mouvement{
     std::shared_ptr<MovingFigure> movingFigure_;
   public:
     // Mouvement(Action action, MovingFigure *movFigure):action_(action), movingFigure_{movFigure}{executeAction();}
-    Mouvement(Action action, std::shared_ptr<MovingFigure> movFigure): action_(action), movingFigure_{(movFigure)} {executeAction();}
+    Mouvement(Action action, std::shared_ptr<MovingFigure> movFigure);
     bool setMouvement(Action action);
   private:
     bool executeAction();
