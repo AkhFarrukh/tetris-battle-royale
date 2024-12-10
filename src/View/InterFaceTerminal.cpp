@@ -1,4 +1,4 @@
-#include "./InterFaceTerminal.hpp"
+#include "InterFaceTerminal.hpp"
 
 InterfaceTerminal::InterfaceTerminal() : gameClass() {}
 

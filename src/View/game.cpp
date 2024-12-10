@@ -1,4 +1,4 @@
-#include "./game.hpp"
+#include "game.hpp"
 
 Game::Game()
     : grid(std::make_shared<Grid>()),

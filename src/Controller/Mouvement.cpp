@@ -1,9 +1,4 @@
-#include "input.cpp"
-#include "movingfigure.hpp"
-#include "ControllerEnum.hpp"
-// #include "figure.hpp"
-
-#include "../Component/figure.hpp"
+#include "Mouvement.hpp"
 
 
 class Mouvement{

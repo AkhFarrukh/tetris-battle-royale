@@ -3,7 +3,7 @@ TARGET = tetris
 
 # Compilateur et options
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=gnu++17 -I./src -lncurses -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fsanitize=address,undefined
+CXXFLAGS = -Iinclude -Wall -Wextra -std=gnu++17 -I./src -lncurses -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fsanitize=address,undefined
 
 # Dossiers sources et objets
 SRC_DIR = ./src
