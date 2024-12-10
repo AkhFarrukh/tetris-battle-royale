@@ -25,12 +25,12 @@ public:
 
 private:
     std::shared_ptr<Grid> grid;
+    FigureGenerator figureGenerator;
     std::shared_ptr<MovingFigure> activeFigure;
     Mouvement movement;
-    FigureGenerator figureGenerator;
     GameData gameData;
-    Input inputHandler;
     bool isRunning;
+    Input inputHandler;
 
     void processInput();
     void updateGame();

@@ -11,8 +11,9 @@ class GameData{
     private:
         int score;
         int numberBrokenLines;
-        std::string gameMode;    //pour la partie 1: Mode "endless" sans toutes ses fonctionnalités
         bool isGameOver;
+        std::string gameMode;    //pour la partie 1: Mode "endless" sans toutes ses fonctionnalités
+        
 
     public:
         GameData(int score, int numberLinesBroken, bool isGameOver, const std::string& gameMode);
