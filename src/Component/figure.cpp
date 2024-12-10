@@ -25,7 +25,7 @@ const map<TetrominoShape, pair<Color, vector<Coordinates>>> Figure::figReference
 Figure::Figure(TetrominoShape _figShape): figShape{_figShape}{
     
     pair<Color, vector<Coordinates>> figData = figReferences.at(figShape);          //pair<Color, vector<Coordinates>> correspondant à la forme
-    Color color = figData.first;
+    color = figData.first;
     figBlocks.push_back(Block(color, BLOCK_SIZE, Coordinates(0,0)));                //Block central en (0,0)
     for (auto& blockCoord : figData.second)                                         //Construit chaque block de la figure
     {
@@ -60,6 +60,10 @@ int Figure::getPosBlockX(int blockIndex){
 
 int Figure::getPosBlockY(int blockIndex){
     return (getBlockPos(blockIndex)).y;
+}
+
+Color Figure::getColor(){
+    return (color);
 }
 
 //Setters

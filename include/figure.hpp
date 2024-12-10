@@ -22,6 +22,7 @@ class Figure {
         Coordinates center = Coordinates(0,0);
         TetrominoShape figShape;
         static const map<TetrominoShape, pair<Color, vector<Coordinates>>> figReferences;       //contient les différentes formes de figures
+        Color color;
     public:
         //Constructor
         Figure(TetrominoShape _figShape);
@@ -34,6 +35,7 @@ class Figure {
         Coordinates getBlockPos(int blockIndex);            //getter des coordinates du bloc i
         int getPosBlockX(int blockIndex);
         int getPosBlockY(int blockIndex);
+        Color getColor();
 
 
         //Setters
