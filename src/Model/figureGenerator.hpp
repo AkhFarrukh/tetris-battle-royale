@@ -2,8 +2,8 @@
 #define FIGUREGENERATOR_HPP
 
 
-#include "../Component/tetrominoshape.cpp"
-#include "../Component/figure.hpp"
+#include "../Component/ComponentEnum.hpp"
+#include "../Component/figure.cpp"
 // #include "../Component/coordinates.cpp"
 #include <random>
 

@@ -11,11 +11,11 @@
 #include "../Component/grid.cpp"
 #include "../Controller/movingfigure.cpp"
 #include "../Controller/Mouvement.cpp"
-#include "../Model/game_data.hpp"
+#include "../Model/game_data.cpp"
 #include "../Controller/input.cpp"
 
 #include "../Model/figureGenerator.cpp"
-#include "../Controller/action.cpp"
+#include "../Controller/ControllerEnum.hpp"
 
 class Game {
 public:
