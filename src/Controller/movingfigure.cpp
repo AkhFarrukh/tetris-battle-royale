@@ -193,7 +193,15 @@ bool MovingFigure::setPosAndFig(
   return false;
 }
 
-
+std::vector<Block> MovingFigure::getBlocksRealPositions() {
+  std::shared_ptr<Figure> realTetro = tetromino_;
+  for (int index = 0; index<4; ++index)
+  {
+    realTetro->setBlockPos(index, blockPositions_[index]);
+  }
+  vector<Block> realBlocks = realTetro->getFigBlocks();
+  return realBlocks;
+}
 
 
 Color MovingFigure::getMovingFigureBlockColor(Coordinates coordinates) {

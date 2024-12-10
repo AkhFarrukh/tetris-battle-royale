@@ -56,7 +56,7 @@ void Game::updateGame() {
 
     if (!movement.setMouvement(Action::SOFT_DROP)) {
         // si c'est le cas je place la figure.
-        for (const auto& block : activeFigure->getFigBlocks()) {
+        for (const auto& block : activeFigure->getBlocksRealPositions()) {
             grid->setBlock(block);
         }
         handleLineCompletion();

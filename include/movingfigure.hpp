@@ -77,6 +77,7 @@ public:
             const shared_ptr<Figure>& newFigure
     );
 
+    std::vector<Block> getBlocksRealPositions();
     //Public methods
     bool spawnSucceeded();
 
