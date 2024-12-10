@@ -19,27 +19,27 @@ class Block{
               colour{_colour}, size{_size}, position{_position}, empty{false} {}
 
         // Getters
-        Color getColour()           {return colour;}
-        int getSize()               {return size;}
-        bool isEmpty()              {return empty;}
+        Color getColour();
+        int getSize();
+        bool isEmpty();
 
         // Position getters
-        Coordinates getPosition()   {return position;}
-        int getX()                  {return position.x;}
-        int getY()                  {return position.y;}
+        Coordinates getPosition();
+        int getX();
+        int getY();
 
         // Setters
-        void setColour(Color newColour) {colour = newColour;}
-        void setSize(int newSize)       {size = newSize;}
-        void setEmpty(bool newEmpty)    {empty = newEmpty;}
+        void setColour(Color newColour);
+        void setSize(int newSize);
+        void setEmpty(bool newEmpty);
 
         // Position setters
-        void setPosition(int newX, int newY)        {setX(newX); setY(newY);}
-        void setX(int newX)                         {position.x = newX;}
-        void setY(int newY)                         {position.y = newY;}
+        void setPosition(int newX, int newY);
+        void setX(int newX);
+        void setY(int newY);
 
         // Position setter (passing 'Coordinates' object as paramater)
-        void setPosition(Coordinates newPosition)   {position = newPosition;}
+        void setPosition(Coordinates newPosition);
 };
 
 #endif

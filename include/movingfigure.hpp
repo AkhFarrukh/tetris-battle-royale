@@ -14,9 +14,7 @@
 #include <memory>
 #include <utility>
 
-// #include "../Component/coordinates.cpp"
 #include "Block.hpp"
-// #include "../Component/color.cpp"
 #include "figure.hpp"
 #include "grid.hpp"
 
