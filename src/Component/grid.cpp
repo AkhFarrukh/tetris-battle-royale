@@ -1,6 +1,18 @@
 #include "grid.hpp"
 
 
+Grid::Grid() {
+        for (int y = 0; y < 20; ++y) {
+            vector<Block> row;
+            for (int x = 0; x < 10; ++x) {
+                // Initialiser chaque Block avec une couleur par défaut, une taille, et ses coordonnées
+                row.push_back(Block(Color::nullcolor, 1, Coordinates(x, y)));
+                row.back().setEmpty(true); // Marquer le bloc comme vide
+            }
+            matrix.push_back(row);
+        }
+    }
+
 bool Grid::isLocationFree(Coordinates blocLocation) {  // prend les coordonées d'un bloc situé dans la matrice et dis si il est vide ou non
   int x = blocLocation.x;
   int y = blocLocation.y;
