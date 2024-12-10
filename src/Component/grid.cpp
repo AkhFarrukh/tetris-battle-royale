@@ -16,7 +16,10 @@ Grid::Grid() {
 bool Grid::isLocationFree(Coordinates blocLocation) {  // prend les coordonées d'un bloc situé dans la matrice et dis si il est vide ou non
   int x = blocLocation.x;
   int y = blocLocation.y;
-  if ( x >= 0 && x < 10 && y >= 0 && y < 20 ) {
+  if (y == 20){
+    return false;
+  }
+  else if ( x >= 0 && x < 10 && y >= 0 && y < 20 ) {
   return matrix[blocLocation.y][blocLocation.x].isEmpty();
   }
 
