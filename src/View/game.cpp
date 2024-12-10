@@ -73,7 +73,7 @@ void Game::renderGame() {
     //je peut faire un truc plus presentable apres, c'est juste un test version 
     for (int y = 0; y < 20; ++y) {
         for (int x = 0; x < 10; ++x) {
-            if(activeFigure.isInFigure(Coordinates(x, y)) != Color::nullcolor){
+            if(activeFigure.getMovingFigureBlockColor(Coordinates(x, y)) != Color::nullcolor){
                 std::cout <<"# ";
             }
             else if (grid->getBlockColor(x, y) == Color::nullcolor) {
