@@ -194,3 +194,16 @@ bool MovingFigure::setPosAndFig(
 }
 
 
+
+
+Color MovingFigure::getMovingFigureBlockColor(Coordinates coordinates) {
+  /*Returns a color of current figure if coordinate is one of movingfigure's
+   *Return a nullcolor if coordinates are not from the figure
+   */
+  for(Coordinates pos: blockPositions_){
+    if(pos == coordinates){
+      return tetromino_->getColor();
+    }
+  }
+  return Color::nullcolor;
+}

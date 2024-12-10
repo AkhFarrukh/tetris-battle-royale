@@ -80,6 +80,8 @@ public:
     //Public methods
     bool spawnSucceeded();
 
+    Color getMovingFigureBlockColor(Coordinates coordinates);
+
 };
 
 #endif //MOVINGFIGURE_HPP
