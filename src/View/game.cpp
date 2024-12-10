@@ -14,14 +14,14 @@ void Game::run() {
     isRunning = true;
     inputHandler.start();
     auto chrono = chrono::steady_clock::now();
-    auto now = std::chrono::steady_clock::now();
     while (isRunning) {
-        auto currentTime = chrono::duration_cast<chrono::milliseconds>(chrono-now);
+        auto now = chrono::steady_clock::now();
+        chrono::duration<double> currentTime = now-chrono;
         processInput();
-        if (currentTime < chrono::milliseconds(500))
+        if (currentTime > chrono::milliseconds(500))
         {
             updateGame();
-            auto now = std::chrono::steady_clock::now();
+            chrono = chrono::steady_clock::now();
         }
         system("clear");
         renderGame();
