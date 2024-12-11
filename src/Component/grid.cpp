@@ -83,3 +83,29 @@ Color Grid::getBlockColor(int x, int y) {
     };
     return Color::nullcolor;  // Renvoie une couleur de case vide si on sort du tableau
 }
+
+void Grid::lineHeight(int startY, int shift) {
+    std::vector<std::vector<Block>> tempMatrix(20, std::vector<Block>(10));
+
+    for (int y = 0; y < startY; ++y) {
+        for (int x = 0; x < 10; ++x) {
+            tempMatrix[y][x] = matrix[y][x];
+        }
+    }
+
+    for (int y = startY; y < 20; ++y) {
+        for (int x = 0; x < 10; ++x) {
+            if (!matrix[y][x].isEmpty()) {
+                int newY = y + shift;
+
+                if (newY >= 0 && newY < 20) {
+                    tempMatrix[newY][x] = matrix[y][x];
+                }
+            }
+        }
+    }
+
+    matrix = tempMatrix;
+}
+
+

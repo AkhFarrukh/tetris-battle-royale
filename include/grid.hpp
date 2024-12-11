@@ -19,6 +19,7 @@ class Grid {
     void clearFullLines();
     void setBlock(Block newblock);
     Color getBlockColor(int x, int y);
+    void lineHeight(int y, int x);
 };
 
 #endif
