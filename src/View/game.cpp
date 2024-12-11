@@ -124,7 +124,7 @@ void Game::handleLineCompletion() {
     for (int y = 0; y < 20; ++y) {
         if (grid->isFullLine(y)) {
             grid->clearLine(y);
-            grid->lineHeight(y, 1);
+            grid->restructure();
             ++clearedLines;
         }
     }

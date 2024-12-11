@@ -84,32 +84,27 @@ Color Grid::getBlockColor(int x, int y) {
     return Color::nullcolor;  // Renvoie une couleur de case vide si on sort du tableau
 }
 
-void Grid::lineHeight(int startY, int shift) {
-  std::vector<std::vector<Block>> tempMatrix(
-      20, std::vector<Block>(10, Block(Color::nullcolor, 0, Coordinates(0, 0)))
-  );
+void Grid::restructure() {
+    // Start from the bottom and process upward
+    for (int y = 18; y >= 0; --y) { // Skip the last row as it cannot "fall"
+        for (int x = 0; x < 10; ++x) {
+            if (!matrix[y][x].isEmpty()) {
+                int newY = y;
 
-  for (int y = 0; y < startY; ++y) {
-      for (int x = 0; x < 10; ++x) {
-          tempMatrix[y][x] = matrix[y][x];
-      }
-  }
+                // Move the block downward until it touches a non-empty block or the bottom
+                while (newY + 1 < 20 && matrix[newY + 1][x].isEmpty()) {
+                    matrix[newY + 1][x] = matrix[newY][x];
+                    matrix[newY][x] = Block(Color::nullcolor, 0, Coordinates(0, 0)); // Clear the original position
+                    newY++;
+                }
 
-  for (int y = startY; y < 20; ++y) {
-      for (int x = 0; x < 10; ++x) {
-          if (!matrix[y][x].isEmpty()) {
-              int newY = y + shift;
-
-              if (newY >= 0 && newY < 20) {
-                  tempMatrix[newY][x] = matrix[y][x];
-                  tempMatrix[newY][x].setPosition(x, newY);
-              }
-          }
-      }
-  }
-
-  matrix = tempMatrix;
+                // Update the block's position
+                matrix[newY][x].setPosition(x, newY);
+            }
+        }
+    }
 }
+
 
 
 void Grid::malusLines(int y, int shift){
