@@ -29,6 +29,8 @@ private:
     //shared pointer to grid
     std::shared_ptr<Grid> grid_;
 
+    unsigned int rotationState = 0;
+
 
 
     Coordinates getSpawnPosition();
@@ -82,6 +84,11 @@ public:
     bool spawnSucceeded();
 
     Color getMovingFigureBlockColor(Coordinates coordinates);
+
+    unsigned int getCurrentRotationState();
+    void rotateRight();
+    void rotateLeft();
+
 
 };
 

@@ -215,3 +215,28 @@ Color MovingFigure::getMovingFigureBlockColor(Coordinates coordinates) {
   }
   return Color::nullcolor;
 }
+
+
+unsigned int MovingFigure::getCurrentRotationState(){
+  /* Returns the number of current rotation state that is 0 by default
+   * consult the chart to understand which state corresponds to what position
+   * of blocks
+   * https://tetris.wiki/Super_Rotation_System
+   */
+  return rotationState;
+}
+
+void MovingFigure::rotateRight() {
+  /* updates rotation state value when making a right rotation
+   *
+   */
+  rotationState = (rotationState + 1) % 4;
+}
+
+
+void MovingFigure::rotateLeft(){
+  /* updates rotation state value when making a left rotation
+ *
+ */
+  rotationState = (rotationState - 1) % 4;
+}
