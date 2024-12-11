@@ -81,7 +81,8 @@ void Game::renderGame() {
         std::cout << "\033[1;37m|\033[0m";
         for (int x = 0; x < 10; ++x) {
             if(activeFigure->getMovingFigureBlockColor(Coordinates(x, y)) != Color::nullcolor){
-                std::cout << "\033[40m  \033[0m"; 
+                Color blockColor = activeFigure->getMovingFigureBlockColor(Coordinates(x, y));
+                std::cout << co(blockColor) << "  \033[0m";
             }
             else if (grid->getBlockColor(x, y) == Color::nullcolor) {
                 std::cout << "  ";
