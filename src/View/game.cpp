@@ -121,15 +121,17 @@ void Game::checkGameOver() {
 
 void Game::handleLineCompletion() {
     int clearedLines = 0;
+
     for (int y = 0; y < 20; ++y) {
         if (grid->isFullLine(y)) {
             grid->clearLine(y);
-            grid->restructure();
+            grid->applyDominoEffect(y);
             ++clearedLines;
         }
     }
 
     if (clearedLines > 0) {
-        gameData.updateScore(clearedLines * 100); // jsp comment vous aller le faire, mais si on consider que chauqe ligne est 100 point
+        gameData.updateScore(clearedLines * 100);
     }
 }
+
