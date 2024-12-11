@@ -85,27 +85,35 @@ Color Grid::getBlockColor(int x, int y) {
 }
 
 void Grid::lineHeight(int startY, int shift) {
-    std::vector<std::vector<Block>> tempMatrix(20, std::vector<Block>(10));
+  std::vector<std::vector<Block>> tempMatrix(
+      20, std::vector<Block>(10, Block(Color::nullcolor, 0, Coordinates(0, 0)))
+  );
 
-    for (int y = 0; y < startY; ++y) {
-        for (int x = 0; x < 10; ++x) {
-            tempMatrix[y][x] = matrix[y][x];
-        }
-    }
+  for (int y = 0; y < startY; ++y) {
+      for (int x = 0; x < 10; ++x) {
+          tempMatrix[y][x] = matrix[y][x];
+      }
+  }
 
-    for (int y = startY; y < 20; ++y) {
-        for (int x = 0; x < 10; ++x) {
-            if (!matrix[y][x].isEmpty()) {
-                int newY = y + shift;
+  for (int y = startY; y < 20; ++y) {
+      for (int x = 0; x < 10; ++x) {
+          if (!matrix[y][x].isEmpty()) {
+              int newY = y + shift;
 
-                if (newY >= 0 && newY < 20) {
-                    tempMatrix[newY][x] = matrix[y][x];
-                }
-            }
-        }
-    }
+              if (newY >= 0 && newY < 20) {
+                  tempMatrix[newY][x] = matrix[y][x];
+                  tempMatrix[newY][x].setPosition(x, newY);
+              }
+          }
+      }
+  }
 
-    matrix = tempMatrix;
+  matrix = tempMatrix;
+}
+
+
+void Grid::malusLines(int y, int shift){
+
 }
 
 
