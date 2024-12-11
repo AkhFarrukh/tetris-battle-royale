@@ -17,6 +17,10 @@ Install command :
 ```
 sudo apt install ncurses
 ```
+Install command in Debian/Ubuntu Linux:
+```
+sudo apt-get install libncurses5-dev libncursesw5-dev
+```
 
 ### `tetris` Program
 
