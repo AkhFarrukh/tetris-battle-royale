@@ -22,7 +22,7 @@ sudo apt install ncurses
 
 Command format :
 ```
-./tetris
+./tetris.exe
 ```
 
 ## Folder Structure
