@@ -74,23 +74,41 @@ void Game::updateGame() {
 
 void Game::renderGame() {
     std::cout << "Score: " << gameData.get_score() << endl << '\r';
-    std::cout << "Lines: " << gameData.get_numberBrokenLines() << endl << "\r";
+    std::cout << "Lines: " << gameData.get_numberBrokenLines() << endl << '\r';
 
-    //je peut faire un truc plus presentable apres, c'est juste un test version 
+    std::cout << "\033[1;37m+" << std::string(20, '-') << "+\033[0m\n\r";
     for (int y = 0; y < 20; ++y) {
+        std::cout << "\033[1;37m|\033[0m";
         for (int x = 0; x < 10; ++x) {
             if(activeFigure->getMovingFigureBlockColor(Coordinates(x, y)) != Color::nullcolor){
-                std::cout <<"# ";
+                std::cout << "\033[40m  \033[0m"; 
             }
             else if (grid->getBlockColor(x, y) == Color::nullcolor) {
-                std::cout << ". ";
+                std::cout << "  ";
             } 
             else {
-                std::cout << "# ";
+                Color blockColor = grid->getBlockColor(x, y);
+                std::cout << co(blockColor) << "  \033[0m";
             }
         }
+        std::cout << "\033[1;37m|\033[0m"; 
         std::cout << endl << '\r';
     }
+    std::cout << "\033[1;37m+" << std::string(20, '-') << "+\033[0m\n"; 
+}
+
+std::string Game::co(Color blockColor){
+    std::string colorCode;
+    switch (blockColor) {
+        case Color::red:      colorCode = "\033[41m"; break;
+        case Color::green:    colorCode = "\033[42m"; break;
+        case Color::yellow:   colorCode = "\033[43m"; break;
+        case Color::blue:     colorCode = "\033[44m"; break;
+        case Color::orange:  colorCode = "\033[45m"; break;
+        case Color::cyan:     colorCode = "\033[46m"; break;
+        default:              colorCode = "\033[40m"; break;
+    }
+    return colorCode;
 }
 
 void Game::checkGameOver() {

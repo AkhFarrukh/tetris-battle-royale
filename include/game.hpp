@@ -35,6 +35,7 @@ private:
     void processInput();
     void updateGame();
     void renderGame();
+    std::string co(Color blockColor);
     void checkGameOver();
     void handleLineCompletion();
 };
