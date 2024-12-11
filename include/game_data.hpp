@@ -26,11 +26,12 @@ class GameData{
         
         // Setters
         void set_score(int newScore);
-        void set_numberBrokenLines(int new_numberBrokenLines);
+       
         void set_isGameOver(bool gameStatus);
         void set_gameMode(const std::string& newGameMode);   // pas utile pour partie 1 
 
         void updateScore(int points);
+        void updateLines(int lines);
         void showData() const;  
 
 };

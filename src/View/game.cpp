@@ -127,11 +127,13 @@ void Game::handleLineCompletion() {
             grid->clearLine(y);
             grid->applyDominoEffect(y);
             ++clearedLines;
+            gameData.updateLines(1);
         }
     }
 
     if (clearedLines > 0) {
         gameData.updateScore(clearedLines * 100);
+    
     }
 }
 

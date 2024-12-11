@@ -48,7 +48,6 @@ void GameDataModifier::levelUp() {
 
 void GameDataModifier::registerLines(int lineNumber) {
   addScoreFromLines(lineNumber);
-  gameData->set_numberBrokenLines(
-          gameData->get_numberBrokenLines() + lineNumber);
+  gameData->updateLines(lineNumber);
   levelUp();
 }

@@ -24,8 +24,8 @@ void GameData::set_score(int newScore){
     score = newScore;
 }
 
-void GameData::set_numberBrokenLines(int new_numberBrokenLines){
-    numberBrokenLines = new_numberBrokenLines;
+void GameData::updateLines(int lines){
+    numberBrokenLines += lines;
 }
 
 void GameData::set_isGameOver(bool gameStatus){
