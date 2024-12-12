@@ -61,9 +61,9 @@ bool Mouvement::rotateRight(){
     // }
     if (figureShape == TetrominoShape::O){ 
     }else if(figureShape == TetrominoShape::I){
-        rotateFigureSpecial(figure_, false);
+        rotateFigureSpecial(figure_);
     } else{
-        rotateFigure(figure_, false);
+        rotateFigure(figure_);
     }
     
     Coordinates vect = (movingFigure_->getCenter()-(figure_->getCenter()));
@@ -98,19 +98,15 @@ bool Mouvement::rotateLeft(){
 void Mouvement::rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation){
     if (clockwiseRotation){
         for (int i = 0; i < 4; i++){
-            // figure_->setPosBlock(i, (-(figure_->getPosBlockY(i)), figure_->getPosBlockX(i)));
             figure_->setBlockPos(i, Coordinates(-figure_->getPosBlockY(i), figure_->getPosBlockX(i)));
 
         }
-        // figure_->setCenter((-(figure_->getCenterY()), figure_->getCenterX()));
         figure_->setCenter(Coordinates(-figure_->getCenterY(), figure_->getCenterX()));
 }
     else{
         for (int i = 0; i < 4; i++){
-            // figure_->setPosBlock(i, (figure_->getPosBlockY(i), -(figure_->getPosBlockX(i))));
             figure_->setBlockPos(i, Coordinates(figure_->getPosBlockY(i), -(figure_->getPosBlockX(i))));
         }
-        // figure_->setCenter((figure_->getCenterY(), -(figure_->getCenterX())));
         figure_->setCenter(Coordinates(figure_->getCenterY(), -(figure_->getCenterX())));
 
     }
@@ -120,23 +116,15 @@ void Mouvement::rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation)
 void Mouvement::rotateFigureSpecial(shared_ptr<Figure> figure_, bool clockwiseRotation){
   if (clockwiseRotation){
     for (int i = 0; i < 4; i++){
-    //    figure_->setPosBlock(i, (-(figure_->getPosBlockY(i)), figure_->getPosBlockX(i)+1));
-    //    figure_->setBlockPos(i, Coordinates(-(figure_->getPosBlockY(i)), figure_->getPosBlockX(i)+1));
           figure_->setBlockPos(i, Coordinates(-figure_->getPosBlockY(i), figure_->getPosBlockX(i)));
 
     }
-    // figure_->setCenter((-(figure_.getCenterY()), figure_->getCenterX() + 1));
-    // figure_->setCenter(Coordinates(-(figure_->getCenterY()), figure_->getCenterX() + 1));
 
   }
   else{
       for (int i = 0; i < 4; i++){
-        //   figure_->setPosBlock(i, (figure_->getPosBlockY(i) + 1, -(figure_->getPosBlockX(i))));
-        //   figure_->setBlockPos(i, Coordinates(figure_->getPosBlockY(i) + 1, -(figure_->getPosBlockX(i))));
           figure_->setBlockPos(i, Coordinates(figure_->getPosBlockY(i), -figure_->getPosBlockX(i)));
 
       }
-    //   figure_->setCenter((figure_.getCenterY() + 1, -(figure_->getCenterX())));
-    //   figure_->setCenter(Coordinates(figure_->getCenterY() + 1, -(figure_->getCenterX())));
   }
 }
