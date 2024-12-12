@@ -47,7 +47,7 @@ void Game::processInput() {
             stop();
             return;
         }
-        
+
     if (action != Action::NONE) {
         movement.setMouvement(action);
     }
@@ -120,6 +120,7 @@ std::string Game::co(Color blockColor){
 void Game::checkGameOver() {
     if (gameData.get_isGameOver()) {
         std::cout << "Game Over!\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         stop();
     }
 }
