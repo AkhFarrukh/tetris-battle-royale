@@ -164,6 +164,7 @@ shared_ptr<Figure> MovingFigure::getFigure() {
     return tetromino_;
 }
 
+
 bool MovingFigure::setFigure(const std::shared_ptr<Figure>& newFigure) {
   /* This method should be used to change shape of figure
    * relative to center position in case of rotation for example.
@@ -172,6 +173,14 @@ bool MovingFigure::setFigure(const std::shared_ptr<Figure>& newFigure) {
     tetromino_ = newFigure;
     updateBlocks();
     return true;
+  }
+  std::vector<Coordinates> offsets = {{-1, 0}, {1, 0}, {0, -1}};
+  for (const auto& offset : offsets) {
+      Coordinates newPosition = position_ + offset;
+      if (allowAction(newPosition, newFigure)) {
+          setPosAndFig(newPosition, newFigure);
+          return true;
+      }
   }
   return false;
 }

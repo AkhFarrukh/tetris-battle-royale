@@ -63,6 +63,7 @@ private:
             const Coordinates newPosition,
             const shared_ptr<Figure>& newFigure
     );
+    void rotateFigure(const std::shared_ptr<Figure>& figure, bool clockwise);
 
 public:
     //Constructor
