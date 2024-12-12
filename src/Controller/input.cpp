@@ -54,6 +54,10 @@ void Input::listenForInput() {
             case 's':
                 currentAction = Action::SOFT_DROP;
                 break;
+            case 27:  // ESC key
+            case KEY_CANCEL:
+                currentAction = Action::ESCAPE;
+                break;
             default:
                 break;
         }

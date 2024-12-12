@@ -9,7 +9,8 @@ enum Action {
             ROTATE_LEFT,
             ROTATE_RIGHT,
             SOFT_DROP,
-            DROP
+            DROP,
+            ESCAPE
         };
 
 

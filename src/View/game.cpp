@@ -43,6 +43,11 @@ void Game::processInput() {
     // a confirmer par @hmz @farrukh
 
     Action action = inputHandler.getAction();
+    if (action == Action::ESCAPE) {
+            stop();
+            return;
+        }
+        
     if (action != Action::NONE) {
         movement.setMouvement(action);
     }
