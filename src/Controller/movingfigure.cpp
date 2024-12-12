@@ -174,7 +174,12 @@ bool MovingFigure::setFigure(const std::shared_ptr<Figure>& newFigure) {
     updateBlocks();
     return true;
   }
-  std::vector<Coordinates> offsets = {{-1, 0}, {1, 0}, {0, -1}};
+  std::vector<Coordinates> offsets;
+    if (tetromino_->getFigShape() == TetrominoShape::I) {
+        offsets = {{-2, 0}, {2, 0}, {0, -1}, {0, 1}};
+    } else {
+        offsets = {{-1, 0}, {1, 0}, {0, -1}};
+    }
   for (const auto& offset : offsets) {
       Coordinates newPosition = position_ + offset;
       if (allowAction(newPosition, newFigure)) {
