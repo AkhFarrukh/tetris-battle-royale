@@ -33,5 +33,5 @@ clean:
 
 # Exécuter le jeu après compilation
 run: all
-	./$(TARGET)
+	../$(notdir $(TARGET))
 
