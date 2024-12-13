@@ -11,15 +11,11 @@ This project includes 1 main component :
 ## Usage
 ### Installing needed librairies
 
-A classic librarie giving an API made for developing textual user interface
+A classic librarie giving an API made for developing textual user interface, as asked we created a set-up bash script that allow the tester to run install the lib without sudo privilege!
 
 Install command :
 ```
-sudo apt install ncurses
-```
-Install command in Debian/Ubuntu Linux:
-```
-sudo apt-get install libncurses5-dev libncursesw5-dev
+./ncurses-setup.sh
 ```
 
 ### `tetris` Program
