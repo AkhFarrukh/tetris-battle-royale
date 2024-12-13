@@ -13,7 +13,7 @@ This project includes 1 main component :
 
 A classic librarie giving an API made for developing textual user interface, as asked we created a set-up bash script that allow the tester to run install the lib without sudo privilege!
 
-Install command :
+Set-up command :
 ```
 ./ncurses-setup.sh
 ```
