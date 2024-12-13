@@ -18,6 +18,7 @@ Set-up command :
 ./build/ncurses-setup.sh
 ```
 
+
 ### `tetris` Program
 
 Command format :

@@ -33,7 +33,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 # Nettoyage des fichiers générés
 clean:
-	rm -rf $(BUILD_DIR)/*.o $(TARGET)
+	rm -rf $(BUILD_DIR)/*.o $(BUILD_DIR)/*/*.o $(TARGET)
 
 # Exécuter le jeu après compilation
 run: all
