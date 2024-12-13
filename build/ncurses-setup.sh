@@ -34,21 +34,3 @@ cd "$LIB_DIR/ncurses-$NCURSES_VERSION"
             --disable-static
 make -j$(nproc)
 make install
-
-# Step 3: Update environment variables
-echo "Updating environment variables..."
-export LD_LIBRARY_PATH="$LIB_DIR:$LD_LIBRARY_PATH"
-export CFLAGS="-I$LIB_DIR/include $CFLAGS"
-export LDFLAGS="-L$LIB_DIR $LDFLAGS"
-
-# Step 4: Compile the project
-echo "Compiling the project..."
-cd "$BUILD_DIR"
-make clean || true
-make -j$(nproc)
-
-# Step 5: Run the application (optional)
-echo "Running the application..."
-"$PROJECT_ROOT/tetris.exe"
-
-echo "=== Build and setup completed successfully ==="
