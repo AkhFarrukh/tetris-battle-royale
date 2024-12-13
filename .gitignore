@@ -6,5 +6,10 @@
 /build/*
 # Allow the Makefile in the build folder
 !/build/Makefile
+!/build/ncurses-setup.sh
+
+# Exclude all files and folders in the lib folder
+/lib/*
+
 #Exe
 tetris.exe

@@ -3,7 +3,7 @@ TARGET = ../tetris.exe
 
 # Compilateur et options
 CXX = g++
-CXXFLAGS = -I$(SRC_DIR)/include -Wall -Wextra -std=gnu++17 -lncurses -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fsanitize=address,undefined
+CXXFLAGS = -I$(SRC_DIR)/include -I../lib/include -Wall -Wextra -std=gnu++17 -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fsanitize=address,undefined
 
 # Dossiers sources et objets
 SRC_DIR = ../src
@@ -13,6 +13,10 @@ BUILD_DIR = ../build
 SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp")
 OBJS = $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%, $(SRCS:.cpp=.o))
 
+# Dossier de la bibliothèque
+LIB_DIR = ../lib
+NCURSES_DIR = $(LIB_DIR)/ncurses-install
+
 # Commandes principales
 .PHONY: all clean run
 
@@ -20,7 +24,7 @@ all: $(TARGET)
 
 # Compilation de l'exécutable
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -L$(NCURSES_DIR)/lib -lncurses -o $@ $^
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -33,5 +37,4 @@ clean:
 
 # Exécuter le jeu après compilation
 run: all
-	../$(notdir $(TARGET))
-
+	LD_LIBRARY_PATH=$(NCURSES_DIR)/lib:$$LD_LIBRARY_PATH ./$(TARGET)
