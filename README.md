@@ -15,7 +15,7 @@ A classic librarie giving an API made for developing textual user interface, as 
 
 Set-up command :
 ```
-./ncurses-setup.sh
+./build/ncurses-setup.sh
 ```
 
 ### `tetris` Program
