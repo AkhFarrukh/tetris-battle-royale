@@ -49,6 +49,6 @@ make -j$(nproc)
 
 # Step 5: Run the application (optional)
 echo "Running the application..."
-"$BUILD_DIR/tetris.exe"
+"$PROJECT_ROOT/tetris.exe"
 
 echo "=== Build and setup completed successfully ==="

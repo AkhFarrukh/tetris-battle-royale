@@ -8,5 +8,8 @@
 !/build/Makefile
 !/build/setup_and_build.sh
 
+# Exclude all files and folders in the lib folder
+/lib/*
+
 #Exe
 tetris.exe
