@@ -3,11 +3,11 @@ TARGET = ../tetris.exe
 
 # Compilateur et options
 CXX = g++
-CXXFLAGS = -I../src/include -Wall -Wextra -std=gnu++17 -lncurses -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fsanitize=address,undefined
+CXXFLAGS = -I$(SRC_DIR)/include -Wall -Wextra -std=gnu++17 -lncurses -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fsanitize=address,undefined
 
 # Dossiers sources et objets
 SRC_DIR = ../src
-BUILD_DIR = .
+BUILD_DIR = ../build
 
 # Liste des fichiers source
 SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp")
