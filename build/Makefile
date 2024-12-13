@@ -3,7 +3,7 @@ TARGET = ../tetris.exe
 
 # Compilateur et options
 CXX = g++
-CXXFLAGS = -I../src/include -Wall -Wextra -std=gnu++17 -lncurses -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fsanitize=address,undefined
+CXXFLAGS = -I../src/include -I../lib/include -Wall -Wextra -std=gnu++17 -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fsanitize=address,undefined
 
 # Dossiers sources et objets
 SRC_DIR = ../src
@@ -13,6 +13,9 @@ BUILD_DIR = .
 SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp")
 OBJS = $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%, $(SRCS:.cpp=.o))
 
+# Dossier de la bibliothèque
+LIB_DIR = ../lib
+
 # Commandes principales
 .PHONY: all clean run
 
@@ -20,7 +23,7 @@ all: $(TARGET)
 
 # Compilation de l'exécutable
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -L$(LIB_DIR) -lncurses -o $@ $^
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -34,4 +37,3 @@ clean:
 # Exécuter le jeu après compilation
 run: all
 	./$(TARGET)
-
