@@ -4,7 +4,7 @@
 set -e
 
 # Paths
-PROJECT_ROOT=$(dirname "$(dirname "$(realpath "$0")")")
+PROJECT_ROOT=$(pwd)
 LIB_DIR="$PROJECT_ROOT/lib"
 INCLUDE_DIR="$PROJECT_ROOT/src/include"
 BUILD_DIR="$PROJECT_ROOT/build"
