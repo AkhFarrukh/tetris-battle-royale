@@ -24,7 +24,7 @@ all: $(TARGET)
 
 # Compilation de l'exécutable
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -L$(NCURSES_DIR)/lib -lncurses -o $@ $^
+	$(CXX) $(CXXFLAGS) -L$(NCURSES_DIR)/lib -lncurses -lsqlite3 -o $@ $^
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
