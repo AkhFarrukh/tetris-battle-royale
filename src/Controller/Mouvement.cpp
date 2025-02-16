@@ -48,6 +48,9 @@ bool Mouvement::moveDown(){
     return movingFigure_->setPosition(newPos);
 }
 
+
+
+
 bool Mouvement::rotateRight(){
     TetrominoShape figureShape = movingFigure_->getFigShape();
     // std::shared_ptr<Figure> figure_ = std::make_shared(movingFigure_);
@@ -71,6 +74,7 @@ bool Mouvement::rotateRight(){
         figure_->setBlockPos(i, figure_->getBlockPos(i)+vect);
     }
     figure_->setCenter(figure_->getCenter()+vect);
+    //todo while loop here
     return movingFigure_->setFigure(figure_);
 }
 
@@ -92,6 +96,22 @@ bool Mouvement::rotateLeft(){
     }
     figure_->setCenter(figure_->getCenter()+vect);
     return movingFigure_->setFigure(figure_);
+}
+
+void Mouvement::performWallKick(shared_ptr<Figure> figure_, bool clockwiseRotation, Coordinates spawnPosition, int test) {
+    switch (figure_->getRotationState()) {
+        case SPAWN:
+            break;
+        case RIGHT:
+            break;
+        case LEFT:
+            break;
+        case TWO:
+            break;
+        default: ;
+    }
+
+
 }
 
 

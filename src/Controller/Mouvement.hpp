@@ -5,6 +5,8 @@
 #include "movingfigure.hpp"
 #include "ControllerEnum.hpp"
 #include "figure.hpp"
+#include "coordinates.hpp"
+#include "rotationstate.hpp"
 
 
 class Mouvement{
@@ -22,6 +24,7 @@ class Mouvement{
     bool moveDown();
     bool rotateRight();
     bool rotateLeft();
+    void performWallKick(shared_ptr<Figure> figure_, bool clockwiseRotation=true, Coordinates spawnPosition, int test);
     void rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation=true);
     void rotateFigureSpecial(shared_ptr<Figure> figure_, bool clockwiseRotation=true);
 };

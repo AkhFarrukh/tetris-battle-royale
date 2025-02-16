@@ -6,6 +6,7 @@
 
 #include "ComponentEnum.hpp"
 #include "Block.hpp"
+#include "rotationstate.hpp"
 
 #include <vector>
 #include <cassert>
@@ -23,6 +24,7 @@ class Figure {
         TetrominoShape figShape;
         static const map<TetrominoShape, pair<Color, vector<Coordinates>>> figReferences;       //contient les différentes formes de figures
         Color color;
+        RotationState rotationState = SPAWN;
     public:
         //Constructor
         Figure(TetrominoShape _figShape);
@@ -36,12 +38,16 @@ class Figure {
         int getPosBlockX(int blockIndex);
         int getPosBlockY(int blockIndex);
         Color getColor();
-
+        RotationState getRotationState() const {return rotationState;}
 
         //Setters
         void setFigBlocks (vector<Block> newFigBlocks);
         void setCenter (Coordinates newCenter);
         void setBlockPos(int blockIndex, Coordinates blockPos);
+        void setRotationState(RotationState newRotationState) {rotationState = newRotationState;}
+
+
+
         //Other Methods
 
         //Errors handling

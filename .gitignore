@@ -10,6 +10,7 @@
 
 # Exclude all files and folders in the lib folder
 /lib/*
-
+/cmake-build-debug/
+/CMakeLists.txt
 #Exe
 tetris.exe
