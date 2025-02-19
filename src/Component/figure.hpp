@@ -38,7 +38,7 @@ class Figure {
         int getPosBlockX(int blockIndex);
         int getPosBlockY(int blockIndex);
         Color getColor();
-        RotationState getRotationState() const {return rotationState;}
+        RotationState getRotationState() {return rotationState;}
 
         //Setters
         void setFigBlocks (vector<Block> newFigBlocks);
