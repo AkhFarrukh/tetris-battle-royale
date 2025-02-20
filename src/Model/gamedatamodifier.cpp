@@ -7,6 +7,10 @@ int GameDataModifier::getTimeInterval() {
 }
 
 
+
+/**
+ *@brief mise à jour de l'intervalle de temps les mouvements de pièces, en fonction du niveau.
+ */
 void GameDataModifier::updateTimeInterval() {
   //Time = (0.8-((Level-1)*0.007))^(Level-1)
   //https://tetris.wiki/Marathon
@@ -19,6 +23,11 @@ void GameDataModifier::updateTimeInterval() {
 }
 
 
+/**
+ *@brief ajoute un score en fonction du nombre de lignes supprimées.
+
+ *@param lineNumber nombre de lignes complétées.
+ */
 void GameDataModifier::addScoreFromLines(int lineNumber){
   switch (lineNumber) {
     // using nintendo scoring system https://tetris.wiki/Scoring
@@ -37,6 +46,9 @@ void GameDataModifier::addScoreFromLines(int lineNumber){
   }
 }
 
+/**
+ *@brief permet de passer au niveau suppérieur
+ */
 void GameDataModifier::levelUp() {
   if((gameData->get_numberBrokenLines() % LINES_FOR_LEVEL_UP)== 0){
     level++;
@@ -45,7 +57,11 @@ void GameDataModifier::levelUp() {
 }
 
 
+/**
+ *@brief enregistre et met à jour le nombre de lignes complétées lors de l'action.
 
+ *@param lineNumber nombre de lignes complétées en une action
+ */
 void GameDataModifier::registerLines(int lineNumber) {
   addScoreFromLines(lineNumber);
   gameData->updateLines(lineNumber);

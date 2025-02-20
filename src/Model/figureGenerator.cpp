@@ -9,7 +9,10 @@ FigureGenerator::FigureGenerator(TetrominoShape prevShape) : prevShape_{prevShap
 FigureGenerator::FigureGenerator() : prevShape_{getRandomShape()} {
 }
 
-// Static method to generate a random TetrominoShape
+
+/**
+ *@brief methode statique qui génère une forme de tetromino au hasard.
+ */
 TetrominoShape FigureGenerator::getRandomShape() {
     std::random_device rd;  
     std::mt19937 gen(rd()); 
@@ -18,7 +21,9 @@ TetrominoShape FigureGenerator::getRandomShape() {
     return static_cast<TetrominoShape>(dis(gen));
 }
 
-// Generate a random Figure, ensuring no consecutive duplicates
+/**
+ *@brief Génère une figure au hasard et s'assure qu'il n'y ait pas de similaires consecutives.
+ */
 Figure FigureGenerator::randomFigure() {
     do {
         shape = getRandomShape();
