@@ -10,6 +10,9 @@ Game::Game()
 
 Game::~Game() {}
 
+/**
+ *@brief boucle principale du jeu   
+ */
 void Game::run() {
     isRunning = true;
     inputHandler.start();
@@ -35,6 +38,10 @@ void Game::stop() {
     isRunning = false;
 }
 
+
+/**
+ * @brief gestion des actions en fonction de l'input du joueur
+ */
 void Game::processInput() {
     // ici j'appelle Mouvment::setMouvment() avec l'action obtenue par Input::getAction() pour faire les deplacment,
     // et Mouvement, À son tour, Mouvement appelle MovingFigure::setPosition() pour mettre à jour
@@ -53,9 +60,12 @@ void Game::processInput() {
     }
 }
 
-void Game::updateGame() {
-    // ici on met à jour l'état du jeu à chaque itération de la boucle en ligne:17
 
+/**
+ *@brief mise à jour de l'état du jeu à chaque itération de la boucle de jeu (ligne 17).
+ */
+void Game::updateGame() {
+    
     // Je tente de faire descendre la activeFigure en appelant Mouvement::setMouvement() avec l'action SOFT_DROP. 
     // si elle retourne false, ca veut dire MovingFigure::setPosition() consider cette action comme !allowAction.
 
@@ -77,6 +87,11 @@ void Game::updateGame() {
     }
 }
 
+
+/**
+ *@brief affiche le jeu dans son etat actuel.
+ * Affichage de la grille de jeu, tetromino (block) , infos de jeu.
+ */
 void Game::renderGame() {
     std::cout << "Score: " << gameData.get_score() << endl << '\r';
     std::cout << "Lines: " << gameData.get_numberBrokenLines() << endl << '\r';
@@ -103,6 +118,15 @@ void Game::renderGame() {
     std::cout << "\033[1;37m+" << std::string(20, '-') << "+\033[0m\n"; 
 }
 
+
+
+/**
+ *@brief convertit une couleur (de block) en l'associant à un code couleur ANSI.
+ *permet ainsi l'affichage correcte à l'écran des blocks. 
+
+ *@param blockColor couleur du block (et de type Color).
+ *@return le code couleur associé.
+ */
 std::string Game::co(Color blockColor){
     std::string colorCode;
     switch (blockColor) {
@@ -117,6 +141,9 @@ std::string Game::co(Color blockColor){
     return colorCode;
 }
 
+/**
+ *@brief arrête le jeu si il est "terminé".
+ */
 void Game::checkGameOver() {
     if (gameData.get_isGameOver()) {
         std::cout << "Game Over!\n";
@@ -125,6 +152,13 @@ void Game::checkGameOver() {
     }
 }
 
+
+/**
+ *@brief gestion de la complétion des lignes.
+ * vérification de chaque ligne de la grille pour savoir si elle est complète.
+ * Si une ligne est complète, elle est supprimée et un effet de domino va agir sur les lignes situées au-dessus.
+ * Ensuite mise à jour du score et du nombre de lignes cassées.
+ */
 void Game::handleLineCompletion() {
     int clearedLines = 0;
 
