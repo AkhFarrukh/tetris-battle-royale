@@ -28,23 +28,32 @@ void GameDataModifier::updateTimeInterval() {
 
  *@param lineNumber nombre de lignes complétées.
  */
+enum Line {
+  LINE_1,
+  LINE_2,
+  LINE_3,
+  LINE_4  // automatically equal to the number of lines
+};
+
+
 void GameDataModifier::addScoreFromLines(int lineNumber){
-  switch (lineNumber) {
+  switch (static_cast<Line>(lineNumber)) {
     // using nintendo scoring system https://tetris.wiki/Scoring
-    case 1:
+    case LINE_1:
       gameData->set_score(40 * (level +1));
-      break;
-    case 2:
+    break;
+    case LINE_2:
       gameData->set_score(100 * (level +1));
-      break;
-    case 3:
+    break;
+    case LINE_3:
       gameData->set_score(300 * (level +1));
-      break;
-    case 4:
+    break;
+    case LINE_4:
       gameData->set_score(1200 * (level +1));
-      break;
+    break;
   }
 }
+
 
 /**
  *@brief permet de passer au niveau suppérieur

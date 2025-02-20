@@ -24,12 +24,14 @@ void InterfaceTerminal::start() {
         printw("Welcome to Tetris Royale (Terminal Edition)!\n");
         printw("Select a game mode then press Enter to start:\n\n");
         // Game Modes 
-        const char* modeNames[] = {
+        const char* modeNames[numModes] = {
             "Endless Mode",
             "Classic Mode",
-            "Duel Mode", 
+            "Duel Mode",
             "Royal Competition Mode"
         };
+
+        //const int numModes = std::size(modeNames); (possibility)
         // Prints the modes right
         for (int i = 0; i < numModes; ++i) {
             if (i == selectedMode) {
