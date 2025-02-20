@@ -2,7 +2,8 @@
 #define DATABASE_HPP
 
 #include <sqlite3.h> // MUST be installed first via "sudo apt install libsqlite3-dev"
-#include <string>
+#include <stdio.h>
+#include <string.h>
 
 
 /**
@@ -10,7 +11,6 @@
  * connecting to database, querying, and disconnecting from the database after 
  * the end of the program
  */
-
 class Database{
     private:
         sqlite3 *db;        // A database handle    
@@ -20,11 +20,16 @@ class Database{
     public:    
         Database(const char* databaseFileName);
         ~Database();
-
-        // Method
-        void query(const char* sql, int (*callback)(void*, int, char**, char**), void* data);
+        sqlite3_stmt* stmt; // A prepared statement
+        
+        // Methods for preparing statement, binding value(s), retrieving values 
+        // and destructing statement
+        void prepareStatement(const char* statement);
+        void bindText(const char* value, int index);
+        void execute();
+        void destructStatement();
+        int  getIntValueFromColumn(int columnIndex);
+        const unsigned char* getTextValueFromColumn(int columnIndex);      
 };
-
-int printCallback(void *data, int numberOfColumns, char **values, char **columnsNames);
 
 #endif

@@ -1,20 +1,4 @@
 #include "database.hpp"
-#include <stdio.h>
-
-
-/**
- * @brief a callback function which prints the entire output data
- * This function is passed into sqlite3_exec() if we want to get an output.
- * (Can't be part of a class i.e. must always be a "function")
- */
-int printCallback(void *data, int numberOfColumns, char **values, char **columnsNames){
-    
-    (void)data; // Stop the "unused parameter" warning
-    for(int column = 0; column < numberOfColumns; ++column){
-        printf("%s = %s\n", columnsNames[column], values[column]);
-    }
-    return 0;
-}
 
 
 /**
@@ -44,51 +28,58 @@ Database::~Database(){
 
 
 /**
- * Query method is of type void as they give no "DIRECT" return value.
- * @param sql a statement in SQL
- * @param callback a callback function that respects the signature described below
- *        (can be NULL if no output is needed.)
- * @param data the argument that can be accessed and used in a callback function
- * 
- * Any query giving output needs a "callback" function which will deal with the
- * output as the output is not directly returned back to the method. 
- * 
- * The callback function is called every time for each record output 
- * by the query (e.g. being called 10 times if there are 10 output records). 
- * 
- * It is the job of the method user to "build" his own callback FUNCTION WITH
- * A PARTICULAR SQLITE SIGNATURE in order to get and use (e.g. print or compare) 
- * the output data. If callback is NULL, the result is ignored.
- * 
- * The signature: int callback(void *data, int numberOfColumns, char **values, char **columnsNames)
- * !!! The parameter names can be changed but the types must always remain the same. !!!
- * - data: the 4th argument passed to sqlite3_exec()
- * - numberOfColumns: the number of columns in each row
- * - values: an array of string, each string is a value for each column (in a row).
- * - columnNames: an array of string, each string is the names of columns.
- * 
- * @see{https://www.sqlite.org/c3ref/exec.html}
- * @see{https://www.tutorialspoint.com/sqlite/sqlite_c_cpp.htm}
- * 
-*/
-void Database::query(const char* sql, int (*callback)(void*, int, char**, char**), void* data){
+ * @brief prepare a statement (the resultant statement is found in "&stmt".)
+ * to prevent "SQL Injection"
+ * @param statement: a statement to prepare
+ */
+void Database::prepareStatement(const char* statement){
+    int returnCode = sqlite3_prepare_v2(db, statement, strlen(statement), &stmt, nullptr);
+    if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR PREPARING STATEMENT!");
     
-    // Execute SQL query and check the return code
-    returnCode = sqlite3_exec(db, sql, callback, data, &errorMessage);
-    if (returnCode == SQLITE_OK) {
-        fprintf(stdout, "Query done successfully\n");
-    } 
-    else {
-        fprintf(stderr, "SQL error: %s\n", errorMessage);
-    }
 }
 
+
 /**
- * Example for INSERT method:
- *  const char* myQuery = "INSERT INTO login (username, password) VALUES ('joe', 5678)";
- *  query(myQuery, NULL, 0); // Put zero as "data" for the sake of example
- * 
- * Example for SELECT method: 
- *  const char* myQuery = "SELECT * FROM login";
- *  query(myQuery, printCallback, 0);
+ * @brief bind a TEXT value to a statement (&stmt)
+ * @param value: a value to be binded
+ * @param index: a column index (starting from 1 (not zero!) from the most left)
  */
+void Database::bindText(const char* value, int index){
+    int returnCode = sqlite3_bind_text(stmt, index, value, strlen(value), SQLITE_STATIC);
+    if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR BINDING VALUE!");
+}
+
+
+/**
+ * @brief destruct the "&stmt" variable (opposite of preparing statement)
+ */
+void Database::destructStatement(){
+    sqlite3_finalize(stmt);
+}
+
+
+/**
+ * @brief execute the statement: needed to be called at least once after preparing
+ * the statement. For querying, it stops row-by-row until the end of result.
+ */
+void Database::execute(){
+    sqlite3_step(stmt);
+}
+
+
+/**
+ * @brief get INT result in the given column 
+ * @param columnIndex: straightforward (index = 0 on the most left column)
+ */
+int Database::getIntValueFromColumn(int columnIndex){
+    return sqlite3_column_int(stmt, columnIndex);
+}
+
+
+/**
+ * @brief get TEXT result in the given column
+ * @param columnIndex: straightforward (index = 0 on the most left column)
+ */
+const unsigned char* Database::getTextValueFromColumn(int columnIndex){
+    return sqlite3_column_text(stmt, columnIndex);
+}
