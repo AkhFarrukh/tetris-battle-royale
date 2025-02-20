@@ -38,7 +38,7 @@ void GameDataModifier::addScoreFromLines(int lineNumber){
 }
 
 void GameDataModifier::levelUp() {
-  if((gameData->get_numberBrokenLines() % LINES_FOR_LEVEL_UP)== 0){
+  if(gameData->get_numberBrokenLines() >= LINES_FOR_LEVEL_UP){
     level++;
     updateTimeInterval();
   }
