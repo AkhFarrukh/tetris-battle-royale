@@ -50,7 +50,7 @@ void GameDataModifier::addScoreFromLines(int lineNumber){
  *@brief permet de passer au niveau suppérieur
  */
 void GameDataModifier::levelUp() {
-  if((gameData->get_numberBrokenLines() % LINES_FOR_LEVEL_UP)== 0){
+  if(gameData->get_numberBrokenLines() >= LINES_FOR_LEVEL_UP){
     level++;
     updateTimeInterval();
   }
