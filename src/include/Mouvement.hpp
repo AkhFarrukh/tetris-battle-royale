@@ -26,6 +26,9 @@ class Mouvement{
     bool moveRight();
     bool moveLeft();
     bool moveDown();
+
+    bool rotate(bool clockwise);
+
     bool rotateRight();
     bool rotateLeft();
     Coordinates performWallKick(shared_ptr<Figure> figure_, RotationState initialRotationState, bool clockwise, int testIndex);
