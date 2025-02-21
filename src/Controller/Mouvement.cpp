@@ -3,7 +3,11 @@
 #define WALL_KICK_TEST_START_INDEX 0
 #define WALL_KICK_TEST_END_INDEX 4
 
-// Map for wall kick data
+/* Map for wall kick data for J, L, S, T, Z
+ * key = {initialRotationState, targetRotationState}
+ * value = vector of coordinates of offsets for wall kick
+ * https://tetris.wiki/Super_Rotation_System
+*/
 const map<pair<RotationState, RotationState>, vector<Coordinates> > wallKickData = {
     // 0 -> R
     {
@@ -103,9 +107,121 @@ const map<pair<RotationState, RotationState>, vector<Coordinates> > wallKickData
 };
 
 
+// I Tetromino Wall Kick Data
+const map<pair<RotationState, RotationState>, vector<Coordinates> > wallKickDataI = {
+    // 0 -> R
+    {
+        {SPAWN, RIGHT},
+        {
+            Coordinates(0, 0),
+            Coordinates(-2, 0),
+            Coordinates(1, 0),
+            Coordinates(-2, -1),
+            Coordinates(1, 2)
+        }
+    },
+
+    // R -> 0
+    {
+        {RIGHT, SPAWN},
+        {
+            Coordinates(0, 0),
+            Coordinates(2, 0),
+            Coordinates(-1, 0),
+            Coordinates(2, 1),
+            Coordinates(-1, -2)
+        }
+    },
+
+    // R -> 2
+    {
+        {RIGHT, TWO},
+        {
+            Coordinates(0, 0),
+            Coordinates(-1, 0),
+            Coordinates(2, 0),
+            Coordinates(-1, 2),
+            Coordinates(2, -1)
+        }
+    },
+
+    // 2 -> R
+    {
+        {TWO, RIGHT},
+        {
+            Coordinates(0, 0),
+            Coordinates(1, 0),
+            Coordinates(-2, 0),
+            Coordinates(1, -2),
+            Coordinates(-2, 1)
+        }
+    },
+
+    // 2 -> L
+    {
+        {TWO, LEFT},
+        {
+            Coordinates(0, 0),
+            Coordinates(2, 0),
+            Coordinates(-1, 0),
+            Coordinates(2, 1),
+            Coordinates(-1, -2)
+        }
+    },
+
+    // L -> 2
+    {
+        {LEFT, TWO},
+        {
+            Coordinates(0, 0),
+            Coordinates(-2, 0),
+            Coordinates(1, 0),
+            Coordinates(-2, -1),
+            Coordinates(1, 2)
+        }
+    },
+
+    // L -> 0
+    {
+        {LEFT, SPAWN},
+        {
+            Coordinates(0, 0),
+            Coordinates(1, 0),
+            Coordinates(-2, 0),
+            Coordinates(1, -2),
+            Coordinates(-2, 1)
+        }
+    },
+
+    // 0 -> L
+    {
+        {SPAWN, LEFT},
+        {
+            Coordinates(0, 0),
+            Coordinates(-1, 0),
+            Coordinates(2, 0),
+            Coordinates(-1, 2),
+            Coordinates(2, -1)
+        }
+    }
+
+};
+
 Mouvement::Mouvement(Action action, std::shared_ptr<MovingFigure> movFigure): action_(action),
                                                                               movingFigure_{(movFigure)} {executeAction();}
 
+/**
+ * @brief Executes the action stored in the action_ field and returns a boolean
+ * to indicate whether the action was successful or not.
+ *
+ * The action is executed by calling a member function of MovingFigure that
+ * corresponds to the action. The result of the function call is stored in a
+ * boolean variable that is returned at the end of the function.
+ *
+ * If the action is not recognized, the function does nothing and returns true.
+ *
+ * @return A boolean indicating whether the action was successful or not.
+ */
 bool Mouvement::executeAction(){
     bool s = true;
     switch (action_) {
@@ -127,9 +243,9 @@ bool Mouvement::executeAction(){
         default:
             break;
         }
-
     return s;
 }
+
 
 bool Mouvement::setMouvement(Action action){
   action_ = action;
@@ -152,125 +268,105 @@ bool Mouvement::moveDown(){
 }
 
 
-
-
-bool Mouvement::rotateRight(){
+bool Mouvement::rotate(bool clockwise) {
     TetrominoShape figureShape = movingFigure_->getFigShape();
-    // std::shared_ptr<Figure> figure_ = std::make_shared(movingFigure_);
     std::shared_ptr<Figure> figure_ = movingFigure_->getFigure();
 
-    // if (figureShape == TetrominoShape::I || figureShape == TetrominoShape::O){
-    //     rotateFigureSpecial(figure_);
-    // }
-    // else{
-        // rotateFigure(figure_);
-    // }
-    if (figureShape == TetrominoShape::O){ 
-    }else if(figureShape == TetrominoShape::I){
-        rotateFigureSpecial(figure_);
-    } else{
-        rotateFigure(figure_);
+    if (figureShape == TetrominoShape::O) {
+        // O tetromino does not rotate
+        return false;
     }
-    
-    Coordinates vect = (movingFigure_->getCenter()-(figure_->getCenter()));
-    for (int i = 0; i < 4; i++){
-        figure_->setBlockPos(i, figure_->getBlockPos(i)+vect);
+    if (figureShape == TetrominoShape::I) {
+        rotateFigureSpecial(figure_, clockwise);
+    } else {
+        rotateFigure(figure_, clockwise);
     }
-    figure_->setCenter(figure_->getCenter()+vect);
-    //todo while loop here
-    //todo use setfigpos
-    //todo dont forget to change the rotation state
-    // two functions are repeating
+
+    Coordinates vect = (movingFigure_->getCenter() - (figure_->getCenter()));
+    for (int i = 0; i < 4; i++) {
+        figure_->setBlockPos(i, figure_->getBlockPos(i) + vect);
+    }
+    figure_->setCenter(figure_->getCenter() + vect);
+
     RotationState rotationState = figure_->getRotationState();
+
+
+
     for (int i = WALL_KICK_TEST_START_INDEX; i <= WALL_KICK_TEST_END_INDEX; i++) {
         //todo this shit can be optimized by skipping test 0 (0,0) and setting figure before for loop
-        Coordinates offset = performWallKick(figure_, rotationState, true, i);
+        Coordinates offset = performWallKick(figure_, rotationState, clockwise, i);
         Coordinates newPos = movingFigure_->getPosition() + offset;
         if (movingFigure_->setPosAndFig(newPos, figure_)) {
-            movingFigure_->setFigure(figure_);
             return true;
         }
     }
     return false;
 }
 
-bool Mouvement::rotateLeft(){
-    TetrominoShape figureShape = movingFigure_->getFigShape();
-    // std::shared_ptr<Figure> figure_ = std::make_shared(movingFigure_);
-    std::shared_ptr<Figure> figure_ = movingFigure_->getFigure();
+bool Mouvement::rotateLeft() {
+    return rotate(false);
+}
 
-    if (figureShape == TetrominoShape::O){
-    }else if(figureShape == TetrominoShape::I){
-        rotateFigureSpecial(figure_, false);
-    } else{
-        rotateFigure(figure_, false);
-    }
-
-    Coordinates vect = (movingFigure_->getCenter()-(figure_->getCenter()));
-    for (int i = 0; i < 4; i++){
-      figure_->setBlockPos(i, figure_->getBlockPos(i)+vect);
-    }
-    figure_->setCenter(figure_->getCenter()+vect);
-    RotationState rotationState = figure_->getRotationState();
-    for (int i = WALL_KICK_TEST_START_INDEX; i <= WALL_KICK_TEST_END_INDEX; i++) {
-        //todo this shit can be optimized by skipping test 0 (0,0) and setting figure before for loop
-        Coordinates offset = performWallKick(figure_, rotationState, false, i);
-        Coordinates newPos = movingFigure_->getPosition() + offset;
-        if (movingFigure_->setPosAndFig(newPos, figure_)) {
-            movingFigure_->setFigure(figure_);
-            return true;
-        }
-    }
-    return false;
+bool Mouvement::rotateRight() {
+    return rotate(true);
 }
 
 
+/**
+ * @brief Get a wall kick offset for a given figure state transition.
+ *
+ * Given a figure in a certain initial rotation state, this method returns a wall kick offset from the table
+ * needed to transition to the target state
+ *
+ * It also changes the state saved within the figure
+ *
+ * @param figure_ The figure to transition.
+ * @param testIndex Index of the offset to retrieve in the wall kick data.
+ * @param current The current rotation state of the figure.
+ * @param target The target rotation state of the figure.
+ * @return The wall kick offset to apply to the figure's blocks.
+ */
 Coordinates Mouvement::getWallKickOffset(shared_ptr<Figure> figure_, int testIndex, RotationState current, RotationState target) {
     pair<RotationState, RotationState> key = make_pair(current, target);
-    Coordinates offset = wallKickData.at(key)[testIndex];
     figure_->setRotationState(target);
+    if (figure_->getFigShape() == TetrominoShape::I) {
+        return wallKickDataI.at(key)[testIndex];
+    } else {
+        return wallKickData.at(key)[testIndex];
+    }
     //todo maybe this was better but its less safe : Coordinates offset = wallKickData[key][testIndex];
-    return offset;
 }
 
-Coordinates Mouvement::performWallKick(shared_ptr<Figure> figure_, RotationState initialRotationState, bool clockwise, int testIndex) {
-    //todo figure_ is useless here
-    Coordinates offset = Coordinates(0, 0);
+/**
+ * @brief Performs a wall kick transition.
+ *
+ * Given a figure in a certain initial rotation state, this method finds a target state and performs a transition.
+ *
+ * It also changes the state saved within the figure
+ *
+ * @param figure_ The figure to transition.
+ * @param initialRotationState The initial rotation state of the figure.
+ * @param clockwise Whether the rotation is clockwise or counter-clockwise.
+ * @param testIndex Index of the offset to retrieve in the wall kick data.
+ * @return The wall kick offset to apply to the figure's blocks.
+ */
+Coordinates Mouvement::performWallKick(
+    shared_ptr<Figure> figure_, RotationState initialRotationState, bool clockwise, int testIndex) {
+    //vector of next rotation state where index corresponds to int value on current state in its enum
+    static const vector<RotationState> clockwiseOffsets = {RIGHT, TWO, SPAWN, LEFT};
+    static const vector<RotationState> counterClockwiseOffsets = {LEFT, SPAWN, TWO, RIGHT};
+
+    RotationState targetRotationState;
     if (clockwise) {
-        switch (initialRotationState) {
-            case SPAWN:
-                offset = getWallKickOffset(figure_, testIndex, initialRotationState, RIGHT);
-                break;
-            case RIGHT:
-                offset = getWallKickOffset(figure_, testIndex, initialRotationState, TWO);
-                break;
-            case LEFT:
-                offset = getWallKickOffset(figure_, testIndex, initialRotationState, SPAWN);
-                break;
-            case TWO:
-                offset = getWallKickOffset(figure_, testIndex, initialRotationState, LEFT);
-                break;
-            default: ;
-        }
+        targetRotationState = clockwiseOffsets[initialRotationState];
     } else {
-        switch (initialRotationState) {
-            case SPAWN:
-                offset = getWallKickOffset(figure_, testIndex, initialRotationState, LEFT);
-                break;
-            case LEFT:
-                offset = getWallKickOffset(figure_, testIndex, initialRotationState, TWO);
-                break;
-            case RIGHT:
-                offset = getWallKickOffset(figure_, testIndex, initialRotationState, SPAWN);
-                break;
-            case TWO:
-                offset = getWallKickOffset(figure_, testIndex, initialRotationState, RIGHT);
-                break;
-            default: ;
-        }
+        targetRotationState = counterClockwiseOffsets[initialRotationState];
     }
-    return offset;
+
+    return getWallKickOffset(figure_, testIndex, initialRotationState, targetRotationState);
 }
+
+
 
 void Mouvement::rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation){
     if (clockwiseRotation){
