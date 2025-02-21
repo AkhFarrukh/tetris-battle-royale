@@ -2,22 +2,36 @@
 
 Input::Input() : currentAction(Action::NONE), isRunning(true) {}  // Correct initialization with Action::NONE
 
-// Get the action and then reset it
+
+
+/**
+ *@brief Récupère l'action de l'utilisateur.
+ *Et réinitilise l'action courante à None.
+
+ *@return l'action de l'utilisateur (type Action).
+ */
 Action Input::getAction() {
     Action action = currentAction.load();
     currentAction = Action::NONE;  // Reset after giving the action
     return action;
 }
 
-// Stop the input thread, necessary when listening
-void Input::stop() {
+
+
+/**
+ *@brief Stop le thread d'input.
+ */
+void Input::stop() {       // Stop the input thread, necessary when listening
     isRunning = false;
     if (inputThread.joinable()) {
         inputThread.join();
     }
 }
 
-// Start listening for input in a separate thread
+
+/**
+ *@brief Démarre l'écoute de l'input dans un thread séparé.
+ */
 void Input::start() {
     initscr();        // Initialize ncurses
     cbreak();         // Disable line buffering
@@ -27,7 +41,12 @@ void Input::start() {
     inputThread = std::thread(&Input::listenForInput, this);
 }
 
-// Listen for input and update the currentAction
+
+
+/**
+ *@brief Traite l'input du joueur en l'associant à une action.
+ *L'action actuelle est mise à jour.
+ */
 void Input::listenForInput() {
     while (isRunning) {
         int key = getch();  // Non-blocking key press

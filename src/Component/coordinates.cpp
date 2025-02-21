@@ -8,6 +8,12 @@ Coordinates::Coordinates(int initialX, int initialY) : x{initialX}, y{initialY} 
 //     return std::format("({},{})", std::to_string(x), std::to_string(y));
 // }
 
+
+/**
+ *@brief Formate les coordonnées sous la forme (x,y).
+
+ *@return Les coordonnées formatées.
+ */
 std::string Coordinates::toString() {
   std::ostringstream oss;
   oss << "(" << x << "," << y << ")";
