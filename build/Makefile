@@ -3,8 +3,8 @@ TARGET = ../tetris.exe
 
 # Compilateur et options
 CXX = g++
-CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Controller -I$(SRC_DIR)/View -I$(SRC_DIR)/Model -I../lib/include -Wall -Wextra -std=gnu++17 -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fsanitize=address,undefined
-
+CXXFLAGS = -I$(SRC_DIR)/include -I$(LIB_DIR)/ncurses-install/include -Wall -Wextra -std=gnu++17 -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
+-fsanitize=address,undefined
 # Dossiers sources et objets
 SRC_DIR = ../src
 BUILD_DIR = ../build
@@ -24,7 +24,7 @@ all: $(TARGET)
 
 # Compilation de l'exécutable
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -L$(NCURSES_DIR)/lib -lncurses -o $@ $^
+	g++ $(CXXFLAGS) -L$(LIB_DIR) -o $@ $^ -lncurses
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
