@@ -13,6 +13,14 @@
 #include <map>
 #include <utility>
 
+
+/**
+ * @brief Class that handles the actions movement of a movingfigure.
+ *
+ * The Mouvement class is responsible for executing various actions on a
+ * MovingFigure object, such as moving it left, right, down, or rotating it.
+ *
+ */
 class Mouvement{
     Action action_;
     // MovingFigure* movingFigure_;
@@ -21,7 +29,10 @@ class Mouvement{
     // Mouvement(Action action, MovingFigure *movFigure):action_(action), movingFigure_{movFigure}{executeAction();}
     Mouvement(Action action, std::shared_ptr<MovingFigure> movFigure);
     bool setMouvement(Action action);
-  private:
+
+    bool moveFigure(const Coordinates &offset);
+
+private:
     bool executeAction();
     bool moveRight();
     bool moveLeft();

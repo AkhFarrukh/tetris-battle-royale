@@ -252,22 +252,48 @@ bool Mouvement::setMouvement(Action action){
   return executeAction();
 }
 
-bool Mouvement::moveRight(){
-  Coordinates newPos = movingFigure_->getPosition() + Coordinates {1,0};
+/*
+ *@brief Moves the figure by a given offset.
+ *
+ * This function moves the figure by the specified offset in the coordinates.
+ * It calculates the new position by adding the offset to the current position
+ * of the moving figure and then sets the new position.
+ *
+ * @param offset The offset by which to move the figure.
+ * @return A boolean indicating whether the move was successful or not.
+ */
+bool Mouvement::moveFigure(const Coordinates& offset) {
+    Coordinates newPos = movingFigure_->getPosition() + offset;
   return movingFigure_->setPosition(newPos);
 }
 
+
+bool Mouvement::moveRight() {
+    return moveFigure(Coordinates{1, 0});
+}
+
 bool Mouvement::moveLeft(){
-    Coordinates newPos = movingFigure_->getPosition() + Coordinates {-1,0};
-    return movingFigure_->setPosition(newPos);
+    return moveFigure(Coordinates{-1, 0});
 }
 
 bool Mouvement::moveDown(){
-    Coordinates newPos = movingFigure_->getPosition() + Coordinates {0,1};
-    return movingFigure_->setPosition(newPos);
+    return moveFigure(Coordinates{0, 1});
 }
 
 
+/**
+ * @brief Rotates the figure by 90 degrees clockwise or counter-clockwise.
+ *
+ * This method rotates the figure by 90 degrees in the specified direction.
+ * It first checks if the figure is an O tetromino, in which case it does
+ * not rotate and returns false.
+ * Then it rotates the figure in the specified direction (clockwise or
+ * counter-clockwise) and moves it to the new position by applying the
+ * wall kick offset if the rotation wasn't successful.
+ *
+ * @param clockwise Whether to rotate the figure clockwise or counter-clockwise.
+ * @return A boolean indicating whether the rotation was successful or not.
+ */
 bool Mouvement::rotate(bool clockwise) {
     TetrominoShape figureShape = movingFigure_->getFigShape();
     std::shared_ptr<Figure> figure_ = movingFigure_->getFigure();
@@ -282,16 +308,16 @@ bool Mouvement::rotate(bool clockwise) {
         rotateFigure(figure_, clockwise);
     }
 
+    //adjust figure blocks after rotation
     Coordinates vect = (movingFigure_->getCenter() - (figure_->getCenter()));
     for (int i = 0; i < 4; i++) {
         figure_->setBlockPos(i, figure_->getBlockPos(i) + vect);
     }
+    //adjust figure center after rotation
     figure_->setCenter(figure_->getCenter() + vect);
 
     RotationState rotationState = figure_->getRotationState();
-
-
-
+    //tries to set the figure as a movingfigure, if it fails, it tries to wall kick and out it on a different offset.
     for (int i = WALL_KICK_TEST_START_INDEX; i <= WALL_KICK_TEST_END_INDEX; i++) {
         //todo this shit can be optimized by skipping test 0 (0,0) and setting figure before for loop
         Coordinates offset = performWallKick(figure_, rotationState, clockwise, i);
@@ -368,6 +394,19 @@ Coordinates Mouvement::performWallKick(
 
 
 
+/**
+ * @brief Rotates a figure by 90 degrees.
+ *
+ * This function performs a 90-degree rotation on the given figure.
+ * Depending on the direction specified by the clockwiseRotation parameter,
+ * the rotation is executed either in a clockwise or counter-clockwise direction.
+ * The function updates the positions of all blocks within the figure and
+ * adjusts the center of the figure accordingly.
+ *
+ * @param figure_ A shared pointer to the Figure object to be rotated.
+ * @param clockwiseRotation A boolean indicating the direction of rotation:
+ *                          true for clockwise, false for counter-clockwise.
+ */
 void Mouvement::rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation){
     if (clockwiseRotation){
         figure_->setRotationState(figure_->getRotationState());
@@ -387,6 +426,19 @@ void Mouvement::rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation)
 }
 
 
+/**
+ * @brief Special rotation function for I Tetrominoes.
+ *
+ * This method is used only for I Tetrominoes because they have a special rotation
+ * behavior. The method takes a shared pointer to a Figure object and a boolean
+ * indicating whether the rotation is clockwise or counter-clockwise. It then
+ * modifies the positions of the blocks that make up the Tetromino to achieve
+ * the desired rotation.
+ *
+ * @param figure_ The Figure object to be rotated.
+ * @param clockwiseRotation A boolean indicating whether the rotation is clockwise
+ *                          or counter-clockwise.
+ */
 void Mouvement::rotateFigureSpecial(shared_ptr<Figure> figure_, bool clockwiseRotation){
   if (clockwiseRotation){
     for (int i = 0; i < 4; i++){
