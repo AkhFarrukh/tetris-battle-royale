@@ -18,6 +18,21 @@
 #include "figure.hpp"
 #include "grid.hpp"
 
+
+/**
+ * @brief Represents a movable figure in the game.
+ *
+ * The MovingFigure class is responsible for managing the state and behavior of
+ * a tetromino figure that moves on the game grid. It extends the Figure class
+ * and includes additional attributes and methods for handling the position,
+ * rotation, and block positions of the tetromino on the grid.
+ *
+ * Responsibilities include:
+ * - Maintaining the current position and rotation state of the tetromino.
+ * - Calculating and updating the actual coordinates of each block of the tetromino.
+ * - Interacting with the game grid to determine valid movements and rotations.
+ * - placing tetromino on the grid after it stops moving.
+ */
 class MovingFigure : public Figure{
 private:
     std::shared_ptr<Figure> tetromino_;
@@ -29,12 +44,9 @@ private:
     //shared pointer to grid
     std::shared_ptr<Grid> grid_;
 
-    unsigned int rotationState = 0;
-
-
+    unsigned int rotationState = 0; //todo remove because rotation state is now in figure
 
     Coordinates getSpawnPosition();
-
     void updateBlocks();
     void updateBlocks(
             const Coordinates& position,
@@ -85,10 +97,10 @@ public:
 
     Color getMovingFigureBlockColor(Coordinates coordinates);
 
+    //todo remove next 3 methods because rotation state is now in figure
     unsigned int getCurrentRotationState();
     void rotateRight();
     void rotateLeft();
-
 
 };
 
