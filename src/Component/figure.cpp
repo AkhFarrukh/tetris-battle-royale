@@ -10,6 +10,7 @@
 
 using namespace std;
 
+//Stores information about the placement of blocks and each color for each tetromino figure
 const map<TetrominoShape, pair<Color, vector<Coordinates>>> Figure::figReferences = {
             {TetrominoShape::I, {Color::cyan, {Coordinates(-1,0), Coordinates(1,0), Coordinates(2,0)}}},
             {TetrominoShape::O, {Color::yellow, {Coordinates(0,-1), Coordinates(1,-1), Coordinates(1,0)}}},

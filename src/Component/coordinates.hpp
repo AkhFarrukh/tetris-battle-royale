@@ -4,7 +4,14 @@
 #include <string>
 #include <sstream>
 
-
+/**
+ * @brief Represents a pair of coordinates in a 2D space.
+ *
+ * The Coordinates class encapsulates the properties and operations related
+ * to a pair of integer coordinates (x, y). It provides constructors,
+ * methods for string representation, and operator overloads for arithmetic
+ * and comparison.
+ */
 class Coordinates{
 
   public:

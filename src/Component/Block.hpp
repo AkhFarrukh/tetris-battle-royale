@@ -5,7 +5,9 @@
 #include "ComponentEnum.hpp"
 #include "coordinates.hpp"
 
-
+/**
+ * @brief Class representing a single block of a tetromino figure.
+ */
 class Block{
     private:
         Color colour; // Block colour as in a human language (e.g. 'red')

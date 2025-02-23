@@ -16,7 +16,20 @@ constexpr int BLOCK_SIZE = 150;
 
 using namespace std;
 
-
+/**
+ * @brief Represents a tetromino figure in the game.
+ *
+ * The Figure class encapsulates the properties and behavior of a tetromino
+ * figure, which consists of four blocks. Each figure has a specific shape,
+ * color, and rotation state. The class provides methods to manage the blocks
+ * that make up the figure and to interact with the game grid.
+ *
+ * Responsibilities include:
+ * - Storing 4 blocks that form the tetromino, with the first block as the pivot.
+ * - Maintaining the current shape and color of the tetromino.
+ * - Keeping track of the rotation state of the tetromino.
+ * - Providing access to the figure's blocks and properties.
+ */
 class Figure {
     private:
         vector<Block> figBlocks;        //4 figure's blocks, THE FIRST is the PIVOT, others are OFFSETS

@@ -7,7 +7,14 @@
 #include  <vector>
 using namespace std;
 
-
+/**
+ * @brief Represents the game grid, which consists of a matrix of blocks.
+ *
+ * The Grid class is responsible for maintaining the state of the game grid,
+ * including the positions and colors of blocks. It provides methods to check
+ * for free locations, manage and clear full lines, apply effects, and set or
+ * retrieve block information.
+ */
 class Grid {
   vector<vector<Block>> matrix;
   public:
