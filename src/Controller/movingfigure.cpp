@@ -28,6 +28,9 @@
 //     updateBlocks();
 // }
 
+const int BLOCKS_TOTAL_NUMBER = 4;      // nombre total de blocs pour une figure
+
+
 MovingFigure::MovingFigure(std::shared_ptr<Figure> tetromino, std::shared_ptr<Grid> grid)
     : Figure(tetromino->getFigShape()),
       tetromino_{std::move(tetromino)},
@@ -128,7 +131,7 @@ void MovingFigure::updateBlocks(
         std::vector<Coordinates>& blockPositions
         ) {
   bool firstInitialization = blockPositions.empty(); //checks if vector is empty
-  for(int index = 0; index < 4; index++){
+  for(int index = 0; index < BLOCKS_TOTAL_NUMBER; index++){
     if(firstInitialization){
       //if vector is empty
       initializeBlockPosition(index, position, tetromino, blockPositions);
@@ -189,7 +192,7 @@ bool MovingFigure::allowAction(
         ){
   std::vector<Coordinates> newBlockPositions;
   updateBlocks(newPosition, newFigure, newBlockPositions);
-  for(int index = 0; index < 4; index++){
+  for(int index = 0; index < BLOCKS_TOTAL_NUMBER; index++){
     if(!allowBlock(newBlockPositions[index])){
       return false;
     }
@@ -321,7 +324,7 @@ bool MovingFigure::setPosAndFig(
  */
 std::vector<Block> MovingFigure::getBlocksRealPositions() {
   std::shared_ptr<Figure> realTetro = tetromino_;
-  for (int index = 0; index<4; ++index)
+  for (int index = 0; index < BLOCKS_TOTAL_NUMBER; ++index)
   {
     realTetro->setBlockPos(index, blockPositions_[index]);
   }

@@ -3,6 +3,10 @@
 #define WALL_KICK_TEST_START_INDEX 0
 #define WALL_KICK_TEST_END_INDEX 4
 
+
+const int BLOCKS_TOTAL_NUMBER = 4;      // nombre total de blocs pour une figure
+
+
 /* Map for wall kick data for J, L, S, T, Z
  * key = {initialRotationState, targetRotationState}
  * value = vector of coordinates of offsets for wall kick
@@ -310,7 +314,7 @@ bool Mouvement::rotate(bool clockwise) {
 
     //adjust figure blocks after rotation
     Coordinates vect = (movingFigure_->getCenter() - (figure_->getCenter()));
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < BLOCKS_TOTAL_NUMBER; i++) {
         figure_->setBlockPos(i, figure_->getBlockPos(i) + vect);
     }
     //adjust figure center after rotation
@@ -410,14 +414,14 @@ Coordinates Mouvement::performWallKick(
 void Mouvement::rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation){
     if (clockwiseRotation){
         figure_->setRotationState(figure_->getRotationState());
-        for (int i = 0; i < 4; i++){
+        for (int i = 0; i < BLOCKS_TOTAL_NUMBER; i++){
             figure_->setBlockPos(i, Coordinates(-figure_->getPosBlockY(i), figure_->getPosBlockX(i)));
 
         }
         figure_->setCenter(Coordinates(-figure_->getCenterY(), figure_->getCenterX()));
 }
     else{
-        for (int i = 0; i < 4; i++){
+        for (int i = 0; i < BLOCKS_TOTAL_NUMBER; i++){
             figure_->setBlockPos(i, Coordinates(figure_->getPosBlockY(i), -(figure_->getPosBlockX(i))));
         }
         figure_->setCenter(Coordinates(figure_->getCenterY(), -(figure_->getCenterX())));
@@ -441,14 +445,14 @@ void Mouvement::rotateFigure(shared_ptr<Figure> figure_, bool clockwiseRotation)
  */
 void Mouvement::rotateFigureSpecial(shared_ptr<Figure> figure_, bool clockwiseRotation){
   if (clockwiseRotation){
-    for (int i = 0; i < 4; i++){
+    for (int i = 0; i < BLOCKS_TOTAL_NUMBER; i++){
           figure_->setBlockPos(i, Coordinates(-figure_->getPosBlockY(i), figure_->getPosBlockX(i)));
 
     }
 
   }
   else{
-      for (int i = 0; i < 4; i++){
+      for (int i = 0; i < BLOCKS_TOTAL_NUMBER; i++){
           figure_->setBlockPos(i, Coordinates(figure_->getPosBlockY(i), -figure_->getPosBlockX(i)));
 
       }
