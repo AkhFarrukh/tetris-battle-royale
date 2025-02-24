@@ -7,7 +7,7 @@ Input::Input() : currentAction(Action::NONE), isRunning(true) {}  // Correct ini
 /**
  *@brief Récupère l'action de l'utilisateur.
  *Et réinitilise l'action courante à None.
-
+ *
  *@return l'action de l'utilisateur (type Action).
  */
 Action Input::getAction() {

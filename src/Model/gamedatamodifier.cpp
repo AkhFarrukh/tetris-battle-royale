@@ -23,11 +23,7 @@ void GameDataModifier::updateTimeInterval() {
 }
 
 
-/**
- *@brief ajoute un score en fonction du nombre de lignes supprimées.
 
- *@param lineNumber nombre de lignes complétées.
- */
 enum Line {
   LINE_1,
   LINE_2,
@@ -35,7 +31,11 @@ enum Line {
   LINE_4  // automatically equal to the number of lines
 };
 
-
+/**
+ *@brief ajoute un score en fonction du nombre de lignes supprimées.
+ *
+ *@param lineNumber nombre de lignes complétées.
+ */
 void GameDataModifier::addScoreFromLines(int lineNumber){
   switch (static_cast<Line>(lineNumber)) {
     // using nintendo scoring system https://tetris.wiki/Scoring
@@ -68,7 +68,7 @@ void GameDataModifier::levelUp() {
 
 /**
  *@brief enregistre et met à jour le nombre de lignes complétées lors de l'action.
-
+ *
  *@param lineNumber nombre de lignes complétées en une action
  */
 void GameDataModifier::registerLines(int lineNumber) {

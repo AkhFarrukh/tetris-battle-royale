@@ -11,7 +11,7 @@ Game::Game()
 Game::~Game() {}
 
 /**
- *@brief boucle principale du jeu   
+ *@brief Gère la boucle principale du jeu.   
  */
 void Game::run() {
     isRunning = true;
@@ -40,7 +40,7 @@ void Game::stop() {
 
 
 /**
- * @brief gestion des actions en fonction de l'input du joueur
+ * @brief gestion des actions en fonction de l'input du joueur.
  */
 void Game::processInput() {
     // ici j'appelle Mouvment::setMouvment() avec l'action obtenue par Input::getAction() pour faire les deplacment,
@@ -62,7 +62,11 @@ void Game::processInput() {
 
 
 /**
- *@brief mise à jour de l'état du jeu à chaque itération de la boucle de jeu (ligne 17).
+ * @brief Met à jour l'état du jeu à chaque itération de la boucle.
+ * 
+ * Tente de faire descendre la figure active. Si l'action échoue, la figure est placée,
+ * les lignes complètes sont traitées, et une nouvelle figure est générée. 
+ * Si la nouvelle figure ne peut pas apparaître, le jeu se termine.
  */
 void Game::updateGame() {
     
@@ -123,7 +127,7 @@ void Game::renderGame() {
 /**
  *@brief convertit une couleur (de block) en l'associant à un code couleur ANSI.
  *permet ainsi l'affichage correcte à l'écran des blocks. 
-
+ *
  *@param blockColor couleur du block (et de type Color).
  *@return le code couleur associé.
  */

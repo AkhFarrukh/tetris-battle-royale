@@ -11,7 +11,7 @@ Coordinates::Coordinates(int initialX, int initialY) : x{initialX}, y{initialY} 
 
 /**
  *@brief Formate les coordonnées sous la forme (x,y).
-
+ *
  *@return Les coordonnées formatées.
  */
 std::string Coordinates::toString() {

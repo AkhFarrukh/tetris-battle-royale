@@ -22,7 +22,14 @@ const map<TetrominoShape, pair<Color, vector<Coordinates>>> Figure::figReference
         };
 
 
-//Constructor
+/**
+ * @brief Constructeur d'une figure (tétramino).
+ * 
+ * Initialise la figure avec la forme définie par `_figShape`. Le bloc central mis en (0,0), 
+ * et les autres blocs sont ajoutés selon les coordonnées de la figure.
+ * 
+ * @param _figShape La forme du tétramino .
+ */
 Figure::Figure(TetrominoShape _figShape): figShape{_figShape}{
     
     pair<Color, vector<Coordinates>> figData = figReferences.at(figShape);          //pair<Color, vector<Coordinates>> correspondant à la forme
