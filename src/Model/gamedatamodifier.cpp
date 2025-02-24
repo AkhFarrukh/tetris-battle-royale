@@ -37,19 +37,24 @@ enum Line {
  *@param lineNumber nombre de lignes complétées.
  */
 void GameDataModifier::addScoreFromLines(int lineNumber){
+  int scoreFactorLine_1 = 40;
+  int scoreFactorLine_2 = 100;
+  int scoreFactorLine_3 = 300;
+  int scoreFactorLine_4 = 1200;
+
   switch (static_cast<Line>(lineNumber)) {
     // using nintendo scoring system https://tetris.wiki/Scoring
     case LINE_1:
-      gameData->set_score(40 * (level +1));
+      gameData->set_score(scoreFactorLine_1 * (level +1));
     break;
     case LINE_2:
-      gameData->set_score(100 * (level +1));
+      gameData->set_score(scoreFactorLine_2 * (level +1));
     break;
     case LINE_3:
-      gameData->set_score(300 * (level +1));
+      gameData->set_score(scoreFactorLine_3 * (level +1));
     break;
     case LINE_4:
-      gameData->set_score(1200 * (level +1));
+      gameData->set_score(scoreFactorLine_4 * (level +1));
     break;
   }
 }
