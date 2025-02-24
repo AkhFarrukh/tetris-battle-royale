@@ -27,6 +27,7 @@ void Game::run() {
         processInput();
         if (currentTime > chrono::milliseconds(500))
         {
+
             updateGame();
             chrono = chrono::steady_clock::now();
         }
@@ -101,7 +102,8 @@ void Game::processInput() {
             stop();
             return;
         }
-        movement.setMouvement(action);
+        eventQueue.push(action);
+        //movement.setMouvement(action);
     }
 }
 
@@ -117,6 +119,12 @@ void Game::updateGame() {
     
     // Je tente de faire descendre la activeFigure en appelant Mouvement::setMouvement() avec l'action SOFT_DROP. 
     // si elle retourne false, ca veut dire MovingFigure::setPosition() consider cette action comme !allowAction.
+
+    if (!eventQueue.isEmpty()) {
+        Action action = eventQueue.pop();
+        movement.setMouvement(action);
+    }
+
 
     if (!movement.setMouvement(Action::SOFT_DROP)) {
         // si c'est le cas je place la figure.
