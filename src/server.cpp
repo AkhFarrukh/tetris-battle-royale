@@ -23,8 +23,8 @@ int main () {
     cout << "Launching server..." << endl;
 
     //Create socket and return fd val
-    int sock_fd = socket(domain, type, protocol);
-    if (sock_fd == -1) {
+    int server_fd = socket(domain, type, protocol);
+    if (server_fd == -1) {
         perror("Couldn't init socket : ");
         return 1;
     }
@@ -37,13 +37,13 @@ int main () {
     size_t addressLen = sizeof(address);
 
     //Bind socket to addr & port
-    if (bind (sock_fd, (struct sockaddr *)&address, addressLen) <= -1){
+    if (bind (server_fd, (struct sockaddr *)&address, addressLen) <= -1){
         perror("Couldn't bind socket to address : ");
         return 1;
     }
 
     //Wait for a client
-    if (listen (sock_fd, MAX_PENDING_CONNECTION) <= -1){
+    if (listen (server_fd, MAX_PENDING_CONNECTION) <= -1){
         perror("Error while listening : ");
         return 1;
     }
@@ -52,4 +52,7 @@ int main () {
     *HANDLE THE CLIENT
     **************************************************************/
 
+
+    close(server_fd);
+    return 0;
 }
