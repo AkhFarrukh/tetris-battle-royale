@@ -1,14 +1,8 @@
 #include "InterFaceTerminal.hpp"
 
 int main() {
-    while(true){
-        {
-        InterfaceTerminal terminal;
-        terminal.start(); 
-        } 
-        // The terminal is destryed but i dont know about the game object and its component(pointers and so)
-        // Might be the thing that makes the second and so terminals buggy
-    }
+    InterfaceTerminal terminal;
+    terminal.start(); 
     return 0;
 }
 
