@@ -6,6 +6,8 @@
 #include <errno.h>          //errror management
 #include <netinet/in.h>     //ip management
 
+#include "serverFunctions.hpp"
+
 using namespace std;
 const int domain = AF_INET;
 const int type = SOCK_STREAM;
@@ -51,7 +53,11 @@ int main () {
     /**************************************************************
     *HANDLE THE CLIENT
     **************************************************************/
-
+    if (handleClient(server_fd, address, addressLen) <= -1){
+        perror("Error while handling client : ");
+        close(server_fd);
+        return 1;
+    }
 
     close(server_fd);
     return 0;
