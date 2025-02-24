@@ -32,7 +32,7 @@ void Game::run() {
         }
         renderGame();
         checkGameOver();
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     return;
 }
@@ -142,7 +142,7 @@ void Game::updateGame() {
  * Affichage de la grille de jeu, tetromino (block) , infos de jeu.
  */
 void Game::renderGame() {
-    clear();
+    erase();
     mvprintw(0, 0, "Score: %d", gameData.get_score());
     mvprintw(1, 0, "Lines: %d", gameData.get_numberBrokenLines());
     mvprintw(2, 0, "+--------------------+");

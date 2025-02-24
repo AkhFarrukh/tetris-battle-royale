@@ -34,7 +34,7 @@ void InterfaceTerminal::start() {
 
     while (true) {
         // Clear the screen before printing the updated menu
-        clear();
+        erase();
 
         // Print the menu
         printw("Welcome to Tetris Royale (Terminal Edition)!\n");
@@ -87,7 +87,7 @@ void InterfaceTerminal::start() {
 
             case '\n':  // Enter key
                 if (selectedMode == 0) {  // Only Endless Mode is functional
-                    clear();
+                    erase();
                     printw("Endless Mode selected! Starting game...\n");
                     refresh();
                     
@@ -98,11 +98,13 @@ void InterfaceTerminal::start() {
                     continue;  // Exit the method after game is done
                 } else {
                     // litte msg for the ppl that will still click  ;)
-                    clear();
+                    erase();
                     printw("%s is not available yet.\n", modeNames[selectedMode]);
                     printw("Press any key to return to menu...\n");
                     refresh();
+                    nodelay(stdscr, FALSE);
                     getch();  // Wait for a keypress and keeps the screen from being refreshed
+                    nodelay(stdscr, TRUE);
                 }
                 break;
             //quit the menu :/
