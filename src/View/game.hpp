@@ -12,6 +12,7 @@
 #include "Mouvement.hpp"
 #include "game_data.hpp"
 #include "figureGenerator.hpp"
+#include "eventqueue.hpp"
 
 class Game {
 public:
@@ -28,6 +29,8 @@ private:
     Mouvement movement;
     GameData gameData;
     bool isRunning;
+    EventQueue eventQueue;
+
 
     void processInput();
     void updateGame();
