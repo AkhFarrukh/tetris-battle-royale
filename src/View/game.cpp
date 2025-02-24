@@ -1,5 +1,10 @@
 #include "game.hpp"
 
+
+const int GRID_HEIGHT = 20;
+const int GRID_WIDTH = 10;
+
+
 Game::Game()
     : grid(std::make_shared<Grid>()),
       figureGenerator(),
@@ -97,13 +102,16 @@ void Game::updateGame() {
  * Affichage de la grille de jeu, tetromino (block) , infos de jeu.
  */
 void Game::renderGame() {
+
+    int horizontal_wall_size = 20;  // 20 tirets nécéssaires pour les murs au dessus et en dessous ( murs horizontaux)
+
     std::cout << "Score: " << gameData.get_score() << endl << '\r';
     std::cout << "Lines: " << gameData.get_numberBrokenLines() << endl << '\r';
 
-    std::cout << "\033[1;37m+" << std::string(20, '-') << "+\033[0m\n\r";
-    for (int y = 0; y < 20; ++y) {
+    std::cout << "\033[1;37m+" << std::string(horizontal_wall_size, '-') << "+\033[0m\n\r";
+    for (int y = 0; y < GRID_HEIGHT; ++y) {
         std::cout << "\033[1;37m|\033[0m";
-        for (int x = 0; x < 10; ++x) {
+        for (int x = 0; x < GRID_WIDTH; ++x) {
             if(activeFigure->getMovingFigureBlockColor(Coordinates(x, y)) != Color::nullcolor){
                 Color blockColor = activeFigure->getMovingFigureBlockColor(Coordinates(x, y));
                 std::cout << co(blockColor) << "  \033[0m";
@@ -119,7 +127,7 @@ void Game::renderGame() {
         std::cout << "\033[1;37m|\033[0m"; 
         std::cout << endl << '\r';
     }
-    std::cout << "\033[1;37m+" << std::string(20, '-') << "+\033[0m\n"; 
+    std::cout << "\033[1;37m+" << std::string(horizontal_wall_size, '-') << "+\033[0m\n"; 
 }
 
 
@@ -165,8 +173,9 @@ void Game::checkGameOver() {
  */
 void Game::handleLineCompletion() {
     int clearedLines = 0;
+    int lineClearedScore = 100; // ligne complétée -> 100 points
 
-    for (int y = 0; y < 20; ++y) {
+    for (int y = 0; y < GRID_HEIGHT; ++y) {
         if (grid->isFullLine(y)) {
             grid->clearLine(y);
             grid->applyDominoEffect(y);
@@ -176,7 +185,7 @@ void Game::handleLineCompletion() {
     }
 
     if (clearedLines > 0) {
-        gameData.updateScore(clearedLines * 100);
+        gameData.updateScore(clearedLines * lineClearedScore);
     
     }
 }
