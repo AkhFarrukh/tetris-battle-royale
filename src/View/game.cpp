@@ -147,9 +147,9 @@ void Game::renderGame() {
     mvprintw(1, 0, "Lines: %d", gameData.get_numberBrokenLines());
     mvprintw(2, 0, "+--------------------+");
 
-    for (int y = 0; y < 20; ++y) {
+    for (int y = 0; y < GRID_HEIGHT; ++y) {
         mvprintw(y + 3, 0, "|");
-        for (int x = 0; x < 10; ++x) {
+        for (int x = 0; x < GRID_WIDTH; ++x) {
             Color blockColor = activeFigure->getMovingFigureBlockColor(Coordinates(x, y));
             if (blockColor == Color::nullcolor) {
                 blockColor = grid->getBlockColor(x, y);
