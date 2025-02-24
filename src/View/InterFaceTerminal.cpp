@@ -1,17 +1,33 @@
 #include "InterFaceTerminal.hpp"
 #include <ncurses.h>
+#include <locale.h>  // Needed for wide characters (if printing Unicode blocks)
 
-InterfaceTerminal::InterfaceTerminal() : gameClass() {}
+
+InterfaceTerminal::InterfaceTerminal() {}
 
 InterfaceTerminal::~InterfaceTerminal() {}
 
 void InterfaceTerminal::start() {
+    setlocale(LC_ALL, "");
     // Initialize ncurses
     initscr();            // Start curses mode
     cbreak();             // Line buffering disabled
     noecho();             // Don't echo() while we do getch
     keypad(stdscr, TRUE); // We get F1, F2 etc..
     curs_set(0);          // Hide the cursor
+    nodelay(stdscr, TRUE);
+    
+    start_color();
+    if (has_colors() && can_change_color()) {
+        use_default_colors();
+    }
+
+    init_pair(1, COLOR_RED, -1);
+    init_pair(2, COLOR_GREEN, -1);
+    init_pair(3, COLOR_YELLOW, -1);
+    init_pair(4, COLOR_BLUE, -1);
+    init_pair(5, COLOR_MAGENTA, -1);
+    init_pair(6, COLOR_CYAN, -1);
     
     const int numModes = 4;
     int selectedMode = 0;  // Tracks the currently selected menu option
@@ -24,14 +40,12 @@ void InterfaceTerminal::start() {
         printw("Welcome to Tetris Royale (Terminal Edition)!\n");
         printw("Select a game mode then press Enter to start:\n\n");
         // Game Modes 
-        const char* modeNames[numModes] = {
+        const char* modeNames[] = {
             "Endless Mode",
             "Classic Mode",
-            "Duel Mode",
+            "Duel Mode", 
             "Royal Competition Mode"
         };
-
-        //const int numModes = std::size(modeNames); (possibility)
         // Prints the modes right
         for (int i = 0; i < numModes; ++i) {
             if (i == selectedMode) {
@@ -79,9 +93,9 @@ void InterfaceTerminal::start() {
                     
                     // Small delay to show the selection
                     napms(500);
-                    endwin();
-                    gameClass.run();  // Start the selected game mode
-                    return;  // Exit the method after game is done
+                    Game game;
+                    game.run();  // Start the selected game mode
+                    continue;  // Exit the method after game is done
                 } else {
                     // litte msg for the ppl that will still click  ;)
                     clear();

@@ -20,7 +20,6 @@ Game::~Game() {}
  */
 void Game::run() {
     isRunning = true;
-    inputHandler.start();
     auto chrono = chrono::steady_clock::now();
     while (isRunning) {
         auto now = chrono::steady_clock::now();
@@ -31,12 +30,11 @@ void Game::run() {
             updateGame();
             chrono = chrono::steady_clock::now();
         }
-        system("clear");
         renderGame();
         checkGameOver();
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
-    inputHandler.stop();
+    return;
 }
 
 void Game::stop() {
@@ -54,13 +52,55 @@ void Game::processInput() {
     
     // a confirmer par @hmz @farrukh
 
-    Action action = inputHandler.getAction();
-    if (action == Action::ESCAPE) {
+    int ch = getch();
+    if (ch == ERR) {
+        return;
+    }
+
+    Action action = Action::NONE;
+    switch (ch) {
+        case KEY_LEFT:
+        case 'q':
+            action = Action::MOVE_LEFT;
+            break;
+
+        case KEY_RIGHT:
+        case 'd':
+            action = Action::MOVE_RIGHT;
+            break;
+
+        case KEY_UP:
+        case 'z':
+            action = Action::ROTATE_LEFT;
+            break;
+
+        case 'r':
+            action = Action::ROTATE_RIGHT;
+            break;
+
+        case ' ':
+            action = Action::DROP;
+            break;
+
+        case KEY_DOWN:
+        case 's':
+            action = Action::SOFT_DROP;
+            break;
+
+        case 27: // ESC
+            action = Action::ESCAPE;
+            break;
+
+        default:
+            action = Action::NONE;
+            break;
+    }
+
+    if (action != Action::NONE) {
+        if (action == Action::ESCAPE) {
             stop();
             return;
         }
-
-    if (action != Action::NONE) {
         movement.setMouvement(action);
     }
 }
@@ -102,55 +142,57 @@ void Game::updateGame() {
  * Affichage de la grille de jeu, tetromino (block) , infos de jeu.
  */
 void Game::renderGame() {
+    clear();
+    mvprintw(0, 0, "Score: %d", gameData.get_score());
+    mvprintw(1, 0, "Lines: %d", gameData.get_numberBrokenLines());
+    mvprintw(2, 0, "+--------------------+");
 
-    int horizontal_wall_size = 20;  // 20 tirets nécéssaires pour les murs au dessus et en dessous ( murs horizontaux)
-
-    std::cout << "Score: " << gameData.get_score() << endl << '\r';
-    std::cout << "Lines: " << gameData.get_numberBrokenLines() << endl << '\r';
-
-    std::cout << "\033[1;37m+" << std::string(horizontal_wall_size, '-') << "+\033[0m\n\r";
-    for (int y = 0; y < GRID_HEIGHT; ++y) {
-        std::cout << "\033[1;37m|\033[0m";
-        for (int x = 0; x < GRID_WIDTH; ++x) {
-            if(activeFigure->getMovingFigureBlockColor(Coordinates(x, y)) != Color::nullcolor){
-                Color blockColor = activeFigure->getMovingFigureBlockColor(Coordinates(x, y));
-                std::cout << co(blockColor) << "  \033[0m";
+    for (int y = 0; y < 20; ++y) {
+        mvprintw(y + 3, 0, "|");
+        for (int x = 0; x < 10; ++x) {
+            Color blockColor = activeFigure->getMovingFigureBlockColor(Coordinates(x, y));
+            if (blockColor == Color::nullcolor) {
+                blockColor = grid->getBlockColor(x, y);
             }
-            else if (grid->getBlockColor(x, y) == Color::nullcolor) {
-                std::cout << "  ";
-            } 
-            else {
-                Color blockColor = grid->getBlockColor(x, y);
-                std::cout << co(blockColor) << "  \033[0m";
+            if (blockColor != Color::nullcolor) {
+                int index = applyColor(blockColor);
+                mvprintw(y + 3, x * 2 + 1, "\u25A0");
+                attroff(COLOR_PAIR(index));
+            } else {
+                mvprintw(y + 3, x * 2 + 1, "  ");
             }
         }
-        std::cout << "\033[1;37m|\033[0m"; 
-        std::cout << endl << '\r';
+        mvprintw(y + 3, 21, "|");
     }
-    std::cout << "\033[1;37m+" << std::string(horizontal_wall_size, '-') << "+\033[0m\n"; 
+    mvprintw(23, 0, "+--------------------+");
+    refresh();
 }
 
 
 
 /**
- *@brief convertit une couleur (de block) en l'associant à un code couleur ANSI.
+ *@brief convertit une couleur (de block) en l'associant à un code couleur ncurses.
  *permet ainsi l'affichage correcte à l'écran des blocks. 
  *
  *@param blockColor couleur du block (et de type Color).
- *@return le code couleur associé.
+ *@return l'index du de la couleur
  */
-std::string Game::co(Color blockColor){
-    std::string colorCode;
+int Game::applyColor(Color blockColor) {
+    int pairIndex = 0;
     switch (blockColor) {
-        case Color::red:      colorCode = "\033[41m"; break;
-        case Color::green:    colorCode = "\033[42m"; break;
-        case Color::yellow:   colorCode = "\033[43m"; break;
-        case Color::blue:     colorCode = "\033[44m"; break;
-        case Color::orange:  colorCode = "\033[45m"; break;
-        case Color::cyan:     colorCode = "\033[46m"; break;
-        default:              colorCode = "\033[40m"; break;
+        case Color::red:    pairIndex = 1; break;
+        case Color::green:  pairIndex = 2; break;
+        case Color::yellow: pairIndex = 3; break;
+        case Color::blue:   pairIndex = 4; break;
+        case Color::orange: pairIndex = 5; break;
+        case Color::cyan:   pairIndex = 6; break;
+        default:            pairIndex = 0; break;
     }
-    return colorCode;
+
+    if (pairIndex != 0) {
+        attron(COLOR_PAIR(pairIndex));
+    }
+    return pairIndex;
 }
 
 /**

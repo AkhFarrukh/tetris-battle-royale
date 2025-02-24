@@ -11,8 +11,6 @@
 
 #include "Mouvement.hpp"
 #include "game_data.hpp"
-#include "input.hpp"
-
 #include "figureGenerator.hpp"
 
 class Game {
@@ -30,12 +28,11 @@ private:
     Mouvement movement;
     GameData gameData;
     bool isRunning;
-    Input inputHandler;
 
     void processInput();
     void updateGame();
     void renderGame();
-    std::string co(Color blockColor);
+    int applyColor(Color blockColor);
     void checkGameOver();
     void handleLineCompletion();
 };

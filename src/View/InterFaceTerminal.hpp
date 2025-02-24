@@ -5,7 +5,6 @@
 #include "game.hpp"
 
 class InterfaceTerminal {
-  Game gameClass;
 
 public:
   InterfaceTerminal();
