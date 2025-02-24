@@ -24,7 +24,7 @@ all: $(TARGET)
 
 # Compilation de l'exécutable
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -L$(LIB_DIR) -o $@ $^ -lncurses
+	$(CXX) $(CXXFLAGS) -L$(LIB_DIR) -o $@ $^ -lncursesw
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
