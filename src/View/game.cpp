@@ -19,22 +19,27 @@ Game::~Game() {}
  *@brief Gère la boucle principale du jeu.   
  */
 void Game::run() {
+    initscr();            // Initialize the window
+    cbreak();             // Disable line buffering
+    noecho();             // Don't echo input characters
+    nodelay(stdscr, TRUE); // Make getch non-blocking
+    keypad(stdscr, TRUE); // Enable special keys to be captured
+
     isRunning = true;
-    auto chrono = chrono::steady_clock::now();
+    auto chrono = std::chrono::steady_clock::now();
     while (isRunning) {
-        auto now = chrono::steady_clock::now();
-        chrono::duration<double> currentTime = now-chrono;
+        auto now = std::chrono::steady_clock::now();
+        std::chrono::duration<double> currentTime = now - chrono;
         processInput();
-        if (currentTime > chrono::milliseconds(500))
-        {
+        if (currentTime > std::chrono::milliseconds(500)) {
             updateGame();
-            chrono = chrono::steady_clock::now();
+            chrono = std::chrono::steady_clock::now();
         }
         renderGame();
         checkGameOver();
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-    return;
+    endwin(); // End ncurses mode
 }
 
 void Game::stop() {
@@ -56,6 +61,7 @@ void Game::processInput() {
     if (ch == ERR) {
         return;
     }
+    while (getch() != ERR);  // Clear any leftover inputs
 
     Action action = Action::NONE;
     switch (ch) {
@@ -101,8 +107,11 @@ void Game::processInput() {
             stop();
             return;
         }
+        //eventQueue.push(action);
         movement.setMouvement(action);
+
     }
+    refresh();
 }
 
 
@@ -117,6 +126,7 @@ void Game::updateGame() {
     
     // Je tente de faire descendre la activeFigure en appelant Mouvement::setMouvement() avec l'action SOFT_DROP. 
     // si elle retourne false, ca veut dire MovingFigure::setPosition() consider cette action comme !allowAction.
+
 
     if (!movement.setMouvement(Action::SOFT_DROP)) {
         // si c'est le cas je place la figure.
@@ -156,7 +166,7 @@ void Game::renderGame() {
             }
             if (blockColor != Color::nullcolor) {
                 int index = applyColor(blockColor);
-                mvprintw(y + 3, x * 2 + 1, "\u25A0");
+                mvprintw(y + 3, x * 2 + 1, "\u2588\u2588");
                 attroff(COLOR_PAIR(index));
             } else {
                 mvprintw(y + 3, x * 2 + 1, "  ");
