@@ -37,7 +37,8 @@ int main() {
     if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
         std::cerr << "Échec de la connexion\n";
         close(sock);
-        return 1;
+        //return 1;
+        //TODO remove comment
     }
 
     std::cout << "Connecté au serveur !\n";
