@@ -43,9 +43,9 @@ void InterfaceTerminal::start() {
         // Action Options
         const char* actionNames[] = {
             "Play",
-            "Add a friend",
-            "Delete a friend",
-            "Show my friend's list"
+            "Add a friend (Not available yet)",
+            "Delete a friend (Not available yet)",
+            "Show my friend's list (Not available yet )"
         };
 
         //affiche les actions possibles 
@@ -179,7 +179,7 @@ void InterfaceTerminal::start() {
                 } else if (selectedAction == 1) {
                     // Add a friend (stub for future implementation)
                     erase();
-                    printw("Add a friend selected! \n");
+                    printw("Add a friend selected! (Not available yet) \n");
                     refresh();
                     nodelay(stdscr, FALSE);
                     getch();  // Wait for a keypress to return to menu
@@ -187,14 +187,14 @@ void InterfaceTerminal::start() {
                 } else if (selectedAction == 2) {
                     // Delete a friend (stub for future implementation)
                     erase();
-                    printw("Delete a friend selected! \n");
+                    printw("Delete a friend selected! (Not available yet) \n");
                     refresh();
                     nodelay(stdscr, FALSE);
                     getch();  // Wait for a keypress to return to menu
                     nodelay(stdscr, TRUE);
                 }else{
                     erase();
-                    printw("Friend's list: \n");
+                    printw("Friend's list (Not available yet) : \n");
                     refresh();
                     nodelay(stdscr, FALSE);
                     getch();  // Wait for a keypress to return to menu
