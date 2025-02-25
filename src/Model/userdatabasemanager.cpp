@@ -19,7 +19,7 @@ bool UserDatabaseManager::newAccountCreated(const char* username, const char* pa
         std::string plainPassword = password;
         std::string hashedPassword = bcrypt::generateHash(plainPassword);
         
-        // Prepare Statement and bind username (to "?" symbol) to a statement
+        // Prepare Statement and bind values to "?" symbols in a statement
         database.prepareStatement(statement);
         database.bindText(username, 1);
         database.bindText(hashedPassword.c_str(), 2);
@@ -46,7 +46,7 @@ bool UserDatabaseManager::newAccountCreated(const char* username, const char* pa
  * @return true if both are matched. Else return false
  */
 bool UserDatabaseManager::isCorrectLogin(const char* username, const char* password){
-    // Prepare Statement and bind username (to "?" symbol) to a statement
+    // Prepare Statement and bind values to "?" symbols in a statement
     const char* query = "SELECT password FROM login WHERE username = ?";
     database.prepareStatement(query);
     database.bindText(username, 1);

@@ -18,8 +18,11 @@ class UserDatabaseManager {
         Database database{"tetris.db"};
 
     public:
+        // "Create" and "Read" methods for login data
         bool newAccountCreated(const char* username, const char* password);
         bool isCorrectLogin(const char* username, const char* password);
+
+        // Methods for validations
         bool isUniqueUsername(const char* username);
         bool isValidUsername(const char* username);
 };
