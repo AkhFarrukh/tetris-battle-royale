@@ -10,6 +10,9 @@
 #include <cstring>      // Pour memset
 
 int main() {
+    /**********************************************************************************
+     *SETUP CONNECTION TO SERVER
+     *********************************************************************************/
     // Création du socket
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
@@ -39,6 +42,9 @@ int main() {
 
     std::cout << "Connecté au serveur !\n";
 
+    /**********************************************************************************
+     * START GAME
+     *********************************************************************************/
     InterfaceTerminal terminal;
     terminal.start(); 
 
