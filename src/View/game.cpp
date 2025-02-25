@@ -166,7 +166,7 @@ void Game::renderGame() {
             }
             if (blockColor != Color::nullcolor) {
                 int index = applyColor(blockColor);
-                mvprintw(y + 3, x * 2 + 1, "\u25A0");
+                mvprintw(y + 3, x * 2 + 1, "\u2588\u2588");
                 attroff(COLOR_PAIR(index));
             } else {
                 mvprintw(y + 3, x * 2 + 1, "  ");
