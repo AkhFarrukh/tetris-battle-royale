@@ -30,7 +30,7 @@ void InterfaceTerminal::start() {
     init_pair(6, COLOR_CYAN, -1);
     
     const int numModes = 4;
-    int selectedMode = 0;  // Tracks the currently selected menu option
+    MenuGameMode selectedMode = ENDLESS;  // Tracks the currently selected menu option
 
     while (true) {
         // Clear the screen before printing the updated menu
@@ -74,15 +74,11 @@ void InterfaceTerminal::start() {
 
         switch (ch) {
             case KEY_UP:
-                if (selectedMode > 0) {
-                    selectedMode--;
-                }
+                selectedMode--;
                 break;
 
             case KEY_DOWN:
-                if (selectedMode < numModes - 1) {
-                    selectedMode++;
-                }
+                selectedMode++;
                 break;
 
             case '\n':  // Enter key
@@ -93,8 +89,8 @@ void InterfaceTerminal::start() {
                     
                     // Small delay to show the selection
                     napms(500);
-                    Game game;
-                    game.run();  // Start the selected game mode
+                    MenuGameModeController::startEndlessMode();
+                    // Start the game
                     continue;  // Exit the method after game is done
                 } else {
                     // litte msg for the ppl that will still click  ;)
