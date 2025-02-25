@@ -9,7 +9,7 @@
 #include <iostream>
 
 /**
- * @brief A class responsible for operations on account such as sign up and login
+ * @brief A class responsible for operations regarding users with the database
  */
 
 class UserDatabaseManager {
@@ -21,6 +21,7 @@ class UserDatabaseManager {
         bool newAccountCreated(const char* username, const char* password);
         bool isCorrectLogin(const char* username, const char* password);
         bool isUniqueUsername(const char* username);
+        bool isValidUsername(const char* username);
 };
 
 #endif

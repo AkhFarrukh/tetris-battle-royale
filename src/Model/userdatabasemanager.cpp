@@ -2,15 +2,18 @@
 
 
 /**
- * @brief Create an account: if the username is unique, the account is created 
- * then returns true. Else the account creation is failed and returns false.
+ * @brief Try to create an account with the given username and password
  * @param username A username passed by user
  * @param password A password passed by user
+ * @return true if the username is unique and valid (the new account is created). 
+ * Else returns false (the new account is not created.)
  */
 bool UserDatabaseManager::newAccountCreated(const char* username, const char* password){
     bool newAccountCreated;
-    // Check the uniqueness of a username first
-    if(isUniqueUsername(username)) { // Then save login info into database
+
+    // If the username is valid and unique AND the password is not blank, 
+    // then save login info into database.
+    if (isUniqueUsername(username) && isValidUsername(username) && strlen(password) != 0){ 
         // Setup SQL statement and values to be binded
         const char* statement = "INSERT INTO login (username, password) VALUES (?, ?)";
         std::string plainPassword = password;
@@ -37,10 +40,10 @@ bool UserDatabaseManager::newAccountCreated(const char* username, const char* pa
 
 
 /**
- * @brief Compare the user's hashed password in a database with the entered password. 
- * Return true if both are matched else return false.
+ * @brief Compare the user's hashed password in a database with the input password. 
  * @param username A username passed by user
  * @param password A password passed by user
+ * @return true if both are matched. Else return false
  */
 bool UserDatabaseManager::isCorrectLogin(const char* username, const char* password){
     // Prepare Statement and bind username (to "?" symbol) to a statement
@@ -48,17 +51,17 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
     database.prepareStatement(query);
     database.bindText(username, 1);
 
-    // Get hashed password in a database
+    // Get resulting hash in a database and convert it to string type
     database.execute();
-    const unsigned char* hashedPassword = database.getTextValueFromColumn(0);
-    std::string stringHashedPassword = reinterpret_cast<const char*>(hashedPassword);
+    const unsigned char* resultingHash = database.getTextValueFromColumn(0);
+    std::string stringResultingHash = reinterpret_cast<const char*>(resultingHash);
 
     // Destruct the statement after getting the result
     database.destructStatement();
 
     // Compare both hashes
-    bool successful = bcrypt::validatePassword(password, stringHashedPassword);
-    return successful;
+    bool isCorrect = bcrypt::validatePassword(password, stringResultingHash);
+    return isCorrect;
 }
 
 
@@ -66,9 +69,7 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
  * @brief Check if the given username already exists in the database or not
  *        by querying the count result from the given username. 
  * @param username a username to check with the database
- * 
- * Return false if the given username already exists in the database. 
- * Else return true
+ * @return false if the given username already exists in the database. Else return true
  */
 bool UserDatabaseManager::isUniqueUsername(const char* username){
     // Prepare Statement and bind username (to "?" symbol) to a statement
@@ -91,4 +92,27 @@ bool UserDatabaseManager::isUniqueUsername(const char* username){
         isUnique = false;
 
     return isUnique;
+}
+
+
+/**
+ * @brief Check if the given username has only alphanumeric characters. (A-Z & 0-9)
+ * @param username a username to check with the database
+ * @return true if the given username has only alphanumeric characters AND not blank. 
+ * Otherwise, return false
+ */
+bool UserDatabaseManager::isValidUsername(const char* username){
+    bool isValid = true;
+
+    if (strlen(username) == 0){    // If the username is blank
+        isValid = false;
+    } 
+    // If not blank, check each character
+    else { 
+        while (*username && isValid) {
+            isValid = std::isalnum(static_cast<unsigned char>(*username));
+            ++username;
+        }
+    }
+    return isValid;
 }
