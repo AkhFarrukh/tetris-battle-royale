@@ -28,7 +28,7 @@ void InterfaceTerminal::start() {
     init_pair(5, COLOR_MAGENTA, -1);
     init_pair(6, COLOR_CYAN, -1);
     
-    const int numActions = 3;
+    const int numActions = 4;
     int selectedAction = 0;  // sera incrémenté ou décrementé en fonction des fleches up/down pour parcourir menu
 
     while (true) {
@@ -37,16 +37,18 @@ void InterfaceTerminal::start() {
 
         // Print the main menu title
         printw("Welcome to Tetris Royale (Terminal Edition)!\n");
+        printw("Choose an action: \n");
         
 
         // Action Options
         const char* actionNames[] = {
             "Play",
             "Add a friend",
-            "Delete a friend"
+            "Delete a friend",
+            "Show my friend's list"
         };
 
-        // Prints the actions
+        //affiche les actions possibles 
         for (int i = 0; i < numActions; ++i) {
             if (i == selectedAction) {
                 printw("-> ");  
@@ -79,7 +81,7 @@ void InterfaceTerminal::start() {
                 if (selectedAction < numActions - 1) {
                     selectedAction++;
                 }
-                break;
+                break;    
 
             case '\n':  // Enter key
                 if (selectedAction == 0) {  // If "Play" is selected
@@ -186,6 +188,13 @@ void InterfaceTerminal::start() {
                     // Delete a friend (stub for future implementation)
                     erase();
                     printw("Delete a friend selected! \n");
+                    refresh();
+                    nodelay(stdscr, FALSE);
+                    getch();  // Wait for a keypress to return to menu
+                    nodelay(stdscr, TRUE);
+                }else{
+                    erase();
+                    printw("Friend's list: \n");
                     refresh();
                     nodelay(stdscr, FALSE);
                     getch();  // Wait for a keypress to return to menu
