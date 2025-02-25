@@ -1,4 +1,4 @@
-#include "logininterface.hpp"
+#include "userdatabasemanager.hpp"
 
 
 /**
@@ -7,15 +7,16 @@
  * @param username A username passed by user
  * @param password A password passed by user
  */
-bool LoginInterface::newAccountCreated(const char* username, const char* password){
+bool UserDatabaseManager::newAccountCreated(const char* username, const char* password){
     bool newAccountCreated;
     // Check the uniqueness of a username first
     if(isUniqueUsername(username)) { // Then save login info into database
-        // Prepare Statement and bind username (to "?" symbol) to a statement
+        // Setup SQL statement and values to be binded
         const char* statement = "INSERT INTO login (username, password) VALUES (?, ?)";
-        std::string stringPassword = password;
-        std::string hashedPassword = bcrypt::generateHash(stringPassword);
-
+        std::string plainPassword = password;
+        std::string hashedPassword = bcrypt::generateHash(plainPassword);
+        
+        // Prepare Statement and bind username (to "?" symbol) to a statement
         database.prepareStatement(statement);
         database.bindText(username, 1);
         database.bindText(hashedPassword.c_str(), 2);
@@ -23,10 +24,11 @@ bool LoginInterface::newAccountCreated(const char* username, const char* passwor
         // Execute then destruct the statement
         database.execute();
         database.destructStatement();
+
         std::cout << "Account created successfully...\n";
         newAccountCreated = true;
     }
-    else { // Then print error
+    else { // If the username is already taken then print error
         std::cerr << "Username already used.\n";
         newAccountCreated = false;
     }
@@ -40,7 +42,7 @@ bool LoginInterface::newAccountCreated(const char* username, const char* passwor
  * @param username A username passed by user
  * @param password A password passed by user
  */
-bool LoginInterface::isSuccessfulLogin(const char* username, const char* password){
+bool UserDatabaseManager::isCorrectLogin(const char* username, const char* password){
     // Prepare Statement and bind username (to "?" symbol) to a statement
     const char* query = "SELECT password FROM login WHERE username = ?";
     database.prepareStatement(query);
@@ -68,7 +70,7 @@ bool LoginInterface::isSuccessfulLogin(const char* username, const char* passwor
  * Return false if the given username already exists in the database. 
  * Else return true
  */
-bool LoginInterface::isUniqueUsername(const char* username){
+bool UserDatabaseManager::isUniqueUsername(const char* username){
     // Prepare Statement and bind username (to "?" symbol) to a statement
     const char* query = "SELECT count(username) FROM login WHERE username = ?";
     database.prepareStatement(query);
