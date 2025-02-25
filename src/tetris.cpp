@@ -16,7 +16,7 @@ int main() {
     // Création du socket
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
-        std::cerr << "Erreur lors de la création du socket\n";
+        perror("Erreur lors de la création du socket : ");
         return 1;
     }
 
@@ -28,14 +28,14 @@ int main() {
 
     // Conversion de l'adresse IP en format binaire
     if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        std::cerr << "Adresse invalide ou non supportée\n";
+        perror("Adresse invalide ou non supportée : ");
         close(sock);
         return 1;
     }
 
     // Connexion au serveur
     if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-        std::cerr << "Échec de la connexion\n";
+        perror("Échec de la connexion : ");
         close(sock);
         //return 1;
         //TODO remove comment
