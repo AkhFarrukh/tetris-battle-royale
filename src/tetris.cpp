@@ -1,4 +1,5 @@
 #include "InterFaceTerminal.hpp"
+#include "MenuGameModeController.hpp"
 #include <sys/types.h>      //socket
 #include <sys/socket.h>     //socket management
 #include <unistd.h>         //socket
@@ -46,6 +47,7 @@ int main() {
     /**********************************************************************************
      * START GAME
      *********************************************************************************/
+
     InterfaceTerminal terminal;
     terminal.start(); 
 

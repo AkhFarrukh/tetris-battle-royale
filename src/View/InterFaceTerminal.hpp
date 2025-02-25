@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include "game.hpp"
+#include "MenuGameMode.hpp"
+#include "MenuGameModeController.hpp"
 
 class InterfaceTerminal {
 
