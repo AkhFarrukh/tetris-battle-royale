@@ -25,7 +25,7 @@ all: $(TARGET)
 
 # Compilation de l'exécutable
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -L$(LIB_DIR) -o $@ $^ -lncursesw
+	$(CXX) $(CXXFLAGS) -L$(LIB_DIR) -o $@ $^ -lncursesw -lsqlite3
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
