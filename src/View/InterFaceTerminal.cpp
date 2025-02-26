@@ -6,6 +6,12 @@ InterfaceTerminal::InterfaceTerminal() {}
 
 InterfaceTerminal::~InterfaceTerminal() {}
 
+
+// -------  Méthode à raccourcir avec plusieurs petites methodes ------
+
+
+
+
 void InterfaceTerminal::start() {
     setlocale(LC_ALL, "");
     // Initialize ncurses
@@ -37,7 +43,7 @@ void InterfaceTerminal::start() {
 
         // Print the main menu title
         printw("Welcome to Tetris Royale (Terminal Edition)!\n");
-        printw("Choose an action: \n");
+        printw("Choose an action: \n\n");
         
 
         // Action Options
@@ -86,8 +92,6 @@ void InterfaceTerminal::start() {
             case '\n':  // Enter key
                 if (selectedAction == 0) {  // If "Play" is selected
                     erase();
-                    printw("Play selected! Choose a game mode:\n");
-                    refresh();
                     
                     // Small delay to show the selection
                     napms(500);
@@ -179,7 +183,8 @@ void InterfaceTerminal::start() {
                 } else if (selectedAction == 1) {
                     // Add a friend (stub for future implementation)
                     erase();
-                    printw("Add a friend selected! (Not available yet) \n");
+                    printw("Add a friend selected! (Not available yet) \n\n");
+                    printw("Enter username: \n");                // incomplet - entrer le username et ajouter pas encore implémenté
                     refresh();
                     nodelay(stdscr, FALSE);
                     getch();  // Wait for a keypress to return to menu
@@ -187,7 +192,8 @@ void InterfaceTerminal::start() {
                 } else if (selectedAction == 2) {
                     // Delete a friend (stub for future implementation)
                     erase();
-                    printw("Delete a friend selected! (Not available yet) \n");
+                    printw("Delete a friend selected! (Not available yet) \n\n");
+                    printw("Enter username: \n");           // incomplet - entrer le username et supprimer pas encore implémenté 
                     refresh();
                     nodelay(stdscr, FALSE);
                     getch();  // Wait for a keypress to return to menu
