@@ -11,7 +11,18 @@ InterfaceTerminal::~InterfaceTerminal() {}
 
 
 
-
+/**
+ *@brief Initialise l'affichage user sur terminal (avec ncurses).
+ *
+ *Configure ncurses, affiche un menu qui permet à l'utilisateur
+ *de parcourir une liste d'actions grâce aux flêches (clavier) 
+ *et de sélectionner différentes actions.
+ *(jouer, ajouter/supprimer un ami, afficher la liste d'amis).
+ *
+ *@note options add / delete a friend, pas encore utilisables.
+ *@note Seul le mode "Endless Mode" est fonctionnel pour le moment.
+ * 
+ */
 void InterfaceTerminal::start() {
     setlocale(LC_ALL, "");
     // Initialize ncurses
@@ -51,7 +62,7 @@ void InterfaceTerminal::start() {
             "Play",
             "Add a friend (Not available yet)",
             "Delete a friend (Not available yet)",
-            "Show my friend's list (Not available yet )"
+            "Show my friend's list (Not available yet)"
         };
 
         //affiche les actions possibles 
