@@ -12,6 +12,7 @@
 #include "Mouvement.hpp"
 #include "game_data.hpp"
 #include "figureGenerator.hpp"
+#include "GameController.hpp"
 
 
 class Game {
@@ -29,6 +30,7 @@ private:
     Mouvement movement;
     GameData gameData;
     bool isRunning;
+    GameController gameController;
 
 
     void processInput();

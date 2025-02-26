@@ -19,18 +19,21 @@ Game::~Game() {}
  *@brief Gère la boucle principale du jeu.   
  */
 void Game::run() {
+    /*
     initscr();            // Initialize the window
     cbreak();             // Disable line buffering
     noecho();             // Don't echo input characters
     nodelay(stdscr, TRUE); // Make getch non-blocking
     keypad(stdscr, TRUE); // Enable special keys to be captured
-
+*/
+    gameController.startGameInput();
     isRunning = true;
     auto chrono = std::chrono::steady_clock::now();
     while (isRunning) {
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> currentTime = now - chrono;
-        processInput();
+        //processInput();
+        movement.setMouvement(gameController.getAction());
         if (currentTime > std::chrono::milliseconds(500)) {
             updateGame();
             chrono = std::chrono::steady_clock::now();
@@ -39,7 +42,7 @@ void Game::run() {
         checkGameOver();
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-    endwin(); // End ncurses mode
+    gameController.stopGameInput();
 }
 
 void Game::stop() {
@@ -51,6 +54,8 @@ void Game::stop() {
  * @brief gestion des actions en fonction de l'input du joueur.
  */
 void Game::processInput() {
+    //todo delete this methhod
+
     // ici j'appelle Mouvment::setMouvment() avec l'action obtenue par Input::getAction() pour faire les deplacment,
     // et Mouvement, À son tour, Mouvement appelle MovingFigure::setPosition() pour mettre à jour
     // la position de activeFigure ou faire un rotation.

@@ -7,7 +7,7 @@ InterfaceTerminal::InterfaceTerminal() {}
 InterfaceTerminal::~InterfaceTerminal() {}
 
 
-// -------  Méthode à raccourcir avec plusieurs petites methodes ------
+//TODO -------  Méthode à raccourcir avec plusieurs petites methodes ------
 
 
 
