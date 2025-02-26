@@ -1,8 +1,8 @@
 #ifndef USERDATABASEMANAGER_HPP
 #define USERDATABASEMANAGER_HPP
 
-#include "database.hpp"
-#include "bcrypt.h"
+#include "../Database/database.hpp"
+#include "../Database/bcrypt.h"
 
 #include <string.h>
 #include <string>
