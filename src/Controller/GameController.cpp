@@ -4,10 +4,10 @@
 
 #include "GameController.hpp"
 
-GameController::GameController(shared_ptr<Game> game) : game(game) {}
+GameController::GameController(shared_ptr<Game> game, shared_ptr<EventQueue> eventQueue) : game(game), eventQueue(eventQueue) {}
 
 
-Action GameController::getAction() {
+void GameController::getAction() {
     KeyboardAction keyboardAction = input.getKeyboardInput();
     Action action = Action::NONE;
     switch (keyboardAction) {
@@ -36,7 +36,7 @@ Action GameController::getAction() {
             action = Action::NONE;
             break;
     }
-    return action;
+    eventQueue->addEvent(make_shared<MovementActionEvent>(action));
 }
 
 /*

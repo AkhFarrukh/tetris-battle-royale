@@ -13,12 +13,13 @@
 #include "game_data.hpp"
 #include "figureGenerator.hpp"
 #include "GameController.hpp"
+#include "EventQueue.hpp"
 
 class GameController; // forward declaration
 
 class Game {
 public:
-    Game();
+    Game(shared_ptr<EventQueue> eventQueue);
     ~Game();
 
     void run();
@@ -38,6 +39,7 @@ private:
     GameData gameData;
     bool isRunning;
     shared_ptr<GameController> gameController;
+    shared_ptr<EventQueue> eventQueue;
 
 
     void updateGame();
