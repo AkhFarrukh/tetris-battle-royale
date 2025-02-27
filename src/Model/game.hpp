@@ -33,7 +33,6 @@ private:
     GameController gameController;
 
 
-    void processInput();
     void updateGame();
     void renderGame();
     int applyColor(Color blockColor);

@@ -19,28 +19,27 @@ Game::~Game() {}
  *@brief Gère la boucle principale du jeu.   
  */
 void Game::run() {
-    /*
-    initscr();            // Initialize the window
-    cbreak();             // Disable line buffering
-    noecho();             // Don't echo input characters
-    nodelay(stdscr, TRUE); // Make getch non-blocking
-    keypad(stdscr, TRUE); // Enable special keys to be captured
-*/
     gameController.startGameInput();
     isRunning = true;
     auto chrono = std::chrono::steady_clock::now();
     while (isRunning) {
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> currentTime = now - chrono;
-        //processInput();
-        movement.setMouvement(gameController.getAction());
+        Action action = gameController.getAction();
+
+        if (action == Action::ESCAPE) {
+            stop();
+            return;
+        }
+        movement.setMouvement(action);
         if (currentTime > std::chrono::milliseconds(500)) {
+            //todo make timer an event and update every tick (or frame)
             updateGame();
             chrono = std::chrono::steady_clock::now();
         }
         renderGame();
         checkGameOver();
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     gameController.stopGameInput();
 }
@@ -50,74 +49,6 @@ void Game::stop() {
 }
 
 
-/**
- * @brief gestion des actions en fonction de l'input du joueur.
- */
-void Game::processInput() {
-    //todo delete this methhod
-
-    // ici j'appelle Mouvment::setMouvment() avec l'action obtenue par Input::getAction() pour faire les deplacment,
-    // et Mouvement, À son tour, Mouvement appelle MovingFigure::setPosition() pour mettre à jour
-    // la position de activeFigure ou faire un rotation.
-    
-    // a confirmer par @hmz @farrukh
-
-    int ch = getch();
-    if (ch == ERR) {
-        return;
-    }
-    while (getch() != ERR);  // Clear any leftover inputs
-
-    Action action = Action::NONE;
-    switch (ch) {
-        case KEY_LEFT:
-        case 'q':
-            action = Action::MOVE_LEFT;
-            break;
-
-        case KEY_RIGHT:
-        case 'd':
-            action = Action::MOVE_RIGHT;
-            break;
-
-        case KEY_UP:
-        case 'z':
-            action = Action::ROTATE_LEFT;
-            break;
-
-        case 'r':
-            action = Action::ROTATE_RIGHT;
-            break;
-
-        case ' ':
-            action = Action::DROP;
-            break;
-
-        case KEY_DOWN:
-        case 's':
-            action = Action::SOFT_DROP;
-            break;
-
-        case 27: // ESC
-            action = Action::ESCAPE;
-            break;
-
-        default:
-            action = Action::NONE;
-            break;
-    }
-
-    if (action != Action::NONE) {
-        if (action == Action::ESCAPE) {
-            stop();
-            return;
-        }
-        //eventQueue.push(action);
-        movement.setMouvement(action);
-
-    }
-    refresh();
-}
 
 
 /**

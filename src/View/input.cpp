@@ -51,6 +51,8 @@ KeyboardAction Input::getKeyboardInput() {
             currentAction = KeyboardAction::SOFT_DROP_KEY;
             break;
         case 27:  // ESC key
+            currentAction = KeyboardAction::EXIT_KEY;
+            break;
         case KEY_CANCEL:
             currentAction = KeyboardAction::EXIT_KEY;
             break;
