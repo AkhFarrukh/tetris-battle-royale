@@ -40,7 +40,7 @@ void Game::run() {
             updateGame();
             chrono = std::chrono::steady_clock::now();
         }
-        renderGame();
+        gameController->renderGame();
         checkGameOver();
         //std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
@@ -86,70 +86,16 @@ void Game::updateGame() {
 }
 
 
-/**
- *@brief affiche le jeu dans son etat actuel.
- * Affichage de la grille de jeu, tetromino (block) , infos de jeu.
- */
-void Game::renderGame() {
-    erase();
-    mvprintw(0, 0, "Score: %d", gameData.get_score());
-    mvprintw(1, 0, "Lines: %d", gameData.get_numberBrokenLines());
-    mvprintw(2, 0, "+--------------------+");
-
-    for (int y = 0; y < GRID_HEIGHT; ++y) {
-        mvprintw(y + 3, 0, "|");
-        for (int x = 0; x < GRID_WIDTH; ++x) {
-            Color blockColor = activeFigure->getMovingFigureBlockColor(Coordinates(x, y));
-            if (blockColor == Color::nullcolor) {
-                blockColor = grid->getBlockColor(x, y);
-            }
-            if (blockColor != Color::nullcolor) {
-                int index = applyColor(blockColor);
-                mvprintw(y + 3, x * 2 + 1, "\u2588\u2588");
-                attroff(COLOR_PAIR(index));
-            } else {
-                mvprintw(y + 3, x * 2 + 1, "  ");
-            }
-        }
-        mvprintw(y + 3, 21, "|");
-    }
-    mvprintw(23, 0, "+--------------------+");
-    refresh();
-}
 
 
 
-/**
- *@brief convertit une couleur (de block) en l'associant à un code couleur ncurses.
- *permet ainsi l'affichage correcte à l'écran des blocks. 
- *
- *@param blockColor couleur du block (et de type Color).
- *@return l'index du de la couleur
- */
-int Game::applyColor(Color blockColor) {
-    int pairIndex = 0;
-    switch (blockColor) {
-        case Color::red:    pairIndex = 1; break;
-        case Color::green:  pairIndex = 2; break;
-        case Color::yellow: pairIndex = 3; break;
-        case Color::blue:   pairIndex = 4; break;
-        case Color::orange: pairIndex = 5; break;
-        case Color::cyan:   pairIndex = 6; break;
-        default:            pairIndex = 0; break;
-    }
-
-    if (pairIndex != 0) {
-        attron(COLOR_PAIR(pairIndex));
-    }
-    return pairIndex;
-}
 
 /**
  *@brief arrête le jeu si il est "terminé".
  */
 void Game::checkGameOver() {
     if (gameData.get_isGameOver()) {
-        std::cout << "Game Over!\n";
+        gameController->printGameOver();
         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         stop();
     }

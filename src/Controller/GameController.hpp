@@ -8,12 +8,13 @@
 #include "input.hpp"
 #include "ControllerEnum.hpp"
 #include "game.hpp"
+#include "RenderEngineNcurses.hpp"
 using namespace std;
 
 
 class Game; // foreward declaration
 
-
+//todo remake with observer pattern maybe?
 
 class GameController {
 private:
@@ -25,9 +26,13 @@ public:
     void stopGameInput() {input.stop();}
     Action getAction();
 
+    /*
     int getGameScore();
     int getGameNumberOfBrokenLines();
     Color getBlockColor(Coordinates cell);
+    */
+    void renderGame();
+    void printGameOver();
 
 };
 

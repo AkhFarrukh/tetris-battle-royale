@@ -39,7 +39,7 @@ Action GameController::getAction() {
     return action;
 }
 
-
+/*
 int GameController::getGameScore() {
     return game->getGameScore();
 }
@@ -50,4 +50,13 @@ int GameController::getGameNumberOfBrokenLines() {
 
 Color GameController::getBlockColor(Coordinates cell) {
     return game->getBlockColor(cell);
+}
+*/
+
+void GameController::renderGame() {
+    RenderEngineNcurses::renderGame(game);
+}
+
+void GameController::printGameOver() {
+    RenderEngineNcurses::printGameOver();
 }
