@@ -1,6 +1,7 @@
 #ifndef GRID_HPP
 #define GRID_HPP
-
+#include <cstdlib>  // Pour rand() et srand()
+#include <ctime>    // Pour time()
 #include <iostream>
 #include  "Block.hpp"
 // #include  "coordinates.cpp"
@@ -26,7 +27,7 @@ class Grid {
     void clearFullLines();
     void setBlock(Block newblock);
     Color getBlockColor(int x, int y);
-    void malusLines(int y, int x);
+    void malusLines(int y);
 };
 
 #endif
