@@ -7,13 +7,14 @@ const int GRID_HEIGHT = 20;
 const int GRID_WIDTH = 10;
 
 
-Game::Game()
-    : grid(std::make_shared<Grid>()),
-      figureGenerator(),
-      activeFigure(std::make_shared<MovingFigure>(std::make_shared<Figure>(figureGenerator.randomFigure()), grid)),
-      movement(Action::NONE, activeFigure),
-      gameData(0, 0, false, "Endless"),
-      isRunning(false)
+Game::Game(shared_ptr<EventQueue> eventQueue)
+    :   eventQueue(move(eventQueue)),
+        grid(std::make_shared<Grid>()),
+        figureGenerator(),
+        activeFigure(std::make_shared<MovingFigure>(std::make_shared<Figure>(figureGenerator.randomFigure()), grid)),
+        movement(Action::NONE, activeFigure),
+        gameData(0, 0, false, "Endless"),
+        isRunning(false)
 {}
 
 Game::~Game() {}
@@ -28,8 +29,10 @@ void Game::run() {
     while (isRunning) {
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> currentTime = now - chrono;
-        Action action = gameController->getAction();
-
+        gameController->getAction();
+        shared_ptr<MovementActionEvent> movementActionEvent = dynamic_pointer_cast<MovementActionEvent>(eventQueue->getEvent());
+        if (movementActionEvent) {
+                    Action action = movementActionEvent->getEventData();
         if (action == Action::ESCAPE) {
             stop();
             return;
@@ -43,6 +46,8 @@ void Game::run() {
         gameController->renderGame();
         checkGameOver();
         //std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+
     }
     gameController->stopGameInput();
 }

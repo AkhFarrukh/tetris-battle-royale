@@ -9,6 +9,8 @@
 #include "ControllerEnum.hpp"
 #include "game.hpp"
 #include "RenderEngineNcurses.hpp"
+#include "EventQueue.hpp"
+#include "MovementActionEvent.hpp"
 using namespace std;
 
 
@@ -20,11 +22,12 @@ class GameController {
 private:
     Input input;
     shared_ptr<Game> game;
+    shared_ptr<EventQueue> eventQueue;
 public:
-    GameController(shared_ptr<Game> game);
+    GameController(shared_ptr<Game> game, shared_ptr<EventQueue> eventQueue);
     void startGameInput() {input.start();}
     void stopGameInput() {input.stop();}
-    Action getAction();
+    void getAction();
 
     /*
     int getGameScore();
