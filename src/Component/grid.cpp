@@ -144,9 +144,37 @@ Color Grid::getBlockColor(int x, int y) {
     };
     return Color::nullcolor;  // Renvoie une couleur de case vide si on sort du tableau
 }
+/*
+ *@brief va ajouter une ligne grise avec un bloc vide afin de saboter la game de l'adversaire
+ *
+ *@param numLines est le nombres de lignes malus à ajouter
+ */
+void Grid::malusLines(int numLines) {
+    int line = GRID_HEIGHT;
+    while (not isFullLine(line) && line >= 0) {
+        --line;
+    }
+    if (line < 0) { //Si aucune line n'est vide (ce qui aurait deja fait finir la game donc jsp
+        //todo "Perdu"
+        // com pour pouvoir merge
+    }
+    else {
+        int heightAfterAddingLines = line - numLines;
+        if (heightAfterAddingLines < 0) {  //Si le nombre de ligne à ajouter sort de la grid et va donc faire perdre le joueur
+            //todo "Perdu"
+        }
+        for (line; line > heightAfterAddingLines; --line) {
+            srand(time(nullptr));  // Initialisation avec l'heure actuelle
+            int indiceCaseVide = rand() % GRID_WIDTH;   //Selection au hasard de la case qui sera vide
+            for (int row=0; row < GRID_WIDTH; row++){
+                if (row != indiceCaseVide) {
+                    Block block = Block(Color::grey, 1, Coordinates(row, line));
+                    setBlock(block);
+                }
+            }
+        }
 
-void Grid::malusLines(int y, int shift){
-
+    }
 }
 
 

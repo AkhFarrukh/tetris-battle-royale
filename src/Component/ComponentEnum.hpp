@@ -20,6 +20,7 @@ enum class Color{
     red,     // Z-shape (right)
     orange,  // L-shape (right)
     blue,    // J-shape (left)
+    grey     // Malus
 };
 
 /** 
