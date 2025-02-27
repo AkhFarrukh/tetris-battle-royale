@@ -8,6 +8,7 @@
 #include <ncurses.h>
 #include <chrono>
 #include "ControllerEnum.hpp" // This includes the Action enum class
+#include "keyboardAction.hpp"
 
 /* The ncurses lib needs to be added to the makefile in the flags section
 LDFLAGS = -lncurses 
@@ -17,23 +18,10 @@ and write how to install ncurses very important
 */
 
 class Input {
-private:
-    std::atomic<Action> currentAction;  // Now using the scoped Action enum
-    std::atomic<bool> isRunning;
-    std::thread inputThread;
-
-    void listenForInput();
-
 public:
-    Input();
-    ~Input() {
-        stop();
-        endwin(); // Restore terminal to normal state
-    }
-
+    KeyboardAction getKeyboardInput();
     void start();
-    void stop();
-    Action getAction();
+    void stop(){endwin();}
 };
 
 #endif

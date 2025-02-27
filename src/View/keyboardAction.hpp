@@ -1,0 +1,19 @@
+//
+// Created by farrukh on 26/02/25.
+//
+
+#ifndef KEYBOARDACTION_HPP
+#define KEYBOARDACTION_HPP
+
+enum KeyboardAction {
+    NO_ACTION,
+    LEFT_DIRECTION_KEY,
+    RIGHT_DIRECTION_KEY,
+    LEFT_ROTATION_KEY,
+    RIGHT_ROTATION_KEY,
+    SOFT_DROP_KEY,
+    HARD_DROP_KEY,
+    EXIT_KEY
+};
+
+#endif //KEYBOARDACTION_HPP

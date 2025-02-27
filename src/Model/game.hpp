@@ -12,7 +12,9 @@
 #include "Mouvement.hpp"
 #include "game_data.hpp"
 #include "figureGenerator.hpp"
+#include "GameController.hpp"
 
+class GameController; // forward declaration
 
 class Game {
 public:
@@ -21,6 +23,12 @@ public:
 
     void run();
     void stop();
+    void setGameController(shared_ptr<GameController> controller);
+    int getGameScore() { return gameData.get_score(); }
+    int getGameNumberOfBrokenLines() { return gameData.get_numberBrokenLines(); }
+    Color getBlockColor(Coordinates cell);
+
+
 
 private:
     std::shared_ptr<Grid> grid;
@@ -29,14 +37,16 @@ private:
     Mouvement movement;
     GameData gameData;
     bool isRunning;
+    shared_ptr<GameController> gameController;
 
 
-    void processInput();
     void updateGame();
     void renderGame();
     int applyColor(Color blockColor);
     void checkGameOver();
     void handleLineCompletion();
+
+
 };
 
 #endif // GAME_HPP

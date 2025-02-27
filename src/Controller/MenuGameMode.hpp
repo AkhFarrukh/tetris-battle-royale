@@ -5,7 +5,7 @@
 #ifndef MENUGAMEMODE_HPP
 #define MENUGAMEMODE_HPP
 
-
+//TODO delete maybe
 
 enum MenuGameMode {
     ENDLESS,
