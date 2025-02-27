@@ -4,6 +4,9 @@
 
 #include "GameController.hpp"
 
+GameController::GameController(shared_ptr<Game> game) : game(game) {}
+
+
 Action GameController::getAction() {
     KeyboardAction keyboardAction = input.getKeyboardInput();
     Action action = Action::NONE;
@@ -34,4 +37,17 @@ Action GameController::getAction() {
             break;
     }
     return action;
+}
+
+
+int GameController::getGameScore() {
+    return game->getGameScore();
+}
+
+int GameController::getGameNumberOfBrokenLines() {
+    return game->getGameNumberOfBrokenLines();
+}
+
+Color GameController::getBlockColor(Coordinates cell) {
+    return game->getBlockColor(cell);
 }

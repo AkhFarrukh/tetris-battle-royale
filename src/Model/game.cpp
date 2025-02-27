@@ -1,5 +1,7 @@
 #include "game.hpp"
 
+#include <utility>
+
 
 const int GRID_HEIGHT = 20;
 const int GRID_WIDTH = 10;
@@ -11,7 +13,8 @@ Game::Game()
       activeFigure(std::make_shared<MovingFigure>(std::make_shared<Figure>(figureGenerator.randomFigure()), grid)),
       movement(Action::NONE, activeFigure),
       gameData(0, 0, false, "Endless"),
-      isRunning(false) {}
+      isRunning(false)
+{}
 
 Game::~Game() {}
 
@@ -19,13 +22,13 @@ Game::~Game() {}
  *@brief Gère la boucle principale du jeu.   
  */
 void Game::run() {
-    gameController.startGameInput();
+    gameController->startGameInput();
     isRunning = true;
     auto chrono = std::chrono::steady_clock::now();
     while (isRunning) {
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> currentTime = now - chrono;
-        Action action = gameController.getAction();
+        Action action = gameController->getAction();
 
         if (action == Action::ESCAPE) {
             stop();
@@ -41,7 +44,7 @@ void Game::run() {
         checkGameOver();
         //std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-    gameController.stopGameInput();
+    gameController->stopGameInput();
 }
 
 void Game::stop() {
@@ -176,5 +179,17 @@ void Game::handleLineCompletion() {
         gameData.updateScore(clearedLines * lineClearedScore);
     
     }
+}
+
+void Game::setGameController(shared_ptr<GameController> controller) {
+    gameController = move(controller);
+}
+
+Color Game::getBlockColor(Coordinates cell) {
+    Color blockColor = activeFigure->getMovingFigureBlockColor(cell);
+    if (blockColor == Color::nullcolor) {
+        blockColor = grid->getBlockColor(cell.x, cell.y);
+    }
+    return blockColor;
 }
 

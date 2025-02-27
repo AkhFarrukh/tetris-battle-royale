@@ -6,6 +6,9 @@
 
 
 void MenuGameModeController::startEndlessMode() {
-    Game game;
-    game.run();  // Start the selected game mode
+  //todo group this in a separate class
+    shared_ptr<Game> game = make_shared<Game>();
+    shared_ptr<GameController> gameController = make_shared<GameController>(game);
+    game->setGameController(gameController);
+    game->run();  // Start the selected game mode
 }
