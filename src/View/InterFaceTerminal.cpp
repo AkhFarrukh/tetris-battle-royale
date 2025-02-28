@@ -2,227 +2,199 @@
 #include <ncurses.h>
 #include <locale.h>  // Needed for wide characters (if printing Unicode blocks)
 
-InterfaceTerminal::InterfaceTerminal() {}
 
+// constante statique pour economiser de la mémoire en evitant à chaque fois recreer le tableau
+// voir fichier Hpp
+const char* InterfaceTerminal::modeNames[] = { 
+                                            "Endless Mode",  
+                                            "Classic Mode",  
+                                            "Duel Mode",  
+                                            "Royal Competition Mode"  
+                                            };    
+
+InterfaceTerminal::InterfaceTerminal() {}
 InterfaceTerminal::~InterfaceTerminal() {}
 
 
-//TODO -------  Méthode à raccourcir avec plusieurs petites methodes ------
-
-
+/**
+* @brief Initialise ncurses et configure l'affichage du terminal.
+*/
+void InterfaceTerminal::initNcurses() {
+   setlocale(LC_ALL, "");
+   initscr();
+   cbreak();
+   noecho();
+   keypad(stdscr, TRUE);
+   curs_set(0);
+   nodelay(stdscr, TRUE);
+   start_color();
+   if (has_colors() && can_change_color()) {
+       use_default_colors();
+   }
+   init_pair(1, COLOR_RED, -1);
+   init_pair(2, COLOR_GREEN, -1);
+   init_pair(3, COLOR_YELLOW, -1);
+   init_pair(4, COLOR_BLUE, -1);
+   init_pair(5, COLOR_MAGENTA, -1);
+   init_pair(6, COLOR_CYAN, -1);
+}
 
 /**
- *@brief Initialise l'affichage user sur terminal (avec ncurses).
- *
- *Configure ncurses, affiche un menu qui permet à l'utilisateur
- *de parcourir une liste d'actions grâce aux flêches (clavier) 
- *et de sélectionner différentes actions.
- *(jouer, ajouter/supprimer un ami, afficher la liste d'amis).
- *
- *@note options add / delete a friend, pas encore utilisables.
- *@note Seul le mode "Endless Mode" est fonctionnel pour le moment.
- * 
+* @brief Affiche le menu principal et l'option sélectionnée.
+
+* @param selectedAction Indice de l'option actuellement sélectionnée.
+*/
+void InterfaceTerminal::displayMenu(int selectedOption) {
+   erase();
+   printw("Welcome to Tetris Royale (Terminal Edition)!\n");
+   printw("Choose an action: \n\n");
+   const char* menuOptions[] = {
+                                "Play", 
+                                "Add a friend (Not available yet)", 
+                                "Delete a friend (Not available yet)", 
+                                "Show my friend's list (Not available yet)"
+                                };
+   
+   int numberPossibleOptions = std::size(menuOptions); // taille du tableau contanant options du menu principal
+   
+   for (int i = 0; i < numberPossibleOptions; ++i) {
+       if (i == selectedOption) {
+           printw("-> %d. %s\n", i + 1, menuOptions[i]);
+       } else {
+           printw("   %d. %s\n", i + 1, menuOptions[i]);
+       }
+   }
+   printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an action\nPress 'q' to quit\n");
+   refresh();
+}
+
+/**
+* @brief Affiche le menu de sélection des modes de jeu.
+* @param selectedMode Indice du mode de jeu actuellement sélectionné.
+*/
+void InterfaceTerminal::displayGameModeMenu(int selectedMode) {
+   erase();
+   printw("Select a game mode then press Enter to start:\n\n");
+   int numberModePossible = std::size(modeNames);   // taille du tableau contenant les modes de jeu
+   
+   for (int i = 0; i < numberModePossible; ++i) {
+       if (i == selectedMode) {
+           printw("-> %d. %s", i + 1, modeNames[i]);
+       } else {
+           printw("   %d. %s", i + 1, modeNames[i]);
+       }
+       if (i != 0) {
+           printw(" (Unreleased)");
+       }
+       printw("\n");
+   }
+   printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select a mode\nPress 'q' to quit\n");
+   refresh();
+}
+
+/**
+* @brief Gère la sélection et l'exécution des modes de jeu.
+*/
+void InterfaceTerminal::handleGameModeSelection() {
+   int selectedMode = 0;
+   
+   while (true) {
+       
+    displayGameModeMenu(selectedMode);  // affiche le menu avec les modes 
+       
+    int ch = getch();    // récupère l'entree utilisateur
+       switch (ch) {  
+        case KEY_UP:
+               if (selectedMode > 0) {
+                   selectedMode--;
+               }
+               break;
+           case KEY_DOWN:
+               if (selectedMode < 3) {
+                   selectedMode++;
+               }
+               break;
+            
+            // touche 'entré'
+            case '\n':
+               if (selectedMode == 0) {
+                   erase();
+                   printw("Endless Mode selected! Starting game...\n");
+                   refresh();
+                   napms(500);
+                   MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
+                   return;
+               
+                } else {        // autres modes de jeu, pas encore implémenté      
+                   erase();
+                   printw("%s is not available yet.\nPress any key to return to menu...\n", modeNames[selectedMode]);
+                   refresh();
+                   nodelay(stdscr, FALSE);
+                   getch();
+                   nodelay(stdscr, TRUE);
+               }
+               break;
+           case 'q':
+           case 'Q':
+               endwin();
+               return;
+       }
+   }
+}
+
+/**
+ * @brief Gère la sélection des options dans le menu principal.
+ * @param selectedAction Indice de l'action sélectionnée.
  */
+void InterfaceTerminal::handleOptionSelection(int selectedOption) {
+   switch (selectedOption) {
+       case 0:
+            // Si l'utilisateur sélectionne "Play", on affiche le menu des modes de jeu.
+           handleGameModeSelection();
+           break;
+       
+       // dans les trois 'case' suivants, le programme effectue la meme chose  (parce que les fonctionnalités pas encore dispo)
+       case 1:
+       case 2:
+       case 3:
+           erase();
+           printw("This feature is not available yet.\nPress any key to return to menu...\n");
+           refresh();
+           nodelay(stdscr, FALSE);
+           getch();
+           nodelay(stdscr, TRUE);
+           break;
+   }
+}
+
+/**
+* @brief Démarre l'interface utilisateur et gère les interactions utilisateur.
+*/
 void InterfaceTerminal::start() {
-    setlocale(LC_ALL, "");
-    // Initialize ncurses
-    initscr();            // Start curses mode
-    cbreak();             // Line buffering disabled
-    noecho();             // Don't echo() while we do getch
-    keypad(stdscr, TRUE); // We get F1, F2 etc..
-    curs_set(0);          // Hide the cursor
-    nodelay(stdscr, TRUE);
-    
-    start_color();
-    if (has_colors() && can_change_color()) {
-        use_default_colors();
-    }
-
-    init_pair(1, COLOR_RED, -1);
-    init_pair(2, COLOR_GREEN, -1);
-    init_pair(3, COLOR_YELLOW, -1);
-    init_pair(4, COLOR_BLUE, -1);
-    init_pair(5, COLOR_MAGENTA, -1);
-    init_pair(6, COLOR_CYAN, -1);
-    
-    const int numActions = 4;
-    int selectedAction = 0;  // sera incrémenté ou décrementé en fonction des fleches up/down pour parcourir menu
-
-    while (true) {
-        // Clear the screen before printing the updated menu
-        erase();
-
-        // Print the main menu title
-        printw("Welcome to Tetris Royale (Terminal Edition)!\n");
-        printw("Choose an action: \n\n");
-        
-
-        // Action Options
-        const char* actionNames[] = {
-            "Play",
-            "Add a friend (Not available yet)",
-            "Delete a friend (Not available yet)",
-            "Show my friend's list (Not available yet)"
-        };
-
-        //affiche les actions possibles 
-        for (int i = 0; i < numActions; ++i) {
-            if (i == selectedAction) {
-                printw("-> ");  
-            } else {
-                printw("   ");
-            }
-
-            printw("%d. %s", i + 1, actionNames[i]);
-            printw("\n");
-        }
-
-        printw("\nUse UP and DOWN arrow keys to navigate\n");
-        printw("Press ENTER to select an action\n");
-        printw("Press 'q' to quit\n");
-
-        // Refresh the screen to display updates
-        refresh();
-
-        // Get user input directly
-        int ch = getch();
-
-        switch (ch) {
-            case KEY_UP:
-                if (selectedAction > 0) {
-                    selectedAction--;
-                }
-                break;
-
-            case KEY_DOWN:
-                if (selectedAction < numActions - 1) {
-                    selectedAction++;
-                }
-                break;    
-
-            case '\n':  // Enter key
-                if (selectedAction == 0) {  // If "Play" is selected
-                    erase();
-                    
-                    // Small delay to show the selection
-                    napms(500);
-
-                    // Show game modes (already implemented)
-                    const int numModes = 4;
-                    int selectedMode = 0;  // Tracks the currently selected menu option for game modes
-                    
-                    const char* modeNames[] = {
-                        "Endless Mode",
-                        "Classic Mode",
-                        "Duel Mode", 
-                        "Royal Competition Mode"
-                    };
-
-                    while (true) {
-                        // Clear the screen before printing the updated game mode menu
-                        erase();
-
-                        // Print the game mode menu
-                        printw("Select a game mode then press Enter to start:\n\n");
-                        for (int i = 0; i < numModes; ++i) {
-                            if (i == selectedMode) {
-                                printw("-> ");  // If "hovered"
-                            } else {
-                                printw("   ");
-                            }
-
-                            printw("%d. %s", i + 1, modeNames[i]);
-
-                            if (i != 0) {
-                                printw(" (Unreleased)");
-                            }
-                            printw("\n");
-                        }
-
-                        printw("\nUse UP and DOWN arrow keys to navigate\n");
-                        printw("Press ENTER to select a mode\n");
-                        printw("Press 'q' to quit\n");
-
-                        // Refresh the screen to display updates
-                        refresh();
-
-                        // Get user input directly
-                        ch = getch();
-
-                        switch (ch) {
-                            case KEY_UP:
-                                if (selectedMode > 0) {
-                                    selectedMode--;
-                                }
-                                break;
-
-                            case KEY_DOWN:
-                                if (selectedMode < numModes - 1) {
-                                    selectedMode++;
-                                }
-                                break;
-
-                            case '\n':  // Enter key
-                                if (selectedMode == 0) {  // Only Endless Mode is functional
-                                    erase();
-                                    printw("Endless Mode selected! Starting game...\n");
-                                    refresh();
-
-                                    // Small delay to show the selection
-                                    napms(500);
-                                    MenuGameModeController::startEndlessMode();
-                                    continue;  // Exit the method after game is done
-                                } else {
-                                    // Message for unavailable modes
-                                    erase();
-                                    printw("%s is not available yet.\n", modeNames[selectedMode]);
-                                    printw("Press any key to return to menu...\n");
-                                    refresh();
-                                    nodelay(stdscr, FALSE);
-                                    getch();  // Wait for a keypress and keeps the screen from being refreshed
-                                    nodelay(stdscr, TRUE);
-                                }
-                                break;
-
-                            // quit the menu
-                            case 'q':
-                            case 'Q':
-                                endwin();
-                                return;  // Exit the method
-                        }
-                    }
-                } else if (selectedAction == 1) {
-                    // Add a friend (stub for future implementation)
-                    erase();
-                    printw("Add a friend selected! (Not available yet) \n\n");
-                    printw("Enter username: \n");                // incomplet - entrer le username et ajouter pas encore implémenté
-                    refresh();
-                    nodelay(stdscr, FALSE);
-                    getch();  // Wait for a keypress to return to menu
-                    nodelay(stdscr, TRUE);
-                } else if (selectedAction == 2) {
-                    // Delete a friend (stub for future implementation)
-                    erase();
-                    printw("Delete a friend selected! (Not available yet) \n\n");
-                    printw("Enter username: \n");           // incomplet - entrer le username et supprimer pas encore implémenté 
-                    refresh();
-                    nodelay(stdscr, FALSE);
-                    getch();  // Wait for a keypress to return to menu
-                    nodelay(stdscr, TRUE);
-                }else{
-                    erase();
-                    printw("Friend's list (Not available yet) : \n");
-                    refresh();
-                    nodelay(stdscr, FALSE);
-                    getch();  // Wait for a keypress to return to menu
-                    nodelay(stdscr, TRUE);
-                }
-                break;
-
-            case 'q':
-            case 'Q':
-                endwin();
-                return;  // Exit the method
-        }
-    }
+   initNcurses();
+   int selectedOption = 0;
+   
+   while (true) {
+       displayMenu(selectedOption);
+       int ch = getch();
+       switch (ch) {
+           case KEY_UP:
+               if (selectedOption > 0) {
+                   selectedOption--;
+               }
+               break;
+           case KEY_DOWN:
+               if (selectedOption < 3) {
+                   selectedOption++;
+               }
+               break;
+           case '\n':
+               handleOptionSelection(selectedOption);
+               break;
+           case 'q':
+           case 'Q':
+               endwin();
+               return;
+       }
+   }
 }
