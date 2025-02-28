@@ -40,10 +40,11 @@ bool UserDatabaseManager::newAccountCreated(const char* username, const char* pa
 
 
 /**
- * @brief Compare the user's hashed password in a database with the input password. 
+ * @brief Compare the user's hashed password in a database with the input's hash. 
  * @param username A username passed by user
  * @param password A password passed by user
- * @return true if both are matched. Else return false
+ * @return true if both hashes from the database and from the input's hash are 
+ * matched. Else return false
  */
 bool UserDatabaseManager::isCorrectLogin(const char* username, const char* password){
     // Prepare Statement and bind values to "?" symbols in a statement
@@ -51,17 +52,56 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
     database.prepareStatement(query);
     database.bindText(username, 1);
 
-    // Get resulting hash in a database and convert it to string type
+    // Get resulting hash in a database and convert it to string type then 
+    // destruct the statement after getting the result
     database.execute();
     const unsigned char* resultingHash = database.getTextValueFromColumn(0);
     std::string stringResultingHash = reinterpret_cast<const char*>(resultingHash);
-
-    // Destruct the statement after getting the result
     database.destructStatement();
 
-    // Compare both hashes
+    // Compare both hashes from the database and from the user input
     bool isCorrect = bcrypt::validatePassword(password, stringResultingHash);
+
+    // If the login is correct, change the login status to 1.
+    if(isCorrect){
+        const char* query = "UPDATE login SET logged_in = 1 WHERE username = ?";
+        database.prepareStatement(query);
+        database.bindText(username, 1);
+
+        // Execute the statement then destruct the statement after getting the result
+        database.execute();
+        database.destructStatement();
+    }
     return isCorrect;
+}
+
+
+/**
+ * @brief Find a user ID from the username. The method returns the particular 
+ * user ID only and only if the user has already logged in (to avoid data leakage).
+ * @param username a username to check with the database
+ * @return a user ID (> 0) else return -1
+ */
+int UserDatabaseManager::getUserId(const char* username){
+    int userId;
+    // Prepare Statement and bind username to "?" symbols in a statement
+    const char* query = "SELECT user_id FROM login WHERE username = ? \
+                                                   AND logged_in = 1";
+    database.prepareStatement(query);
+    database.bindText(username, 1);
+    database.execute(); // Execute the statement
+
+    // If there is a result, get the user ID. Else return -1    
+    if (database.getReturnCode() == SQLITE_ROW){
+        userId = database.getIntValueFromColumn(0);
+    }
+    else{
+        userId = -1;
+    }
+
+    // Destruct the statement after getting the result then return a result
+    database.destructStatement();
+    return userId;
 }
 
 

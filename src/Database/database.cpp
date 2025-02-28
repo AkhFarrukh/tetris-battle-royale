@@ -63,12 +63,12 @@ void Database::destructStatement(){
  * the statement. For querying, it stops row-by-row until the end of result.
  */
 void Database::execute(){
-    sqlite3_step(stmt);
+    returnCode = sqlite3_step(stmt);
 }
 
 
 /**
- * @brief get INT result in the given column 
+ * @brief get INT result in the given column
  * @param columnIndex: straightforward (index = 0 on the most left column)
  */
 int Database::getIntValueFromColumn(int columnIndex){
@@ -82,4 +82,22 @@ int Database::getIntValueFromColumn(int columnIndex){
  */
 const unsigned char* Database::getTextValueFromColumn(int columnIndex){
     return sqlite3_column_text(stmt, columnIndex);
+}
+
+
+/**
+ * @brief set returnCode to a new value
+ * @param newReturnCode as a new return code value to be set
+ */
+void Database::setReturnCode(int newReturnCode){
+    returnCode = newReturnCode;
+}
+
+
+/**
+ * @brief get returnCode 
+ * @return a value of return code
+ */
+int Database::getReturnCode(){
+    return returnCode;
 }

@@ -21,14 +21,15 @@ class Database{
         Database(const char* databaseFileName);
         ~Database();
         sqlite3_stmt* stmt; // A prepared statement
+
+        void setReturnCode(int newReturnCode);
+        int getReturnCode();
         
-        // Methods for SQL statement preparing
         void prepareStatement(const char* statement);
         void bindText(const char* value, int index);
         void execute();
         void destructStatement();
 
-        // Methods for retrieving values from a specific column
         int  getIntValueFromColumn(int columnIndex);
         const unsigned char* getTextValueFromColumn(int columnIndex);      
 };
