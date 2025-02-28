@@ -9,9 +9,10 @@
 #include <errno.h>          //errror management
 #include <netinet/in.h>     //ip management
 
-int handleClient (int server_fd, sockaddr_in address, size_t addressLen);   //Peut prendre bcp plus d'arg si on veut, 
+int handleClient (int server_fd, struct sockaddr_in& address, size_t addressLen);   //Peut prendre bcp plus d'arg si on veut, 
                                                                             //à voir ca qu'on veut qu'elle fasse exactement
                                                                             //Contient entre autres accept()
+void* threadRoutineClient(void* arg);
 
 #endif  // SERVER_FUNCTIONS_HPP
 
