@@ -14,6 +14,8 @@
 #include "figureGenerator.hpp"
 #include "GameController.hpp"
 #include "EventQueue.hpp"
+#include "MovementActionEvent.hpp"
+#include "TimerDropEvent.hpp"
 
 class GameController; // forward declaration
 
@@ -24,6 +26,9 @@ public:
 
     void run();
     void stop();
+
+
+
     void setGameController(shared_ptr<GameController> controller);
     int getGameScore() { return gameData.get_score(); }
     int getGameNumberOfBrokenLines() { return gameData.get_numberBrokenLines(); }
@@ -42,7 +47,15 @@ private:
     shared_ptr<EventQueue> eventQueue;
 
 
+
+    void checkInput();
+
     void updateGame();
+
+    void handleMovementActionEvent(shared_ptr<Event> event);
+
+    void handleTimerDropEvent(shared_ptr<Event> event);
+
     void renderGame();
     int applyColor(Color blockColor);
     void checkGameOver();
