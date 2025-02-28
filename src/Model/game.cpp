@@ -7,6 +7,10 @@ const int GRID_HEIGHT = 20;
 const int GRID_WIDTH = 10;
 
 
+
+
+
+
 Game::Game(shared_ptr<EventQueue> eventQueue)
     :   eventQueue(move(eventQueue)),
         grid(std::make_shared<Grid>()),
@@ -25,74 +29,120 @@ Game::~Game() {}
 void Game::run() {
     gameController->startGameInput();
     isRunning = true;
-    auto chrono = std::chrono::steady_clock::now();
+    auto chronoDropEvent = std::chrono::steady_clock::now();
+
     while (isRunning) {
+
         auto now = std::chrono::steady_clock::now();
-        std::chrono::duration<double> currentTime = now - chrono;
-        gameController->getAction();
-        shared_ptr<MovementActionEvent> movementActionEvent = dynamic_pointer_cast<MovementActionEvent>(eventQueue->getEvent());
-        if (movementActionEvent) {
-                    Action action = movementActionEvent->getEventData();
+        std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
+
+        checkInput();
+
+        if (elapsedTimeDropEvent > std::chrono::milliseconds(500)) {
+            //todo make variable interval of time(maybe corresponding to level)
+            //todo check gamedata for level
+            eventQueue->addEvent(make_shared<TimerDropEvent>());
+            chronoDropEvent = std::chrono::steady_clock::now();
+        }
+
+        updateGame();
+        gameController->renderGame();
+        checkGameOver();
+
+    }
+    gameController->stopGameInput();
+}
+
+
+/**
+ * @brief Met à jour l'état du jeu à chaque itération de la boucle.
+ *
+ * Tente de faire descendre la figure active. Si l'action échoue, la figure est placée,
+ * les lignes complètes sont traitées, et une nouvelle figure est générée.
+ * Si la nouvelle figure ne peut pas apparaître, le jeu se termine.
+ */
+void Game::updateGame() {
+
+    // Je tente de faire descendre la activeFigure en appelant Mouvement::setMouvement() avec l'action SOFT_DROP.
+    // si elle retourne false, ca veut dire MovingFigure::setPosition() consider cette action comme !allowAction.
+
+    shared_ptr<Event> event = eventQueue->getEvent(); // get the next event from the queue
+
+    //next function take an event and try to cast it as an appopriate event subclass
+    // if successful, it will treat the event
+    handleMovementActionEvent(event); // handle keyboard imput events
+    handleTimerDropEvent(event);       // handle timer events (soft drop figure and line completion check)
+
+}
+
+
+/**
+ * @brief Handles movement action events.
+ *
+ * This function processes movement action events by casting the event to a
+ * MovementActionEvent. If the event is successfully cast, it retrieves the
+ * action data and performs the corresponding movement. If the action is
+ * ESCAPE, it stops the game.
+ *
+ * @param event The event to be handled.
+ */
+void Game::handleMovementActionEvent(shared_ptr<Event> event) {
+    shared_ptr<MovementActionEvent> movementActionEvent = dynamic_pointer_cast<MovementActionEvent>(event);
+    if (movementActionEvent) {
+        Action action = movementActionEvent->getEventData();
         if (action == Action::ESCAPE) {
             stop();
             return;
         }
         movement.setMouvement(action);
-        if (currentTime > std::chrono::milliseconds(500)) {
-            //todo make timer an event and update every tick (or frame)
-            updateGame();
-            chrono = std::chrono::steady_clock::now();
-        }
-        gameController->renderGame();
-        checkGameOver();
-        //std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-
     }
-    gameController->stopGameInput();
 }
+
+
+
+/**
+ * @brief Handles timer drop events.
+ *
+ * This function processes timer drop events by casting the event to a
+ * TimerDropEvent. If the event is successfully cast, it attempts to move the
+ * active figure down. If the movement fails, the figure is placed on the grid,
+ * line completion is checked, and a new figure is generated. If the new figure
+ * cannot spawn, the game ends.
+ *
+ * @param event The event to be handled.
+ */
+void Game::handleTimerDropEvent(shared_ptr<Event> event) {
+    shared_ptr<TimerDropEvent> timerDropEvent = dynamic_pointer_cast<TimerDropEvent>(event);
+    if (timerDropEvent) {
+        if (!movement.setMouvement(Action::SOFT_DROP)) {
+            // si c'est le cas je place la figure.
+            for (const auto& block : activeFigure->getBlocksRealPositions()) {
+                grid->setBlock(block);
+            }
+            handleLineCompletion();
+            activeFigure = std::make_shared<MovingFigure>(std::make_shared<Figure>(figureGenerator.randomFigure()), grid);
+            movement = Mouvement(Action::NONE, activeFigure);
+
+            // je vérifie si la nouvelle figure peut apparaître sur la grille.
+            // si ce n'est pas le cas, ca signifie que le jeu est terminé.
+            if (!activeFigure->spawnSucceeded()) {
+                gameData.set_isGameOver(true);
+                stop();
+            }
+        }
+    }
+}
+
+
 
 void Game::stop() {
     isRunning = false;
 }
 
 
-
-
-/**
- * @brief Met à jour l'état du jeu à chaque itération de la boucle.
- * 
- * Tente de faire descendre la figure active. Si l'action échoue, la figure est placée,
- * les lignes complètes sont traitées, et une nouvelle figure est générée. 
- * Si la nouvelle figure ne peut pas apparaître, le jeu se termine.
- */
-void Game::updateGame() {
-    
-    // Je tente de faire descendre la activeFigure en appelant Mouvement::setMouvement() avec l'action SOFT_DROP. 
-    // si elle retourne false, ca veut dire MovingFigure::setPosition() consider cette action comme !allowAction.
-
-
-    if (!movement.setMouvement(Action::SOFT_DROP)) {
-        // si c'est le cas je place la figure.
-        for (const auto& block : activeFigure->getBlocksRealPositions()) {
-            grid->setBlock(block);
-        }
-        handleLineCompletion();
-        activeFigure = std::make_shared<MovingFigure>(std::make_shared<Figure>(figureGenerator.randomFigure()), grid);
-        movement = Mouvement(Action::NONE, activeFigure);
-
-        // je vérifie si la nouvelle figure peut apparaître sur la grille.
-        // si ce n'est pas le cas, ca signifie que le jeu est terminé.
-        if (!activeFigure->spawnSucceeded()) {
-            gameData.set_isGameOver(true);
-            stop();
-        }
-    }
+void Game::checkInput() {
+    gameController->getAction();
 }
-
-
-
-
 
 
 /**
