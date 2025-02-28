@@ -3,7 +3,11 @@
 #include <locale.h>  // Needed for wide characters (if printing Unicode blocks)
 
 
-// constante statique pour economiser de la mémoire en evitant à chaque fois recreer le tableau
+
+// TODO ------  Docstrings à modofier quand les fonctionnalités seront disponiibles ------
+
+
+// tableau déclaré static dans fichier .hpp, pour permettre economie de memoire et partage dans la classe
 // voir fichier Hpp
 const char* InterfaceTerminal::modeNames[] = { 
                                             "Endless Mode",  
@@ -39,11 +43,16 @@ void InterfaceTerminal::initNcurses() {
    init_pair(6, COLOR_CYAN, -1);
 }
 
-/**
-* @brief Affiche le menu principal et l'option sélectionnée.
 
-* @param selectedAction Indice de l'option actuellement sélectionnée.
-*/
+
+/**
+ *@brief Affiche le menu principal et l'option sélectionnée.
+ * 
+ *Affichage réalisé en parcourant les options du menu,
+ *et une petite flèche pointe vers l'option actuelle.
+ *
+ *@param selectedOption Indice de l'option actuellement sélectionnée.
+ */
 void InterfaceTerminal::displayMenu(int selectedOption) {
    erase();
    printw("Welcome to Tetris Royale (Terminal Edition)!\n");
@@ -68,10 +77,17 @@ void InterfaceTerminal::displayMenu(int selectedOption) {
    refresh();
 }
 
+
+
+
 /**
-* @brief Affiche le menu de sélection des modes de jeu.
-* @param selectedMode Indice du mode de jeu actuellement sélectionné.
-*/
+ *@brief Affiche le menu de sélection des modes de jeu.
+ *
+ *Modes de jeu sont parcourus et affichés avec une petite
+ *flèche pointant vers le mode actuel.
+ *
+ *@param selectedMode Indice du mode de jeu actuellement sélectionné.
+ */
 void InterfaceTerminal::displayGameModeMenu(int selectedMode) {
    erase();
    printw("Select a game mode then press Enter to start:\n\n");
@@ -92,9 +108,17 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) {
    refresh();
 }
 
+
+
+
 /**
-* @brief Gère la sélection et l'exécution des modes de jeu.
-*/
+ *@brief Gère la sélection et l'exécution des modes de jeu.
+ *
+ *Cette méthode permet de choisir un mode de jeu (via le menu des modes).
+ *L'utilisateur parcourt avec les flèches haut/bas et sélectionne avec Entrée.
+ *Seulement "Endless Mode" est fonctionnel pour l'instant.
+ *
+ */
 void InterfaceTerminal::handleGameModeSelection() {
    int selectedMode = 0;
    
@@ -102,20 +126,21 @@ void InterfaceTerminal::handleGameModeSelection() {
        
     displayGameModeMenu(selectedMode);  // affiche le menu avec les modes 
        
-    int ch = getch();    // récupère l'entree utilisateur
+    int ch = getch();    // récupère l'entrée utilisateur
        switch (ch) {  
-        case KEY_UP:
+        
+        case KEY_UP:     // aller vers le haut
                if (selectedMode > 0) {
                    selectedMode--;
                }
                break;
-           case KEY_DOWN:
+           case KEY_DOWN: // descendre
                if (selectedMode < 3) {
                    selectedMode++;
                }
                break;
             
-            // touche 'entré'
+            // touche 'entrée'
             case '\n':
                if (selectedMode == 0) {
                    erase();
@@ -142,9 +167,19 @@ void InterfaceTerminal::handleGameModeSelection() {
    }
 }
 
+
+
+
 /**
- * @brief Gère la sélection des options dans le menu principal.
- * @param selectedAction Indice de l'action sélectionnée.
+ *@brief Gère la sélection des options dans le menu principal.                                            
+ *
+ *Seulement la premiere ioption est fonctionnelle pour l'instant: 'Play' (case 0)
+ *Non-Fonctionnels:
+ *  - (case 1): 'add a friend'
+ *  - (case 2): 'delete a friend'
+ *  - (case 3): 'show my friend's list'
+ *
+ *@param selectedOption Indice de l'action sélectionnée.
  */
 void InterfaceTerminal::handleOptionSelection(int selectedOption) {
    switch (selectedOption) {
@@ -168,8 +203,11 @@ void InterfaceTerminal::handleOptionSelection(int selectedOption) {
 }
 
 /**
-* @brief Démarre l'interface utilisateur et gère les interactions utilisateur.
-*/
+ *@brief Démarre l'interface terminal utilisateur et 
+ *gère les interactions utilisateur dans
+ *le menu principal.
+ *
+ */
 void InterfaceTerminal::start() {
    initNcurses();
    int selectedOption = 0;
@@ -178,17 +216,18 @@ void InterfaceTerminal::start() {
        displayMenu(selectedOption);
        int ch = getch();
        switch (ch) {
-           case KEY_UP:
+           
+           case KEY_UP:   // monter
                if (selectedOption > 0) {
                    selectedOption--;
                }
-               break;
-           case KEY_DOWN:
+               break; 
+           case KEY_DOWN:  // descendre
                if (selectedOption < 3) {
                    selectedOption++;
                }
                break;
-           case '\n':
+           case '\n':   // touche 'entrée'
                handleOptionSelection(selectedOption);
                break;
            case 'q':
