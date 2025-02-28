@@ -29,6 +29,14 @@ void broadcastMessage(const string& message, int sender_fd) {
     }
 }
 
+/**
+ * @brief Boucle qui handle le client, lui assigne un port et un thread
+ * 
+ * @param server_fd socket du server
+ * @param address adresse du server
+ * @param addressLen adress length
+ * @return int, <= -1 si prob
+ */
 int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen) {
     while (true) {
         /* Mutex */
@@ -58,6 +66,12 @@ int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen) 
     return 0;
 }
 
+/**
+ * @brief Routine du thread client, attends les events de celui-ci et lui communique des infos en fonction
+ * 
+ * @param arg contient l'username du client
+ * @return void* 
+ */
 void* threadRoutineClient(void* arg){
     cout << "Starting thread routine for client" << endl;
     /* Il faudrait passer le username en arg pour pouvoir récup l'ensemble de ses données sur la db je pense ?*/
