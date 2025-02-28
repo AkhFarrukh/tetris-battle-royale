@@ -36,7 +36,7 @@ int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen) 
             if (bytesReceived <= 0) {
                 cout << "Client déconnecté : " << client_fd << endl;
                 close(client_fd);
-                clients.erase(remove(clients.begin(), clients.end(), client_fd), clients.end());
+                erase(clients, client_fd);
                 break;
             }
             string message(buffer, bytesReceived);
