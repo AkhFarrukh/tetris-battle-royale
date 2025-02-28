@@ -47,32 +47,61 @@ bool UserDatabaseManager::newAccountCreated(const char* username, const char* pa
  * matched. Else return false
  */
 bool UserDatabaseManager::isCorrectLogin(const char* username, const char* password){
-    // Prepare Statement and bind values to "?" symbols in a statement
-    const char* query = "SELECT password FROM login WHERE username = ?";
-    database.prepareStatement(query);
-    database.bindText(username, 1);
-
-    // Get resulting hash in a database and convert it to string type then 
-    // destruct the statement after getting the result
-    database.execute();
-    const unsigned char* resultingHash = database.getTextValueFromColumn(0);
-    std::string stringResultingHash = reinterpret_cast<const char*>(resultingHash);
-    database.destructStatement();
-
-    // Compare both hashes from the database and from the user input
-    bool isCorrect = bcrypt::validatePassword(password, stringResultingHash);
-
-    // If the login is correct, change the login status to 1.
-    if(isCorrect){
-        const char* query = "UPDATE login SET logged_in = 1 WHERE username = ?";
+    // Always check the user input first
+    bool isCorrect = false;
+    if (isValidUsername(username) && strlen(password) != 0){
+        // Prepare Statement and bind values to "?" symbols in a statement
+        const char* query = "SELECT password FROM login WHERE username = ?";
         database.prepareStatement(query);
         database.bindText(username, 1);
 
-        // Execute the statement then destruct the statement after getting the result
+        // Get resulting hash in a database and convert it to string type then 
+        // destruct the statement after getting the result
         database.execute();
+        const unsigned char* resultingHash = database.getTextValueFromColumn(0);
+        std::string stringResultingHash = reinterpret_cast<const char*>(resultingHash);
         database.destructStatement();
+
+        // Compare both hashes from the database and from the user input
+        isCorrect = bcrypt::validatePassword(password, stringResultingHash);
+
+        // If the login is correct, change the login status to 1.
+        if(isCorrect){
+            const char* query = "UPDATE login SET logged_in = 1 WHERE username = ?";
+            database.prepareStatement(query);
+            database.bindText(username, 1);
+
+            // Execute the statement then destruct the statement
+            database.execute();
+            database.destructStatement();
+        }
     }
     return isCorrect;
+}
+
+
+/**
+ * @brief Check whether a particular user is logged in or not.
+ * @param username a username to check with the database
+ * @return true if logged in. Else return false
+ */
+bool UserDatabaseManager::isLoggedIn(const char* username){
+    // Always check the user input first
+    bool isLoggedIn = false;
+    if (isValidUsername(username)){
+        // Prepare Statement and bind values to "?" symbols in a statement
+        const char* query = "SELECT logged_in FROM login WHERE username = ?";
+        database.prepareStatement(query);
+        database.bindText(username, 1);
+
+        // Execute the statement and get the result (0 or 1)
+        database.execute(); 
+        isLoggedIn = static_cast<bool>(database.getIntValueFromColumn(0));
+    
+        // Destruct the statement after getting the result then return a result
+        database.destructStatement();
+    }
+    return isLoggedIn;
 }
 
 

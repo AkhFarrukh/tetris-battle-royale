@@ -21,6 +21,7 @@ class UserDatabaseManager {
 
         bool newAccountCreated(const char* username, const char* password);
         bool isCorrectLogin(const char* username, const char* password);
+        bool isLoggedIn(const char* username);
         int getUserId(const char* username);
 
         bool isUniqueUsername(const char* username);
