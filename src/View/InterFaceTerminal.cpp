@@ -5,15 +5,16 @@
 
 
 // TODO ------  Docstrings à modofier quand les fonctionnalités seront disponiibles ------
+// TODO ------- ENLEVER '(Unreleased)' aux modes de jeu, quand on pourra jouer à tous les modes.
 
 
 // tableau déclaré static dans fichier .hpp, pour permettre economie de memoire et partage dans la classe
 // voir fichier Hpp
 const char* InterfaceTerminal::modeNames[] = { 
                                             "Endless Mode",  
-                                            "Classic Mode",  
-                                            "Duel Mode",  
-                                            "Royal Competition Mode"  
+                                            "Classic Mode (Unreleased)",  
+                                            "Duel Mode (Unreleased)",  
+                                            "Royal Competition Mode (Unreleased)"  
                                             };    
 
 InterfaceTerminal::InterfaceTerminal() {}
@@ -32,6 +33,8 @@ void InterfaceTerminal::initNcurses() {
    curs_set(0);
    nodelay(stdscr, TRUE);
    start_color();
+   init_pair(7, COLOR_BLACK, COLOR_WHITE);  // Texte noir sur fond blanc
+
    if (has_colors() && can_change_color()) {
        use_default_colors();
    }
@@ -68,7 +71,9 @@ void InterfaceTerminal::displayMenu(int selectedOption) {
    
    for (int i = 0; i < numberPossibleOptions; ++i) {
        if (i == selectedOption) {
+           attron(COLOR_PAIR(7));    // activer couleur noir sur blanc pour option selected
            printw("-> %d. %s\n", i + 1, menuOptions[i]);
+           attroff(COLOR_PAIR(7));  
        } else {
            printw("   %d. %s\n", i + 1, menuOptions[i]);
        }
@@ -95,12 +100,11 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) {
    
    for (int i = 0; i < numberModePossible; ++i) {
        if (i == selectedMode) {
+           attron(COLOR_PAIR(7));   // activer couleur noir sur blanc pour mode selectionné
            printw("-> %d. %s", i + 1, modeNames[i]);
+           attroff(COLOR_PAIR(7));
        } else {
            printw("   %d. %s", i + 1, modeNames[i]);
-       }
-       if (i != 0) {
-           printw(" (Unreleased)");
        }
        printw("\n");
    }
