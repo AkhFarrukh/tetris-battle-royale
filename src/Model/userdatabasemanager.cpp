@@ -389,7 +389,7 @@ std::vector<std::tuple<int, std::string, int>> UserDatabaseManager::getRanking(i
     std::vector<std::tuple<int, std::string, int>> ranking;
 
     // Prepare Statement and bind values to "?" then execute
-    std::string query = "SELECT ROW_NUMBER() OVER (ORDER BY HighestScore.highest_score \ 
+    std::string query = "SELECT ROW_NUMBER() OVER (ORDER BY HighestScore.highest_score \
                          DESC) AS rank, login.username, HighestScore.highest_score \
                          FROM login INNER JOIN HighestScore ON login.user_id = \
                          HighestScore.user_id";
