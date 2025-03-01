@@ -300,3 +300,77 @@ bool UserDatabaseManager::isValidUsername(const char* username){
     }
     return isValid;
 }
+
+
+/**
+ * @brief Check of a user ID exists in the HighestScore table or not
+ * @param userId a user ID
+ * @return true if the user ID already exists in the table. Else return false
+ */
+bool UserDatabaseManager::isInHighestScoreTable(int userId){
+    // Prepare Statement and bind user ID to a statement
+    const char* query = "SELECT count(user_id) FROM HighestScore WHERE user_id = ?";
+    database.prepareStatement(query);
+    database.bindInt(userId, 1);
+
+    // Get count result from the column (index = 0 on the most left column)
+    database.execute();
+    int countResult = database.getIntValueFromColumn(0);
+
+    // Destruct the statement after getting the result
+    database.destructStatement();
+
+    // Return the result
+    bool isInTable;
+    if (countResult == 0) // i.e. the user ID doesn't yet exist in the table.
+        isInTable = false;
+    else
+        isInTable = true;
+
+    return isInTable;
+}
+
+
+/**
+ * @brief Set the highest score of a particular user ID
+ * @param highestScore a highest score
+ * @param userId a user ID
+ */
+void UserDatabaseManager::setHighestScore(int userId, int highestScore){
+    // If the user ID is not yet in a table, use "INSERT". Else use "UPDATE"
+    const char* statement;
+    if (isInHighestScoreTable(userId)){
+        // UPDATE ONLY IF highest score is greater than the current score in DB
+        statement = "UDPATE HighestScore SET highest_score = ? WHERE user_id = ? \
+                     AND highest_score < ?"; 
+        database.prepareStatement(statement);
+        database.bindInt(highestScore, 3);
+    }
+    else{
+        statement = "INSERT INTO HighestScore (highest_score, user_id) VALUES (?, ?)";
+        database.prepareStatement(statement);
+    }
+
+    // Bind the common values
+    database.bindInt(highestScore, 1);
+    database.bindInt(userId, 2);
+        
+    // Execute then destruct the statement
+    database.execute();
+    database.destructStatement();
+}
+
+/**
+ * @brief Delete the highest score of a particular user ID
+ * @param userId a user ID
+ */
+void UserDatabaseManager::deleteHighestScore(int userId){
+    // Prepare Statement and bind user ID  to a statement
+    const char* query = "DELETE FROM HighestScore WHERE user_id = ?";
+    database.prepareStatement(query);
+    database.bindInt(userId, 1);
+
+    // Execute the statement then destruct the statement
+    database.execute();
+    database.destructStatement();
+}

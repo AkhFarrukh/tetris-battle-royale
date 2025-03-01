@@ -32,6 +32,10 @@ class UserDatabaseManager {
 
         bool isUniqueUsername(const char* username);
         bool isValidUsername(const char* username);
+
+        bool isInHighestScoreTable(int userId);
+        void setHighestScore(int userId, int highestScore);
+        void deleteHighestScore(int userId);
 };
 
 #endif
