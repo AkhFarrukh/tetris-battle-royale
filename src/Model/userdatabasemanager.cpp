@@ -135,6 +135,22 @@ int UserDatabaseManager::getUserId(const char* username){
 
 
 /**
+ * @brief Log out the user from the system
+ * @param userId a user ID
+ */
+void UserDatabaseManager::logOut(int userId){
+    // Prepare Statement and bind user ID  to a statement
+    const char* query = "UPDATE login SET logged_in = 0 WHERE user_id = ?";
+    database.prepareStatement(query);
+    database.bindInt(userId, 1);
+
+    // Execute the statement then destruct the statement
+    database.execute();
+    database.destructStatement();
+}
+
+
+/**
  * @brief Check if the given username already exists in the database or not
  *        by querying the count result from the given username. 
  * @param username a username to check with the database

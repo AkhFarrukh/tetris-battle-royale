@@ -27,6 +27,7 @@ class Database{
         
         void prepareStatement(const char* statement);
         void bindText(const char* value, int index);
+        void bindInt(int value, int index);
         void execute();
         void destructStatement();
 

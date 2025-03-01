@@ -51,6 +51,17 @@ void Database::bindText(const char* value, int index){
 
 
 /**
+ * @brief bind an INT value to a statement (&stmt)
+ * @param value: a value to be binded
+ * @param index: a column index (starting from 1 (not zero!) from the most left)
+ */
+void Database::bindInt(int value, int index){
+    int returnCode = sqlite3_bind_int(stmt, index, value);
+    if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR BINDING VALUE!");
+}
+
+
+/**
  * @brief destruct the "&stmt" variable (opposite of preparing statement)
  */
 void Database::destructStatement(){
