@@ -365,7 +365,7 @@ void UserDatabaseManager::setHighestScore(int userId, int highestScore){
  * @param userId a user ID
  */
 void UserDatabaseManager::deleteHighestScore(int userId){
-    // Prepare Statement and bind user ID  to a statement
+    // Prepare Statement and bind user ID to a statement
     const char* query = "DELETE FROM HighestScore WHERE user_id = ?";
     database.prepareStatement(query);
     database.bindInt(userId, 1);
@@ -373,4 +373,51 @@ void UserDatabaseManager::deleteHighestScore(int userId){
     // Execute the statement then destruct the statement
     database.execute();
     database.destructStatement();
+}
+
+
+/**
+ * @brief Return a ranking of users in DESCENDING order.
+ * @param limit optional: the number of top users (e.g. limit = 10 means TOP 10 users only).
+ * Else, return a ranking of ALL USERS.
+ * @return A vector which contains tuple(s). Each tuple has a rank, username, and 
+ * highest score respectively. If there is no result, an empty vector is returned.
+ * 
+ */
+std::vector<std::tuple<int, std::string, int>> UserDatabaseManager::getRanking(int limit){
+    
+    std::vector<std::tuple<int, std::string, int>> ranking;
+
+    // Prepare Statement and bind values to "?" then execute
+    std::string query = "SELECT ROW_NUMBER() OVER (ORDER BY HighestScore.highest_score \ 
+                         DESC) AS rank, login.username, HighestScore.highest_score \
+                         FROM login INNER JOIN HighestScore ON login.user_id = \
+                         HighestScore.user_id";
+
+    // Add limit condition to statement if limit > 0 and bind limit to statement
+    if (limit > 0){
+        query += " LIMIT ?";
+        database.prepareStatement(query.c_str());
+        database.bindInt(limit, 1);  
+    }
+    else{
+        database.prepareStatement(query.c_str());
+    }
+    
+    // Get a result
+    database.execute();
+    while(database.getReturnCode() == SQLITE_ROW){
+        // Take each value
+        int rank = database.getIntValueFromColumn(0);
+        const unsigned char* username = database.getTextValueFromColumn(1);
+        std::string stringUsername = reinterpret_cast<const char*>(username);
+        int highestScore = database.getIntValueFromColumn(2);
+
+        // Make a tuple, push to a vector, and fetch the next row
+        ranking.push_back(std::make_tuple(rank, stringUsername, highestScore));
+        database.execute();
+    }
+
+    database.destructStatement(); // Destruct a statement after getting a result
+    return ranking;
 }

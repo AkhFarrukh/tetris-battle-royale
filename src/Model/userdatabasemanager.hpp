@@ -4,9 +4,11 @@
 #include "../Database/database.hpp"
 #include "../Database/bcrypt.h"
 
-#include <string.h>
+#include <cstring>
 #include <string>
 #include <iostream>
+#include <vector>
+#include <tuple>
 
 /**
  * @brief A class responsible for operations regarding users with the database
@@ -36,6 +38,7 @@ class UserDatabaseManager {
         bool isInHighestScoreTable(int userId);
         void setHighestScore(int userId, int highestScore);
         void deleteHighestScore(int userId);
+        std::vector<std::tuple<int, std::string, int>> getRanking(int limit = 0);
 };
 
 #endif
