@@ -23,7 +23,7 @@ class Database{
         sqlite3_stmt* stmt; // A prepared statement
 
         void setReturnCode(int newReturnCode);
-        int getReturnCode();
+        int  getReturnCode();
         
         void prepareStatement(const char* statement);
         void bindText(const char* value, int index);

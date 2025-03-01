@@ -23,7 +23,12 @@ class UserDatabaseManager {
         bool isCorrectLogin(const char* username, const char* password);
         bool isLoggedIn(const char* username);
         int  getUserId(const char* username);
+        bool usernameChanged(int userId, const char* newUsername);
+        void changePassword(int userId, const char* newPassword);
+        void setSendingFileDescriptor(int userId, int fileDescriptor);
+        void setReceivingFileDescriptor(int userId, int fileDescriptor);
         void logOut(int userId);
+        void deleteAccount(int userId);
 
         bool isUniqueUsername(const char* username);
         bool isValidUsername(const char* username);
