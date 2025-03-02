@@ -16,8 +16,23 @@ Database::Database(const char* databaseFileName){
     else{
         fprintf(stderr, "Database connection failed\n");
     }
+    const char* sql =
+        "CREATE TABLE IF NOT EXISTS utilisateurs (id INTEGER PRIMARY KEY, nom TEXT UNIQUE);";
+        prepareStatement(sql);
+        execute();
+        sql = "CREATE TABLE IF NOT EXISTS relations (utilisateur_id INTEGER, ami_id INTEGER, FOREIGN KEY(utilisateur_id) REFERENCES utilisateurs(id), FOREIGN KEY(ami_id) REFERENCES utilisateurs(id), PRIMARY KEY (utilisateur_id, ami_id));";
+        prepareStatement(sql);
+        execute();
+        sql = "CREATE TABLE IF NOT EXISTS friendsRequest (utilisateur_id INTEGER, ami_id INTEGER, FOREIGN KEY(utilisateur_id) REFERENCES utilisateurs(id), FOREIGN KEY(ami_id) REFERENCES utilisateurs(id), PRIMARY KEY (utilisateur_id, ami_id));";
+        prepareStatement(sql);
+        execute();
+    sql ="DELETE FROM utilisateurs WHERE nom = 'Luc';";
+    prepareStatement(sql);
+    execute();
+    sql ="DELETE FROM friendsRequest WHERE utilisateur_id = (SELECT id FROM utilisateurs WHERE nom = 'Jérôme') OR ami_id = (SELECT id FROM utilisateurs WHERE nom = 'Jérôme');";
+    prepareStatement(sql);
+    execute();
 }
-
 
 /**
  * @brief A destructor: close the database connection
@@ -35,7 +50,7 @@ Database::~Database(){
 void Database::prepareStatement(const char* statement){
     int returnCode = sqlite3_prepare_v2(db, statement, strlen(statement), &stmt, nullptr);
     if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR PREPARING STATEMENT!");
-    
+
 }
 
 
@@ -106,9 +121,182 @@ void Database::setReturnCode(int newReturnCode){
 
 
 /**
- * @brief get returnCode 
+ * @brief get returnCode
  * @return a value of return code
  */
 int Database::getReturnCode(){
     return returnCode;
+}
+
+vector<string> Database::friendsList(const string& username){
+    std::vector<std::string> friendsList;
+
+    // Préparer la requête SQL pour récupérer les amis de l'utilisateur
+    const char* sql =
+        "SELECT u.nom FROM utilisateurs u "
+        "JOIN relations r ON u.id = r.ami_id "
+        "WHERE r.utilisateur_id = (SELECT id FROM utilisateurs WHERE nom = ?);";
+
+    // Préparer la déclaration
+    prepareStatement(sql);
+
+    // Binder le nom de l'utilisateur (par exemple, "David")
+    bindText(username.c_str(),1);
+
+    execute();
+    // Exécuter la requête et récupérer les résultats ligne par ligne
+    while (getReturnCode() == SQLITE_ROW) {
+        // Récupérer le nom de l'ami
+        const unsigned char* ami = getTextValueFromColumn(0);
+        friendsList.push_back(reinterpret_cast<const char*>(ami));  // Ajouter l'ami au vecteur
+        execute();
+    }
+
+    // Libérer la mémoire après exécution
+    destructStatement();  // Libération de la mémoire après exécution
+
+    return friendsList;  // Retourner le vecteur des amis
+}
+
+void Database::deleteFriend(const string& user, const string& friendDelete){
+    std::string sql =
+    "DELETE FROM relations WHERE "
+    "(utilisateur_id = (SELECT id FROM utilisateurs WHERE nom = '" + user + "') "
+    "AND ami_id = (SELECT id FROM utilisateurs WHERE nom = '" + friendDelete + "')) "
+    "OR "
+    "(utilisateur_id = (SELECT id FROM utilisateurs WHERE nom = '" + friendDelete + "') "
+    "AND ami_id = (SELECT id FROM utilisateurs WHERE nom = '" + user+ "'));";
+    prepareStatement(sql.c_str());
+    execute();
+}
+
+void Database::addFriend(const string& user, const string& newFriend){
+    std::string sql =
+      "INSERT INTO relations (utilisateur_id, ami_id) VALUES "
+      "((SELECT id FROM utilisateurs WHERE nom = '" + user + "'), "
+      "(SELECT id FROM utilisateurs WHERE nom = '" + newFriend + "')), "
+      "((SELECT id FROM utilisateurs WHERE nom = '" + newFriend + "'), "
+      "(SELECT id FROM utilisateurs WHERE nom = '" + user + "'));";
+    prepareStatement(sql.c_str());
+    execute();
+}
+
+int Database::verifyRequestFriend(const string& user, const string& newFriend){
+    int result = -1; //erreur pas prise en charge
+    std::string sql =
+    "SELECT CASE " //fonctionne comme if-else
+    "WHEN NOT EXISTS (SELECT 1 FROM utilisateurs WHERE nom = '" + newFriend + "') THEN 1 " //return 1 si pseude inconnnu
+    "WHEN EXISTS (SELECT 1 FROM relations r "
+    "             JOIN utilisateurs u1 ON u1.id = r.utilisateur_id "
+    "             JOIN utilisateurs u2 ON u2.id = r.ami_id "
+    "             WHERE u1.nom = '" + user + "' AND u2.nom = '" + newFriend + "') THEN 2 " //ret 2 si deja amis
+    "WHEN EXISTS (SELECT 1 FROM friendsRequest fr "
+    "             JOIN utilisateurs u1 ON u1.id = fr.utilisateur_id "
+    "             JOIN utilisateurs u2 ON u2.id = fr.ami_id "
+    "             WHERE u1.nom = '" + user + "' AND u2.nom = '" + newFriend + "') THEN 3 " //dmd d'amis deja envoyé
+    "WHEN EXISTS (SELECT 1 FROM friendsRequest fr "
+    "             JOIN utilisateurs u1 ON u1.id = fr.ami_id "
+    "             JOIN utilisateurs u2 ON u2.id = fr.utilisateur_id "
+    "             WHERE u1.nom = '" + user + "' AND u2.nom = '" + newFriend + "') THEN 4 " //l'autre a deja dmd en ami
+    "ELSE 0 END;";
+    prepareStatement(sql.c_str());
+    execute();
+    if(getReturnCode() == SQLITE_ROW){
+      result = getIntValueFromColumn(0);
+    }
+    destructStatement();
+    return result;
+}
+
+void Database::requestFriend(const string& user, const string& newFriend){
+    int result = -1; //erreur pas prise en charge
+    std::string sql = "INSERT INTO friendsRequest (utilisateur_id, ami_id) VALUES ((SELECT id FROM utilisateurs WHERE nom = '" + user + "'), (SELECT id FROM utilisateurs WHERE nom = '" + newFriend + "'));";
+    prepareStatement(sql.c_str());
+    execute();
+}
+
+void Database::deleteRequestFriend(const string& user, const string& friendDelete){
+    std::string sql =
+    "DELETE FROM friendsRequest WHERE "
+    "(utilisateur_id = (SELECT id FROM utilisateurs WHERE nom = '" + user + "') "
+    "AND ami_id = (SELECT id FROM utilisateurs WHERE nom = '" + friendDelete + "')) "
+    "OR "
+    "(utilisateur_id = (SELECT id FROM utilisateurs WHERE nom = '" + friendDelete + "') "
+    "AND ami_id = (SELECT id FROM utilisateurs WHERE nom = '" + user+ "'));";
+    prepareStatement(sql.c_str());
+    execute();
+}
+
+int Database::getNumberFriendRequestsReceived(const string& user){
+    int numberRequests = 0;
+    std::string sql =
+    "SELECT COUNT(*) FROM friendsRequest "
+    "WHERE ami_id = (SELECT id FROM utilisateurs WHERE nom = '" + user + "');";
+    prepareStatement(sql.c_str());
+    execute();
+    if(getReturnCode() == SQLITE_ROW){
+        numberRequests = getIntValueFromColumn(0);
+    }
+    destructStatement();
+    return numberRequests;
+}
+
+vector<string> Database::requestReceivedList(const string& username){
+    std::vector<std::string> friendsList;
+
+    // Préparer la requête SQL pour récupérer les amis de l'utilisateur
+    const char* sql =
+        "SELECT u.nom FROM utilisateurs u "
+        "JOIN friendsRequest r ON u.id = r.utilisateur_id "
+        "WHERE r.ami_id = (SELECT id FROM utilisateurs WHERE nom = ?);";
+
+    // Préparer la déclaration
+    prepareStatement(sql);
+
+    // Binder le nom de l'utilisateur (par exemple, "David")
+    bindText(username.c_str(),1);
+
+    execute();
+    // Exécuter la requête et récupérer les résultats ligne par ligne
+    while (getReturnCode() == SQLITE_ROW) {
+        // Récupérer le nom de l'ami
+        const unsigned char* ami = getTextValueFromColumn(0);
+        friendsList.push_back(reinterpret_cast<const char*>(ami));  // Ajouter l'ami au vecteur
+        execute();
+    }
+
+    // Libérer la mémoire après exécution
+    destructStatement();  // Libération de la mémoire après exécution
+
+    return friendsList;  // Retourner le vecteur des amis
+}
+
+vector<string> Database::requestSentList(const string& username){
+    std::vector<std::string> friendsList;
+
+    // Préparer la requête SQL pour récupérer les amis de l'utilisateur
+    const char* sql =
+        "SELECT u.nom FROM utilisateurs u "
+        "JOIN friendsRequest r ON u.id = r.ami_id "
+        "WHERE r.utilisateur_id = (SELECT id FROM utilisateurs WHERE nom = ?);";
+
+    // Préparer la déclaration
+    prepareStatement(sql);
+
+    // Binder le nom de l'utilisateur (par exemple, "David")
+    bindText(username.c_str(),1);
+
+    execute();
+    // Exécuter la requête et récupérer les résultats ligne par ligne
+    while (getReturnCode() == SQLITE_ROW) {
+        // Récupérer le nom de l'ami
+        const unsigned char* ami = getTextValueFromColumn(0);
+        friendsList.push_back(reinterpret_cast<const char*>(ami));  // Ajouter l'ami au vecteur
+        execute();
+    }
+
+    // Libérer la mémoire après exécution
+    destructStatement();  // Libération de la mémoire après exécution
+
+    return friendsList;  // Retourner le vecteur des amis
 }
