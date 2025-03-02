@@ -10,6 +10,8 @@
 #include <mutex>                //Concurent access
 #include <condition_variable>   //Thread sync
 #include <pthread.h>            //Threads
+#include <sqlite3.h>
+#include <bcrypt/BCrypt.hpp>
 
 using namespace std;
 
