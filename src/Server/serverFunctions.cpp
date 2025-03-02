@@ -13,7 +13,13 @@
 
 using namespace std;
 
-vector<int> clients;
+struct ClientSession{
+  int client_fd;
+  string username;
+  string password;
+};
+
+vector<ClientSession> clients;
 
 //Synchro management
 mutex mtx;
@@ -22,6 +28,7 @@ bool lockThread;
 
 
 void broadcastMessage(const string& message, int sender_fd) {
+    
     for (int client_fd : clients) {
         if (client_fd != sender_fd) {
             send(client_fd, message.c_str(), message.length(), 0);
@@ -49,14 +56,33 @@ int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen) 
             return -1;
         }
         cout << "Nouveau client connecté : " << client_fd << endl;
-        clients.push_back(client_fd);
+
+        // Le mot de passe envoyé doit déjà être un hash bcrypte (l'implemntation de pao)
+        char username[256] = {0};
+        char password[256] = {0};
+
+        if (recv(client_fd, username, sizeof(username), 0) <= 0 ||
+            recv(client_fd, password, sizeof(password), 0) <= 0) {
+            perror("Erreur lors de la réception des credentials");
+            close(client_fd);
+            continue;
+        }
+
+        ClientSession new_session;
+        new_session.client_fd = client_fd;
+        new_session.username = string(username);
+        new_session.password = string(password);
+
+        clients.push_back(new_session);
+        ClientSession* client = new ClientSession(new_session);  
         
         /* Créé un thread pour le client */
         pthread_t threadID;
-        if((pthread_create(&threadID, nullptr, threadRoutineClient, nullptr)) < 0){
+        if((pthread_create(&threadID, nullptr, threadRoutineClient, client)) < 0){
             perror("Error on thread creation : ");
+            close(client_fd);
+            delete client;
             return -1;
-            //Maybe need to close fd, idk
         }
         /* Unlock mutex when got the signal from inside the thread */
         cv.wait(lock, []{return lockThread;});
@@ -74,26 +100,117 @@ int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen) 
  */
 void* threadRoutineClient(void* arg){
     cout << "Starting thread routine for client" << endl;
-    /* Il faudrait passer le username en arg pour pouvoir récup l'ensemble de ses données sur la db je pense ?*/
-    string* userName = static_cast<string*>(arg);
+    /* Il faudrait passer le username en arg pour pouvoir récup l'ensemble de ses données sur la db je pense ?*
+     */
+   // string* userName = static_cast<string*>(arg);
 
-    /* Une fois l'arg lu, on l'unlock et notify outside the thread */
-    lockThread = true;
-    cv.notify_one();
+    ClientSession* client = static_cast<ClientSession*>(arg);
+    if(login_logic(*client)){
+      insertSession(client->username, client->client_fd);
+      /* Une fois l'arg lu, on l'unlock et notify outside the thread */
+      lockThread = true;
+      cv.notify_one();
 
-    char buffer[1024] = {0};
-    while (true) {
-        int bytesReceived = recv(client_fd, buffer, sizeof(buffer), 0);
+      char buffer[1024] = {0};
+      while (true) {
+        int bytesReceived = recv(client->client_fd, buffer, sizeof(buffer), 0);
         if (bytesReceived <= 0) {
-            cout << "Client déconnecté : " << client_fd << endl;
-            close(client_fd);
-            erase(clients, client_fd);
+            cout << "Client déconnecté : " << client->client_fd << endl;
+            removeSession(client->client_fd);
+            close(client->client_fd);
+            clients.erase(remove_if(clients.begin(), clients.end(),
+                                    [client](const ClientSession& c) { return c.client_fd == client->client_fd; }),
+                          clients.end());
             break;
         }
         string message(buffer, bytesReceived);
-        cout << "Message reçu de " << client_fd << " : " << message << endl;
-        broadcastMessage(message, client_fd);
+        cout << "Message reçu de " << client->username << " : " << message << endl;
+        broadcastMessage(message, client->client_fd);
+      }
+    }else{
+      cerr << "login failed";
     }
     return nullptr;
 }
 
+
+void initDatabase() {
+    if (sqlite3_open("../../tetris.db", &db) != SQLITE_OK) {
+        cerr << "Erreur lors de l'ouverture de la db: " << sqlite3_errmsg(db) << std::endl;
+    } else {
+        cout << "DB SQLite connectée !" << std::endl;
+    }
+}
+
+bool login(ClientSession client) {
+    std::string sql = "SELECT password FROM login WHERE username = ?;";
+    sqlite3_stmt* stmt;
+    std::string storedHash;
+
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, client.username.c_str(), -1, SQLITE_STATIC);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            storedHash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        }
+        sqlite3_finalize(stmt);
+    }
+    if (storedHash.empty()) {
+        //Utilisateur non trouvé
+        return false;
+    }
+    if (BCrypt::validatePassword(client.password, storedHash)) {
+        std::cout << "Connexion réussie pour " << client.username << std::endl;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+void insertSession(const std::string& username, int client_fd) {
+    std::string sql = "INSERT INTO sessions (username, client_fd) VALUES (?, ?);";
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(stmt, 2, client_fd);
+
+        if (sqlite3_step(stmt) == SQLITE_DONE) {
+            std::cout << "Session ajoutée : " << username << " pour fd: " << client_fd << "" << std::endl;
+        } else {
+            std::cerr << "Erreur lors de l'insertion de la session." << std::endl;
+        }
+        sqlite3_finalize(stmt);
+    }
+}
+
+void removeSession(int client_fd) {
+    std::string sql = "DELETE FROM sessions WHERE client_fd = ?;";
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, client_fd);
+
+        if (sqlite3_step(stmt) == SQLITE_DONE) {
+            std::cout << "Session supprimée pour fd: " << client_fd << std::endl;
+        } else {
+            std::cerr << "Erreur lors de la suppression de la session." << std::endl;
+        }
+        sqlite3_finalize(stmt);
+    }
+}
+
+std::string getUsernameFromFd(int client_fd) {
+    std::string sql = "SELECT username FROM sessions WHERE client_fd = ?;";
+    sqlite3_stmt* stmt;
+    std::string username = "";
+
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, client_fd);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            username = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        }
+        sqlite3_finalize(stmt);
+    }
+    return username;
+}

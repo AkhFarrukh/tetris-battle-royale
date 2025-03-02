@@ -12,7 +12,14 @@
 int handleClient (int server_fd, struct sockaddr_in& address, size_t addressLen);   //Peut prendre bcp plus d'arg si on veut, 
                                                                             //à voir ca qu'on veut qu'elle fasse exactement
                                                                             //Contient entre autres accept()
+struct ClientSession;
 void* threadRoutineClient(void* arg);
+void initDatabase();
+bool login(ClientSession client);
+void insertSession(const std::string& username, int client_fd);
+void removeSession(int client_fd);
+std::string getUsernameFromFd(int client_fd);
+
 
 #endif  // SERVER_FUNCTIONS_HPP
 
