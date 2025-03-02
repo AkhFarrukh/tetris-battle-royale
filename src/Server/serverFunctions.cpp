@@ -21,6 +21,7 @@ struct ClientSession{
   string password;
 };
 
+sqlite3* db;
 vector<ClientSession> clients;
 
 //Synchro management
@@ -107,7 +108,7 @@ void* threadRoutineClient(void* arg){
    // string* userName = static_cast<string*>(arg);
 
     ClientSession* client = static_cast<ClientSession*>(arg);
-    if(login_logic(*client)){
+    if(login(*client)){
       insertSession(client->username, client->client_fd);
       /* Une fois l'arg lu, on l'unlock et notify outside the thread */
       lockThread = true;
@@ -135,7 +136,6 @@ void* threadRoutineClient(void* arg){
     return nullptr;
 }
 
-
 void initDatabase() {
     if (sqlite3_open("../../tetris.db", &db) != SQLITE_OK) {
         cerr << "Erreur lors de l'ouverture de la db: " << sqlite3_errmsg(db) << std::endl;
@@ -145,9 +145,9 @@ void initDatabase() {
 }
 
 bool login(ClientSession client) {
-    std::string sql = "SELECT password FROM login WHERE username = ?;";
+    string sql = "SELECT password FROM login WHERE username = ?;";
     sqlite3_stmt* stmt;
-    std::string storedHash;
+    string storedHash;
 
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
         sqlite3_bind_text(stmt, 1, client.username.c_str(), -1, SQLITE_STATIC);
@@ -161,7 +161,7 @@ bool login(ClientSession client) {
         return false;
     }
     if (BCrypt::validatePassword(client.password, storedHash)) {
-        std::cout << "Connexion réussie pour " << client.username << std::endl;
+        cout << "Connexion réussie pour " << client.username << endl;
         return true;
     } else {
         return false;
@@ -169,8 +169,8 @@ bool login(ClientSession client) {
 }
 
 
-void insertSession(const std::string& username, int client_fd) {
-    std::string sql = "INSERT INTO sessions (username, client_fd) VALUES (?, ?);";
+void insertSession(const string& username, int client_fd) {
+    string sql = "INSERT INTO sessions (username, client_fd) VALUES (?, ?);";
     sqlite3_stmt* stmt;
 
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
@@ -178,34 +178,34 @@ void insertSession(const std::string& username, int client_fd) {
         sqlite3_bind_int(stmt, 2, client_fd);
 
         if (sqlite3_step(stmt) == SQLITE_DONE) {
-            std::cout << "Session ajoutée : " << username << " pour fd: " << client_fd << "" << std::endl;
+            cout << "Session ajoutée : " << username << " pour fd: " << client_fd << "" << endl;
         } else {
-            std::cerr << "Erreur lors de l'insertion de la session." << std::endl;
+            cerr << "Erreur lors de l'insertion de la session." << endl;
         }
         sqlite3_finalize(stmt);
     }
 }
 
 void removeSession(int client_fd) {
-    std::string sql = "DELETE FROM sessions WHERE client_fd = ?;";
+    string sql = "DELETE FROM sessions WHERE client_fd = ?;";
     sqlite3_stmt* stmt;
 
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
         sqlite3_bind_int(stmt, 1, client_fd);
 
         if (sqlite3_step(stmt) == SQLITE_DONE) {
-            std::cout << "Session supprimée pour fd: " << client_fd << std::endl;
+            cout << "Session supprimée pour fd: " << client_fd << endl;
         } else {
-            std::cerr << "Erreur lors de la suppression de la session." << std::endl;
+            cerr << "Erreur lors de la suppression de la session." << endl;
         }
         sqlite3_finalize(stmt);
     }
 }
 
-std::string getUsernameFromFd(int client_fd) {
-    std::string sql = "SELECT username FROM sessions WHERE client_fd = ?;";
+string getUsernameFromFd(int client_fd) {
+    string sql = "SELECT username FROM sessions WHERE client_fd = ?;";
     sqlite3_stmt* stmt;
-    std::string username = "";
+    string username = "";
 
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
         sqlite3_bind_int(stmt, 1, client_fd);
