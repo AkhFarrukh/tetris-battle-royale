@@ -27,13 +27,13 @@ bool UserDatabaseManager::newAccountCreated(const char* username, const char* pa
         // Execute then destruct the statement
         database.execute();
         if (database.getReturnCode() == SQLITE_OK){
-            std::cout << "Account created successfully...\n";
+            std::cout << "\nAccount created successfully...\n";
             newAccountCreated = true;
         }
         database.destructStatement();
     }
     else { // If the username is already taken then print error
-        std::cerr << "Username already used.\n";
+        std::cerr << "\nUsername already used.\n";
         newAccountCreated = false;
     }
     return newAccountCreated;

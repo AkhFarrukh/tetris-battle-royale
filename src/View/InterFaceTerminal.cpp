@@ -471,14 +471,16 @@ void InterfaceTerminal::handleRegister(){
                 if(strlen(repetedPasswordPlayer)==0){repetedPasswordHandle = false;memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); break;}
                 repetedPasswordHandle = true;
             }
-            /*if(udm.newAccountCreated(namePlayer, passwordPlayer)){
+            if(udm.newAccountCreated(namePlayer, passwordPlayer)){
                 napms(1000);
-                printw("\nConnected ! \n");
+                printw("\nRegistered !\n");
+                if(udm.isCorrectLogin(namePlayer, passwordPlayer)) printw("You are now Connected in your new account, good game! \n");
+                else printw("Error while logging into your account, please try again \n");
                 refresh();
                 napms(1000);
                 return;
             }
-            else {printw("\nIncorrect username or password. \n");}*/
+            else {repetedPasswordHandle = false; memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));}
         }
     }
 }
