@@ -404,25 +404,28 @@ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
 
 
 void InterfaceTerminal::handleLogin(){
-    echo();
     curs_set(1);
     nodelay(stdscr, false);
     bool returnValue;
-
     while (true) {
         erase();
+        echo();
+        clrtobot();
+        bool firstTry = true;
         printw("Press ENTER to validate an entry\nPress ENTER with an empty entry to go back\n");
         refresh();
         printw("\nEnter your username : ");
+        move(3,22);
         char namePlayer[100];
         wgetnstr(stdscr,namePlayer,99);
         if(strlen(namePlayer)==0) return;
         while (true) {
-            printw("\nEnter your password : ");
+            if(firstTry) printw("\nEnter your password : ");
             noecho();
             char passwordPlayer[100];
             wgetnstr(stdscr,passwordPlayer,99);
-            if(strlen(passwordPlayer)==0) break;
+            if(strlen(passwordPlayer)==0){firstTry = true; break;}
+            firstTry = false;
             if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
                napms(1000);
                printw("\nConnected ! \n");
@@ -430,7 +433,7 @@ void InterfaceTerminal::handleLogin(){
                napms(1000);
                return;
             }
-            else {printw("\nIncorrect username or password. \n");}
+            else {printw("\nIncorrect username or password. \n"); move(5,22);}
             }
     }
 }
