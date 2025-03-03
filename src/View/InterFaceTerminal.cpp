@@ -408,7 +408,7 @@ void InterfaceTerminal::handleConnexionOption() {
 
     while (true) {
         displayConnexionOption(selectedOption);
-        int ch = getch();    // récupère l'entrée utilisateur
+        int ch = getch();    //récupère l'entrée utilisateur
         switch (ch) {
 
             case KEY_UP:     // aller vers le haut

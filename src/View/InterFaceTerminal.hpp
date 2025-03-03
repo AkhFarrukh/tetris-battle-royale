@@ -5,7 +5,7 @@
 #include "game.hpp"
 #include "MenuGameMode.hpp"
 #include "MenuGameModeController.hpp"
-#include "../Database/database.hpp"
+#include "../Database/database.hpp" //changer en "database.hpp" si probleme
 
 class InterfaceTerminal {
 
