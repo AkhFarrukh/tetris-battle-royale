@@ -404,7 +404,6 @@ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
 
 
 void InterfaceTerminal::handleLogin(){
-
     echo();
     curs_set(1);
     nodelay(stdscr, false);
@@ -438,36 +437,48 @@ void InterfaceTerminal::handleLogin(){
 
 
 void InterfaceTerminal::handleRegister(){
-    erase();
-    printw("Press ENTER to research the player name\nPress 'ENTER' with an empty entry to quit\n");
-    printw("\nEnter the player name : \n");
-    refresh();
-    echo();
     curs_set(1);
     nodelay(stdscr, false);
-    int returnValue;
-
-    char namePlayer[100];
-
+    bool returnValue;
+    char repetedPasswordPlayer[100];
     while (true) {
+        echo();
+        bool repetedPasswordHandle = false;
+        erase();
+        printw("Press ENTER to validate an entry\nPress ENTER with an empty entry to go back\n");
+        refresh();
+        printw("\nEnter the username : ");
+        char namePlayer[100];
         wgetnstr(stdscr,namePlayer,99);
         if(strlen(namePlayer)==0) return;
-        if(strcmp(namePlayer, user)==0) printw("\nPlease enter a name different from yours ! \n");
-        else {
-            printw("\nResearch player... \n");
-            refresh();
-            returnValue = db.verifyRequestFriend(user, namePlayer);
-            if(returnValue==0){db.requestFriend(user, namePlayer);napms(1000); printw("\nFriend request sent ! \n");
-                refresh();napms(1000);}
-            else if(returnValue==2) printw("\n%s is already you friend \n", namePlayer);
-            else if(returnValue==3) printw("\nYou have already sent a friend request to %s \n", namePlayer);
-            else if(returnValue==4){db.deleteRequestFriend(user, namePlayer); db.addFriend(user, namePlayer);
-                printw("\n%s had already friend-requested you, so now you are friend !\n", namePlayer);
-                refresh();napms(1500);}
-            else printw("\nInvalid username ! \n");}
+        printw("\nEnter the password : ");
+        while (true) {
+            move(5,21);
+            clrtobot();
+            noecho();
+            char passwordPlayer[100];
+            wgetnstr(stdscr,passwordPlayer,99);
+            if(strlen(passwordPlayer)==0) break;
+            while(strcmp(passwordPlayer, repetedPasswordPlayer)!=0){
+                memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); //on vide le buffer pour pas que ca s'accumule
+                if(repetedPasswordHandle) printw("\nThe passwords entered do not match !");
+                else printw("\nRepeat the password : ");
+                move(7,22);
+                wgetnstr(stdscr,repetedPasswordPlayer,99);
+                if(strlen(repetedPasswordPlayer)==0){repetedPasswordHandle = false;memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); break;}
+                repetedPasswordHandle = true;
+            }
+            /*if(udm.newAccountCreated(namePlayer, passwordPlayer)){
+                napms(1000);
+                printw("\nConnected ! \n");
+                refresh();
+                napms(1000);
+                return;
+            }
+            else {printw("\nIncorrect username or password. \n");}*/
+        }
     }
 }
-
 
 void InterfaceTerminal::handleConnexionOption() {
     int selectedOption = 0;
@@ -497,10 +508,10 @@ void InterfaceTerminal::handleConnexionOption() {
                     nodelay(stdscr, true);
                 }
                 else if (selectedOption == 1) { //on a cliqué sur register
-                    //handleRegister();
-                    //noecho();
-                    //curs_set(0);
-                    //nodelay(stdscr, true);
+                    handleRegister();
+                    noecho();
+                    curs_set(0);
+                    nodelay(stdscr, true);
                 }
             break;
             case 'q':
