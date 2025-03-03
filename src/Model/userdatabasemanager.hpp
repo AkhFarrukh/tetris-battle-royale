@@ -39,6 +39,9 @@ class UserDatabaseManager {
         void setHighestScore(int userId, int highestScore);
         void deleteHighestScore(int userId);
         std::vector<std::tuple<int, std::string, int>> getRanking(int limit = 0);
+
+        void addSession(int userId, int client_fd);
+        void removeSession(int userId);
 };
 
 #endif

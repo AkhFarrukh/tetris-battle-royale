@@ -10,6 +10,8 @@
 #include <arpa/inet.h>
 #include <cstring>      // Pour memset
 
+using namespace std;
+
 int main() {
     /**********************************************************************************
      *SETUP CONNECTION TO SERVER
@@ -43,6 +45,9 @@ int main() {
     }
 
     std::cout << "Connecté au serveur !\n";
+    while(true){
+      
+    }
 
     /**********************************************************************************
      * START GAME
@@ -54,5 +59,4 @@ int main() {
     close(sock); // Fermer le socket après utilisation    
     return 0;
 }
-
 //add a loop so that if i press escape in game i come back to the menu, but also when i end a game
