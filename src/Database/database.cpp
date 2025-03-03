@@ -26,12 +26,6 @@ Database::Database(const char* databaseFileName){
         sql = "CREATE TABLE IF NOT EXISTS friendsRequest (utilisateur_id INTEGER, ami_id INTEGER, FOREIGN KEY(utilisateur_id) REFERENCES utilisateurs(id), FOREIGN KEY(ami_id) REFERENCES utilisateurs(id), PRIMARY KEY (utilisateur_id, ami_id));";
         prepareStatement(sql);
         execute();
-    sql ="DELETE FROM utilisateurs WHERE nom = 'Luc';";
-    prepareStatement(sql);
-    execute();
-    sql ="DELETE FROM friendsRequest WHERE utilisateur_id = (SELECT id FROM utilisateurs WHERE nom = 'Jérôme') OR ami_id = (SELECT id FROM utilisateurs WHERE nom = 'Jérôme');";
-    prepareStatement(sql);
-    execute();
 }
 
 /**
