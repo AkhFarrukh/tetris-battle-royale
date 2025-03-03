@@ -87,9 +87,79 @@ void InterfaceTerminal::displayMenu(int selectedOption) {
        }
    }
    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an action\nPress 'q' to quit\n");
+   if(!(user==""))printw("Press 't' to open the message box\n");
    refresh();
 }
 
+
+void InterfaceTerminal::displayMessageBox(int selectedOption, vector<string> friends) {
+    erase();
+    printw("Message box : \n\n");
+    int numberFriends = std::size(friends);   // taille du tableau contenant les amis
+    if(numberFriends == 0) {printw("Empty friends list \n");}
+    else{
+        for (int i = 0; i < numberFriends; ++i) {
+            if (i == selectedOption) {
+                printw("-> %d. %s", i + 1, friends[i].c_str());
+            } else {
+                printw("   %d. %s", i + 1, friends[i].c_str());
+            }
+            printw("\n");
+        }
+    }
+
+    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select a friend\nPress 'q' to quit\n");
+    refresh();
+}
+
+
+
+void InterfaceTerminal::handleMessageBox() {
+    int selectedOption = 0;
+    while(user==""){
+        erase();
+        printw("Log in or create a new account to chat with your friends !\n");
+        printw("\nPress 'q' to quit\n");
+        int ch = getch();
+        switch(ch){
+            case 'q':
+            case 'Q':
+                endwin();
+            return;}
+    }
+    while (true) {
+
+        vector<string> friendsList = db.friendsList(user);
+        displayFriendsMenu(selectedOption, friendsList);  // affiche le menu avec les options
+
+        int ch = getch();    // récupère l'entrée utilisateur
+        switch (ch) {
+
+            case KEY_UP:     // aller vers le haut
+                if (selectedOption > 0) {
+                    selectedOption--;
+                }
+            break;
+            case KEY_DOWN: // descendre
+                if (selectedOption < friendsList.size()-1) {
+                    selectedOption++;
+                }
+            break;
+
+            // touche 'entrée'
+            case '\n':
+                    //chatWith(user, friendsList[selectedOption]);
+                    noecho();
+                    curs_set(0);
+                    nodelay(stdscr, true);
+            break;
+            case 'q':
+            case 'Q':
+                endwin();
+            return;
+        }
+    }
+}
 
 
 
@@ -118,6 +188,7 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) {
        printw("\n");
    }
    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select a mode\nPress 'q' to quit\n");
+   if(!(user==""))printw("Press 't' to open the message box\n");
    refresh();
 }
 
@@ -172,6 +243,10 @@ void InterfaceTerminal::handleGameModeSelection() {
                    nodelay(stdscr, TRUE);
                }
                break;
+           case 't':
+           case 'T':
+               if(!(user==""))handleMessageBox();
+           break;
            case 'q':
            case 'Q':
                endwin();
@@ -202,13 +277,14 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
     else printw("   Friend requests(%d)\n", db.getNumberFriendRequestsReceived(user));
 
     printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
+    if(!(user==""))printw("Press 't' to open the message box\n");
     refresh();
 }
 
 
-void InterfaceTerminal::displayFriendOptions(int selectedOption, const string friendsName) {
+void InterfaceTerminal::displayFriendOptions(int selectedOption) {
     erase();
-    printw("Choose an action to do with %s:\n\n", friendsName.c_str());
+    printw("Choose an action to do with :\n\n");
     int numberFriendsOptionsPossible = std::size(friendsOptions);   // taille du tableau contenant les modes de jeu
 
     for (int i = 0; i < numberFriendsOptionsPossible; ++i) {
@@ -220,6 +296,7 @@ void InterfaceTerminal::displayFriendOptions(int selectedOption, const string fr
         printw("\n");
     }
     printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
+    if(!(user==""))printw("Press 't' to open the message box\n");
     refresh();
 }
 
@@ -279,6 +356,7 @@ void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string>
         printw("\n");
     }
     printw("\nUse UP and DOWN arrow keys to navigate\nPress 'A' to accept the request\nPress 'R' to refuse\nPress 'C' to cancel a sent friend request\nPress 'q' to quit\n");
+    if(!(user==""))printw("Press 't' to open the message box\n");
     refresh();
 }
 
@@ -327,6 +405,10 @@ void InterfaceTerminal::handleFriendRequests() {
               if(numberRequestReceived <= selectedOption && selectedOption < numberRequestSent){
                   db.deleteRequestFriend(user, requestsSentList[selectedOption]);
               }
+            break;
+            case 't':
+            case 'T':
+               if(!(user==""))handleMessageBox();
             break;
             case 'q':
             case 'Q':
@@ -385,6 +467,10 @@ void InterfaceTerminal::handleFriends() {
                     handleFriendRequests();
                 }
             break;
+            case 't':
+            case 'T':
+               if(!(user==""))handleMessageBox();
+            break;
             case 'q':
             case 'Q':
                 endwin();
@@ -411,6 +497,7 @@ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
         printw("\n");
     }
     printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
+    if(!(user==""))printw("Press 't' to open the message box\n");
     refresh();
 }
 
@@ -535,6 +622,10 @@ void InterfaceTerminal::handleConnexionOption() {
                     nodelay(stdscr, true);
                 }
             break;
+            case 't':
+            case 'T':
+               if(!(user==""))handleMessageBox();
+            break;
             case 'q':
             case 'Q':
                 endwin();
@@ -574,7 +665,7 @@ void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
     int selectedOption = 0;
 
     while (true) {
-        displayFriendOptions(selectedOption, friendName);
+        displayFriendOptions(selectedOption);
 
         int ch = getch();    // récupère l'entrée utilisateur
         switch (ch) {
@@ -591,6 +682,10 @@ void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
             break;
 
             // touche 'entrée'
+        case 't':
+        case 'T':
+           if(!(user==""))handleMessageBox();
+           break;
         case 'q':
         case 'Q':
                endwin();
@@ -599,7 +694,7 @@ void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
         switch (selectedOption) {
         case 0:
             // Si l'utilisateur sélectionne "Remove Player", on retire l'amis de la liste d'amis.
-                db.deleteFriend(user, friendName);
+            db.deleteFriend(user, friendName);
             erase();
             printw("Friend removed !\n");
             refresh();
@@ -643,6 +738,10 @@ void InterfaceTerminal::start() {
                break;
            case '\n':   // touche 'entrée'
                handleOptionSelection(selectedOption);
+               break;
+           case 't':
+           case 'T':
+               if(!(user==""))handleMessageBox();
                break;
            case 'q':
            case 'Q':

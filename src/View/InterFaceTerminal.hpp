@@ -30,8 +30,10 @@ public:
   void handleConnexionOption();
   void handleLogin();
   void handleRegister();
+  void handleMessageBox();
+  void displayMessageBox(int selectedOption, vector<string> friends);
 
-  void displayFriendOptions(int selectedOption, const string friends);
+  void displayFriendOptions(int selectedOption);
   void displayGameModeMenu(int selectedMode);
   void handleGameModeSelection();
   void displayFriendsMenu(int selectedOption, vector<string> friends);
