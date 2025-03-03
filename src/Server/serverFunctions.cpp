@@ -104,7 +104,7 @@ void* Server::threadRoutineClient(void* arg){
         client.userId = server->udbm.getUserId(client.username.c_str());
         server->udbm.addSession(client.userId, client.client_fd);
 
-        /* Une fois l'arg lu, on l'unlock et notify outside the thread */
+        /* Unlock the mutex and notifies it outside the thread */
         server->lockThread = true;
         server->cv.notify_one();
         
@@ -112,9 +112,11 @@ void* Server::threadRoutineClient(void* arg){
         // Using bool "UserIsOnline" for better readability of while loop
         char buffer[1024] = {0};
         bool userIsOnline = true;
+        bool userIsInGame = false;
 
         while (userIsOnline) {
             int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
+            //Client disconnected or error
             if (bytesReceived <= 0) {
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 server->udbm.removeSession(client.userId);
@@ -129,11 +131,20 @@ void* Server::threadRoutineClient(void* arg){
                     { return c.client_fd == client.client_fd; }), server->clients.end()); */
                 userIsOnline = false; // Stop the loop
             }
+            //We capture an event from the client if InGame
+            else if (userIsInGame){ 
+
+            }
+            //We start a game 
+            else{
+                
+            }
             
             // Display message if there's one.
-            std::string message(buffer, bytesReceived);
-            std::cout << "Message reçu de " << client.username << " : " << message << std::endl;
-            server->broadcastMessage(message, client.client_fd);
+            /* ? what's the pupose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
+            //std::string message(buffer, bytesReceived);
+            //std::cout << "Message reçu de " << client.username << " : " << message << std::endl;
+            //server->broadcastMessage(message, client.client_fd);
         }
     }
     else {

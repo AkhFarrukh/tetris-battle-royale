@@ -61,6 +61,11 @@ class Server{
             ClientSession client;
             Server* serverInstance; 
         };
+        struct GameThreadData {
+            int client_fd;
+            int gameMode;
+            
+        };
 };
 
 #endif  // SERVER_FUNCTIONS_HPP
