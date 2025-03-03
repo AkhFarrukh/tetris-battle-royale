@@ -123,7 +123,7 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) {
  *Seulement "Endless Mode" est fonctionnel pour l'instant.
  *
  */
-void InterfaceTerminal::handleGameModeSelection() {
+int InterfaceTerminal::handleGameModeSelection() {
    int selectedMode = 0;
    
    while (true) {
@@ -151,7 +151,7 @@ void InterfaceTerminal::handleGameModeSelection() {
                    printw("Endless Mode selected! Starting game...\n");
                    refresh();
                    napms(500);
-                   MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
+                   //MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
                    return;
                
                 } else {        // autres modes de jeu, pas encore implémenté      

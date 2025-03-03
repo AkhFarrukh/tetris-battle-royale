@@ -131,17 +131,21 @@ void* Server::threadRoutineClient(void* arg){
                     { return c.client_fd == client.client_fd; }), server->clients.end()); */
                 userIsOnline = false; // Stop the loop
             }
-            //We capture an event from the client if InGame
-            else if (userIsInGame){ 
-
-            }
-            //We start a game 
             else{
-                
+                buffer[bytesReceived] = '\0';
+                //We capture an event from the client if InGame
+                if (userIsInGame){ 
+
+                }
+                //We start a game 
+                else{
+                    ThreadGameData threadGameData;
+                    threadGameData.client_fd = client.client_fd;
+                    shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
+                }
             }
-            
             // Display message if there's one.
-            /* ? what's the pupose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
+            /* ? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
             //std::string message(buffer, bytesReceived);
             //std::cout << "Message reçu de " << client.username << " : " << message << std::endl;
             //server->broadcastMessage(message, client.client_fd);

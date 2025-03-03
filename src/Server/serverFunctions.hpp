@@ -19,6 +19,7 @@
 #include "Database/bcrypt.h"
 #include "Database/database.hpp"
 #include "Model/userdatabasemanager.hpp"
+#include "EventQueue.hpp"
 
 
 class Server{
@@ -61,10 +62,19 @@ class Server{
             ClientSession client;
             Server* serverInstance; 
         };
-        struct GameThreadData {
+        /**
+         * @brief Struct containing the data that the thread where the game is
+         * runnning needs.
+         * 
+         * client_fd to send the gameState.
+         * gameMode to init the game.
+         * eventQueue so the player thread can put player input inside and game thread will treat them.
+         * 
+         */
+        struct ThreadGameData {
             int client_fd;
             int gameMode;
-            
+            shared_ptr<EventQueue> eventQueue;
         };
 };
 

@@ -23,7 +23,7 @@ public:
   void initNcurses();
   void displayMenu(int selectedOption);
   void displayGameModeMenu(int selectedMode);
-  void handleGameModeSelection();
+  int handleGameModeSelection();
   void handleOptionSelection(int selectedOption);
 
   void start();
