@@ -6,6 +6,7 @@
 #include "MenuGameMode.hpp"
 #include "MenuGameModeController.hpp"
 #include "../Database/database.hpp" //changer en "database.hpp" si probleme
+#include "../Model/userdatabasemanager.hpp"
 
 class InterfaceTerminal {
 
@@ -27,6 +28,8 @@ public:
   void displayMenu(int selectedOption);
   void displayConnexionOption(int selectedOption);
   void handleConnexionOption();
+  void handleLogin();
+  void handleRegister();
 
   void displayFriendOptions(int selectedOption, const string friends);
   void displayGameModeMenu(int selectedMode);
