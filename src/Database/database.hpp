@@ -40,7 +40,7 @@ class Database{
         void deleteFriend(const string& user, const string& friendDelete);
         void addFriend(const string& user, const string& newFriend);
         int verifyRequestFriend(const string& user, const string& newFriend);
-        void requestFriend(const string& user, const string& newFriend);
+        int requestFriend(const string& user, const string& newFriend);
         void deleteRequestFriend(const string& user, const string& newFriend);
         int getNumberFriendRequestsReceived(const string& user);
         vector<string> requestReceivedList(const string& username);

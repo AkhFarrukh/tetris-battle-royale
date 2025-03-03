@@ -13,7 +13,9 @@
 Database db("tetris.db");
 UserDatabaseManager udm;
 
-const char* user = "Luc";
+
+//std::string user;
+std::string user = "";
 
 const char* InterfaceTerminal::modeNames[] = {
                                             "Endless Mode",
@@ -236,12 +238,12 @@ void InterfaceTerminal::enterName(){
     while (true) {
         wgetnstr(stdscr,namePlayer,99);
         if(strlen(namePlayer)==0) return;
-        if(strcmp(namePlayer, user)==0) printw("\nPlease enter a name different from yours ! \n");
+        if(strcmp(namePlayer, user.c_str())==0) printw("\nPlease enter a name different from yours ! \n");
         else {
             printw("\nResearch player... \n");
             refresh();
             returnValue = db.verifyRequestFriend(user, namePlayer);
-            if(returnValue==0){db.requestFriend(user, namePlayer);napms(1000); printw("\nFriend request sent ! \n");
+            if(returnValue==0){if(db.requestFriend(user, namePlayer))printw("\nFriend request sent ! \n");
                                                                                           refresh();napms(1000);}
             else if(returnValue==2) printw("\n%s is already you friend \n", namePlayer);
             else if(returnValue==3) printw("\nYou have already sent a friend request to %s \n", namePlayer);
@@ -290,7 +292,7 @@ void InterfaceTerminal::handleFriendRequests() {
         vector<string> requestsSentList = db.requestSentList(user);
         int numberRequestReceived = std::size(requestsReceivedList);
         int numberRequestSent = std::size(requestsSentList);
-        displayFriendRequests(selectedOption, requestsReceivedList, requestsSentList);  // affiche le menu avec les demandes
+        displayFriendRequests(selectedOption, requestsReceivedList, requestsSentList);  //affiche le menu avec les demandes
 
         int ch = getch();    // récupère l'entrée utilisateur
         switch (ch) {
@@ -337,7 +339,17 @@ void InterfaceTerminal::handleFriendRequests() {
 
 void InterfaceTerminal::handleFriends() {
     int selectedOption = 0;
-
+    while(user==""){
+        erase();
+        printw("Log in or create a new account to play with your friends !\n");
+        printw("\nPress 'q' to quit\n");
+        int ch = getch();
+        switch(ch){
+        case 'q':
+        case 'Q':
+            endwin();
+        return;}
+    }
     while (true) {
 
         vector<string> friendsList = db.friendsList(user);
@@ -428,6 +440,7 @@ void InterfaceTerminal::handleLogin(){
             firstTry = false;
             if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
                napms(1000);
+               user = namePlayer;
                printw("\nConnected ! \n");
                refresh();
                napms(1000);
@@ -474,7 +487,10 @@ void InterfaceTerminal::handleRegister(){
             if(udm.newAccountCreated(namePlayer, passwordPlayer)){
                 napms(1000);
                 printw("\nRegistered !\n");
-                if(udm.isCorrectLogin(namePlayer, passwordPlayer)) printw("You are now Connected in your new account, good game! \n");
+                if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
+                    user = namePlayer;
+                    printw("You are now Connected in your new account, good game! \n");
+                }
                 else printw("Error while logging into your account, please try again \n");
                 refresh();
                 napms(1000);

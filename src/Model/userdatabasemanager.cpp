@@ -15,7 +15,7 @@ bool UserDatabaseManager::newAccountCreated(const char* username, const char* pa
     // then save login info into database.
     if (isUniqueUsername(username) && isValidUsername(username) && strlen(password) != 0){ 
         // Setup SQL statement and values to be binded
-        const char* statement = "INSERT INTO login (username, password) VALUES (?, ?)";
+        const char* statement = "INSERT INTO users (username, password) VALUES (?, ?)";
         std::string plainPassword = password;
         std::string hashedPassword = bcrypt::generateHash(plainPassword);
         
@@ -52,7 +52,7 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
     bool isCorrect = false;
     if (isValidUsername(username) && strlen(password) != 0){
         // Prepare Statement and bind values to "?" then execute
-        const char* query = "SELECT password FROM login WHERE username = ?";
+        const char* query = "SELECT password FROM users WHERE username = ?";
         database.prepareStatement(query);
         database.bindText(username, 1);
         database.execute();
@@ -69,7 +69,7 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
 
             // If the login is correct, change the login status to 1.
             if(isCorrect){
-                const char* query = "UPDATE login SET logged_in = 1 WHERE username = ?";
+                const char* query = "UPDATE users SET logged_in = 1 WHERE username = ?";
                 database.prepareStatement(query);
                 database.bindText(username, 1);
 
@@ -93,7 +93,7 @@ bool UserDatabaseManager::isLoggedIn(const char* username){
     bool isLoggedIn = false;
     if (isValidUsername(username)){
         // Prepare Statement and bind values to "?" symbols in a statement
-        const char* query = "SELECT logged_in FROM login WHERE username = ?";
+        const char* query = "SELECT logged_in FROM users WHERE username = ?";
         database.prepareStatement(query);
         database.bindText(username, 1);
 
@@ -119,7 +119,7 @@ bool UserDatabaseManager::isLoggedIn(const char* username){
 int UserDatabaseManager::getUserId(const char* username){
     int userId;
     // Prepare Statement and bind username to "?" symbols in a statement
-    const char* query = "SELECT user_id FROM login WHERE username = ? \
+    const char* query = "SELECT id FROM users WHERE username = ? \
                                                    AND logged_in = 1";
     database.prepareStatement(query);
     database.bindText(username, 1);
@@ -149,7 +149,7 @@ bool UserDatabaseManager::usernameChanged(int userId, const char* newUsername){
     bool usernameChanged = false;
     if (isValidUsername(newUsername) && isUniqueUsername(newUsername)){
         // Prepare Statement and bind new username to a statement
-        const char* query = "UPDATE login SET username = ? WHERE user_id = ?";
+        const char* query = "UPDATE users SET username = ? WHERE id = ?";
         database.prepareStatement(query);
         database.bindText(newUsername, 1);
         database.bindInt(userId, 2);
@@ -170,7 +170,7 @@ bool UserDatabaseManager::usernameChanged(int userId, const char* newUsername){
  */
 void UserDatabaseManager::changePassword(int userId, const char* newPassword){
     // Prepare Statement and bind new password to a statement
-    const char* query = "UPDATE login SET password = ? WHERE user_id = ?";
+    const char* query = "UPDATE users SET password = ? WHERE id = ?";
     database.prepareStatement(query);
     database.bindText(newPassword, 1);
     database.bindInt(userId, 2);
@@ -188,7 +188,7 @@ void UserDatabaseManager::changePassword(int userId, const char* newPassword){
  */
 void UserDatabaseManager::setSendingFileDescriptor(int userId, int fileDescriptor){
     // Prepare Statement and bind sending file descriptor to a statement
-    const char* query = "UPDATE login SET sending_file_descriptor = ? WHERE user_id = ?";
+    const char* query = "UPDATE users SET sending_file_descriptor = ? WHERE id = ?";
     database.prepareStatement(query);
     database.bindInt(fileDescriptor, 1);
     database.bindInt(userId, 2);
@@ -206,7 +206,7 @@ void UserDatabaseManager::setSendingFileDescriptor(int userId, int fileDescripto
  */
 void UserDatabaseManager::setReceivingFileDescriptor(int userId, int fileDescriptor){
     // Prepare Statement and bind receiving file descriptor to a statement
-    const char* query = "UPDATE login SET receiving_file_descriptor = ? WHERE user_id = ?";
+    const char* query = "UPDATE users SET receiving_file_descriptor = ? WHERE id = ?";
     database.prepareStatement(query);
     database.bindInt(fileDescriptor, 1);
     database.bindInt(userId, 2);
@@ -223,7 +223,7 @@ void UserDatabaseManager::setReceivingFileDescriptor(int userId, int fileDescrip
  */
 void UserDatabaseManager::logOut(int userId){
     // Prepare Statement and bind user ID  to a statement
-    const char* query = "UPDATE login SET logged_in = 0 WHERE user_id = ?";
+    const char* query = "UPDATE users SET logged_in = 0 WHERE id = ?";
     database.prepareStatement(query);
     database.bindInt(userId, 1);
 
@@ -239,7 +239,7 @@ void UserDatabaseManager::logOut(int userId){
  */
 void UserDatabaseManager::deleteAccount(int userId){
     // Prepare Statement and bind user ID  to a statement
-    const char* query = "DELETE FROM login WHERE user_id = ?";
+    const char* query = "DELETE FROM users WHERE id = ?";
     database.prepareStatement(query);
     database.bindInt(userId, 1);
 
@@ -257,7 +257,7 @@ void UserDatabaseManager::deleteAccount(int userId){
  */
 bool UserDatabaseManager::isUniqueUsername(const char* username){
     // Prepare Statement and bind username (to "?" symbol) to a statement
-    const char* query = "SELECT count(username) FROM login WHERE username = ?";
+    const char* query = "SELECT count(username) FROM users WHERE username = ?";
     database.prepareStatement(query);
     database.bindText(username, 1);
 
@@ -390,8 +390,8 @@ std::vector<std::tuple<int, std::string, int>> UserDatabaseManager::getRanking(i
 
     // Prepare Statement and bind values to "?" then execute
     std::string query = "SELECT ROW_NUMBER() OVER (ORDER BY HighestScore.highest_score \
-                         DESC) AS rank, login.username, HighestScore.highest_score \
-                         FROM login INNER JOIN HighestScore ON login.user_id = \
+                         DESC) AS rank, users.username, HighestScore.highest_score \
+                         FROM users INNER JOIN HighestScore ON users.id = \
                          HighestScore.user_id";
 
     // Add limit condition to statement if limit > 0 and bind limit to statement
