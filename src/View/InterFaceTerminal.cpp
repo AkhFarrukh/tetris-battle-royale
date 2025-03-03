@@ -130,7 +130,7 @@ void InterfaceTerminal::handleMessageBox() {
     while (true) {
 
         vector<string> friendsList = db.friendsList(user);
-        displayFriendsMenu(selectedOption, friendsList);  // affiche le menu avec les options
+        displayMessageBox(selectedOption, friendsList);  // affiche le menu avec les options
 
         int ch = getch();    // récupère l'entrée utilisateur
         switch (ch) {
