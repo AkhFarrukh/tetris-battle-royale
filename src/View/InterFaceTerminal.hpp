@@ -25,6 +25,9 @@ public:
 
   void initNcurses();
   void displayMenu(int selectedOption);
+  void displayConnexionOption(int selectedOption);
+  void handleConnexionOption();
+
   void displayFriendOptions(int selectedOption, const string friends);
   void displayGameModeMenu(int selectedMode);
   void handleGameModeSelection();

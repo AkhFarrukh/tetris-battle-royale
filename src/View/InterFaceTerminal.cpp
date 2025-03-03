@@ -27,33 +27,34 @@ const char* InterfaceTerminal::friendsOptions[] = {
                                             };
 
 InterfaceTerminal::InterfaceTerminal() {}
+
 InterfaceTerminal::~InterfaceTerminal() {}
 
-
-/**
-* @brief Initialise ncurses et configure l'affichage du terminal.
-*/
 void InterfaceTerminal::initNcurses() {
-   setlocale(LC_ALL, "");
-   initscr();
-   cbreak();
-   noecho();
-   keypad(stdscr, TRUE);
-   curs_set(0);
-   nodelay(stdscr, TRUE);
-   start_color();
-   if (has_colors() && can_change_color()) {
-       use_default_colors();
-   }
-   init_pair(1, COLOR_RED, -1);
-   init_pair(2, COLOR_GREEN, -1);
-   init_pair(3, COLOR_YELLOW, -1);
-   init_pair(4, COLOR_BLUE, -1);
-   init_pair(5, COLOR_MAGENTA, -1);
-   init_pair(6, COLOR_CYAN, -1);
+    setlocale(LC_ALL, "");
+    // Initialize ncurses
+    initscr();            // Start curses mode
+    cbreak();             // Line buffering disabled
+    noecho();             // Don't echo() while we do getch
+    keypad(stdscr, TRUE); // We get F1, F2 etc..
+    curs_set(0);          // Hide the cursor
+    nodelay(stdscr, TRUE);
+
+    start_color();
+    if (has_colors() && can_change_color()) {
+        use_default_colors();
+    }
+
+    init_pair(1, COLOR_RED, -1);
+    init_pair(2, COLOR_GREEN, -1);
+    init_pair(3, COLOR_YELLOW, -1);
+    init_pair(4, COLOR_BLUE, -1);
+    init_pair(5, COLOR_MAGENTA, -1);
+    init_pair(6, COLOR_CYAN, -1);
+
+    const int numModes = 4;
+    int selectedMode = 0;  // Tracks the currently selected menu option
 }
-
-
 
 /**
  *@brief Affiche le menu principal et l'option sélectionnée.
@@ -70,6 +71,7 @@ void InterfaceTerminal::displayMenu(int selectedOption) {
    const char* menuOptions[] = {
                                 "Play",
                                 "Handle friends",
+                                "Account"
                                 };
 
    int numberPossibleOptions = std::size(menuOptions); // taille du tableau contanant options du menu principal
@@ -379,6 +381,66 @@ void InterfaceTerminal::handleFriends() {
 }
 
 
+void InterfaceTerminal::displayConnexionOption(int selectedOption) {
+    erase();
+    const char* connexionOptions[] = {
+        "Log in",
+        "Register",
+        };
+    for (int i = 0; i < std::size(connexionOptions); ++i) {
+        if(i==0) printw("If you have already an account, log in here :\n");
+        if(i==1) printw("If you don't have an account an account yet, register here :\n");
+        if (i == selectedOption) {
+            printw("-> %s",  connexionOptions[i]);
+        } else {
+            printw("   %s",  connexionOptions[i]);
+        }
+        printw("\n");
+    }
+    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
+    refresh();
+}
+
+
+
+void InterfaceTerminal::handleConnexionOption() {
+    int selectedOption = 0;
+
+    while (true) {
+        displayConnexionOption(selectedOption);
+        int ch = getch();    // récupère l'entrée utilisateur
+        switch (ch) {
+
+            case KEY_UP:     // aller vers le haut
+                if (selectedOption > 0) {
+                    selectedOption--;
+                }
+            break;
+            case KEY_DOWN: // descendre
+                if (selectedOption < 1) {
+                    selectedOption++;
+                }
+            break;
+
+            // touche 'entrée'
+            case '\n':
+                if (selectedOption == 0) { //On a cliqué sur se connecter
+                    //handleLogin();
+                }
+                else if (selectedOption == 1) { //on a cliqué sur register
+                    //handleRegister();
+                }
+            break;
+            case 'q':
+            case 'Q':
+                endwin();
+            return;
+        }
+    }
+}
+
+
+
 /**
  *@brief Gère la sélection des options dans le menu principal.
  *@param selectedOption Indice de l'action sélectionnée.
@@ -394,6 +456,11 @@ void InterfaceTerminal::handleOptionSelection(int selectedOption) {
            // Si l'utilisateur sélectionne "Friends", on affiche les options possibles avec les amis.
            handleFriends();
            break;
+
+       case 2:
+           // Si l'utilisateur sélectionne "Account", on affiche les options possibles pour se connecter.
+           handleConnexionOption();
+       break;
 
    }
 }
@@ -466,7 +533,7 @@ void InterfaceTerminal::start() {
                }
                break;
            case KEY_DOWN:  // descendre
-               if (selectedOption < 1) {
+               if (selectedOption < 2) {
                    selectedOption++;
                }
                break;
