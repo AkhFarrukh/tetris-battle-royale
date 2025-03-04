@@ -171,17 +171,17 @@ void InterfaceTerminal::chatWith(const std::string& user, const string& friendNa
     curs_set(1);
     nodelay(stdscr, false);
     while(true){
-        char buffer[200];
+        char buffer[1024];
         printw("%s : ", user.c_str());
         refresh();
-        wgetnstr(stdscr,buffer,199);
+        wgetnstr(stdscr,buffer,1023);
         if(strlen(buffer)==0) return;
         else if(!(udm.isLoggedIn(friendName.c_str())))printw("\nMessage not delivered, %s is offline\n", friendName.c_str());
         else{
         int socket = getSock();
-		char message[friendName.size()+1+200];
+		char message[friendName.size()+1+1024];
     	memcpy(message, friendName.c_str(), friendName.size()+1);
-        memcpy(message + friendName.size()+1, buffer, 200);
+        memcpy(message + friendName.size()+1, buffer, 1024);
         ssize_t bytesWritten = write(socket , message , sizeof(message));
         if (bytesWritten < 0){
             if (errno == EPIPE){

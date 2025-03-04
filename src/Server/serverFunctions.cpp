@@ -3,10 +3,17 @@
 /**
  * TODO: COMMENTS TO BE ADDED BY THOSE WHO WROTE THIS FUNCTION/METHOD. STP
  */
-void Server::broadcastMessage(const std::string& message, int sender_fd) {
+void Server::broadcastMessage(const std::string& buffer, const std::string& sender_username) {
+    size_t friendNameLength = strlen(buffer);
+    std::string friendName(buffer.c_str());
+    std::string message;
+    if(friendNameLength + 1 < buffer.size()) {message = std::string(buffer.c_str()+friendNameLength+1);}
     for (const auto client : clients) {
-        if (client.client_fd == sender_fd) {
-            send(client.client_fd, message.c_str(), message.length()+1, 0);
+        if (client.username == friendName) {
+            char messageToSend[friendName.size()+1+1024];
+            memcpy(messageToSend, friendName.c_str(), friendName.size()+1);
+            memcpy(messageToSend + friendName.size()+1, buffer, 1024);
+            send(client.client_fd, messageToSend.c_str(), messageToSend.length()+1, 0);
         }
     }
 }
@@ -116,7 +123,7 @@ void* Server::threadRoutineClient(void* arg){
 
         while (userIsOnline) {
             char buffer[1024] = {0};
-            int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
+            int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer)-1, 0);
             //Client disconnected or error
             if (bytesReceived <= 0) {
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
@@ -134,9 +141,6 @@ void* Server::threadRoutineClient(void* arg){
             }
             else{
                 buffer[bytesReceived] = '\0';
-                size_t friendNameLength = strlen(buffer);
-                std::string friendName(buffer);
-                std::string message(buffer+friendNameLength+1);
                 //We capture an event from the client if InGame
                 if (userIsInGame){ 
 
@@ -146,7 +150,7 @@ void* Server::threadRoutineClient(void* arg){
                     ThreadGameData threadGameData;
                     threadGameData.client_fd = client.client_fd;
                     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
-                    server->broadcastMessage(message, client.client_fd);
+                    server->broadcastMessage(buffer, client.username);
                 }
             }
             // Display message if there's one.

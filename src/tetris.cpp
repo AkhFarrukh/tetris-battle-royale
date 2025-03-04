@@ -23,6 +23,8 @@ void* readServer(void* socket){
           size_t friendNameLength = strlen(buffer);
           std::string friendName(buffer);
           std::string message(buffer+friendNameLength+1);
+          std::cout<<friendName<<endl;
+          std::cout<<message<<endl;
          }
     }
 }
