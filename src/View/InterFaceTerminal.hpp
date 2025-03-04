@@ -7,6 +7,7 @@
 #include "MenuGameModeController.hpp"
 #include "../Database/database.hpp" //changer en "database.hpp" si probleme
 #include "../Model/userdatabasemanager.hpp"
+#include "Chat.hpp"
 
 class InterfaceTerminal {
 

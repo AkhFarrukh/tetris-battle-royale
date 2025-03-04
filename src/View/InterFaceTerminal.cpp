@@ -12,6 +12,7 @@
 
 Database db("tetris.db");
 UserDatabaseManager udm;
+Chat chat;
 
 
 std::string user = "";
@@ -147,7 +148,7 @@ void InterfaceTerminal::handleMessageBox() {
 
             // touche 'entrée'
             case '\n':
-                    //chatWith(user, friendsList[selectedOption]);
+                    chat.chatWith(user, friendsList[selectedOption]);
                     noecho();
                     curs_set(0);
                     nodelay(stdscr, true);
