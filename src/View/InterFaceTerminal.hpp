@@ -17,7 +17,7 @@ class InterfaceTerminal {
                                      // static pour pouvoir partager dans toutes la classe sans dupliquer de memoire
     static const char* friendsOptions[]; // tableau qui va contenir les options pour les amis
                                          // static pour pouvoir partager dans toutes la classe sans dupliquer de memoire
-
+    int sock_;
 public:
   InterfaceTerminal();
 //  InterfaceTerminal(InterfaceTerminal &&) = default;
@@ -34,6 +34,8 @@ public:
   vector<std::string> handleRegister();
   void handleMessageBox();
   void displayMessageBox(int selectedOption, vector<string> friends);
+  int getSock(){return sock_;};
+  void setSock(int sock){sock_ = sock;};
   void chatWith(const std::string& user, const string& Friend);
 
   void displayFriendOptions(int selectedOption);
