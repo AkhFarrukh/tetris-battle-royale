@@ -74,7 +74,7 @@ void InterfaceTerminal::displayMenu(int selectedOption) const {
    const char* menuOptions[] = {
                                 "Play",
                                 "Handle friends",
-                                "Account"
+                                "Account (currently being updated)"
                                 };
 
    int numberPossibleOptions = std::size(menuOptions); // taille du tableau contanant options du menu principal
@@ -698,7 +698,7 @@ void InterfaceTerminal::handleOptionSelection(int &selectedOption) {
 
        case 2:
            // Si l'utilisateur sélectionne "Account", on affiche les options possibles pour se connecter.
-           handleConnexionOption();
+           //handleConnexionOption();
        break;
 
    }
