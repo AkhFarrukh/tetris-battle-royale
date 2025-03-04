@@ -28,7 +28,7 @@ class UserDatabaseManager {
         bool usernameChanged(int userId, const char* newUsername);
         void changePassword(int userId, const char* newPassword);
         void setSendingFileDescriptor(int userId, int fileDescriptor);
-        void setReceivingFileDescriptor(int userId, int fileDescriptor);
+        void setReceivingFileDescriptor(const string& username, int fileDescriptor);
         void logOut(int userId);
         void deleteAccount(int userId);
 

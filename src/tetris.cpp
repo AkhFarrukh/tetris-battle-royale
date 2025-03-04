@@ -48,8 +48,8 @@ int main() {
      * START GAME
      *********************************************************************************/
 
-    InterfaceTerminal terminal;
-    terminal.start(); 
+    InterfaceTerminal terminal(sock);
+    terminal.start();
 
     close(sock); // Fermer le socket après utilisation    
     return 0;

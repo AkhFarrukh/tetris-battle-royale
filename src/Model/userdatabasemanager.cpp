@@ -204,12 +204,12 @@ void UserDatabaseManager::setSendingFileDescriptor(int userId, int fileDescripto
  * @param fileDescriptor a file descriptor
  * @param userId a user ID
  */
-void UserDatabaseManager::setReceivingFileDescriptor(int userId, int fileDescriptor){
+void UserDatabaseManager::setReceivingFileDescriptor(const string& username, int fileDescriptor){
     // Prepare Statement and bind receiving file descriptor to a statement
-    const char* query = "UPDATE users SET receiving_file_descriptor = ? WHERE id = ?";
+    const char* query = "UPDATE users SET receiving_file_descriptor = ? WHERE username = ?";
     database.prepareStatement(query);
     database.bindInt(fileDescriptor, 1);
-    database.bindInt(userId, 2);
+    database.bindText(username.c_str(), 2);
 
     // Execute the statement and destruct the statement
     database.execute();

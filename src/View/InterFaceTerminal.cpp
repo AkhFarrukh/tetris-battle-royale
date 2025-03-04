@@ -14,7 +14,6 @@ Database db("tetris.db");
 UserDatabaseManager udm;
 
 
-//std::string user;
 std::string user = "";
 
 const char* InterfaceTerminal::modeNames[] = {
@@ -29,7 +28,7 @@ const char* InterfaceTerminal::friendsOptions[] = {
                                             "Send a message (Not available yet)",
                                             };
 
-InterfaceTerminal::InterfaceTerminal() {}
+InterfaceTerminal::InterfaceTerminal(int sock):sock_(sock){}
 
 InterfaceTerminal::~InterfaceTerminal() {}
 
@@ -528,6 +527,8 @@ void InterfaceTerminal::handleLogin(){
             if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
                napms(1000);
                user = namePlayer;
+               int socket = getSock();
+               udm.setReceivingFileDescriptor(user, socket);
                printw("\nConnected ! \n");
                refresh();
                napms(1000);
@@ -576,6 +577,8 @@ void InterfaceTerminal::handleRegister(){
                 printw("\nRegistered !\n");
                 if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
                     user = namePlayer;
+                    int socket = getSock();
+                    udm.setReceivingFileDescriptor(user, socket);
                     printw("You are now Connected in your new account, good game! \n");
                 }
                 else printw("Error while logging into your account, please try again \n");
