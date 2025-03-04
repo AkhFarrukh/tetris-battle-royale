@@ -10,10 +10,10 @@ void Server::broadcastMessage(const std::string& buffer, const std::string& send
     if(friendNameLength + 1 < buffer.size()) {message = std::string(buffer.c_str()+friendNameLength+1);}
     for (const auto client : clients) {
         if (client.username == friendName) {
-            char messageToSend[friendName.size()+1+1024];
-            memcpy(messageToSend, friendName.c_str(), friendName.size()+1);
-            memcpy(messageToSend + friendName.size()+1, buffer, 1024);
-            send(client.client_fd, messageToSend.c_str(), messageToSend.length()+1, 0);
+            char messageToSend[sender_username.size()+1+message.size()];
+            memcpy(messageToSend, sender_username.c_str(), sender_username.size()+1);
+            memcpy(messageToSend + sender_username.size()+1, message.c_str(), message.size());
+            send(client.client_fd, messageToSend, sender_username.size()+1+message.size(), 0);
         }
     }
 }
