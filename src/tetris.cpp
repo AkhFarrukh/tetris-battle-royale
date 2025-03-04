@@ -10,6 +10,24 @@
 #include <arpa/inet.h>
 #include <cstring>      // Pour memset
 
+void* readServer(void* socket){
+    int sock = *(int*)socket;
+    while(true){
+    char buffer[1024] = {0};
+    int bytesReceived = recv(sock, buffer, sizeof(buffer), 0);
+    if (bytesReceived <= 0) {
+          std::cout << "Serveur déconnecté : " << sock << std::endl;
+          close(sock);}
+    else{
+          buffer[bytesReceived] = '\0';
+          size_t friendNameLength = strlen(buffer);
+          std::string friendName(buffer);
+          std::string message(buffer+friendNameLength+1);
+         }
+    }
+}
+
+
 int main() {
     /**********************************************************************************
      *SETUP CONNECTION TO SERVER
@@ -40,7 +58,11 @@ int main() {
         close(sock);
         return 1;
     }
-
+    pthread_t threadLecture;
+    if (pthread_create(&threadLecture, nullptr, readServer, &sock)!=0) {
+            perror("error creation thread");
+            return 1;
+        }
     std::cout << "Connecté au serveur !\n";
     InterfaceTerminal terminal;
 

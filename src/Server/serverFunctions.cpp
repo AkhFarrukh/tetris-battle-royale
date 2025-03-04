@@ -137,8 +137,6 @@ void* Server::threadRoutineClient(void* arg){
                 size_t friendNameLength = strlen(buffer);
                 std::string friendName(buffer);
                 std::string message(buffer+friendNameLength+1);
-                std::cout<<friendName<<endl;
-                std::cout<<message<<endl;
                 //We capture an event from the client if InGame
                 if (userIsInGame){ 
 
