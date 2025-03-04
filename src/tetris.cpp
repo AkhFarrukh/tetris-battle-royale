@@ -45,16 +45,25 @@ int main() {
     }
 
     std::cout << "Connecté au serveur !\n";
-    while(true){
-      
+
+    bool playing = true;
+    while(playing){
+        InterfaceTerminal terminal;
+        int selectedMode = terminal.start(); 
+        if (selectedMode == -1){
+            //Quit game
+            playing = false;
+        }
+        else{
+            
+        }
     }
 
     /**********************************************************************************
      * START GAME
      *********************************************************************************/
 
-    InterfaceTerminal terminal;
-    terminal.start(); 
+    
 
     close(sock); // Fermer le socket après utilisation    
     return 0;

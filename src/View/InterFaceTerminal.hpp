@@ -21,12 +21,12 @@ public:
   ~InterfaceTerminal();
 
   void initNcurses();
-  void displayMenu(int selectedOption);
-  void displayGameModeMenu(int selectedMode);
-  int handleGameModeSelection();
-  void handleOptionSelection(int selectedOption);
+  void displayMenu(int selectedOption) const;
+  void displayGameModeMenu(int selectedMode) const;
+  void handleGameModeSelection(int& selectedMode);
+  void handleOptionSelection(int &selectedOption);
 
-  void start();
+  int start();
 };
 
 #endif
