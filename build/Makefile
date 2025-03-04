@@ -1,18 +1,21 @@
-# Nom de l'exécutable final
-TARGET = ../tetris.exe
+# Nom des l'exécutables finaux
+SERVER_TARGET := ../server.exe
+CLIENT_TARGET := ../tetris.exe
 
 # Compilateur et options
 CXX = g++
-CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(LIB_DIR)/ncurses-install/include -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
+CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(SRC_DIR)/Database -I$(SRC_DIR)/Server -I$(LIB_DIR)/ncurses-install/include -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
 #-fsanitize=address,undefined
 
 # Dossiers sources et objets
 SRC_DIR = ../src
 BUILD_DIR = ../build
 
-# Liste des fichiers source (excluding src/Server and src/server.cpp)
-SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -path "$(SRC_DIR)/Server/*" ! -name "server.cpp")
-OBJS = $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%, $(SRCS:.cpp=.o))
+# Liste des fichiers source
+SERVER_SRCS = $(SRC_DIR)/server.cpp
+CLIENT_SRCS = $(SRC_DIR)/tetris.cpp
+SERVER_OBJS = $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%, $(SERVER_SRCS))
+CLIENT_OBJS = $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%, $(CLIENT_SRCS))
 
 # Dossier de la bibliothèque
 LIB_DIR = ../lib
@@ -21,10 +24,14 @@ NCURSES_DIR = $(LIB_DIR)/ncurses-install
 # Commandes principales
 .PHONY: all clean run
 
-all: $(TARGET)
+all: $(SERVER_TARGET) $(CLIENT_TARGET)
 
-# Compilation de l'exécutable
-$(TARGET): $(OBJS)
+# Compilation de l'exécutable server
+$(SERVER_TARGET): $(SERVER_OBJS)
+	$(CXX) $(CXXFLAGS) -L$(LIB_DIR) -o $@ $^ -lncursesw -lsqlite3
+
+# Compilation de l'exécutable client
+$(CLIENT_TARGET): $(CLIENT_OBJS)
 	$(CXX) $(CXXFLAGS) -L$(LIB_DIR) -o $@ $^ -lncursesw -lsqlite3
 
 # Compilation des fichiers objets
@@ -34,7 +41,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 # Nettoyage des fichiers générés
 clean:
-	rm -rf $(BUILD_DIR)/*.o $(BUILD_DIR)/*/*.o $(TARGET)
+	rm -rf $(BUILD_DIR)/*.o $(BUILD_DIR)/*/*.o $(SERVER_TARGET) $(CLIENT_TARGET)
 
 # Exécuter le jeu après compilation
 run: all

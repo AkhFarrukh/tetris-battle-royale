@@ -9,7 +9,9 @@
 bool recvAll(int sock, void* buffer, size_t length);
 bool sendAll(int sock, const void* buffer, size_t length) ;
 
-struct Message
+struct Message{
+
+};
 
 
 #endif
