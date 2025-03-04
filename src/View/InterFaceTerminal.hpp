@@ -26,7 +26,7 @@ public:
   ~InterfaceTerminal();
 
   void initNcurses();
-  void displayMenu(int selectedOption);
+  void displayMenu(int selectedOption) const;
   void displayConnexionOption(int selectedOption);
   void handleConnexionOption();
   void handleLogin();
@@ -36,17 +36,17 @@ public:
   int getSock(){return sock_;};
 
   void displayFriendOptions(int selectedOption);
-  void displayGameModeMenu(int selectedMode);
-  void handleGameModeSelection();
+  void displayGameModeMenu(int selectedMode) const;
+  void handleGameModeSelection(int& selectedMode);
   void displayFriendsMenu(int selectedOption, vector<string> friends);
   void handleFriends();
   void handleFriendsOptionSelection(const string friendName);
-  void handleOptionSelection(int selectedOption);
+  void handleOptionSelection(int &selectedOption);
   void enterName();
   void displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent);
   void handleFriendRequests();
 
-  void start();
+  int start();
 };
 
 #endif

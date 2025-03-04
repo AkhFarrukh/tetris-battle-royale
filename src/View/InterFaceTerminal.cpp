@@ -67,7 +67,7 @@ void InterfaceTerminal::initNcurses() {
  *
  *@param selectedOption Indice de l'option actuellement sélectionnée.
  */
-void InterfaceTerminal::displayMenu(int selectedOption) {
+void InterfaceTerminal::displayMenu(int selectedOption) const {
    erase();
    printw("Welcome to Tetris Royale (Terminal Edition)!\n");
    printw("Choose an action: \n\n");
@@ -171,7 +171,7 @@ void InterfaceTerminal::handleMessageBox() {
  *
  *@param selectedMode Indice du mode de jeu actuellement sélectionné.
  */
-void InterfaceTerminal::displayGameModeMenu(int selectedMode) {
+void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
    erase();
    printw("Select a game mode then press Enter to start:\n\n");
    int numberModePossible = std::size(modeNames);   // taille du tableau contenant les modes de jeu
@@ -203,9 +203,7 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) {
  *Seulement "Endless Mode" est fonctionnel pour l'instant.
  *
  */
-void InterfaceTerminal::handleGameModeSelection() {
-   int selectedMode = 0;
-
+void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {   
    while (true) {
 
     displayGameModeMenu(selectedMode);  // affiche le menu avec les modes
@@ -231,7 +229,8 @@ void InterfaceTerminal::handleGameModeSelection() {
                    printw("Endless Mode selected! Starting game...\n");
                    refresh();
                    napms(500);
-                   MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
+                   //MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
+                   /* MODIF SERVER */
                    return;
 
                 } else {        // autres modes de jeu, pas encore implémenté
@@ -246,7 +245,7 @@ void InterfaceTerminal::handleGameModeSelection() {
            case 't':
            case 'T':
                if(!(user==""))handleMessageBox();
-           break;
+            break;
            case 'q':
            case 'Q':
                endwin();
@@ -644,11 +643,11 @@ void InterfaceTerminal::handleConnexionOption() {
  *@brief Gère la sélection des options dans le menu principal.
  *@param selectedOption Indice de l'action sélectionnée.
  */
-void InterfaceTerminal::handleOptionSelection(int selectedOption) {
+void InterfaceTerminal::handleOptionSelection(int &selectedOption) {
    switch (selectedOption) {
        case 0:
             // Si l'utilisateur sélectionne "Play", on affiche le menu des modes de jeu.
-           handleGameModeSelection();
+           handleGameModeSelection(selectedOption);
            break;
 
        case 1:
@@ -721,7 +720,7 @@ void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
  *le menu principal.
  *
  */
-void InterfaceTerminal::start() {
+int InterfaceTerminal::start() {
    initNcurses();
    int selectedOption = 0;
 
@@ -742,7 +741,7 @@ void InterfaceTerminal::start() {
                break;
            case '\n':   // touche 'entrée'
                handleOptionSelection(selectedOption);
-               break;
+               return selectedOption;
            case 't':
            case 'T':
                if(!(user==""))handleMessageBox();
@@ -750,7 +749,7 @@ void InterfaceTerminal::start() {
            case 'q':
            case 'Q':
                endwin();
-               return;
+               return -1;
        }
    }
 }
