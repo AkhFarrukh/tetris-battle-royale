@@ -5,7 +5,7 @@
  */
 void Server::broadcastMessage(const std::string& message, int sender_fd) {
     for (const auto client : clients) {
-        if (client.client_fd != sender_fd) {
+        if (client.client_fd == sender_fd) {
             send(client.client_fd, message.c_str(), message.length(), 0);
         }
     }
@@ -137,8 +137,8 @@ void* Server::threadRoutineClient(void* arg){
                 size_t friendNameLength = strlen(buffer);
                 std::string friendName(buffer);
                 std::string message(buffer+friendNameLength+1);
-                std::cout<< friendName<<std::endl;
-                std::cout<< message<<std::endl;
+                std::cout<<friendName<<endl;
+                std::cout<<message<<endl;
                 //We capture an event from the client if InGame
                 if (userIsInGame){ 
 
@@ -148,6 +148,7 @@ void* Server::threadRoutineClient(void* arg){
                     ThreadGameData threadGameData;
                     threadGameData.client_fd = client.client_fd;
                     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
+                    server->broadcastMessage(message, client.client_fd);
                 }
             }
             // Display message if there's one.
