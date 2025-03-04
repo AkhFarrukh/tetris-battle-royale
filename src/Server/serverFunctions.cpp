@@ -48,8 +48,6 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
             close(client_fd);
             continue;
         }
-        printf("%s\n",username);
-        printf("%s\n",password);
 
         // Create a "new session" with client info to be sent to thread routine
         // and push the client into a vector of clients
@@ -112,11 +110,12 @@ void* Server::threadRoutineClient(void* arg){
         
         // Keep looking for any message sent by the user to the server
         // Using bool "UserIsOnline" for better readability of while loop
-        char buffer[1024] = {0};
+
         bool userIsOnline = true;
         bool userIsInGame = false;
 
         while (userIsOnline) {
+            char buffer[1024] = {0};
             int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
             //Client disconnected or error
             if (bytesReceived <= 0) {
@@ -135,6 +134,7 @@ void* Server::threadRoutineClient(void* arg){
             }
             else{
                 buffer[bytesReceived] = '\0';
+                if(strlen(buffer)!=0)printf("\n%s\n",buffer);
                 //We capture an event from the client if InGame
                 if (userIsInGame){ 
 

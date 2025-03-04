@@ -43,7 +43,7 @@ int main() {
 
     std::cout << "Connecté au serveur !\n";
     InterfaceTerminal terminal;
-    vector<std::string> dataConnexion = terminal.handleConnexionOption();
+    vector<std::string> dataConnexion = terminal.handleConnexionOption(sock);
     if(dataConnexion.size()==2){
       if (send(sock, dataConnexion[0].c_str(), dataConnexion[0].length(), 0) <= 0 ||
             send(sock, dataConnexion[1].c_str(), dataConnexion[1].length(), 0) <= 0) {

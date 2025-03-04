@@ -178,12 +178,11 @@ void InterfaceTerminal::chatWith(const std::string& user, const string& friendNa
         if(strlen(buffer)==0) return;
         else if(!(udm.isLoggedIn(friendName.c_str())))printw("\nMessage not delivered, %s is offline\n", friendName.c_str());
         else{
-        //int socket = getSock();
+        int socket = getSock();
 		char message[friendName.size()+1+200];
     	memcpy(message, friendName.c_str(), friendName.size()+1);
         memcpy(message + friendName.size()+1, buffer, 200);
-        printw("\n\n%s\n",message);
-        ssize_t bytesWritten = write(1 , message , strlen(message));
+        ssize_t bytesWritten = write(socket , message , sizeof(message));
         if (bytesWritten < 0){
             if (errno == EPIPE){
                 perror("Serveur est déconnecté");}
