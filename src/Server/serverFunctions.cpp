@@ -48,6 +48,8 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
             close(client_fd);
             continue;
         }
+        printf("%s\n",username);
+        printf("%s\n",password);
 
         // Create a "new session" with client info to be sent to thread routine
         // and push the client into a vector of clients
@@ -96,7 +98,7 @@ void* Server::threadRoutineClient(void* arg){
     ClientSession& client = threadData->client;
 
     // Check if both username and password are correct or not.
-    bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(), 
+    bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(),
                                                        client.password.c_str());
 
     if (successfulLogin){

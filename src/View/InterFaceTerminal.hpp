@@ -8,6 +8,7 @@
 #include "../Database/database.hpp" //changer en "database.hpp" si probleme
 #include "../Model/userdatabasemanager.hpp"
 #include "Chat.hpp"
+#include <unistd.h>
 
 class InterfaceTerminal {
 
@@ -16,9 +17,9 @@ class InterfaceTerminal {
                                      // static pour pouvoir partager dans toutes la classe sans dupliquer de memoire
     static const char* friendsOptions[]; // tableau qui va contenir les options pour les amis
                                          // static pour pouvoir partager dans toutes la classe sans dupliquer de memoire
-    int sock_;
+
 public:
-  InterfaceTerminal(int sock);
+  InterfaceTerminal();
 //  InterfaceTerminal(InterfaceTerminal &&) = default;
 //  InterfaceTerminal(const InterfaceTerminal &) = default;
 //  InterfaceTerminal &operator=(InterfaceTerminal &&) = default;
@@ -28,12 +29,12 @@ public:
   void initNcurses();
   void displayMenu(int selectedOption) const;
   void displayConnexionOption(int selectedOption);
-  void handleConnexionOption();
-  void handleLogin();
-  void handleRegister();
+  vector<std::string> handleConnexionOption();
+  vector<std::string> handleLogin();
+  vector<std::string> handleRegister();
   void handleMessageBox();
   void displayMessageBox(int selectedOption, vector<string> friends);
-  int getSock(){return sock_;};
+  void chatWith(const std::string& user, const string& Friend);
 
   void displayFriendOptions(int selectedOption);
   void displayGameModeMenu(int selectedMode) const;

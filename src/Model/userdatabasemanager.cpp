@@ -430,10 +430,10 @@ std::vector<std::tuple<int, std::string, int>> UserDatabaseManager::getRanking(i
  */
 void UserDatabaseManager::addSession(int userId, int client_fd){
     // Prepare Statement and bind values to a statement
-    const char* query = "INSERT INTO sessions SET client_fd = ? WHERE user_id = ?";
+    const char* query = "INSERT INTO sessions (user_id, client_fd) VALUES (?, ?)";
     database.prepareStatement(query);
-    database.bindInt(client_fd, 1);
-    database.bindInt(userId, 2);
+    database.bindInt(client_fd, 2);
+    database.bindInt(userId, 1);
 
     // Execute the statement and destruct the statement
     database.execute();

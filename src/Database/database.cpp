@@ -20,10 +20,13 @@ Database::Database(const char* databaseFileName){
         "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT, logged_in INTEGER DEFAULT 0, receiving_file_descriptor INTEGER DEFAULT 0, sending_file_descriptor INTEGER DEFAULT 0);";
         prepareStatement(sql);
         execute();
-        sql = "CREATE TABLE IF NOT EXISTS friends (user_id INTEGER, friend_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(friend_id) REFERENCES users(id), PRIMARY KEY (user_id, friend_id));";
+        sql = "CREATE TABLE IF NOT EXISTS friends (user_id INTEGER, friend_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(friend_id) REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (user_id, friend_id));";
         prepareStatement(sql);
         execute();
-        sql = "CREATE TABLE IF NOT EXISTS friendsRequest (user_id INTEGER, friend_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(friend_id) REFERENCES users(id), PRIMARY KEY (user_id, friend_id));";
+        sql = "CREATE TABLE IF NOT EXISTS friendsRequest (user_id INTEGER, friend_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(friend_id) REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (user_id, friend_id));";
+        prepareStatement(sql);
+        execute();
+        sql = "CREATE TABLE IF NOT EXISTS sessions (user_id INTEGER, client_fd INTEGER, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (user_id));";
         prepareStatement(sql);
         execute();
 }

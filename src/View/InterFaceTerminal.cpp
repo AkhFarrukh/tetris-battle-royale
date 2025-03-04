@@ -29,7 +29,7 @@ const char* InterfaceTerminal::friendsOptions[] = {
                                             "Send a message (Not available yet)",
                                             };
 
-InterfaceTerminal::InterfaceTerminal(int sock):sock_(sock){}
+InterfaceTerminal::InterfaceTerminal() {}
 
 InterfaceTerminal::~InterfaceTerminal() {}
 
@@ -148,7 +148,7 @@ void InterfaceTerminal::handleMessageBox() {
 
             // touche 'entrée'
             case '\n':
-                    chat.chatWith(user, friendsList[selectedOption]);
+                    chatWith(user, friendsList[selectedOption]);
                     noecho();
                     curs_set(0);
                     nodelay(stdscr, true);
@@ -162,6 +162,39 @@ void InterfaceTerminal::handleMessageBox() {
 }
 
 
+void InterfaceTerminal::chatWith(const std::string& user, const string& friendName){
+    erase();
+    printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+    printw("\nDiscussion with %s : \n", friendName.c_str());
+    refresh();
+    echo();
+    curs_set(1);
+    nodelay(stdscr, false);
+    while(true){
+        char buffer[200];
+        printw("%s : ", user.c_str());
+        refresh();
+        wgetnstr(stdscr,buffer,199);
+        if(strlen(buffer)==0) return;
+        else if(!(udm.isLoggedIn(friendName.c_str())))printw("\nMessage not delivered, %s is offline\n", friendName.c_str());
+        else{
+        //int socket = getSock();
+		char message[friendName.size()+1+200];
+    	memcpy(message, friendName.c_str(), friendName.size()+1);
+        memcpy(message + friendName.size()+1, buffer, 200);
+        printw("\n\n%s\n",message);
+        ssize_t bytesWritten = write(1 , message , strlen(message));
+        if (bytesWritten < 0){
+            if (errno == EPIPE){
+                perror("Serveur est déconnecté");}
+            else{
+                perror("Erreur d'écriture");}
+        }
+        else{}
+
+        }
+    }
+}
 
 /**
  *@brief Affiche le menu de sélection des modes de jeu.
@@ -248,6 +281,7 @@ void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
             break;
            case 'q':
            case 'Q':
+               if(user!=""){int id = udm.getUserId(user.c_str()); udm.logOut(id);}
                endwin();
                return;
        }
@@ -496,12 +530,12 @@ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
         printw("\n");
     }
     printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    if(!(user==""))printw("Press 't' to open the message box\n");
     refresh();
 }
 
 
-void InterfaceTerminal::handleLogin(){
+vector<std::string> InterfaceTerminal::handleLogin(){
+    vector<std::string> connexionData;
     curs_set(1);
     nodelay(stdscr, false);
     bool returnValue;
@@ -516,7 +550,7 @@ void InterfaceTerminal::handleLogin(){
         move(3,22);
         char namePlayer[100];
         wgetnstr(stdscr,namePlayer,99);
-        if(strlen(namePlayer)==0) return;
+        if(strlen(namePlayer)==0) break;
         while (true) {
             if(firstTry) printw("\nEnter your password : ");
             noecho();
@@ -526,21 +560,23 @@ void InterfaceTerminal::handleLogin(){
             firstTry = false;
             if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
                napms(1000);
+               connexionData.push_back(namePlayer);
+               connexionData.push_back(passwordPlayer);
                user = namePlayer;
-               int socket = getSock();
-               udm.setReceivingFileDescriptor(user, socket);
                printw("\nConnected ! \n");
                refresh();
                napms(1000);
-               return;
+               return connexionData;
             }
             else {printw("\nIncorrect username or password. \n"); move(5,22);}
             }
     }
+    return connexionData;
 }
 
 
-void InterfaceTerminal::handleRegister(){
+vector<std::string> InterfaceTerminal::handleRegister(){
+    vector<std::string> connexionData;
     curs_set(1);
     nodelay(stdscr, false);
     bool returnValue;
@@ -554,7 +590,7 @@ void InterfaceTerminal::handleRegister(){
         printw("\nEnter the username : ");
         char namePlayer[100];
         wgetnstr(stdscr,namePlayer,99);
-        if(strlen(namePlayer)==0) return;
+        if(strlen(namePlayer)==0) break;
         printw("\nEnter the password : ");
         while (true) {
             move(5,21);
@@ -577,21 +613,26 @@ void InterfaceTerminal::handleRegister(){
                 printw("\nRegistered !\n");
                 if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
                     user = namePlayer;
-                    int socket = getSock();
-                    udm.setReceivingFileDescriptor(user, socket);
+                    connexionData.push_back(namePlayer);
+                    connexionData.push_back(passwordPlayer);
+                    //udm.setReceivingFileDescriptor(user, socket);
                     printw("You are now Connected in your new account, good game! \n");
+                    napms(1000);
+                    return connexionData;
                 }
                 else printw("Error while logging into your account, please try again \n");
                 refresh();
                 napms(1000);
-                return;
             }
             else {repetedPasswordHandle = false; memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));}
         }
     }
+    return connexionData;
 }
 
-void InterfaceTerminal::handleConnexionOption() {
+vector<std::string> InterfaceTerminal::handleConnexionOption() {
+    initNcurses();
+    vector<std::string> dataConnexion;
     int selectedOption = 0;
 
     while (true) {
@@ -613,28 +654,28 @@ void InterfaceTerminal::handleConnexionOption() {
             // touche 'entrée'
             case '\n':
                 if (selectedOption == 0) { //On a cliqué sur se connecter
-                    handleLogin();
+                    dataConnexion = handleLogin();
+                    if(dataConnexion.size()==2)return dataConnexion;
                     noecho();
                     curs_set(0);
                     nodelay(stdscr, true);
                 }
                 else if (selectedOption == 1) { //on a cliqué sur register
-                    handleRegister();
+                    dataConnexion = handleRegister();
+                    if(dataConnexion.size()==2)return dataConnexion;
                     noecho();
                     curs_set(0);
                     nodelay(stdscr, true);
                 }
             break;
-            case 't':
-            case 'T':
-               if(!(user==""))handleMessageBox();
-            break;
             case 'q':
             case 'Q':
+
                 endwin();
-            return;
+            return dataConnexion;
         }
     }
+    return dataConnexion;
 }
 
 

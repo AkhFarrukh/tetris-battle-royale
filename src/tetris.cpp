@@ -42,10 +42,24 @@ int main() {
     }
 
     std::cout << "Connecté au serveur !\n";
-
+    InterfaceTerminal terminal;
+    vector<std::string> dataConnexion = terminal.handleConnexionOption();
+    if(dataConnexion.size()==2){
+      if (send(sock, dataConnexion[0].c_str(), dataConnexion[0].length(), 0) <= 0 ||
+            send(sock, dataConnexion[1].c_str(), dataConnexion[1].length(), 0) <= 0) {
+            perror("Erreur lors de l'envoie des credentials");
+            close(sock);
+            return 0;
+        }
+    }
+    else{
+      std::cout << "Echec de la connexion au compte.\n";
+      close(sock); // Fermer le socket après utilisation
+      return 0;
+    }
     bool playing = true;
     while(playing){
-        InterfaceTerminal terminal;
+
         int selectedMode = terminal.start();
         if (selectedMode == -1){
             //Quit game
