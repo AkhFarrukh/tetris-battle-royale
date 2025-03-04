@@ -40,7 +40,7 @@ int main() {
     if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("Échec de la connexion : ");
         close(sock);
-        //return 1;
+        return 1;
         //TODO remove comment
     }
 

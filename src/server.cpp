@@ -53,11 +53,12 @@ int main () {
     /**************************************************************
     *HANDLE THE CLIENT
     **************************************************************/
-    //if (handleClient(server_fd, address, addressLen) <= -1){
-    //    perror("Error while handling client : ");
-    //    close(server_fd);
-    //    return 1;
-    //}
+    Server server;
+    if (server.handleClient(server_fd, address, addressLen) <= -1){
+        perror("Error while handling client : ");
+        close(server_fd);
+        return 1;
+    }
 
     close(server_fd);
     return 0;
