@@ -9,6 +9,7 @@
 #include <netinet/in.h>     //ip management
 #include <arpa/inet.h>
 #include <cstring>      // Pour memset
+#include "communication.hpp"    //sendAll & recvAll
 
 using namespace std;
 
@@ -41,7 +42,6 @@ int main() {
         perror("Échec de la connexion : ");
         close(sock);
         return 1;
-        //TODO remove comment
     }
 
     std::cout << "Connecté au serveur !\n";
@@ -65,7 +65,7 @@ int main() {
 
     
 
-    close(sock); // Fermer le socket après utilisation    
+    close(sock); // Fermer le socket après utilisation
     return 0;
 }
 //add a loop so that if i press escape in game i come back to the menu, but also when i end a game
