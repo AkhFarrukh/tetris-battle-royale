@@ -13,10 +13,10 @@ BUILD_DIR = ../build
 
 # Liste des fichiers source
 # SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -path "$(SRC_DIR)/Server/*" ! -name "server.cpp")
-SERVER_SRCS = $(SRC_DIR)/server.cpp
-CLIENT_SRCS = $(SRC_DIR)/tetris.cpp
-SERVER_OBJS = $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%, $(SERVER_SRCS))
-CLIENT_OBJS = $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%, $(CLIENT_SRCS))
+SERVER_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -name "tetris.cpp")
+CLIENT_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -path "$(SRC_DIR)/Server/*" ! -name "server.cpp")
+SERVER_OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SERVER_SRCS))
+CLIENT_OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(CLIENT_SRCS))
 
 # Dossier de la bibliothèque
 LIB_DIR = ../lib
@@ -39,6 +39,10 @@ $(CLIENT_TARGET): $(CLIENT_OBJS)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Make build dir if doesn't exist
+#$(BUILD_DIR):
+#	@mkdir -p $(dir $@)
 
 # Nettoyage des fichiers générés
 clean:

@@ -16,9 +16,9 @@
 #include <condition_variable>   // Thread sync
 #include <pthread.h>            // Threads
 #include <sqlite3.h>
-#include "Database/bcrypt.h"
-#include "Database/database.hpp"
-#include "Model/userdatabasemanager.hpp"
+#include "bcrypt.h"
+#include "database.hpp"
+#include "userdatabasemanager.hpp"
 #include "EventQueue.hpp"
 
 
