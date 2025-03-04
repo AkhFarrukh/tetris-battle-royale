@@ -6,7 +6,7 @@
 void Server::broadcastMessage(const std::string& message, int sender_fd) {
     for (const auto client : clients) {
         if (client.client_fd == sender_fd) {
-            send(client.client_fd, message.c_str(), message.length(), 0);
+            send(client.client_fd, message.c_str(), message.length()+1, 0);
         }
     }
 }

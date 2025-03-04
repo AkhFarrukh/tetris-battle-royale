@@ -280,7 +280,6 @@ void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
             break;
            case 'q':
            case 'Q':
-               if(user!=""){int id = udm.getUserId(user.c_str()); udm.logOut(id);}
                endwin();
                return;
        }
@@ -788,6 +787,7 @@ int InterfaceTerminal::start() {
                break;
            case 'q':
            case 'Q':
+               if(user!=""){int id = udm.getUserId(user.c_str()); udm.logOut(id);}
                endwin();
                return -1;
        }
