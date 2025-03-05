@@ -67,7 +67,8 @@ void GameController::getAction() {
         	default:
             	action = Action::NONE;
             	break;
-      }
+       }
+     }
     }
     eventQueue->addEvent(make_shared<MovementActionEvent>(action));
 }

@@ -20,7 +20,7 @@ and write how to install ncurses very important
 class Input {
 public:
     KeyboardAction getKeyboardInput();
-    bool
+    //bool
     void start();
     void stop(){endwin();}
 };
