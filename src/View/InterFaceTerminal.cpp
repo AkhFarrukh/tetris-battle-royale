@@ -114,7 +114,7 @@ void InterfaceTerminal::displayMessageBox(int selectedOption, vector<string> fri
 
 
 
-void InterfaceTerminal::handleMessageBox() {
+int InterfaceTerminal::handleMessageBox() {
     int selectedOption = 0;
     while(user==""){
         erase();
@@ -125,7 +125,7 @@ void InterfaceTerminal::handleMessageBox() {
             case 'q':
             case 'Q':
                 endwin();
-            return;}
+            return 0;}
     }
     while (true) {
 
@@ -148,7 +148,7 @@ void InterfaceTerminal::handleMessageBox() {
 
             // touche 'entrée'
             case '\n':
-                    chatWith(user, friendsList[selectedOption]);
+                    if(chatWith(user, friendsList[selectedOption])<0)return -1;
                     noecho();
                     curs_set(0);
                     nodelay(stdscr, true);
@@ -156,13 +156,13 @@ void InterfaceTerminal::handleMessageBox() {
             case 'q':
             case 'Q':
                 endwin();
-            return;
+            return 0;
         }
     }
 }
 
 
-void InterfaceTerminal::chatWith(const std::string& user, const string& friendName){
+int InterfaceTerminal::chatWith(const std::string& user, const string& friendName){
     erase();
     printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
     printw("\nDiscussion with %s : \n", friendName.c_str());
@@ -175,7 +175,7 @@ void InterfaceTerminal::chatWith(const std::string& user, const string& friendNa
         printw("%s : ", user.c_str());
         refresh();
         wgetnstr(stdscr,buffer,1023);
-        if(strlen(buffer)==0) return;
+        if(strlen(buffer)==0) return 0;
         else if(!(udm.isLoggedIn(friendName.c_str())))printw("\nMessage not delivered, %s is offline\n", friendName.c_str());
         else{
         int socket = getSock();
@@ -188,11 +188,13 @@ void InterfaceTerminal::chatWith(const std::string& user, const string& friendNa
                 perror("Serveur est déconnecté");}
             else{
                 perror("Erreur d'écriture");}
+            return -1;
         }
         else{}
 
         }
     }
+    return 0;
 }
 
 /**
@@ -235,7 +237,7 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
  *Seulement "Endless Mode" est fonctionnel pour l'instant.
  *
  */
-void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
+int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
    while (true) {
 
     displayGameModeMenu(selectedMode);  // affiche le menu avec les modes
@@ -263,7 +265,7 @@ void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                    napms(500);
                    //MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
                    /* MODIF SERVER */
-                   return;
+                   return 0;
 
                 } else {        // autres modes de jeu, pas encore implémenté
                    erase();
@@ -276,12 +278,12 @@ void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                break;
            case 't':
            case 'T':
-               if(!(user==""))handleMessageBox();
-               return;
+               if(!(user==""))if(handleMessageBox()<0)return -1;
+            break;
            case 'q':
            case 'Q':
                endwin();
-               return;
+               return 0;
        }
    }
 }
@@ -392,7 +394,7 @@ void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string>
 }
 
 
-void InterfaceTerminal::handleFriendRequests() {
+int InterfaceTerminal::handleFriendRequests() {
     int selectedOption = 0;
 
     while (true) {
@@ -439,18 +441,18 @@ void InterfaceTerminal::handleFriendRequests() {
             break;
             case 't':
             case 'T':
-               if(!(user==""))handleMessageBox();
-               return;
+               if(!(user==""))if(handleMessageBox()<0)return -1;
+            break;
             case 'q':
             case 'Q':
                 endwin();
-            return;
+            return 0;
         }
     }
 }
 
 
-void InterfaceTerminal::handleFriends() {
+int InterfaceTerminal::handleFriends() {
     int selectedOption = 0;
     while(user==""){
         erase();
@@ -461,7 +463,7 @@ void InterfaceTerminal::handleFriends() {
         case 'q':
         case 'Q':
             endwin();
-        return;}
+        return 0;}
     }
     while (true) {
 
@@ -500,12 +502,12 @@ void InterfaceTerminal::handleFriends() {
             break;
             case 't':
             case 'T':
-               if(!(user==""))handleMessageBox();
-               return;
+               if(!(user==""))if(handleMessageBox()<0)return -1;
+            break;
             case 'q':
             case 'Q':
                 endwin();
-            return;
+            return 0;
         }
     }
 }
@@ -682,7 +684,7 @@ vector<std::string> InterfaceTerminal::handleConnexionOption() {
  *@brief Gère la sélection des options dans le menu principal.
  *@param selectedOption Indice de l'action sélectionnée.
  */
-void InterfaceTerminal::handleOptionSelection(int &selectedOption) {
+int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
    switch (selectedOption) {
        case 0:
             // Si l'utilisateur sélectionne "Play", on affiche le menu des modes de jeu.
@@ -691,7 +693,7 @@ void InterfaceTerminal::handleOptionSelection(int &selectedOption) {
 
        case 1:
            // Si l'utilisateur sélectionne "Friends", on affiche les options possibles avec les amis.
-           handleFriends();
+           if(handleFriends()<0)return -1;
            break;
 
        case 2:
@@ -700,10 +702,11 @@ void InterfaceTerminal::handleOptionSelection(int &selectedOption) {
        break;
 
    }
+   return 0;
 }
 
 
-void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
+int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
     int selectedOption = 0;
 
     while (true) {
@@ -726,12 +729,12 @@ void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
             // touche 'entrée'
         case 't':
         case 'T':
-           if(!(user==""))handleMessageBox();
-           return;
+           if(!(user==""))if(handleMessageBox()<0)return -1;
+           break;
         case 'q':
         case 'Q':
                endwin();
-            return;
+            return 0;
         case '\n':
         switch (selectedOption) {
         case 0:
@@ -741,7 +744,7 @@ void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
             printw("Friend removed !\n");
             refresh();
             napms(700);
-            return;
+            return 0;
         break;
 
         case 1:
@@ -783,7 +786,7 @@ int InterfaceTerminal::start() {
                break;
            case 't':
            case 'T':
-               if(!(user==""))handleMessageBox();
+               if(!(user==""))if(handleMessageBox()<0)return -1;
                break;
            case 'q':
            case 'Q':
