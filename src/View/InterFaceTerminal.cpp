@@ -179,10 +179,10 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         else if(!(udm.isLoggedIn(friendName.c_str())))printw("\nMessage not delivered, %s is offline\n", friendName.c_str());
         else{
         int socket = getSock();
-		char message[friendName.size()+1+1024];
-    	memcpy(message, friendName.c_str(), friendName.size()+1);
-        memcpy(message + friendName.size()+1, buffer, 1024);
-        ssize_t bytesWritten = write(socket , message , sizeof(message));
+        std::vector<char> message(friendName.size()+1+strlen(buffer));
+    	memcpy(message.data(), friendName.c_str(), friendName.size()+1);
+        memcpy(message.data() + friendName.size()+1, buffer, strlen(buffer));
+        ssize_t bytesWritten = write(socket , message.data() , friendName.size()+1+strlen(buffer));
         if (bytesWritten < 0){
             if (errno == EPIPE){
                 perror("Serveur est déconnecté");}
@@ -190,7 +190,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
                 perror("Erreur d'écriture");}
             return -1;
         }
-        else{}
+        else{memset(buffer, 0, sizeof(buffer));}
 
         }
     }
@@ -562,6 +562,7 @@ vector<std::string> InterfaceTerminal::handleLogin(){
                napms(1000);
                connexionData.push_back(namePlayer);
                connexionData.push_back(passwordPlayer);
+               //printf("%s, %s\n", connexionData[0].c_str(),connexionData[1].c_str());
                user = namePlayer;
                printw("\nConnected ! \n");
                refresh();
