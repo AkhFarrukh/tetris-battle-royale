@@ -9,6 +9,9 @@
 #include "../Model/userdatabasemanager.hpp"
 #include "Chat.hpp"
 #include <unistd.h>
+#include <mutex>
+
+extern std::mutex interfaceMutex;
 
 class InterfaceTerminal {
 

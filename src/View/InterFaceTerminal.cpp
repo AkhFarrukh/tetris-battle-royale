@@ -14,7 +14,7 @@ Database db("tetris.db");
 UserDatabaseManager udm;
 Chat chat;
 
-
+std::mutex interfaceMutex;
 std::string user = "";
 
 const char* InterfaceTerminal::modeNames[] = {
@@ -191,6 +191,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         else{
         ///
         /// MUTEX DEB
+        interfaceMutex.lock();
         curs_set(0);
         int currentLine = LINES-1;
         while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
@@ -210,10 +211,11 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         }
         refresh();
         curs_set(1);
-
+        interfaceMutex.unlock();
         /// MUTEX FIN
         ///
         int socket = getSock();
+        if(udm.isLoggedIn(friendName.c_str())){
         std::vector<char> message(friendName.size()+1+strlen(buffer));
     	memcpy(message.data(), friendName.c_str(), friendName.size()+1);
         memcpy(message.data() + friendName.size()+1, buffer, strlen(buffer));
@@ -226,7 +228,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
             return -1;
         }
         else{memset(buffer, 0, sizeof(buffer));}
-
+}
         }
     }
     return 0;
