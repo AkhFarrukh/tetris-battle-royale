@@ -32,22 +32,22 @@ public:
   vector<std::string> handleConnexionOption();
   vector<std::string> handleLogin();
   vector<std::string> handleRegister();
-  int handleMessageBox();
+  void handleMessageBox();
   void displayMessageBox(int selectedOption, vector<string> friends);
   int getSock(){return sock_;};
   void setSock(int sock){sock_ = sock;};
-  int chatWith(const std::string& user, const string& Friend);
+  void chatWith(const std::string& user, const string& Friend);
 
   void displayFriendOptions(int selectedOption);
   void displayGameModeMenu(int selectedMode) const;
-  int handleGameModeSelection(int& selectedMode);
+  void handleGameModeSelection(int& selectedMode);
   void displayFriendsMenu(int selectedOption, vector<string> friends);
-  int handleFriends();
-  int handleFriendsOptionSelection(const string friendName);
+  void handleFriends();
+  void handleFriendsOptionSelection(const string friendName);
   void handleOptionSelection(int &selectedOption);
   void enterName();
   void displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent);
-  int handleFriendRequests();
+  void handleFriendRequests();
 
   int start();
 };
