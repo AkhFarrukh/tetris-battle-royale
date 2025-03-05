@@ -7,6 +7,8 @@ void Server::broadcastMessage(const std::string& buffer, const std::string& send
     size_t friendNameLength = buffer.find('\0');
     std::string friendName = buffer.substr(0,friendNameLength);
     std::string message;
+    std::cout << "on envoie à : " << friendName << std::endl;
+    std::cout << "on est : " << sender_username<< std::endl;
     if(friendNameLength + 1 < buffer.size()) {message = std::string(buffer.c_str()+friendNameLength+1);}
     for (const auto client : clients) {
         if (client.username == friendName) {
@@ -81,7 +83,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
         std::shared_ptr<ThreadData> threadData = std::make_shared<ThreadData>();
-        threadData->client = ClientSession(new_session);
+        threadData->client = std::make_shared<ClientSession>(new_session);
         threadData->serverInstance = this; // "this" = a pointer of server object
         
         // Create a thread for a user if the username and password is correct.
@@ -115,17 +117,15 @@ void* Server::threadRoutineClient(void* arg){
     // Get thread data from arg
     std::shared_ptr<ThreadData> threadData(reinterpret_cast<ThreadData*>(arg));
     Server* server = threadData->serverInstance;
-    ClientSession& client = threadData->client;
+    std::shared_ptr<ClientSession> client = threadData->client;
 
     // Check if both username and password are correct or not.
-    //printf("%s, %s\n", client.username.c_str(),client.password.c_str());
-    bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(),
-                                                       client.password.c_str());
-    //printf("%s, %s\n", client.username.c_str(),client.password.c_str());
+    bool successfulLogin = server->udbm.isCorrectLogin(client->username.c_str(),
+                                                       client->password.c_str());
     if (successfulLogin){
         // Get user ID and insert user into sessions table
-        client.userId = server->udbm.getUserId(client.username.c_str());
-        server->udbm.addSession(client.userId, client.client_fd);
+        client->userId = server->udbm.getUserId(client->username.c_str());
+        server->udbm.addSession(client->userId, client->client_fd);
 
         /* Unlock the mutex and notifies it outside the thread */
         server->lockThread = true;
@@ -139,12 +139,13 @@ void* Server::threadRoutineClient(void* arg){
 
         while (userIsOnline) {
             char buffer[1024] = {0};
-            int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer)-1, 0);
+            std::cout << "Hi : " << client->username << std::endl;
+            int bytesReceived = recv(client->client_fd, buffer, sizeof(buffer)-1, 0);
             //Client disconnected or error
             if (bytesReceived <= 0) {
-                std::cout << "Client déconnecté : " << client.client_fd << std::endl;
-                server->udbm.removeSession(client.userId);
-                close(client.client_fd);
+                std::cout << "Client déconnecté : " << client->client_fd << std::endl;
+                server->udbm.removeSession(client->userId);
+                close(client->client_fd);
 
                 /**
                  * TODO: IDK what's happening here. So just commenting it out
@@ -164,9 +165,9 @@ void* Server::threadRoutineClient(void* arg){
                 //We start a game 
                 else{
                     ThreadGameData threadGameData;
-                    threadGameData.client_fd = client.client_fd;
+                    threadGameData.client_fd = client->client_fd;
                     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
-                    server->broadcastMessage(buffer, client.username);
+                    server->broadcastMessage(buffer, client->username);
                     memset(buffer, 0, sizeof(buffer));
                 }
             }

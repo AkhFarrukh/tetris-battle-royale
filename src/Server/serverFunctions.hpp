@@ -59,7 +59,7 @@ class Server{
          * or which server to manipulate. Therefore we give it a server's pointer.
          */
         struct ThreadData {
-            ClientSession client;
+            std::shared_ptr<ClientSession> client;
             Server* serverInstance; 
         };
         /**
