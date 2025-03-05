@@ -149,6 +149,7 @@ int InterfaceTerminal::handleMessageBox() {
             // touche 'entrée'
             case '\n':
                     if(chatWith(user, friendsList[selectedOption])<0)return -1;
+                    scrollok(stdscr, false);
                     noecho();
                     curs_set(0);
                     nodelay(stdscr, true);
@@ -170,26 +171,50 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
     echo();
     curs_set(1);
     nodelay(stdscr, false);
+    bool windowFull = false;
+    int numberLines = LINES;
     while(true){
+        if (windowFull) {
+            move(3, 0);clrtoeol();
+            move(2, 0);clrtoeol();
+            move(1, 0);clrtoeol();
+            move(0, 0);clrtoeol();
+            printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+            printw("\nDiscussion with %s : \n", friendName.c_str());
+        }
         char buffer[1024];
-        move(LINES - 1, 0);
+        move(numberLines - 1, 0);
         clrtoeol();
         printw("Enter your message : ");
         refresh();
         wgetnstr(stdscr,buffer,1023);
         if(strlen(buffer)==0) return 0;
-        else if(!(udm.isLoggedIn(friendName.c_str())))printw("\nMessage not delivered, %s is offline", friendName.c_str());
         else{
         ///
         /// MUTEX DEB
         curs_set(0);
-        int currentLine = LINES-1;
+        int currentLine;
+        if(true){
+        currentLine = numberLines-1;
         while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
             currentLine--;
+            }
         }
         move(currentLine, 0);
         printw("%s : %s\n", user.c_str(), buffer);
+        if(!(udm.isLoggedIn(friendName.c_str())))printw("Message not delivered, %s is offline", friendName.c_str());
+        refresh();
+        if(numberLines-1-currentLine < 5){
+          windowFull = true;
+          move(numberLines-1, 0);
+          clrtoeol();
+          scrollok(stdscr, true);
+          scroll(stdscr);
+          scrollok(stdscr, false);
+        }
+        refresh();
         curs_set(1);
+
         /// MUTEX FIN
         ///
         int socket = getSock();
