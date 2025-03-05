@@ -20,6 +20,8 @@ class Game; // foreward declaration
 
 class GameController {
 private:
+  	bool controlsBlocked = false;
+    bool controlsInverted = false;
     Input input;
     shared_ptr<Game> game;
     shared_ptr<EventQueue> eventQueue;
@@ -29,6 +31,13 @@ public:
     void stopGameInput() {input.stop();}
     void getAction();
 
+     // Getters
+    bool areControlsBlocked() const { return controlsBlocked; }
+    bool areControlsInverted() const { return controlsInverted; }
+
+    // Setters
+    void setControlsBlocked(bool isBlocked) { controlsBlocked = isBlocked; }
+    void setControlsInverted(bool isInverted) { controlsInverted = isInverted; }
     /*
     int getGameScore();
     int getGameNumberOfBrokenLines();

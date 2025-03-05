@@ -23,6 +23,14 @@ Game::Game(shared_ptr<EventQueue> eventQueue)
 
 Game::~Game() {}
 
+
+int Game::getTimeDrop(){
+  return timeDropEvent;
+}
+
+void Game::setTimeDrop(int newTime){
+  timeDropEvent = newTime;
+}
 /**
  *@brief Gère la boucle principale du jeu.   
  */
@@ -38,7 +46,7 @@ void Game::run() {
 
         checkInput();
 
-        if (elapsedTimeDropEvent > std::chrono::milliseconds(500)) {
+        if (elapsedTimeDropEvent > std::chrono::milliseconds(timeDropEvent)) { // malus/bonus vitesse
             //todo make variable interval of time(maybe corresponding to level)
             //todo check gamedata for level
             eventQueue->addEvent(make_shared<TimerDropEvent>());
@@ -193,4 +201,5 @@ Color Game::getBlockColor(Coordinates cell) {
     }
     return blockColor;
 }
+
 

@@ -3,6 +3,7 @@
 //
 
 #include "gameModes.h"
+#include "../Controller/GameController.hpp"
 using namespace std;
 
 /**
@@ -88,4 +89,19 @@ void RoyalCompetition::applyRules(Grid& grid, int linesCleared) {
     std::cout << "Royal Competition mode: energy gained = " << energy << "\n";
 }
 
-//todo ajouter les différents malus et bonus propre au mode Royal competition
+//todo poser un compteur pour la durée des Bonus/malus (exemple Inversion des commandes lors des 3 prochain blocs)
+void RoyalCompetition::malusReverseControls(GameController controller, bool isReversed){
+  	controller.setControlsInverted(isReversed);
+}
+
+void RoyalCompetition::malusFreezeControls(GameController controller, bool isBlocked){
+  	controller.setControlsBlocked(isBlocked);
+}
+
+void RoyalCompetition::bonusReduceFallSpeed(Game game){
+  game.setTimeDrop(1000);
+}
+
+void RoyalCompetition::malusIncreaseFallSpeed(Game game){
+  game.setTimeDrop(250);
+}
