@@ -77,8 +77,6 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         new_session.username = std::string(username);
         new_session.password = std::string(password);
         clients.push_back(new_session);
-        //memset(username, 0, sizeof(username));
-        //memset(username, 0, sizeof(password));
 
         printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.

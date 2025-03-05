@@ -172,7 +172,8 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
     nodelay(stdscr, false);
     while(true){
         char buffer[1024];
-        printw("%s : ", user.c_str());
+        move(LINES - 1, 0);
+        printw("Enter your message : ");
         refresh();
         wgetnstr(stdscr,buffer,1023);
         if(strlen(buffer)==0) return 0;
