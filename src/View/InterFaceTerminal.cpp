@@ -177,14 +177,24 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         refresh();
         wgetnstr(stdscr,buffer,1023);
         if(strlen(buffer)==0) return 0;
-        else if(!(udm.isLoggedIn(friendName.c_str())))printw("\nMessage not delivered, %s is offline\n", friendName.c_str());
+        else if(!(udm.isLoggedIn(friendName.c_str())))printw("\nMessage not delivered, %s is offline", friendName.c_str());
         else{
+        /// MUTEX DEB
+        curs_set(0);
+        int currentLine = LINES;
+        while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
+            currentLine--;
+        }
+        move(currentLine, 0);
+        printw("%s : %s\n", user.c_str(), buffer);
+        curs_set(1);
+        /// MUTEX FIN
         int socket = getSock();
         std::vector<char> message(friendName.size()+1+strlen(buffer));
     	memcpy(message.data(), friendName.c_str(), friendName.size()+1);
         memcpy(message.data() + friendName.size()+1, buffer, strlen(buffer));
         ssize_t bytesWritten = write(socket , message.data() , friendName.size()+1+strlen(buffer));
-        if (bytesWritten < 0){
+        if (bytesWritten <= 0){
             if (errno == EPIPE){
                 perror("Serveur est déconnecté");}
             else{
