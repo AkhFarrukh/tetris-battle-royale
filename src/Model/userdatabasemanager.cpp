@@ -421,3 +421,37 @@ std::vector<std::tuple<int, std::string, int>> UserDatabaseManager::getRanking(i
     database.destructStatement(); // Destruct a statement after getting a result
     return ranking;
 }
+
+
+/**
+ * @brief Add the session and a client file descriptor
+ * @param client_fd a client file descriptor
+ * @param userId a user ID
+ */
+void UserDatabaseManager::addSession(int userId, int client_fd){
+    // Prepare Statement and bind values to a statement
+    const char* query = "INSERT INTO sessions SET client_fd = ? WHERE user_id = ?";
+    database.prepareStatement(query);
+    database.bindInt(client_fd, 1);
+    database.bindInt(userId, 2);
+
+    // Execute the statement and destruct the statement
+    database.execute();
+    database.destructStatement();
+}
+
+
+/**
+ * @brief Remove the session of a particular user ID
+ * @param userId a user ID
+ */
+void UserDatabaseManager::removeSession(int userId){
+    // Prepare Statement and bind user ID to a statement
+    const char* query = "DELETE FROM sessions WHERE user_id = ?";
+    database.prepareStatement(query);
+    database.bindInt(userId, 1);
+
+    // Execute the statement then destruct the statement
+    database.execute();
+    database.destructStatement();
+}

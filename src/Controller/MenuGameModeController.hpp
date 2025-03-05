@@ -12,11 +12,11 @@
 
 
 class MenuGameModeController {
+    shared_ptr<EventQueue> eventQueue;
 public:
-MenuGameModeController() = default;
+    MenuGameModeController(shared_ptr<EventQueue> eventQueue);
 
-
-static void startEndlessMode();
+    void startEndlessMode();
 
 };
 
