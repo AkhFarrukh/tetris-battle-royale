@@ -15,6 +15,8 @@
 void affichageMessage(const std::string& sender, const std::string& message){
     nodelay(stdscr, false);
     ////
+    interfaceMutex.lock();
+    refresh();
     curs_set(0);
     int currentLine = LINES-1;
     while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
@@ -39,9 +41,8 @@ void affichageMessage(const std::string& sender, const std::string& message){
         clrtoeol();
         printw("Enter your message : ");
         refresh();
-        refresh();
         curs_set(1);
-        ////
+        interfaceMutex.unlock();
 }
 
 
@@ -58,7 +59,7 @@ void* readServer(void* socket){
           buffer[bytesReceived] = '\0';
           size_t friendNameLength = strlen(buffer);
           std::string friendName(buffer);
-          std::string message(buffer+friendNameLength+1);
+          std::string message(buffer+friendNameLength+1, bytesReceived - friendNameLength-1);
           affichageMessage(friendName, message);
          }
     }

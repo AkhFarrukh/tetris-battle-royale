@@ -186,12 +186,13 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         clrtoeol();
         printw("Enter your message : ");
         refresh();
-        wgetnstr(stdscr,buffer,1023);
+        wgetnstr(stdscr,buffer,1023-friendName.size()-1);
         if(strlen(buffer)==0) return 0;
         else{
         ///
         /// MUTEX DEB
         interfaceMutex.lock();
+        refresh();
         curs_set(0);
         int currentLine = LINES-1;
         while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
@@ -216,10 +217,11 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         ///
         int socket = getSock();
         if(udm.isLoggedIn(friendName.c_str())){
-        std::vector<char> message(friendName.size()+1+strlen(buffer));
+        std::vector<char> message(friendName.size()+1+strlen(buffer)+1);
     	memcpy(message.data(), friendName.c_str(), friendName.size()+1);
         memcpy(message.data() + friendName.size()+1, buffer, strlen(buffer));
-        ssize_t bytesWritten = write(socket , message.data() , friendName.size()+1+strlen(buffer));
+        message[friendName.size() + 1 + strlen(buffer)] = '\0';
+        ssize_t bytesWritten = write(socket , message.data() , friendName.size()+1+strlen(buffer)+1);
         if (bytesWritten <= 0){
             if (errno == EPIPE){
                 perror("Serveur est déconnecté");}
@@ -227,7 +229,8 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
                 perror("Erreur d'écriture");}
             return -1;
         }
-        else{memset(buffer, 0, sizeof(buffer));}
+        else{//memset(buffer, 0, sizeof(buffer));
+          }
 }
         }
     }
