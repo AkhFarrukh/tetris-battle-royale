@@ -107,7 +107,6 @@ void Game::handleMovementActionEvent(shared_ptr<Event> event) {
 }
 
 
-
 /**
  * @brief Handles timer drop events.
  *
@@ -137,11 +136,20 @@ void Game::handleTimerDropEvent(shared_ptr<Event> event) {
                 gameData.set_isGameOver(true);
                 stop();
             }
+            else{
+              countTetriminoGenerated +=1;
+            }
         }
     }
 }
 
+int Game::getTetriminoCounter(){
+  return countTetriminoGenerated;
+}
 
+void Game::setTetriminoCount(int& count){
+  countTetriminoGenerated = count;
+}
 
 void Game::stop() {
     isRunning = false;

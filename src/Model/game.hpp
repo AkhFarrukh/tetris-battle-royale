@@ -35,6 +35,8 @@ public:
     Color getBlockColor(Coordinates cell);
 	int getTimeDrop();
     void setTimeDrop(int newTime);
+    int getTetriminoCounter();
+    void setTetriminoCount(int& count);
 
 
 private:
@@ -47,6 +49,7 @@ private:
     int timeDropEvent = 500;
     shared_ptr<GameController> gameController;
     shared_ptr<EventQueue> eventQueue;
+    int countTetriminoGenerated = 0;
 
 
 
