@@ -12,14 +12,11 @@ void Server::broadcastMessage(const char* buffer, const std::string& sender_user
 
     // Extraire le message (après le nom d'utilisateur)
     std::string message(buffer + friendNameLength + 1);
-    std::cout << message << endl;
     for (const auto client : clients) {
         if (client.username == friendName) {
             std::vector<char> messageToSend(sender_username.size()+1+message.size());
             memcpy(messageToSend.data(), sender_username.c_str(), sender_username.size()+1);
             memcpy(messageToSend.data() + sender_username.size()+1, message.c_str(), message.size());
-            for(char c :messageToSend){if(c=='\0')std::cout << "\\0";else std::cout << c;}
-            std::cout<<endl;
             int bytesReceived = send(client.client_fd, messageToSend.data(), messageToSend.size(), 0);
             if (bytesReceived <= 0) {
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
@@ -85,7 +82,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         new_session.password = std::string(password);
         clients.push_back(new_session);
 
-        printf("%s, %s\n", username.c_str(),password.c_str());
+        //printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
         std::shared_ptr<ThreadData> threadData = std::make_shared<ThreadData>();
         threadData->client = std::make_shared<ClientSession>(new_session);
@@ -172,7 +169,6 @@ void* Server::threadRoutineClient(void* arg){
                     threadGameData.client_fd = client->client_fd;
                     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
                     const char* message = buffer;
-                    std::cout<<endl;
                     server->broadcastMessage(message, client->username);
                 }
             }
