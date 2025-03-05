@@ -10,6 +10,41 @@
 #include <arpa/inet.h>
 #include <cstring>      // Pour memset
 
+
+
+void affichageMessage(const std::string& sender, const std::string& message){
+    nodelay(stdscr, false);
+    ////
+    curs_set(0);
+    int currentLine = LINES-1;
+    while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
+        currentLine--;
+        }
+    move(currentLine, 0);
+    printw("%s : %s\n", sender.c_str(), message.c_str());
+    if (LINES-currentLine<5) {
+            move(LINES-1, 0);
+            clrtoeol();
+            scrollok(stdscr, true);
+            scroll(stdscr);
+            scrollok(stdscr, false);
+            move(3, 0);clrtoeol();
+            move(2, 0);clrtoeol();
+            move(1, 0);clrtoeol();
+            move(0, 0);clrtoeol();
+            printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+            printw("\nDiscussion with %s : \n", sender.c_str());
+        }
+        move(LINES- 1, 0);
+        clrtoeol();
+        printw("Enter your message : ");
+        refresh();
+        refresh();
+        curs_set(1);
+        ////
+}
+
+
 void* readServer(void* socket){
     int sock = *(int*)socket;
     while(true){
@@ -24,11 +59,11 @@ void* readServer(void* socket){
           size_t friendNameLength = strlen(buffer);
           std::string friendName(buffer);
           std::string message(buffer+friendNameLength+1);
-          std::cout<<friendName<<endl;
-          std::cout<<message<<endl;
+          affichageMessage(friendName, message);
          }
     }
 }
+
 
 
 int main() {

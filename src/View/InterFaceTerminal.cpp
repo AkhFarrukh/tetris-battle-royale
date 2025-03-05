@@ -172,7 +172,6 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
     curs_set(1);
     nodelay(stdscr, false);
     bool windowFull = false;
-    int numberLines = LINES;
     while(true){
         if (windowFull) {
             move(3, 0);clrtoeol();
@@ -183,7 +182,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
             printw("\nDiscussion with %s : \n", friendName.c_str());
         }
         char buffer[1024];
-        move(numberLines - 1, 0);
+        move(LINES- 1, 0);
         clrtoeol();
         printw("Enter your message : ");
         refresh();
@@ -193,20 +192,17 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         ///
         /// MUTEX DEB
         curs_set(0);
-        int currentLine;
-        if(true){
-        currentLine = numberLines-1;
+        int currentLine = LINES-1;
         while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
             currentLine--;
             }
-        }
         move(currentLine, 0);
         printw("%s : %s\n", user.c_str(), buffer);
         if(!(udm.isLoggedIn(friendName.c_str())))printw("Message not delivered, %s is offline", friendName.c_str());
         refresh();
-        if(numberLines-1-currentLine < 5){
+        if(LINES-1-currentLine < 5){ //bcp de msg donc on arrive proche de la ligne de fin
           windowFull = true;
-          move(numberLines-1, 0);
+          move(LINES-1, 0);
           clrtoeol();
           scrollok(stdscr, true);
           scroll(stdscr);
