@@ -173,12 +173,14 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
     while(true){
         char buffer[1024];
         move(LINES - 1, 0);
+        clrtoeol();
         printw("Enter your message : ");
         refresh();
         wgetnstr(stdscr,buffer,1023);
         if(strlen(buffer)==0) return 0;
         else if(!(udm.isLoggedIn(friendName.c_str())))printw("\nMessage not delivered, %s is offline", friendName.c_str());
         else{
+        ///
         /// MUTEX DEB
         curs_set(0);
         int currentLine = LINES-1;
@@ -189,6 +191,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         printw("%s : %s\n", user.c_str(), buffer);
         curs_set(1);
         /// MUTEX FIN
+        ///
         int socket = getSock();
         std::vector<char> message(friendName.size()+1+strlen(buffer));
     	memcpy(message.data(), friendName.c_str(), friendName.size()+1);
