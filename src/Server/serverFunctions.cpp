@@ -1,21 +1,26 @@
 #include "serverFunctions.hpp"
+#include <algorithm>
 
 /**
  * TODO: COMMENTS TO BE ADDED BY THOSE WHO WROTE THIS FUNCTION/METHOD. STP
  */
-void Server::broadcastMessage(const std::string& buffer, const std::string& sender_username) {
-    size_t friendNameLength = buffer.find('\0');
-    std::string friendName = buffer.substr(0,friendNameLength);
-    std::string message;
-    std::cout << "on envoie à : " << friendName << std::endl;
-    std::cout << "on est : " << sender_username<< std::endl;
-    if(friendNameLength + 1 < buffer.size()) {message = std::string(buffer.c_str()+friendNameLength+1);}
+void Server::broadcastMessage(const char* buffer, const std::string& sender_username) {
+    size_t friendNameLength = std::find(buffer, buffer+strlen(buffer), '\0') - buffer;
+
+    // Extraire le nom d'utilisateur
+    std::string friendName(buffer, friendNameLength);
+
+    // Extraire le message (après le nom d'utilisateur)
+    std::string message(buffer + friendNameLength + 1);
+    std::cout << message << endl;
     for (const auto client : clients) {
         if (client.username == friendName) {
             std::vector<char> messageToSend(sender_username.size()+1+message.size());
             memcpy(messageToSend.data(), sender_username.c_str(), sender_username.size()+1);
             memcpy(messageToSend.data() + sender_username.size()+1, message.c_str(), message.size());
-            int bytesReceived = send(client.client_fd, buffer.c_str(), buffer.size(), 0);
+            for(char c :messageToSend){if(c=='\0')std::cout << "\\0";else std::cout << c;}
+            std::cout<<endl;
+            int bytesReceived = send(client.client_fd, messageToSend.data(), messageToSend.size(), 0);
             if (bytesReceived <= 0) {
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 //TODO l'enlever de la liste?
@@ -139,7 +144,6 @@ void* Server::threadRoutineClient(void* arg){
 
         while (userIsOnline) {
             char buffer[1024] = {0};
-            std::cout << "Hi : " << client->username << std::endl;
             int bytesReceived = recv(client->client_fd, buffer, sizeof(buffer)-1, 0);
             //Client disconnected or error
             if (bytesReceived <= 0) {
@@ -157,7 +161,7 @@ void* Server::threadRoutineClient(void* arg){
                 userIsOnline = false; // Stop the loop
             }
             else{
-                //buffer[bytesReceived] = '\0';
+                buffer[bytesReceived] = '\0';
                 //We capture an event from the client if InGame
                 if (userIsInGame){ 
 
@@ -167,8 +171,9 @@ void* Server::threadRoutineClient(void* arg){
                     ThreadGameData threadGameData;
                     threadGameData.client_fd = client->client_fd;
                     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
-                    server->broadcastMessage(buffer, client->username);
-                    memset(buffer, 0, sizeof(buffer));
+                    const char* message = buffer;
+                    std::cout<<endl;
+                    server->broadcastMessage(message, client->username);
                 }
             }
             // Display message if there's one.
