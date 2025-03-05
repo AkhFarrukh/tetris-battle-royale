@@ -181,7 +181,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         else{
         /// MUTEX DEB
         curs_set(0);
-        int currentLine = LINES;
+        int currentLine = LINES-1;
         while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
             currentLine--;
         }
