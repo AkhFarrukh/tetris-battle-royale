@@ -4,16 +4,20 @@
  * TODO: COMMENTS TO BE ADDED BY THOSE WHO WROTE THIS FUNCTION/METHOD. STP
  */
 void Server::broadcastMessage(const std::string& buffer, const std::string& sender_username) {
-    size_t friendNameLength = strlen(buffer);
-    std::string friendName(buffer.c_str());
+    size_t friendNameLength = buffer.find('\0');
+    std::string friendName = buffer.substr(0,friendNameLength);
     std::string message;
     if(friendNameLength + 1 < buffer.size()) {message = std::string(buffer.c_str()+friendNameLength+1);}
     for (const auto client : clients) {
         if (client.username == friendName) {
-            char messageToSend[sender_username.size()+1+message.size()];
-            memcpy(messageToSend, sender_username.c_str(), sender_username.size()+1);
-            memcpy(messageToSend + sender_username.size()+1, message.c_str(), message.size());
-            send(client.client_fd, messageToSend, sender_username.size()+1+message.size(), 0);
+            std::vector<char> messageToSend(sender_username.size()+1+message.size());
+            memcpy(messageToSend.data(), sender_username.c_str(), sender_username.size()+1);
+            memcpy(messageToSend.data() + sender_username.size()+1, message.c_str(), message.size());
+            int bytesReceived = send(client.client_fd, buffer.c_str(), buffer.size(), 0);
+            if (bytesReceived <= 0) {
+                std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+                //TODO l'enlever de la liste?
+            }
         }
     }
 }
@@ -45,16 +49,26 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
 
         // The password MUST be a plain password (what received from the client).
         // The User Database Manager will take care of password hash validation.
-        char username[256] = {0};
-        char password[256] = {0};
+        char credentials[512] = {0};
         
         // Check if the server received both username and password or not
-        if (recv(client_fd, username, sizeof(username), 0) <= 0 ||
-            recv(client_fd, password, sizeof(password), 0) <= 0) {
+        int bytesReceived = recv(client_fd, credentials, sizeof(credentials), 0);
+        if (bytesReceived <= 0){
             perror("Erreur lors de la réception des credentials");
             close(client_fd);
             continue;
         }
+
+        std::string receivedData(credentials, bytesReceived);
+        size_t separator = receivedData.find('\0');
+        if (separator == std::string::npos) {
+            perror("Format invalide des credentials");
+            close(client_fd);
+            continue;
+        }
+
+        std::string username = receivedData.substr(0, separator);
+        std::string password = receivedData.substr(separator + 1);
 
         // Create a "new session" with client info to be sent to thread routine
         // and push the client into a vector of clients
@@ -63,7 +77,10 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         new_session.username = std::string(username);
         new_session.password = std::string(password);
         clients.push_back(new_session);
+        //memset(username, 0, sizeof(username));
+        //memset(username, 0, sizeof(password));
 
+        printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
         std::shared_ptr<ThreadData> threadData = std::make_shared<ThreadData>();
         threadData->client = ClientSession(new_session);
@@ -103,9 +120,10 @@ void* Server::threadRoutineClient(void* arg){
     ClientSession& client = threadData->client;
 
     // Check if both username and password are correct or not.
+    //printf("%s, %s\n", client.username.c_str(),client.password.c_str());
     bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(),
                                                        client.password.c_str());
-
+    //printf("%s, %s\n", client.username.c_str(),client.password.c_str());
     if (successfulLogin){
         // Get user ID and insert user into sessions table
         client.userId = server->udbm.getUserId(client.username.c_str());
@@ -140,7 +158,7 @@ void* Server::threadRoutineClient(void* arg){
                 userIsOnline = false; // Stop the loop
             }
             else{
-                buffer[bytesReceived] = '\0';
+                //buffer[bytesReceived] = '\0';
                 //We capture an event from the client if InGame
                 if (userIsInGame){ 
 
@@ -151,6 +169,7 @@ void* Server::threadRoutineClient(void* arg){
                     threadGameData.client_fd = client.client_fd;
                     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
                     server->broadcastMessage(buffer, client.username);
+                    memset(buffer, 0, sizeof(buffer));
                 }
             }
             // Display message if there's one.

@@ -14,10 +14,11 @@ void* readServer(void* socket){
     int sock = *(int*)socket;
     while(true){
     char buffer[1024] = {0};
-    int bytesReceived = recv(sock, buffer, sizeof(buffer), 0);
+    int bytesReceived = recv(sock, buffer, sizeof(buffer)-1, 0);
     if (bytesReceived <= 0) {
           std::cout << "Serveur déconnecté : " << sock << std::endl;
-          close(sock);}
+          return nullptr;
+    }
     else{
           buffer[bytesReceived] = '\0';
           size_t friendNameLength = strlen(buffer);
@@ -63,17 +64,21 @@ int main() {
     pthread_t threadLecture;
     if (pthread_create(&threadLecture, nullptr, readServer, &sock)!=0) {
             perror("error creation thread");
-            return 1;
+            return -1;
         }
+
     std::cout << "Connecté au serveur !\n";
     InterfaceTerminal terminal;
 
     bool playing = true;
     while(playing){
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
+        //std::cout<<dataConnexion[0].c_str()<<endl;
+        //std::cout<<dataConnexion[1].c_str()<<endl;
+        //printf("%s, %s\n", dataConnexion[0].c_str(),dataConnexion[1].c_str());
         if(dataConnexion.size()==2){
-            if (send(sock, dataConnexion[0].c_str(), dataConnexion[0].length(), 0) <= 0 ||
-            send(sock, dataConnexion[1].c_str(), dataConnexion[1].length(), 0) <= 0) {
+            std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];
+            if (send(sock, credentials.c_str(), credentials.size(), 0) <= 0) {
             perror("Erreur lors de l'envoie des credentials");
             close(sock);
             return 0;
@@ -93,7 +98,8 @@ int main() {
         else{
 
         }
-    }
+    }//thread principal a terminé et va demander à threadLecture de se terminer.
+    pthread_join(threadLecture, nullptr);
 
     /**********************************************************************************
      * START GAME
