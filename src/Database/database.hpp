@@ -34,6 +34,7 @@ class Database{
         void execute();
         void destructStatement();
 
+        int getUserId(const char* username);
         int  getIntValueFromColumn(int columnIndex);
         const unsigned char* getTextValueFromColumn(int columnIndex);
         vector<string> friendsList(const string& username);
@@ -45,6 +46,8 @@ class Database{
         int getNumberFriendRequestsReceived(const string& user);
         vector<string> requestReceivedList(const string& username);
         vector<string> requestSentList(const string& username);
+        void conversationOpen(int user_id, int friend_id);
+        void conversationClose(int user_id, int friend_id);
 };
 
 #endif

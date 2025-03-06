@@ -20,7 +20,7 @@ Database::Database(const char* databaseFileName){
         "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT, logged_in INTEGER DEFAULT 0, receiving_file_descriptor INTEGER DEFAULT 0, sending_file_descriptor INTEGER DEFAULT 0);";
         prepareStatement(sql);
         execute();
-        sql = "CREATE TABLE IF NOT EXISTS friends (user_id INTEGER, friend_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(friend_id) REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (user_id, friend_id));";
+        sql = "CREATE TABLE IF NOT EXISTS friends (user_id INTEGER, friend_id INTEGER, in_conversation INTEGER DEFAULT 0, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(friend_id) REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (user_id, friend_id));";
         prepareStatement(sql);
         execute();
         sql = "CREATE TABLE IF NOT EXISTS friendsRequest (user_id INTEGER, friend_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(friend_id) REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (user_id, friend_id));";
@@ -124,6 +124,30 @@ void Database::setReturnCode(int newReturnCode){
 int Database::getReturnCode(){
     return returnCode;
 }
+
+
+int Database::getUserId(const char* username){
+    int userId;
+    // Prepare Statement and bind username to "?" symbols in a statement
+    const char* sql = "SELECT id FROM users WHERE username = ?";
+
+    prepareStatement(sql);
+    bindText(username, 1);
+    execute();
+
+    // If there is a result, get the user ID. Else return -1
+    if (getReturnCode() == SQLITE_ROW){
+        userId = getIntValueFromColumn(0);
+    }
+    else{
+        userId = -1;
+    }
+
+    // Destruct the statement after getting the result then return a result
+    destructStatement();
+    return userId;
+}
+
 
 vector<string> Database::friendsList(const string& username){
     std::vector<std::string> friendsList;
@@ -297,4 +321,37 @@ vector<string> Database::requestSentList(const string& username){
     destructStatement();  // Libération de la mémoire après exécution
 
     return friendsList;  // Retourner le vecteur des amis
+}
+
+
+void Database::conversationOpen(int user_id, int friend_id){
+    std::string sql = "UPDATE friends SET in_conversation = "
+        "CASE WHEN in_conversation = 0 THEN 1 "
+        "WHEN in_conversation = 1 THEN 2 "
+        "ELSE in_conversation END "
+        "WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?);";
+
+    prepareStatement(sql.c_str());
+    bindInt(user_id, 1);
+    bindInt(friend_id, 2);
+    bindInt(friend_id, 3);
+    bindInt(user_id, 4);
+    execute();
+    destructStatement();
+}
+
+void Database::conversationClose(int user_id, int friend_id){
+    std::string sql = "UPDATE friends SET in_conversation = "
+        "CASE WHEN in_conversation = 2 THEN 1 "
+        "WHEN in_conversation = 1 THEN 0 "
+        "ELSE in_conversation END "
+        "WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?);";
+
+    prepareStatement(sql.c_str());
+    bindInt(user_id, 1);
+    bindInt(friend_id, 2);
+    bindInt(friend_id, 3);
+    bindInt(user_id, 4);
+    execute();
+    destructStatement();
 }

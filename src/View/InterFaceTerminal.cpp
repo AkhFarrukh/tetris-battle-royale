@@ -164,6 +164,9 @@ int InterfaceTerminal::handleMessageBox() {
 
 
 int InterfaceTerminal::chatWith(const std::string& user, const string& friendName){
+    int user_id = db.getUserId(user.c_str());
+    int friend_id = db.getUserId(friendName.c_str());
+    db.conversationOpen(user_id, friend_id);
     erase();
     printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
     printw("\nDiscussion with %s : \n", friendName.c_str());
@@ -187,7 +190,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         printw("Enter your message : ");
         refresh();
         wgetnstr(stdscr,buffer,1023-friendName.size()-1);
-        if(strlen(buffer)==0) return 0;
+        if(strlen(buffer)==0){db.conversationClose(user_id, friend_id); return 0;}
         else{
         ///
         /// MUTEX DEB
@@ -236,6 +239,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
                 perror("Serveur est déconnecté");}
             else{
                 perror("Erreur d'écriture");}
+            db.conversationClose(user_id, friend_id);
             return -1;
         }
         else{//memset(buffer, 0, sizeof(buffer));
@@ -243,6 +247,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
 }
         }
     }
+    db.conversationClose(user_id, friend_id);
     return 0;
 }
 
