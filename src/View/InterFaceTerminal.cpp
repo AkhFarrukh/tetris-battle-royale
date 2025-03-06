@@ -200,7 +200,16 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
             }
         move(currentLine, 0);
         printw("%s : %s\n", user.c_str(), buffer);
-        if(!(udm.isLoggedIn(friendName.c_str())))printw("Message not delivered, %s is offline", friendName.c_str());
+        if(!(udm.isLoggedIn(friendName.c_str()))){printw("Message not delivered, %s is offline\n", friendName.c_str());
+          currentLine++;
+          if(LINES-1-currentLine < 5){
+              move(LINES-1, 0);
+              clrtoeol();
+              scrollok(stdscr, true);
+              scroll(stdscr);
+              scrollok(stdscr, false);
+        }
+        }
         refresh();
         if(LINES-1-currentLine < 5){ //bcp de msg donc on arrive proche de la ligne de fin
           windowFull = true;
