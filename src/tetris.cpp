@@ -125,10 +125,8 @@ int main() {
     }
         terminal.setSock(sock);
         int selectedMode = terminal.start();
-        printf("lloxxxl\n");
         if (selectedMode == -1){
             //Quit game
-            printf("llol\n");
             playing = false;
         }
         else{
