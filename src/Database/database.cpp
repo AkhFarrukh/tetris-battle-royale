@@ -330,31 +330,25 @@ vector<string> Database::requestSentList(const string& username){
 void Database::conversationOpen(int user_id, int friend_id){
     std::string sql = "UPDATE friends SET in_conversation = "
         "CASE WHEN in_conversation = 0 THEN 1 "
-        "WHEN in_conversation = 1 THEN 2 "
         "ELSE in_conversation END "
-        "WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?);";
+        "WHERE (user_id = ? AND friend_id = ?);";
 
     prepareStatement(sql.c_str());
     bindInt(user_id, 1);
     bindInt(friend_id, 2);
-    bindInt(friend_id, 3);
-    bindInt(user_id, 4);
     execute();
     destructStatement();
 }
 
 void Database::conversationClose(int user_id, int friend_id){
     std::string sql = "UPDATE friends SET in_conversation = "
-        "CASE WHEN in_conversation = 2 THEN 1 "
-        "WHEN in_conversation = 1 THEN 0 "
+        "CASE WHEN in_conversation = 1 THEN 0 "
         "ELSE in_conversation END "
-        "WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?);";
+        "WHERE (user_id = ? AND friend_id = ?);";
 
     prepareStatement(sql.c_str());
     bindInt(user_id, 1);
     bindInt(friend_id, 2);
-    bindInt(friend_id, 3);
-    bindInt(user_id, 4);
     execute();
     destructStatement();
 }
@@ -363,13 +357,11 @@ int Database::getInConversation(int user_id, int friend_id){
     int in_conversation = -1;
     std::string sql =
         "SELECT in_conversation FROM friends "
-        "WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?);";
+        "WHERE (user_id = ? AND friend_id = ?);";
 
     prepareStatement(sql.c_str());
-    bindInt(user_id, 1);
-    bindInt(friend_id, 2);
-    bindInt(friend_id, 3);
-    bindInt(user_id, 4);
+    bindInt(friend_id, 1);
+    bindInt(user_id, 2);
     execute();
 
     // Vérifier s'il y a un résultat
@@ -426,4 +418,21 @@ std::vector<std::string> Database::getMessages(int sender_id, int receiver_id) {
     destructStatement();
 
     return messages;
+}
+
+
+int Database::getNumberMessageNoRead(int user_id, int friend_id){
+    int numberRequests = 0;
+    std::string sql =
+    "SELECT COUNT(*) FROM MessageNoRead "
+    "WHERE sender_id = ? AND receiver_id = ?;";
+    prepareStatement(sql.c_str());
+    bindInt(friend_id,1);
+    bindInt(user_id,2);
+    execute();
+    if(getReturnCode() == SQLITE_ROW){
+        numberRequests = getIntValueFromColumn(0);
+    }
+    destructStatement();
+    return numberRequests;
 }

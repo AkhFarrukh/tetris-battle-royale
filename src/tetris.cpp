@@ -108,7 +108,7 @@ int main() {
     InterfaceTerminal terminal;
 
     bool playing = true;
-    while(playing&&flag){
+    while(playing){
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
         if(dataConnexion.size()==2){
             std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];

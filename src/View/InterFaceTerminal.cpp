@@ -95,14 +95,16 @@ void InterfaceTerminal::displayMenu(int selectedOption) const {
 void InterfaceTerminal::displayMessageBox(int selectedOption, vector<string> friends) {
     erase();
     printw("Message box : \n\n");
+    int user_id = db.getUserId(user.c_str());
     int numberFriends = std::size(friends);   // taille du tableau contenant les amis
     if(numberFriends == 0) {printw("Empty friends list \n");}
     else{
         for (int i = 0; i < numberFriends; ++i) {
+            int friend_id = db.getUserId(friends[i].c_str());
             if (i == selectedOption) {
-                printw("-> %d. %s", i + 1, friends[i].c_str());
+                printw("-> %d. %s(%d)", i + 1, friends[i].c_str(), db.getNumberMessageNoRead(user_id, friend_id));
             } else {
-                printw("   %d. %s", i + 1, friends[i].c_str());
+                printw("   %d. %s(%d)", i + 1, friends[i].c_str(), db.getNumberMessageNoRead(user_id, friend_id));
             }
             printw("\n");
         }
@@ -264,7 +266,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         ///
         int socket = getSock();
         if(udm.isLoggedIn(friendName.c_str())){
-          if(db.getInConversation(user_id, friend_id) == 2){ //si les 2 personnes sont sur la conversation
+          if(db.getInConversation(user_id, friend_id) == 1){ //si le destinataire est sur la conv
         std::vector<char> message(friendName.size()+1+strlen(buffer)+1);
     	memcpy(message.data(), friendName.c_str(), friendName.size()+1);
         memcpy(message.data() + friendName.size()+1, buffer, strlen(buffer));

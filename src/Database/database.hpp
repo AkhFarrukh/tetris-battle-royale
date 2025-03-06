@@ -52,6 +52,7 @@ class Database{
         void addMessage(int sender_id, int receiver_id, const std::string& message);
         void deleteMessages(int sender_id, int receiver_id);
         std::vector<std::string> getMessages(int sender_id, int receiver_id);
+        int getNumberMessageNoRead(int user_id, int friend_id);
 };
 
 #endif
