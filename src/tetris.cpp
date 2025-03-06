@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <cstring>      // Pour memset
 
-
+bool flag = true;
 
 void affichageMessage(const std::string& sender, const std::string& message){
     nodelay(stdscr, false);
@@ -48,7 +48,7 @@ void affichageMessage(const std::string& sender, const std::string& message){
 
 void* readServer(void* socket){
     int sock = *(int*)socket;
-    while(true){
+    while(flag){
     char buffer[1024] = {0};
     int bytesReceived = recv(sock, buffer, sizeof(buffer)-1, 0);
     if (bytesReceived <= 0) {
@@ -63,6 +63,7 @@ void* readServer(void* socket){
           affichageMessage(friendName, message);
          }
     }
+    return nullptr;
 }
 
 
@@ -107,11 +108,8 @@ int main() {
     InterfaceTerminal terminal;
 
     bool playing = true;
-    while(playing){
+    while(playing&&flag){
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
-        //std::cout<<dataConnexion[0].c_str()<<endl;
-        //std::cout<<dataConnexion[1].c_str()<<endl;
-        //printf("%s, %s\n", dataConnexion[0].c_str(),dataConnexion[1].c_str());
         if(dataConnexion.size()==2){
             std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];
             if (send(sock, credentials.c_str(), credentials.size(), 0) <= 0) {
@@ -127,20 +125,23 @@ int main() {
     }
         terminal.setSock(sock);
         int selectedMode = terminal.start();
+        printf("lloxxxl\n");
         if (selectedMode == -1){
             //Quit game
+            printf("llol\n");
             playing = false;
         }
         else{
 
         }
-    }//thread principal a terminé et va demander à threadLecture de se terminer.
-    pthread_join(threadLecture, nullptr);
+    }
 
+    flag = false;//thread principal a terminé et va demander à threadLecture de se terminer.
+    shutdown(sock, SHUT_RD);
+    pthread_join(threadLecture, nullptr);
     /**********************************************************************************
      * START GAME
      *********************************************************************************/
-
 
 
     close(sock); // Fermer le socket après utilisation
