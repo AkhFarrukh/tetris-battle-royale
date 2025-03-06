@@ -29,6 +29,9 @@ Database::Database(const char* databaseFileName){
         sql = "CREATE TABLE IF NOT EXISTS sessions (user_id INTEGER, client_fd INTEGER, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (user_id));";
         prepareStatement(sql);
         execute();
+        sql = "CREATE TABLE IF NOT EXISTS MessageNoRead (message_id INTEGER PRIMARY KEY AUTOINCREMENT, sender_id INTEGER, receiver_id INTEGER, message TEXT, FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(receiver_id) REFERENCES users(id) ON DELETE CASCADE);";
+        prepareStatement(sql);
+        execute();
 }
 
 /**
@@ -354,4 +357,73 @@ void Database::conversationClose(int user_id, int friend_id){
     bindInt(user_id, 4);
     execute();
     destructStatement();
+}
+
+int Database::getInConversation(int user_id, int friend_id){
+    int in_conversation = -1;
+    std::string sql =
+        "SELECT in_conversation FROM friends "
+        "WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?);";
+
+    prepareStatement(sql.c_str());
+    bindInt(user_id, 1);
+    bindInt(friend_id, 2);
+    bindInt(friend_id, 3);
+    bindInt(user_id, 4);
+    execute();
+
+    // Vérifier s'il y a un résultat
+    if (getReturnCode() == SQLITE_ROW) {
+        in_conversation = getIntValueFromColumn(0);
+    }
+
+    destructStatement();
+    return in_conversation;
+}
+
+void Database::addMessage(int sender_id, int receiver_id, const std::string& message) {
+    std::string sql = "INSERT INTO MessageNoRead (sender_id, receiver_id, message) "
+                      "VALUES (?, ?, ?);";
+
+    prepareStatement(sql.c_str());
+    bindInt(sender_id, 1);
+    bindInt(receiver_id, 2);
+    bindText(message.c_str(), 3);
+    execute();
+    destructStatement();
+}
+
+void Database::deleteMessages(int sender_id, int receiver_id) {
+    std::string sql = "DELETE FROM MessageNoRead "
+                      "WHERE sender_id = ? AND receiver_id = ?;";
+
+    prepareStatement(sql.c_str());
+    bindInt(sender_id, 1);
+    bindInt(receiver_id, 2);
+    execute();
+    destructStatement();
+}
+
+std::vector<std::string> Database::getMessages(int sender_id, int receiver_id) {
+    std::vector<std::string> messages;
+    std::string sql = "SELECT message FROM MessageNoRead "
+                      "WHERE sender_id = ? AND receiver_id = ?;";
+
+
+    prepareStatement(sql.c_str());
+
+    bindInt(sender_id, 1);
+    bindInt(receiver_id, 2);
+
+    execute();
+
+    while (getReturnCode() == SQLITE_ROW) {
+        const char* message = reinterpret_cast<const char*>(getTextValueFromColumn(0));  // Récupérer le message
+        messages.push_back(message);  // Ajouter le message au vecteur (au cas où il serait NULL)
+        execute();
+    }
+
+    destructStatement();
+
+    return messages;
 }

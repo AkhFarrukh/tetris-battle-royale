@@ -48,6 +48,10 @@ class Database{
         vector<string> requestSentList(const string& username);
         void conversationOpen(int user_id, int friend_id);
         void conversationClose(int user_id, int friend_id);
+        int getInConversation(int user_id, int friend_id);
+        void addMessage(int sender_id, int receiver_id, const std::string& message);
+        void deleteMessages(int sender_id, int receiver_id);
+        std::vector<std::string> getMessages(int sender_id, int receiver_id);
 };
 
 #endif
