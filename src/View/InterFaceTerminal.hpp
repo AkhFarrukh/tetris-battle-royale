@@ -51,6 +51,7 @@ public:
   void enterName();
   void displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent);
   int handleFriendRequests();
+  void displayMessageNoRead(const std::string& user, const string& friendName);
 
   int start();
 };

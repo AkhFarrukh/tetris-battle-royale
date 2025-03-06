@@ -162,14 +162,49 @@ int InterfaceTerminal::handleMessageBox() {
     }
 }
 
+void InterfaceTerminal::displayMessageNoRead(const std::string& user, const string& friendName){
+    int user_id = db.getUserId(user.c_str());
+    int friend_id = db.getUserId(friendName.c_str());
+    vector<std::string> messagesNoRead = db.getMessages(friend_id, user_id);
+    nodelay(stdscr, false);
+    printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+    printw("\nDiscussion with %s : \n", friendName.c_str());
+    refresh();
+    curs_set(0);
+    for (const auto message : messagesNoRead){
+    int currentLine = LINES-1;
+    while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
+        currentLine--;
+    }
+    move(currentLine, 0);
+    printw("%s : %s\n", friendName.c_str(), message.c_str());
+    if (LINES-currentLine<5) {
+        move(LINES-1, 0);
+        clrtoeol();
+        scrollok(stdscr, true);
+        scroll(stdscr);
+        scrollok(stdscr, false);
+        move(3, 0);clrtoeol();
+        move(2, 0);clrtoeol();
+        move(1, 0);clrtoeol();
+        move(0, 0);clrtoeol();
+        printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+        printw("\nDiscussion with %s : \n", friendName.c_str());
+    }
+    refresh();
+    curs_set(1);}
+}
+
 
 int InterfaceTerminal::chatWith(const std::string& user, const string& friendName){
     int user_id = db.getUserId(user.c_str());
     int friend_id = db.getUserId(friendName.c_str());
-    db.conversationOpen(user_id, friend_id);
     erase();
-    printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
-    printw("\nDiscussion with %s : \n", friendName.c_str());
+    interfaceMutex.lock();
+    displayMessageNoRead(user, friendName);
+    interfaceMutex.unlock();
+    db.deleteMessages(friend_id, user_id);
+    db.conversationOpen(user_id, friend_id);
     refresh();
     echo();
     curs_set(1);
@@ -229,6 +264,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         ///
         int socket = getSock();
         if(udm.isLoggedIn(friendName.c_str())){
+          if(db.getInConversation(user_id, friend_id) == 2){ //si les 2 personnes sont sur la conversation
         std::vector<char> message(friendName.size()+1+strlen(buffer)+1);
     	memcpy(message.data(), friendName.c_str(), friendName.size()+1);
         memcpy(message.data() + friendName.size()+1, buffer, strlen(buffer));
@@ -244,6 +280,10 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         }
         else{//memset(buffer, 0, sizeof(buffer));
           }
+    }
+    else{ //si le correspondant n'est pas dans la conv
+        db.addMessage(user_id, friend_id, buffer);
+    }
 }
         }
     }
