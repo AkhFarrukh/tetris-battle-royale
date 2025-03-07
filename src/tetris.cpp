@@ -11,14 +11,9 @@
 #include <cstring>      // Pour memset
 #include <csignal>      //sigint
 
+std::string username = "";
 
 void handle_sigint(int sig) {
-    if (user != ""){ //si la personne ne s'est pas connecté
-    	int user_id = db.getUserId(user.c_str());
-    	udm.logOut(user_id); //on marque la personne comme deconnecté
-        db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
-                                                                                              //comme telle
-   }
    flag = true;
 }
 
@@ -63,6 +58,7 @@ void* readServer(void* socket){
     char buffer[1024] = {0};
     int bytesReceived = recv(sock, buffer, sizeof(buffer)-1, 0);
     if (bytesReceived <= 0) {
+          flag = true;
           return nullptr;
     }
     else{
@@ -122,7 +118,7 @@ int main() {
     while(playing){
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
         if(dataConnexion.size()==2){
-            user = dataConnexion[0];
+            username = dataConnexion[0];
             std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];
             if (send(sock, credentials.c_str(), credentials.size(), 0) <= 0) {
             perror("Erreur lors de l'envoie des credentials");
@@ -153,12 +149,19 @@ int main() {
      * START GAME
      *********************************************************************************/
 
-    //on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec in SIGINT)
+
+    if (username != ""){ //si la personne s'est connecté
+    	int user_id = db.getUserId(username.c_str());
+    	udm.logOut(user_id); //on marque la personne comme deconnecté
+        db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+                                                                                              //comme telle
+   }
+    //on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec un SIGINT)
     nocbreak();
-    echo();
     keypad(stdscr, false);
     curs_set(1);
     nodelay(stdscr, false);
+    echo();
     close(sock); // Fermer le socket après utilisation
     return 0;
 }
