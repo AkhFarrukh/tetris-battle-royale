@@ -84,6 +84,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
 
         //printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
+
         std::shared_ptr<ThreadData> threadData = std::make_shared<ThreadData>();
         threadData->client = std::make_shared<ClientSession>(new_session);
         threadData->serverInstance =  this; // "this" = a pointer of server object
