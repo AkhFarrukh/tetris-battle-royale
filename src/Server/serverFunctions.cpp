@@ -99,9 +99,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         }
         pthread_detach(threadID);
         // Unlock mutex when got the signal from inside the thread
-        printf("c oiq\n");
         cv.wait(lock, [this]{return lockThread;});
-        printf("c oiq idk imo\n");
         std::cout << "Thread successfully created !" << std::endl;
         lock.unlock();
         //pthread_join(threadID, nullptr);
@@ -154,11 +152,10 @@ void* Server::threadRoutineClient(void* arg){
                 std::cout << "Client déconnecté : " << client->client_fd << std::endl;
                 server->udbm.removeSession(client->userId);
                 close(client->client_fd);
-                    printf("loool\n");
                 auto it = std::find_if(server->clients.begin(),
                     server->clients.end(), [client](const ClientSession& c) {return c.client_fd == client->client_fd; });
-                if(it != server->clients.end()){printf("on est al\n");server->clients.erase(it);}
-                printf("looppol\n");
+                if(it != server->clients.end()){server->clients.erase(it);}
+
                  /*
                  * TODO: IDK what's happening here. So just commenting it out
                  * STP Complete this part.
