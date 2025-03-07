@@ -20,18 +20,20 @@
 #include "database.hpp"
 #include "userdatabasemanager.hpp"
 #include "EventQueue.hpp"
+#include <csignal>
 
-
-class Server{
-    private:
-
-        // All data of clients and their sessions
-        struct ClientSession{
+struct ClientSession{
             int client_fd;
             int userId;
             std::string username;
             std::string password;
         };
+
+class Server{
+    private:
+
+        // All data of clients and their sessions
+
         std::vector<ClientSession> clients;
 
         // Synchronisation management
@@ -39,15 +41,12 @@ class Server{
         std::condition_variable cv;
         bool lockThread;
 
-        // Database part
-        Database database{"tetris.db"};
-        UserDatabaseManager udbm; // Abbreviation of User Database Manager
 
     public:
         int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen); 
         void broadcastMessage(const char* buffer, const std::string& sender_username);
         static void* threadRoutineClient(void* arg);
-        
+        std::vector<ClientSession> getClients(){return clients;};
         /**
          * @brief This struct is used in grouping data to be passed into 
          * thread routine as only one param of type "void*" is allowed.

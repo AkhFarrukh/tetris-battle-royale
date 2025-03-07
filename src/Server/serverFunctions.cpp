@@ -1,6 +1,7 @@
 #include "serverFunctions.hpp"
 #include <algorithm>
 
+
 /**
  * TODO: COMMENTS TO BE ADDED BY THOSE WHO WROTE THIS FUNCTION/METHOD. STP
  */
@@ -38,7 +39,6 @@ void Server::broadcastMessage(const char* buffer, const std::string& sender_user
  */
 int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen) {
     while (true) {
-
         // Mutex
         std::unique_lock<std::mutex> lock(mtx);
         lockThread = false;
@@ -97,7 +97,6 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
             close(client_fd);
             return -1;
         }
-        pthread_detach(threadID);
         // Unlock mutex when got the signal from inside the thread
         cv.wait(lock, [this]{return lockThread;});
         std::cout << "Thread successfully created !" << std::endl;
@@ -127,12 +126,12 @@ void* Server::threadRoutineClient(void* arg){
 
     // Check if both username and password are correct or not.
 
-   bool successfulLogin = server->udbm.isCorrectLogin(client->username.c_str(),
+   bool successfulLogin = udbm.isCorrectLogin(client->username.c_str(),
                                                        client->password.c_str());
     if (successfulLogin){
         // Get user ID and insert user into sessions table
-        client->userId = server->udbm.getUserId(client->username.c_str());
-        server->udbm.addSession(client->userId, client->client_fd);
+        client->userId = udbm.getUserId(client->username.c_str());
+        udbm.addSession(client->userId, client->client_fd);
 
         //Unlock the mutex and notifies it outside the thread
         server->lockThread = true;
@@ -150,7 +149,7 @@ void* Server::threadRoutineClient(void* arg){
             //Client disconnected or error
             if (bytesReceived <= 0) {
                 std::cout << "Client déconnecté : " << client->client_fd << std::endl;
-                server->udbm.removeSession(client->userId);
+                udbm.removeSession(client->userId);
                 close(client->client_fd);
                 auto it = std::find_if(server->clients.begin(),
                     server->clients.end(), [client](const ClientSession& c) {return c.client_fd == client->client_fd; });

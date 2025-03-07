@@ -1,6 +1,5 @@
 #include "userdatabasemanager.hpp"
 
-
 /**
  * @brief Try to create an account with the given username and password
  * @param username A username passed by user
@@ -89,6 +88,10 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
  * @return true if logged in. Else return false
  */
 bool UserDatabaseManager::isLoggedIn(const char* username){
+    const char* begSql = "BEGIN TRANSACTION;";
+    database.prepareStatement(begSql);
+    database.execute();
+    database.destructStatement();
     // Always check the user input first
     bool isLoggedIn = false;
     if (isValidUsername(username)){
@@ -98,7 +101,7 @@ bool UserDatabaseManager::isLoggedIn(const char* username){
         database.bindText(username, 1);
 
         // Execute the statement and get the result (0 or 1)
-        database.execute(); 
+        database.execute();
         if (database.getReturnCode() == SQLITE_ROW){
             isLoggedIn = static_cast<bool>(database.getIntValueFromColumn(0));
         }
@@ -106,6 +109,10 @@ bool UserDatabaseManager::isLoggedIn(const char* username){
         // Destruct the statement after getting the result then return a result
         database.destructStatement();
     }
+    const char* commit = "COMMIT;";
+    database.prepareStatement(commit);
+    database.execute();
+    database.destructStatement();
     return isLoggedIn;
 }
 
@@ -222,12 +229,23 @@ void UserDatabaseManager::setReceivingFileDescriptor(const string& username, int
  * @param userId a user ID
  */
 void UserDatabaseManager::logOut(int userId){
+
+    const char* begSql = "BEGIN TRANSACTION;";
+    database.prepareStatement(begSql);
+    database.execute();
+    database.destructStatement();
+
     // Prepare Statement and bind user ID  to a statement
     const char* query = "UPDATE users SET logged_in = 0 WHERE id = ?";
     database.prepareStatement(query);
     database.bindInt(userId, 1);
 
     // Execute the statement then destruct the statement
+    database.execute();
+    database.destructStatement();
+
+    const char* commit = "COMMIT;";
+    database.prepareStatement(commit);
     database.execute();
     database.destructStatement();
 }

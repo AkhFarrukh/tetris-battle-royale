@@ -55,6 +55,7 @@ class Database{
         int getNumberMessageNoRead(int user_id, int friend_id);
         void setNotInConversation(int user_id);
         bool isUserInSession(int user_id);
+        void deleteSession(int user_id);
 };
 
 #endif

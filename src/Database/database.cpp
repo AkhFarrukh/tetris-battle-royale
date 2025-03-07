@@ -130,6 +130,10 @@ int Database::getReturnCode(){
 
 
 int Database::getUserId(const char* username){
+    const char* begSql = "BEGIN TRANSACTION;";
+    prepareStatement(begSql);
+    execute();
+    destructStatement();
     int userId;
     // Prepare Statement and bind username to "?" symbols in a statement
     const char* sql = "SELECT id FROM users WHERE username = ?";
@@ -148,6 +152,12 @@ int Database::getUserId(const char* username){
 
     // Destruct the statement after getting the result then return a result
     destructStatement();
+
+    const char* commit = "COMMIT;";
+    prepareStatement(commit);
+    execute();
+    destructStatement();
+
     return userId;
 }
 
@@ -447,6 +457,11 @@ void Database::setNotInConversation(int user_id){
 }
 
 bool Database::isUserInSession(int user_id) {
+  const char* begSql = "BEGIN TRANSACTION;";
+    prepareStatement(begSql);
+    execute();
+    destructStatement();
+
     const char* sql = "SELECT 1 FROM sessions WHERE user_id = ? LIMIT 1;";
 
     prepareStatement(sql);
@@ -456,5 +471,29 @@ bool Database::isUserInSession(int user_id) {
     bool exists = (getReturnCode() == SQLITE_ROW);
     destructStatement();
 
+    const char* commit = "COMMIT;";
+    prepareStatement(commit);
+    execute();
+    destructStatement();
+
     return exists;
+}
+
+void Database::deleteSession(int user_id){
+  printf("%d\n", user_id);
+    const char* begSql = "BEGIN TRANSACTION;";
+    prepareStatement(begSql);
+    execute();
+    destructStatement();
+
+    const char* sql = "DELETE FROM sessions WHERE user_id = ?;";
+    prepareStatement(sql);
+    bindInt(user_id,1);
+    execute();
+    destructStatement();
+
+    const char* commit = "COMMIT;";
+    prepareStatement(commit);
+    execute();
+    destructStatement();
 }
