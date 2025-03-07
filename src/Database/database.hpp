@@ -53,6 +53,7 @@ class Database{
         void deleteMessages(int sender_id, int receiver_id);
         std::vector<std::string> getMessages(int sender_id, int receiver_id);
         int getNumberMessageNoRead(int user_id, int friend_id);
+        void setNotInConversation(int user_id);
 };
 
 #endif

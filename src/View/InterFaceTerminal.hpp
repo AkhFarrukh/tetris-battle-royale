@@ -10,8 +10,11 @@
 #include "Chat.hpp"
 #include <unistd.h>
 #include <mutex>
+#include <atomic>
 
 extern std::mutex interfaceMutex;
+extern Database db;
+extern UserDatabaseManager udm;
 
 class InterfaceTerminal {
 

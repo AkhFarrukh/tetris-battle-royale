@@ -436,3 +436,12 @@ int Database::getNumberMessageNoRead(int user_id, int friend_id){
     destructStatement();
     return numberRequests;
 }
+
+void Database::setNotInConversation(int user_id){
+    std::string sql =
+    "UPDATE MessageNoRead SET in_conversation = 0 WHERE user_id = ?;";
+    prepareStatement(sql.c_str());
+    bindInt(user_id,1);
+    execute();
+    destructStatement();
+}

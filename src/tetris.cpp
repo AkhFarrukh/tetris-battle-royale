@@ -9,8 +9,23 @@
 #include <netinet/in.h>     //ip management
 #include <arpa/inet.h>
 #include <cstring>      // Pour memset
+#include <csignal>      //sigint
 
-bool flag = true;
+bool flag = true; //informer thread lecture de se terminer
+std::string user = ""; //username de l'user, utile pour gerer les signaux
+
+
+void handle_sigint(int sig) {
+    if (user != ""){ //si la personne ne s'est pas connecté
+    	int user_id = db.getUserId(user.c_str());
+    	udm.logOut(user_id); //on marque la personne comme deconnecté
+        db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+                                                                                              //comme telle
+   }
+   signal(SIGINT, SIG_DFL);
+   raise(SIGINT);
+}
+
 
 void affichageMessage(const std::string& sender, const std::string& message){
     nodelay(stdscr, false);
@@ -69,6 +84,7 @@ void* readServer(void* socket){
 
 
 int main() {
+    signal(SIGINT, handle_sigint);
     /**********************************************************************************
      *SETUP CONNECTION TO SERVER
      *********************************************************************************/
@@ -111,6 +127,7 @@ int main() {
     while(playing){
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
         if(dataConnexion.size()==2){
+            user = dataConnexion[0];
             std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];
             if (send(sock, credentials.c_str(), credentials.size(), 0) <= 0) {
             perror("Erreur lors de l'envoie des credentials");
