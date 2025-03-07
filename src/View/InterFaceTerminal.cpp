@@ -660,14 +660,17 @@ vector<std::string> InterfaceTerminal::handleLogin(){
             if(strlen(passwordPlayer)==0){firstTry = true; break;}
             firstTry = false;
             if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
-               napms(1000);
-               connexionData.push_back(namePlayer);
-               connexionData.push_back(passwordPlayer);
-               user = namePlayer;
-               printw("\nConnected ! \n");
-               refresh();
-               napms(1000);
-               return connexionData;
+                int user_id = db.getUserId(namePlayer);
+                if(db.isUserInSession(user_id)){printw("\nYou are already logged in another session ! \n"); move(5,22);}
+                else{
+               		napms(1000);
+               		connexionData.push_back(namePlayer);
+               		connexionData.push_back(passwordPlayer);
+               		user = namePlayer;
+               		printw("\nConnected ! \n");
+               		refresh();
+               		napms(1000);
+               		return connexionData;}
             }
             else {printw("\nIncorrect username or password. \n"); move(5,22);}
             }

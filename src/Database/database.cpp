@@ -445,3 +445,16 @@ void Database::setNotInConversation(int user_id){
     execute();
     destructStatement();
 }
+
+bool Database::isUserInSession(int user_id) {
+    const char* sql = "SELECT 1 FROM sessions WHERE user_id = ? LIMIT 1;";
+
+    prepareStatement(sql);
+	bindInt(user_id,1);
+
+    execute();
+    bool exists = (getReturnCode() == SQLITE_ROW);
+    destructStatement();
+
+    return exists;
+}
