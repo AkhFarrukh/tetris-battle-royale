@@ -86,20 +86,24 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         // Create a smart pointer containing data to be passed into thread routine.
         std::shared_ptr<ThreadData> threadData = std::make_shared<ThreadData>();
         threadData->client = std::make_shared<ClientSession>(new_session);
-        threadData->serverInstance = this; // "this" = a pointer of server object
-        
+        threadData->serverInstance =  this; // "this" = a pointer of server object
+
+        std::shared_ptr<ThreadData>* threadDataPtr = new std::shared_ptr<ThreadData>(threadData);
         // Create a thread for a user if the username and password is correct.
         pthread_t threadID;
-        if(pthread_create(&threadID, nullptr, threadRoutineClient, threadData.get()) < 0){
+        if(pthread_create(&threadID, nullptr, threadRoutineClient, threadDataPtr) < 0){
             perror("Error on thread creation : ");
             close(client_fd);
             return -1;
         }
-        
+        pthread_detach(threadID);
         // Unlock mutex when got the signal from inside the thread
+        printf("c oiq\n");
         cv.wait(lock, [this]{return lockThread;});
+        printf("c oiq idk imo\n");
         std::cout << "Thread successfully created !" << std::endl;
         lock.unlock();
+        //pthread_join(threadID, nullptr);
     }
     return 0;
 }
@@ -117,19 +121,21 @@ void* Server::threadRoutineClient(void* arg){
     std::cout << "Starting thread routine for client" << std::endl;
 
     // Get thread data from arg
-    std::shared_ptr<ThreadData> threadData(reinterpret_cast<ThreadData*>(arg));
+    std::shared_ptr<ThreadData>* threadDataPtr = reinterpret_cast<std::shared_ptr<ThreadData>*>(arg);
+    std::shared_ptr<ThreadData> threadData = *threadDataPtr;
     Server* server = threadData->serverInstance;
     std::shared_ptr<ClientSession> client = threadData->client;
 
     // Check if both username and password are correct or not.
-    bool successfulLogin = server->udbm.isCorrectLogin(client->username.c_str(),
+
+   bool successfulLogin = server->udbm.isCorrectLogin(client->username.c_str(),
                                                        client->password.c_str());
     if (successfulLogin){
         // Get user ID and insert user into sessions table
         client->userId = server->udbm.getUserId(client->username.c_str());
         server->udbm.addSession(client->userId, client->client_fd);
 
-        /* Unlock the mutex and notifies it outside the thread */
+        //Unlock the mutex and notifies it outside the thread
         server->lockThread = true;
         server->cv.notify_one();
         
@@ -147,14 +153,18 @@ void* Server::threadRoutineClient(void* arg){
                 std::cout << "Client déconnecté : " << client->client_fd << std::endl;
                 server->udbm.removeSession(client->userId);
                 close(client->client_fd);
-
-                /**
+                    printf("loool\n");
+                auto it = std::find_if(server->clients.begin(),
+                    server->clients.end(), [client](const ClientSession& c) {return c.client_fd == client->client_fd; });
+                if(it != server->clients.end()){printf("on est al\n");server->clients.erase(it);}
+                printf("looppol\n");
+                 /*
                  * TODO: IDK what's happening here. So just commenting it out
-                 * STP Complete this part. 
+                 * STP Complete this part.
                  */
-                /* server->clients.erase(remove_if(server->clients.begin(), 
-                    server->clients.end(), [client](const ClientSession& c) 
-                    { return c.client_fd == client.client_fd; }), server->clients.end()); */
+                 server->clients.erase(remove_if(server->clients.begin(),
+                    server->clients.end(), [client](const ClientSession& c)
+                    { return c.client_fd == client->client_fd; }), server->clients.end());
                 userIsOnline = false; // Stop the loop
             }
             else{
@@ -173,7 +183,7 @@ void* Server::threadRoutineClient(void* arg){
                 }
             }
             // Display message if there's one.
-            /* ? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
+            //? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown
             //std::string message(buffer, bytesReceived);
             //std::cout << "Message reçu de " << client.username << " : " << message << std::endl;
             //server->broadcastMessage(message, client.client_fd);

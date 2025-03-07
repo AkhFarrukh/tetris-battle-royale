@@ -60,7 +60,7 @@ class Server{
          */
         struct ThreadData {
             std::shared_ptr<ClientSession> client;
-            Server* serverInstance; 
+            Server* serverInstance;
         };
         /**
          * @brief Struct containing the data that the thread where the game is
