@@ -14,6 +14,7 @@ Database db("tetris.db");
 UserDatabaseManager udm;
 Chat chat;
 
+atomic<bool> flag = false; //informer thread de se terminer (ctrlC notamment)
 std::mutex interfaceMutex;
 std::string user = "";
 
@@ -129,7 +130,7 @@ int InterfaceTerminal::handleMessageBox() {
                 endwin();
             return 0;}
     }
-    while (true) {
+    while (!flag) {
 
         vector<string> friendsList = db.friendsList(user);
         displayMessageBox(selectedOption, friendsList);  // affiche le menu avec les options
@@ -162,6 +163,7 @@ int InterfaceTerminal::handleMessageBox() {
             return 0;
         }
     }
+    return 0;
 }
 
 void InterfaceTerminal::displayMessageNoRead(const std::string& user, const string& friendName){
@@ -212,7 +214,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
     curs_set(1);
     nodelay(stdscr, false);
     bool windowFull = false;
-    while(true){
+    while(!flag){
         if (windowFull) {
             move(3, 0);clrtoeol();
             move(2, 0);clrtoeol();
@@ -334,7 +336,7 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
  *
  */
 int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
-   while (true) {
+   while (!flag) {
 
     displayGameModeMenu(selectedMode);  // affiche le menu avec les modes
 
@@ -382,6 +384,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                return 0;
        }
    }
+   return 0;
 }
 
 
@@ -441,7 +444,7 @@ void InterfaceTerminal::enterName(){
 
     char namePlayer[100];
 
-    while (true) {
+    while (!flag) {
         wgetnstr(stdscr,namePlayer,99);
         if(strlen(namePlayer)==0) return;
         if(strcmp(namePlayer, user.c_str())==0) printw("\nPlease enter a name different from yours ! \n");
@@ -493,7 +496,7 @@ void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string>
 int InterfaceTerminal::handleFriendRequests() {
     int selectedOption = 0;
 
-    while (true) {
+    while (!flag) {
 
         vector<string> requestsReceivedList = db.requestReceivedList(user);
         vector<string> requestsSentList = db.requestSentList(user);
@@ -545,6 +548,7 @@ int InterfaceTerminal::handleFriendRequests() {
             return 0;
         }
     }
+    return 0;
 }
 
 
@@ -561,7 +565,7 @@ int InterfaceTerminal::handleFriends() {
             endwin();
         return 0;}
     }
-    while (true) {
+    while (!flag) {
 
         vector<string> friendsList = db.friendsList(user);
         displayFriendsMenu(selectedOption, friendsList);  // affiche le menu avec les options
@@ -606,6 +610,7 @@ int InterfaceTerminal::handleFriends() {
             return 0;
         }
     }
+    return 0;
 }
 
 
@@ -635,7 +640,7 @@ vector<std::string> InterfaceTerminal::handleLogin(){
     curs_set(1);
     nodelay(stdscr, false);
     bool returnValue;
-    while (true) {
+    while (!flag) {
         erase();
         echo();
         clrtobot();
@@ -647,7 +652,7 @@ vector<std::string> InterfaceTerminal::handleLogin(){
         char namePlayer[100];
         wgetnstr(stdscr,namePlayer,99);
         if(strlen(namePlayer)==0) break;
-        while (true) {
+        while (!flag) {
             if(firstTry) printw("\nEnter your password : ");
             noecho();
             char passwordPlayer[100];
@@ -658,7 +663,6 @@ vector<std::string> InterfaceTerminal::handleLogin(){
                napms(1000);
                connexionData.push_back(namePlayer);
                connexionData.push_back(passwordPlayer);
-               //printf("%s, %s\n", connexionData[0].c_str(),connexionData[1].c_str());
                user = namePlayer;
                printw("\nConnected ! \n");
                refresh();
@@ -678,7 +682,7 @@ vector<std::string> InterfaceTerminal::handleRegister(){
     nodelay(stdscr, false);
     bool returnValue;
     char repetedPasswordPlayer[100];
-    while (true) {
+    while (!flag) {
         echo();
         bool repetedPasswordHandle = false;
         erase();
@@ -689,14 +693,14 @@ vector<std::string> InterfaceTerminal::handleRegister(){
         wgetnstr(stdscr,namePlayer,99);
         if(strlen(namePlayer)==0) break;
         printw("\nEnter the password : ");
-        while (true) {
+        while (!flag) {
             move(5,21);
             clrtobot();
             noecho();
             char passwordPlayer[100];
             wgetnstr(stdscr,passwordPlayer,99);
             if(strlen(passwordPlayer)==0) break;
-            while(strcmp(passwordPlayer, repetedPasswordPlayer)!=0){
+            while(!flag && strcmp(passwordPlayer, repetedPasswordPlayer)!=0){
                 memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); //on vide le buffer pour pas que ca s'accumule
                 if(repetedPasswordHandle) printw("\nThe passwords entered do not match !");
                 else printw("\nRepeat the password : ");
@@ -732,7 +736,7 @@ vector<std::string> InterfaceTerminal::handleConnexionOption() {
     vector<std::string> dataConnexion;
     int selectedOption = 0;
 
-    while (true) {
+    while (!flag) {
         displayConnexionOption(selectedOption);
         int ch = getch();    //récupère l'entrée utilisateur
         switch (ch) {
@@ -806,7 +810,7 @@ int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
 int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
     int selectedOption = 0;
 
-    while (true) {
+    while (!flag) {
         displayFriendOptions(selectedOption);
 
         int ch = getch();    // récupère l'entrée utilisateur
@@ -851,6 +855,7 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
     }
   }
   }
+  return 0;
 }
 
 /**
@@ -863,7 +868,7 @@ int InterfaceTerminal::start() {
    initNcurses();
    int selectedOption = 0;
 
-   while (true) {
+   while (!flag) {
        displayMenu(selectedOption);
        int ch = getch();
        switch (ch) {
@@ -892,4 +897,5 @@ int InterfaceTerminal::start() {
                return -1;
        }
    }
+   return -1;
 }

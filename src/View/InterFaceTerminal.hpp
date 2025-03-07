@@ -12,9 +12,12 @@
 #include <mutex>
 #include <atomic>
 
+
 extern std::mutex interfaceMutex;
 extern Database db;
 extern UserDatabaseManager udm;
+extern atomic<bool> flag;
+extern std::string user;
 
 class InterfaceTerminal {
 
