@@ -11,9 +11,6 @@
 #include <cstring>      // Pour memset
 #include <csignal>      //sigint
 
-bool flag = true; //informer thread lecture de se terminer
-std::string user = ""; //username de l'user, utile pour gerer les signaux
-
 
 void handle_sigint(int sig) {
     if (user != ""){ //si la personne ne s'est pas connecté
@@ -22,8 +19,7 @@ void handle_sigint(int sig) {
         db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
                                                                                               //comme telle
    }
-   signal(SIGINT, SIG_DFL);
-   raise(SIGINT);
+   flag = true;
 }
 
 
@@ -63,11 +59,10 @@ void affichageMessage(const std::string& sender, const std::string& message){
 
 void* readServer(void* socket){
     int sock = *(int*)socket;
-    while(flag){
+    while(!flag){
     char buffer[1024] = {0};
     int bytesReceived = recv(sock, buffer, sizeof(buffer)-1, 0);
     if (bytesReceived <= 0) {
-          std::cout << "Serveur déconnecté : " << sock << std::endl;
           return nullptr;
     }
     else{
@@ -131,14 +126,14 @@ int main() {
             std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];
             if (send(sock, credentials.c_str(), credentials.size(), 0) <= 0) {
             perror("Erreur lors de l'envoie des credentials");
-            close(sock);
-            return 0;
+            playing = false;
+            break;
         }
     }
         else{
            std::cout << "Echec de la connexion au compte.\n";
-           close(sock); // Fermer le socket après utilisation
-           return 0;
+           playing = false;
+           break;
     }
         terminal.setSock(sock);
         int selectedMode = terminal.start();
@@ -151,14 +146,19 @@ int main() {
         }
     }
 
-    flag = false;//thread principal a terminé et va demander à threadLecture de se terminer.
+    flag = true;//thread principal a terminé et va demander à threadLecture de se terminer.
     shutdown(sock, SHUT_RD);
     pthread_join(threadLecture, nullptr);
     /**********************************************************************************
      * START GAME
      *********************************************************************************/
 
-
+    //on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec in SIGINT)
+    nocbreak();
+    echo();
+    keypad(stdscr, false);
+    curs_set(1);
+    nodelay(stdscr, false);
     close(sock); // Fermer le socket après utilisation
     return 0;
 }
