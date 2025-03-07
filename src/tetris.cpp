@@ -12,7 +12,6 @@
 #include <csignal>      //sigint
 
 std::string username = "";
-int user_id = -1;
 
 void handle_sigint(int sig) {
    flag = true;
@@ -120,7 +119,6 @@ int main() {
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
         if(dataConnexion.size()==2){
             username = dataConnexion[0];
-            user_id = db.getUserId(username.c_str());
             std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];
             if (send(sock, credentials.c_str(), credentials.size(), 0) <= 0) {
             perror("Erreur lors de l'envoie des credentials");
@@ -153,7 +151,7 @@ int main() {
 
 
     if (username != ""){ //si la personne s'est connecté
-        printf("%d\n",user_id);
+    	int user_id = db.getUserId(username.c_str());
         while(udm.isLoggedIn(username.c_str())){
     	udm.logOut(user_id);} //on marque la personne comme deconnecté
         db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué

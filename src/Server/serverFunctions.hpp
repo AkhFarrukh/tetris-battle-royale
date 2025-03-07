@@ -22,13 +22,13 @@
 #include "EventQueue.hpp"
 #include <csignal>
 
+
 struct ClientSession{
             int client_fd;
             int userId;
             std::string username;
             std::string password;
         };
-
 class Server{
     private:
 
@@ -40,7 +40,7 @@ class Server{
         std::mutex mtx;
         std::condition_variable cv;
         bool lockThread;
-
+        UserDatabaseManager udbm;
 
     public:
         int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen); 

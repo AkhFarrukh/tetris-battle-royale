@@ -55,7 +55,6 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
         database.prepareStatement(query);
         database.bindText(username, 1);
         database.execute();
-
         // If the username exists, get a resulting hash in a database and convert 
         // it to string type then destruct the statement after getting the result
         if (database.getReturnCode() == SQLITE_ROW){

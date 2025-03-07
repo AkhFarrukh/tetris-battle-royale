@@ -480,7 +480,6 @@ bool Database::isUserInSession(int user_id) {
 }
 
 void Database::deleteSession(int user_id){
-  printf("%d\n", user_id);
     const char* begSql = "BEGIN TRANSACTION;";
     prepareStatement(begSql);
     execute();

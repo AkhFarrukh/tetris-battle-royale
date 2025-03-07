@@ -125,13 +125,12 @@ void* Server::threadRoutineClient(void* arg){
     std::shared_ptr<ClientSession> client = threadData->client;
 
     // Check if both username and password are correct or not.
-
-   bool successfulLogin = udbm.isCorrectLogin(client->username.c_str(),
+   bool successfulLogin = server->udbm.isCorrectLogin(client->username.c_str(),
                                                        client->password.c_str());
     if (successfulLogin){
         // Get user ID and insert user into sessions table
-        client->userId = udbm.getUserId(client->username.c_str());
-        udbm.addSession(client->userId, client->client_fd);
+        client->userId = server->udbm.getUserId(client->username.c_str());
+        server->udbm.addSession(client->userId, client->client_fd);
 
         //Unlock the mutex and notifies it outside the thread
         server->lockThread = true;
@@ -149,7 +148,7 @@ void* Server::threadRoutineClient(void* arg){
             //Client disconnected or error
             if (bytesReceived <= 0) {
                 std::cout << "Client déconnecté : " << client->client_fd << std::endl;
-                udbm.removeSession(client->userId);
+                server->udbm.removeSession(client->userId);
                 close(client->client_fd);
                 auto it = std::find_if(server->clients.begin(),
                     server->clients.end(), [client](const ClientSession& c) {return c.client_fd == client->client_fd; });
