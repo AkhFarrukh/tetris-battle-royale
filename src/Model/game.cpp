@@ -9,9 +9,7 @@ const int GRID_WIDTH = 10;
 
 
 
-
-
-Game::Game(shared_ptr<EventQueue> eventQueue)
+Game::Game(shared_ptr<EventQueue> eventQueue, int numPlayers)
     :   eventQueue(move(eventQueue)),
         grid(std::make_shared<Grid>()),
         figureGenerator(),
@@ -19,7 +17,25 @@ Game::Game(shared_ptr<EventQueue> eventQueue)
         movement(Action::NONE, activeFigure),
         gameData(0, 0, false, "Endless"),
         isRunning(false)
-{}
+{
+    for (int i = 0; i < numPlayers; i++) {
+        PlayerState ps(i);
+
+        ps.grid = std::make_shared<Grid>();
+
+        auto fig = std::make_shared<Figure>(figureGenerator.randomFigure());
+        auto movingFig = std::make_shared<MovingFigure>(fig, ps.grid);
+        ps.activeFigure = movingFig;
+
+        ps.movement = Mouvement(Action::NONE, movingFig);
+
+        ps.nextTetromino = std::make_shared<Figure>(figureGenerator.randomFigure());
+
+        ps.gameData = GameData(0, 0, false, "Multiplayer");
+
+        players.push_back(ps);
+    }
+}
 
 Game::~Game() {}
 
@@ -87,14 +103,30 @@ void Game::updateGame() {
  * @param event The event to be handled.
  */
 void Game::handleMovementActionEvent(shared_ptr<Event> event) {
-    shared_ptr<MovementActionEvent> movementActionEvent = dynamic_pointer_cast<MovementActionEvent>(event);
-    if (movementActionEvent) {
-        Action action = movementActionEvent->getEventData();
-        if (action == Action::ESCAPE) {
-            stop();
-            return;
-        }
-        movement.setMouvement(action);
+    auto moveEvt = std::dynamic_pointer_cast<MovementActionEvent>(event);
+    if (!moveEvt) {
+        return;
+    }
+
+    int p = moveEvt->getPlayerId();
+    Action a = moveEvt->getEventData();
+
+    // Safety check
+    if (p < 0 || p >= (int)players.size()) {
+        return;
+    }
+    if (players[p].isGameOver) {
+        return;
+    }
+
+    if (a == Action::ESCAPE) {
+        stop();
+        return;
+    }
+
+    bool moved = players[p].movement.setMouvement(a);
+    if (!moved && a == Action::SOFT_DROP) {
+        placePieceOnBoard(p);
     }
 }
 
@@ -111,25 +143,39 @@ void Game::handleMovementActionEvent(shared_ptr<Event> event) {
  *
  * @param event The event to be handled.
  */
-void Game::handleTimerDropEvent(shared_ptr<Event> event) {
-    shared_ptr<TimerDropEvent> timerDropEvent = dynamic_pointer_cast<TimerDropEvent>(event);
-    if (timerDropEvent) {
-        if (!movement.setMouvement(Action::SOFT_DROP)) {
-            // si c'est le cas je place la figure.
-            for (const auto& block : activeFigure->getBlocksRealPositions()) {
-                grid->setBlock(block);
-            }
-            handleLineCompletion();
-            activeFigure = std::make_shared<MovingFigure>(std::make_shared<Figure>(figureGenerator.randomFigure()), grid);
-            movement = Mouvement(Action::NONE, activeFigure);
+void Game::handleTimerDropEvent(std::shared_ptr<Event> event) {
+    auto timerEvt = std::dynamic_pointer_cast<TimerDropEvent>(event);
+    if (!timerEvt) {
+        return;
+    }
 
-            // je vérifie si la nouvelle figure peut apparaître sur la grille.
-            // si ce n'est pas le cas, ca signifie que le jeu est terminé.
-            if (!activeFigure->spawnSucceeded()) {
-                gameData.set_isGameOver(true);
-                stop();
+    for (int p = 0; p < (int)players.size(); p++) {
+        if (!players[p].isGameOver) {
+            bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+            if (!canDrop) {
+                placePieceOnBoard(p);
             }
         }
+    }
+}
+
+
+void Game::placePieceOnBoard(int p) {
+    auto &ps = players[p];
+
+    for (auto &block : ps.activeFigure->getBlocksRealPositions()) {
+        ps.grid->setBlock(block);
+    }
+
+    handleLineCompletion(p);
+
+    auto newFig = make_shared<Figure>(figureGenerator.randomFigure());
+    ps.activeFigure = make_shared<MovingFigure>(newFig, ps.grid);
+    ps.movement = Mouvement(Action::NONE, ps.activeFigure);
+
+    if (!ps.activeFigure->spawnSucceeded()) {
+        ps.isGameOver = true;
+        ps.gameData.set_isGameOver(true);
     }
 }
 
@@ -149,9 +195,13 @@ void Game::checkInput() {
  *@brief arrête le jeu si il est "terminé".
  */
 void Game::checkGameOver() {
-    if (gameData.get_isGameOver()) {
-        gameController->printGameOver();
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+    int aliveCount = 0;
+    for (auto &ps : players) {
+        if (!ps.isGameOver) {
+            aliveCount++;
+        }
+    }
+    if (aliveCount <= 1) {
         stop();
     }
 }
@@ -163,22 +213,26 @@ void Game::checkGameOver() {
  * Si une ligne est complète, elle est supprimée et un effet de domino va agir sur les lignes situées au-dessus.
  * Ensuite mise à jour du score et du nombre de lignes cassées.
  */
-void Game::handleLineCompletion() {
-    int clearedLines = 0;
-    int lineClearedScore = 100; // ligne complétée -> 100 points
+void Game::handleLineCompletion(int p) {
+    auto &ps = players[p];
 
-    for (int y = 0; y < GRID_HEIGHT; ++y) {
-        if (grid->isFullLine(y)) {
-            grid->clearLine(y);
-            grid->applyDominoEffect(y);
-            ++clearedLines;
-            gameData.updateLines(1);
+    int cleared = 0;
+    const int GRID_HEIGHT = 20; // adapt if needed
+    for (int y = 0; y < GRID_HEIGHT; y++) {
+        if (ps.grid->isFullLine(y)) {
+            ps.grid->clearLine(y);
+            ps.grid->applyDominoEffect(y);
+            cleared++;
+            ps.gameData.updateLines(1);
         }
     }
 
-    if (clearedLines > 0) {
-        gameData.updateScore(clearedLines * lineClearedScore);
-    
+    if (cleared > 0) {
+        ps.gameData.updateScore(cleared * 100);
+
+        //malus
+        // int targetId = pickTargetPlayer(p);
+        // addGarbageLines(targetId, cleared);
     }
 }
 

@@ -14,8 +14,7 @@ void Server::broadcastMessage(const std::string& message, int sender_fd) {
 
 
 /**
- * @brief A loop which handles a client and assign to them their port and thread, 
- * the client won't ever "go out" of this function
+ * @brief A loop which handles a client and assign to them their port and thread
  * 
  * @param server_fd Server socket
  * @param address Server address
@@ -24,9 +23,7 @@ void Server::broadcastMessage(const std::string& message, int sender_fd) {
  */
 int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen) {
     while (true) {
-        /*************************************************************************************
-         * ASSIGN PORT AND HANDLE CLIENT LOGIN
-         **************************************************************************************/
+
         // Mutex
         std::unique_lock<std::mutex> lock(mtx);
         lockThread = false;
@@ -65,9 +62,6 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         threadData->client = ClientSession(new_session);
         threadData->serverInstance = this; // "this" = a pointer of server object
         
-        /***************************************************************************************
-         * CREATE A THREAD FOR THE CLIENT WHERE THERE ARE ALL THE FUNCTIONALITIES
-         ***************************************************************************************/
         // Create a thread for a user if the username and password is correct.
         pthread_t threadID;
         if(pthread_create(&threadID, nullptr, threadRoutineClient, threadData.get()) < 0){
@@ -101,9 +95,6 @@ void* Server::threadRoutineClient(void* arg){
     Server* server = threadData->serverInstance;
     ClientSession& client = threadData->client;
 
-    /************************************************************************************
-     * LOGIN (AGAIN ?)
-     ***********************************************************************************/
     // Check if both username and password are correct or not.
     bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(), 
                                                        client.password.c_str());
@@ -122,9 +113,7 @@ void* Server::threadRoutineClient(void* arg){
         char buffer[1024] = {0};
         bool userIsOnline = true;
         bool userIsInGame = false;
-        /*************************************************************************************
-         * MAIN LOOP FOR THE CLIENT, RECEPTING MESSAGES AND HANDLING THEM
-         *************************************************************************************/
+
         while (userIsOnline) {
             int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
             //Client disconnected or error
@@ -142,6 +131,7 @@ void* Server::threadRoutineClient(void* arg){
                     { return c.client_fd == client.client_fd; }), server->clients.end()); */
                 userIsOnline = false; // Stop the loop
             }
+            
             else{
                 buffer[bytesReceived] = '\0';
                 //We capture an event from the client if InGame
@@ -155,6 +145,11 @@ void* Server::threadRoutineClient(void* arg){
                     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
                 }
             }
+            // Display message if there's one.
+            /* ? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
+            //std::string message(buffer, bytesReceived);
+            //std::cout << "Message reçu de " << client.username << " : " << message << std::endl;
+            //server->broadcastMessage(message, client.client_fd);
         }
     }
     else {

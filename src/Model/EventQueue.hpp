@@ -26,6 +26,8 @@ public:
         eventQueue_.pop();
         return event;
       }
+
+      return nullptr;
     }
 
     bool isEmpty() {

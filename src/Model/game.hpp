@@ -21,11 +21,13 @@ class GameController; // forward declaration
 
 class Game {
 public:
-    Game(shared_ptr<EventQueue> eventQueue);
+
+    Game(shared_ptr<EventQueue> eventQueue, int numPlayers);
     ~Game();
 
     void run();
     void stop();
+    
 
 
 
@@ -37,6 +39,24 @@ public:
 
 
 private:
+struct PlayerState {
+    std::shared_ptr<Grid>            grid;
+    std::shared_ptr<MovingFigure>    activeFigure;
+    Mouvement                         movement;
+    GameData                         gameData;
+    
+    std::shared_ptr<Figure>          nextTetromino;
+
+    int                               playerId;
+    bool                              isGameOver = false;
+    
+    PlayerState(int pid)
+        : playerId(pid), movement(Action::NONE, nullptr), gameData(0, 0, false, "Royal")
+    {}  
+    };
+    
+    std::chrono::steady_clock::time_point lastDropTime;
+    std::vector<PlayerState> players;
     std::shared_ptr<Grid> grid;
     FigureGenerator figureGenerator;
     std::shared_ptr<MovingFigure> activeFigure;
@@ -59,7 +79,9 @@ private:
     void renderGame();
     int applyColor(Color blockColor);
     void checkGameOver();
-    void handleLineCompletion();
+    void handleLineCompletion(int p);
+
+    void placePieceOnBoard(int p);
 
 
 };
