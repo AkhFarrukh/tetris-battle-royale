@@ -90,14 +90,14 @@ void RoyalCompetition::applyRules(Grid& grid, int linesCleared) {
 }
 
 //todo les 3 derniers malus/bonus
-void RoyalCompetition::malusReverseControls(Game game, GameController controller, bool isReversed){
+void RoyalCompetition::malusReverseControls(Game game, GameController& controller, bool isReversed){
   	int countTetriminoGenerated = 1;
   	controller.setControlsInverted(isReversed);
     game.setTetriminoCount(countTetriminoGenerated);
     while(countTetriminoGenerated <= 3){
       countTetriminoGenerated = game.getTetriminoCounter();
     }
-    controller.setControlsInverted(not isReversed);
+    controller.setControlsInverted(!isReversed);
 
 
 }
