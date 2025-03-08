@@ -320,6 +320,40 @@ bool UserDatabaseManager::isValidUsername(const char* username){
 
 
 /**
+ * @brief Add the session and a client file descriptor
+ * @param client_fd a client file descriptor
+ * @param userId a user ID
+ */
+void UserDatabaseManager::addSession(int userId, int client_fd){
+    // Prepare Statement and bind values to a statement
+    const char* query = "INSERT INTO sessions (user_id, client_fd) VALUES (?, ?)";
+    database.prepareStatement(query);
+    database.bindInt(client_fd, 2);
+    database.bindInt(userId, 1);
+
+    // Execute the statement and destruct the statement
+    database.execute();
+    database.destructStatement();
+}
+
+
+/**
+ * @brief Remove the session of a particular user ID
+ * @param userId a user ID
+ */
+void UserDatabaseManager::removeSession(int userId){
+    // Prepare Statement and bind user ID to a statement
+    const char* query = "DELETE FROM sessions WHERE user_id = ?";
+    database.prepareStatement(query);
+    database.bindInt(userId, 1);
+
+    // Execute the statement then destruct the statement
+    database.execute();
+    database.destructStatement();
+}
+
+
+/**
  * @brief Check of a user ID exists in the HighestScore table or not
  * @param userId a user ID
  * @return true if the user ID already exists in the table. Else return false
@@ -440,35 +474,3 @@ std::vector<std::tuple<int, std::string, int>> UserDatabaseManager::getRanking(i
 }
 
 
-/**
- * @brief Add the session and a client file descriptor
- * @param client_fd a client file descriptor
- * @param userId a user ID
- */
-void UserDatabaseManager::addSession(int userId, int client_fd){
-    // Prepare Statement and bind values to a statement
-    const char* query = "INSERT INTO sessions (user_id, client_fd) VALUES (?, ?)";
-    database.prepareStatement(query);
-    database.bindInt(client_fd, 2);
-    database.bindInt(userId, 1);
-
-    // Execute the statement and destruct the statement
-    database.execute();
-    database.destructStatement();
-}
-
-
-/**
- * @brief Remove the session of a particular user ID
- * @param userId a user ID
- */
-void UserDatabaseManager::removeSession(int userId){
-    // Prepare Statement and bind user ID to a statement
-    const char* query = "DELETE FROM sessions WHERE user_id = ?";
-    database.prepareStatement(query);
-    database.bindInt(userId, 1);
-
-    // Execute the statement then destruct the statement
-    database.execute();
-    database.destructStatement();
-}
