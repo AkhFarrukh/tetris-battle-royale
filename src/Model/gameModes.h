@@ -73,10 +73,11 @@ public:
     void setPlayers(int num) override;
     int getPlayers() override;
     void applyRules(Grid& grid, int linesCleared) override;
-	void malusReverseControls(Game game, GameController controller, bool isReverse);
+	void malusReverseControls(Game game, GameController& controller, bool isReverse);
     void malusFreezeControls(Game game, GameController controller, bool isBlocked);
     void bonusReduceFallSpeed(Game game);
     void malusIncreaseFallSpeed(Game game);
+    int getEnergyUsed() {return energy;}
 };
 
 #endif // GAMEMODES_H
