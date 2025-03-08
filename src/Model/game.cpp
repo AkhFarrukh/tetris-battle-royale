@@ -23,6 +23,14 @@ Game::Game(shared_ptr<EventQueue> eventQueue)
 
 Game::~Game() {}
 
+
+int Game::getTimeDrop(){
+  return timeDropEvent;
+}
+
+void Game::setTimeDrop(int newTime){
+  timeDropEvent = newTime;
+}
 /**
  *@brief Gère la boucle principale du jeu.   
  */
@@ -38,7 +46,7 @@ void Game::run() {
 
         checkInput();
 
-        if (elapsedTimeDropEvent > std::chrono::milliseconds(500)) {
+        if (elapsedTimeDropEvent > std::chrono::milliseconds(timeDropEvent)) { // malus/bonus vitesse
             //todo make variable interval of time(maybe corresponding to level)
             //todo check gamedata for level
             eventQueue->addEvent(make_shared<TimerDropEvent>());
@@ -99,7 +107,6 @@ void Game::handleMovementActionEvent(shared_ptr<Event> event) {
 }
 
 
-
 /**
  * @brief Handles timer drop events.
  *
@@ -129,11 +136,20 @@ void Game::handleTimerDropEvent(shared_ptr<Event> event) {
                 gameData.set_isGameOver(true);
                 stop();
             }
+            else{
+              countTetriminoGenerated +=1;
+            }
         }
     }
 }
 
+int Game::getTetriminoCounter(){
+  return countTetriminoGenerated;
+}
 
+void Game::setTetriminoCount(int& count){
+  countTetriminoGenerated = count;
+}
 
 void Game::stop() {
     isRunning = false;
@@ -193,4 +209,5 @@ Color Game::getBlockColor(Coordinates cell) {
     }
     return blockColor;
 }
+
 

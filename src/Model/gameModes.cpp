@@ -3,6 +3,7 @@
 //
 
 #include "gameModes.h"
+#include "../Controller/GameController.hpp"
 using namespace std;
 
 /**
@@ -88,4 +89,47 @@ void RoyalCompetition::applyRules(Grid& grid, int linesCleared) {
     std::cout << "Royal Competition mode: energy gained = " << energy << "\n";
 }
 
-//todo ajouter les différents malus et bonus propre au mode Royal competition
+//todo les 3 derniers malus/bonus
+void RoyalCompetition::malusReverseControls(Game game, GameController controller, bool isReversed){
+  	int countTetriminoGenerated = 1;
+  	controller.setControlsInverted(isReversed);
+    game.setTetriminoCount(countTetriminoGenerated);
+    while(countTetriminoGenerated <= 3){
+      countTetriminoGenerated = game.getTetriminoCounter();
+    }
+    controller.setControlsInverted(not isReversed);
+
+
+}
+
+void RoyalCompetition::malusFreezeControls(Game game, GameController controller, bool isBlocked){
+  	int countTetriminoGenerated = 1;
+  	controller.setControlsBlocked(isBlocked);
+    game.setTetriminoCount(countTetriminoGenerated);
+    while(countTetriminoGenerated <= 1){
+      countTetriminoGenerated = game.getTetriminoCounter();
+    }
+    controller.setControlsBlocked(not isBlocked);
+}
+
+void RoyalCompetition::bonusReduceFallSpeed(Game game){
+  int countTetriminoGenerated = 1;
+  game.setTimeDrop(1000);
+  game.setTetriminoCount(countTetriminoGenerated);
+  while(countTetriminoGenerated <= 1){
+    countTetriminoGenerated = game.getTetriminoCounter();
+  }
+  game.setTimeDrop(500);
+
+}
+
+void RoyalCompetition::malusIncreaseFallSpeed(Game game){
+  int countTetriminoGenerated = 1;
+  game.setTimeDrop(250);
+  game.setTetriminoCount(countTetriminoGenerated);
+  while(countTetriminoGenerated <= 1){
+    countTetriminoGenerated = game.getTetriminoCounter();
+  }
+  game.setTimeDrop(500);
+
+}
