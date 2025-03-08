@@ -11,6 +11,7 @@
 #include "RenderEngineNcurses.hpp"
 #include "EventQueue.hpp"
 #include "MovementActionEvent.hpp"
+
 using namespace std;
 
 

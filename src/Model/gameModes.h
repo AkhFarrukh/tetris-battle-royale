@@ -6,9 +6,12 @@
 #define GAMEMODES_H
 
 #include <iostream>
-#include "../Component/grid.hpp"
-#include "../Controller/GameController.hpp"
-#include "game.hpp"
+#include "grid.hpp"
+// #include "game.hpp"
+// #include "GameController.hpp"
+
+class Game;  // Forward declaration
+class GameController; // Forward declaration
 
 /**
  * @brief Classe de base abstraite pour définir un mode de jeu.
@@ -69,6 +72,7 @@ public:
 class RoyalCompetition : public Mode {
     int energy; //l'énergie s'accumule afin de permettre l'utilisation de malus/bonus
 public:
+    RoyalCompetition() : Mode(1), energy(0) {}
     RoyalCompetition(int numPlayers);
     void setPlayers(int num) override;
     int getPlayers() override;
@@ -77,6 +81,7 @@ public:
     void malusFreezeControls(Game game, GameController controller, bool isBlocked);
     void bonusReduceFallSpeed(Game game);
     void malusIncreaseFallSpeed(Game game);
+    int getEnergyUsed() {return energy;}
 };
 
 #endif // GAMEMODES_H

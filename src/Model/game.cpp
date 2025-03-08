@@ -1,5 +1,4 @@
 #include "game.hpp"
-
 #include <utility>
 
 
@@ -7,18 +6,16 @@ const int GRID_HEIGHT = 20;
 const int GRID_WIDTH = 10;
 
 
-
-
-
-
-Game::Game(shared_ptr<EventQueue> eventQueue)
+Game::Game(shared_ptr<EventQueue> eventQueue, int uid)
     :   eventQueue(move(eventQueue)),
         grid(std::make_shared<Grid>()),
         figureGenerator(),
         activeFigure(std::make_shared<MovingFigure>(std::make_shared<Figure>(figureGenerator.randomFigure()), grid)),
         movement(Action::NONE, activeFigure),
         gameData(0, 0, false, "Endless"),
-        isRunning(false)
+        isRunning(false),
+        user_id(uid)
+        // royalCompetition(2)
 {}
 
 Game::~Game() {}
@@ -151,9 +148,33 @@ void Game::setTetriminoCount(int& count){
   countTetriminoGenerated = count;
 }
 
+// void Game::stop() {
+//     isRunning = false;
+// }
+
+
 void Game::stop() {
+    if (!isRunning) return;
     isRunning = false;
+    int finalScore = gameData.get_score();
+    std::string gameMode = gameData.get_gameMode();
+
+    bool won;
+    if(gameMode == "Endless"){
+        won = false;
+    }else{
+        won = !gameData.get_isGameOver();
+    }
+    int energyUsed;
+    if (gameMode == "Royal"){
+        energyUsed = royalCompetition.getEnergyUsed();
+    } else{ 
+        energyUsed = 0;
+    }
+
+    userDatabaseManager.updatePlayerStats(user_id, finalScore, won, energyUsed, gameMode);
 }
+
 
 
 void Game::checkInput() {

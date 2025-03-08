@@ -9,7 +9,7 @@ MenuGameModeController::MenuGameModeController(shared_ptr<EventQueue> eventQueue
 
 void MenuGameModeController::startEndlessMode() {
   //todo group this in a separate class
-  shared_ptr<Game> game = make_shared<Game>(eventQueue);
+  shared_ptr<Game> game = make_shared<Game>(eventQueue, 0); //au lieu de 0 tu doit passer le user_id
   shared_ptr<GameController> gameController = make_shared<GameController>(game, eventQueue);
   game->setGameController(gameController);
   game->run();  // Start the selected game mode

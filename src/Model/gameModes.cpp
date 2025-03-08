@@ -3,7 +3,8 @@
 //
 
 #include "gameModes.h"
-#include "../Controller/GameController.hpp"
+// #include "game.hpp"
+#include "GameController.hpp"
 using namespace std;
 
 /**
@@ -97,7 +98,7 @@ void RoyalCompetition::malusReverseControls(Game game, GameController controller
     while(countTetriminoGenerated <= 3){
       countTetriminoGenerated = game.getTetriminoCounter();
     }
-    controller.setControlsInverted(not isReversed);
+    controller.setControlsInverted(!isReversed);
 
 
 }
@@ -109,7 +110,7 @@ void RoyalCompetition::malusFreezeControls(Game game, GameController controller,
     while(countTetriminoGenerated <= 1){
       countTetriminoGenerated = game.getTetriminoCounter();
     }
-    controller.setControlsBlocked(not isBlocked);
+    controller.setControlsBlocked(!isBlocked);
 }
 
 void RoyalCompetition::bonusReduceFallSpeed(Game game){

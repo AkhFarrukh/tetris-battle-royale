@@ -16,12 +16,12 @@
 #include "EventQueue.hpp"
 #include "MovementActionEvent.hpp"
 #include "TimerDropEvent.hpp"
-
-class GameController; // forward declaration
+#include "userdatabasemanager.hpp"
+#include "gameModes.h"
 
 class Game {
 public:
-    Game(shared_ptr<EventQueue> eventQueue);
+    Game(shared_ptr<EventQueue> eventQueue, int uid);
     ~Game();
 
     void run();
@@ -40,15 +40,18 @@ public:
 
 
 private:
+    int user_id; 
     std::shared_ptr<Grid> grid;
     FigureGenerator figureGenerator;
     std::shared_ptr<MovingFigure> activeFigure;
     Mouvement movement;
     GameData gameData;
+    UserDatabaseManager userDatabaseManager;
+    RoyalCompetition royalCompetition;
     bool isRunning;
     int timeDropEvent = 500;
-    shared_ptr<GameController> gameController;
-    shared_ptr<EventQueue> eventQueue;
+    shared_ptr<GameController> gameController = nullptr;
+    shared_ptr<EventQueue> eventQueue = nullptr;
     int countTetriminoGenerated = 0;
 
 
@@ -65,6 +68,7 @@ private:
     int applyColor(Color blockColor);
     void checkGameOver();
     void handleLineCompletion();
+
 
 
 };
