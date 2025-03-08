@@ -18,7 +18,9 @@ const map<TetrominoShape, pair<Color, vector<Coordinates>>> Figure::figReference
             {TetrominoShape::S, {Color::green, {Coordinates(0,-1), Coordinates(1,-1), Coordinates(-1,0)}}},
             {TetrominoShape::Z, {Color::red, {Coordinates(0,-1), Coordinates(-1,-1), Coordinates(1,0)}}},
             {TetrominoShape::L, {Color::orange, {Coordinates(1,0), Coordinates(1,-1), Coordinates(-1,0)}}},
-            {TetrominoShape::J, {Color::blue, {Coordinates(1,0), Coordinates(-1,-1), Coordinates(-1,0)}}}
+            {TetrominoShape::J, {Color::blue, {Coordinates(1,0), Coordinates(-1,-1), Coordinates(-1,0)}}},
+            {TetrominoShape::Cube, {Color::purple, {Coordinates(1,0)}}}
+    //todo à voir si le cube est bien implémenter
         };
 
 
@@ -45,7 +47,7 @@ Figure::Figure(TetrominoShape _figShape): figShape{_figShape}{
         center = Coordinates(BLOCK_SIZE/2, BLOCK_SIZE/2);     //For the I, the center isn't (0,0)
         break;
     case TetrominoShape::O :
-        center = Coordinates(BLOCK_SIZE/2, -BLOCK_SIZE/2);     //For the I, the center isn't (0,0)
+        center = Coordinates(BLOCK_SIZE/2, -BLOCK_SIZE/2);     //For the O, the center isn't (0,0)
         break;
     default:
         break;

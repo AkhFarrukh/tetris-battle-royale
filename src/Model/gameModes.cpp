@@ -4,6 +4,8 @@
 
 #include "gameModes.h"
 #include "../Controller/GameController.hpp"
+#include <unistd.h>
+
 using namespace std;
 
 /**
@@ -89,7 +91,9 @@ void RoyalCompetition::applyRules(Grid& grid, int linesCleared) {
     std::cout << "Royal Competition mode: energy gained = " << energy << "\n";
 }
 
-//todo les 3 derniers malus/bonus
+/**
+ * @brief Inverse les commandes d'un adversaire. (malus)
+ */
 void RoyalCompetition::malusReverseControls(Game game, GameController& controller, bool isReversed){
   	int countTetriminoGenerated = 1;
   	controller.setControlsInverted(isReversed);
@@ -101,7 +105,9 @@ void RoyalCompetition::malusReverseControls(Game game, GameController& controlle
 
 
 }
-
+/**
+ * @brief Bloque les commandes d'un adversaire. (malus)
+ */
 void RoyalCompetition::malusFreezeControls(Game game, GameController controller, bool isBlocked){
   	int countTetriminoGenerated = 1;
   	controller.setControlsBlocked(isBlocked);
@@ -112,6 +118,9 @@ void RoyalCompetition::malusFreezeControls(Game game, GameController controller,
     controller.setControlsBlocked(not isBlocked);
 }
 
+/**
+ * @brief Va ralentir notre prochaine chute. (bonus)
+ */
 void RoyalCompetition::bonusReduceFallSpeed(Game game){
   int countTetriminoGenerated = 1;
   game.setTimeDrop(1000);
@@ -123,6 +132,9 @@ void RoyalCompetition::bonusReduceFallSpeed(Game game){
 
 }
 
+/**
+ * @brief Va accelerer la chute chez l'adversaire séléctionné. (malus)
+ */
 void RoyalCompetition::malusIncreaseFallSpeed(Game game){
   int countTetriminoGenerated = 1;
   game.setTimeDrop(250);
@@ -133,3 +145,48 @@ void RoyalCompetition::malusIncreaseFallSpeed(Game game){
   game.setTimeDrop(500);
 
 }
+/**
+ * @brief Va faire tomber la foudre sur un adversaire séléctionner, ce qui aura
+ * pour effet de detruire une zone 2X2 de block.(Malus)
+ */
+void RoyalCompetition::malusThunder(Game game) {
+  shared_ptr<Grid> modifiableGrid = game.getGrid();
+  vector<vector<Block>> modifiableMatrix = modifiableGrid->getMatrix();
+  int GRID_HEIGHT = modifiableMatrix.size();
+  int GRID_WIDTH = modifiableMatrix[0].size();
+  srand(time(nullptr));
+  int columnTargeted = rand() % GRID_WIDTH; //Va choisir une colonne ou la foudre va s'abattre.
+  int thunderPositionLine = 0; //Commence tout en haut.
+  while (modifiableMatrix[thunderPositionLine][columnTargeted].isEmpty()) { //Fait chuter la foudre(couleur blanche) et stop au lieu d'impact
+    modifiableGrid->setBlock(Block(Color::white, 1, Coordinates(columnTargeted, thunderPositionLine)));
+    if (thunderPositionLine + 1 == GRID_HEIGHT) {
+      break;
+    }
+    modifiableGrid->setBlock(Block(Color::nullcolor, 1, Coordinates(columnTargeted, thunderPositionLine)));
+    thunderPositionLine += 1;
+  }
+  modifiableGrid->deleteBlock2X2(Coordinates(columnTargeted, thunderPositionLine));
+}
+
+/**
+ * @brief Va aveugler l'adversaire pendant 10 secondes.(Malus)
+ */
+void RoyalCompetition::malusBlackOut(Game game) {
+  game.switchGridVisibility();
+  sleep(10);
+  game.switchGridVisibility();
+}
+
+/**
+ * @brief Les 2 prochains Tetrimino seront des cubes 1X1.(bonus)
+ */
+void RoyalCompetition::bonusBlockCube(Game game) {
+  int countTetriminoGenerated = 1;
+  game.switchIsCube();
+  game.setTetriminoCount(countTetriminoGenerated);
+  while(countTetriminoGenerated <= 2){
+    countTetriminoGenerated = game.getTetriminoCounter();
+  }
+  game.switchIsCube();
+}
+//todo gérer les mouvement de ces tetriminos de forme 1X1

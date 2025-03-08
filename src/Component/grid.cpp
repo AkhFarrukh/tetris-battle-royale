@@ -177,4 +177,35 @@ void Grid::malusLines(int numLines) {
     }
 }
 
+vector<vector<Block>>& Grid::getMatrix() {
+    return matrix;
+}
+
+/**
+ * @brief Utiliser dans le mode Royal Competition.
+ *
+ * Sera utiliser pour le malus Thunder qui détruit un bloc 2X2.
+ *
+ */
+void Grid::deleteBlock2X2(Coordinates blocLocation) {
+    int x = blocLocation.x;
+    int y = blocLocation.y;
+    if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+        setBlock(Block(Color::nullcolor, 1, blocLocation));
+        if (x+1 < GRID_WIDTH) {
+            setBlock(Block(Color::nullcolor, 1, Coordinates(x+1, y)));
+            if (y + 1 < GRID_HEIGHT) {
+                setBlock(Block(Color::nullcolor, 1, Coordinates(x, y+1)));
+                setBlock(Block(Color::nullcolor, 1, Coordinates(x+1, y+1)));
+            }
+        }
+        else if (x-1 >= 0) {
+            setBlock(Block(Color::nullcolor, 1, Coordinates(x-1, y)));
+            if (y + 1 < GRID_HEIGHT) {
+                setBlock(Block(Color::nullcolor, 1, Coordinates(x, y+1)));
+                setBlock(Block(Color::nullcolor, 1, Coordinates(x-1, y+1)));
+            }
+        }
+    }
+}
 

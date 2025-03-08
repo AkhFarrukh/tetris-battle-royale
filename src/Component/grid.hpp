@@ -28,6 +28,8 @@ class Grid {
     void setBlock(Block newblock);
     Color getBlockColor(int x, int y);
     void malusLines(int y);
+    vector<vector<Block>>& getMatrix();
+    void deleteBlock2X2(Coordinates blocLocation);
 };
 
 #endif

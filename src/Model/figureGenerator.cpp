@@ -25,10 +25,17 @@ TetrominoShape FigureGenerator::getRandomShape() {
  *@brief Génère une figure au hasard et s'assure qu'il n'y ait pas de similaires consecutives.
  */
 Figure FigureGenerator::randomFigure() {
+    if (isBonusCube) { //Si la figure à générer est un cube 1X1
+        return Figure(TetrominoShape::Cube);
+    }
     do {
         shape = getRandomShape();
     } while (shape == prevShape_);
 
-    prevShape_ = shape; 
+    prevShape_ = shape;
     return Figure(shape);
+}
+
+void FigureGenerator::switchBonusCube() {
+    isBonusCube = !isBonusCube;
 }

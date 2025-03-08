@@ -37,7 +37,9 @@ public:
     void setTimeDrop(int newTime);
     int getTetriminoCounter();
     void setTetriminoCount(int& count);
-
+    shared_ptr<Grid> getGrid();
+    void switchGridVisibility();
+    void switchIsCube();
 
 private:
     std::shared_ptr<Grid> grid;
@@ -50,6 +52,7 @@ private:
     shared_ptr<GameController> gameController;
     shared_ptr<EventQueue> eventQueue;
     int countTetriminoGenerated = 0;
+    bool isGridHidden = false;
 
 
 
@@ -65,6 +68,7 @@ private:
     int applyColor(Color blockColor);
     void checkGameOver();
     void handleLineCompletion();
+
 
 
 };

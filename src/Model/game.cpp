@@ -207,7 +207,32 @@ Color Game::getBlockColor(Coordinates cell) {
     if (blockColor == Color::nullcolor) {
         blockColor = grid->getBlockColor(cell.x, cell.y);
     }
+    if (isGridHidden) {
+        return Color::white; //Afin que le joueur soit aveuglé (malus du mode Royal Competition)
+    }
     return blockColor;
 }
+
+shared_ptr<Grid> Game::getGrid() {
+    return grid;
+}
+
+/**
+ * @brief Sert d'interrupteur à la visibilité du joueur, c'est utilisé
+ * dans la mode Royal Competition pour un malus.
+ */
+void Game::switchGridVisibility() {
+    isGridHidden = !isGridHidden;
+}
+
+
+/**
+ * @brief Sert d'interrupteur à la génération de Tetrimino shape cube 1X1.
+ * (Bonus dans le mode Royal Compétition)
+ */
+void Game::switchIsCube() {
+    figureGenerator.switchBonusCube();
+}
+
 
 

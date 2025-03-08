@@ -77,6 +77,9 @@ public:
     void malusFreezeControls(Game game, GameController controller, bool isBlocked);
     void bonusReduceFallSpeed(Game game);
     void malusIncreaseFallSpeed(Game game);
+    void malusThunder(Game game);
+    void malusBlackOut(Game game);
+    void bonusBlockCube(Game game);
     int getEnergyUsed() {return energy;}
 };
 
