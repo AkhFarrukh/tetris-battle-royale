@@ -26,7 +26,7 @@ TetrominoShape FigureGenerator::getRandomShape() {
  */
 Figure FigureGenerator::randomFigure() {
     if (isBonusCube) { //Si la figure à générer est un cube 1X1
-        return Figure(TetrominoShape::Cube);
+        return Figure(TetrominoShape::ONE_BLOCK_CUBE);
     }
     do {
         shape = getRandomShape();

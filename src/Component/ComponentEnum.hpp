@@ -35,6 +35,6 @@ enum class TetrominoShape {
     Z, // Z-shape (right)
     L,  // L-shape (right)
     J, // J-shape (left)
-    Cube //1X1
+    ONE_BLOCK_CUBE //1X1
 };
 #endif

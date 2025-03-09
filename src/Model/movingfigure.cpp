@@ -192,14 +192,13 @@ bool MovingFigure::allowAction(
         ){
   std::vector<Coordinates> newBlockPositions;
   updateBlocks(newPosition, newFigure, newBlockPositions);
-  for(int index = 0; index < BLOCKS_TOTAL_NUMBER; index++){
-    if(!allowBlock(newBlockPositions[index])){
+  for(const auto& blockPosition : newBlockPositions){
+    if(!allowBlock(blockPosition)){
       return false;
     }
   }
   return true;
 }
-
 /**
  * @brief Checks if a newly spawned figure has successfully appeared on the grid.
  *

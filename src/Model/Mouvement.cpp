@@ -302,8 +302,8 @@ bool Mouvement::rotate(bool clockwise) {
     TetrominoShape figureShape = movingFigure_->getFigShape();
     std::shared_ptr<Figure> figure_ = movingFigure_->getFigure();
 
-    if (figureShape == TetrominoShape::O) {
-        // O tetromino does not rotate
+    if (figureShape == TetrominoShape::O or figureShape == TetrominoShape::ONE_BLOCK_CUBE) {
+        // O tetromino does not rotate, neither does 1x1 cube
         return false;
     }
     if (figureShape == TetrominoShape::I) {
