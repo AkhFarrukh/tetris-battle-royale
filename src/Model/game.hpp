@@ -44,7 +44,6 @@ struct PlayerState {
     std::shared_ptr<MovingFigure>    activeFigure;
     Mouvement                         movement;
     GameData                         gameData;
-    
     std::shared_ptr<Figure>          nextTetromino;
 
     int                               playerId;
