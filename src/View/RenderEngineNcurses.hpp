@@ -17,6 +17,9 @@ class RenderEngineNcurses {
 private:
     static int applyColor(Color blockColor);
 public:
+
+    static void renderGames(const vector<shared_ptr<Game>> &games);
+    static void renderGame(shared_ptr<Game> game, Coordinates offset);
     static void renderGame(shared_ptr<Game> game);
     static void printGameOver();
 
