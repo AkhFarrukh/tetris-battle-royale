@@ -36,6 +36,7 @@ enum MessageType {
     T_Input,
     T_Menu,
     T_PlayerData,
+    T_Endless
 };
 
 /**
