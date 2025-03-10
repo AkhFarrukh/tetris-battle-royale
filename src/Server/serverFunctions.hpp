@@ -21,6 +21,7 @@
 #include "userdatabasemanager.hpp"
 #include "EventQueue.hpp"
 #include "communication.hpp"
+#include "game.hpp"
 
 
 class Server{

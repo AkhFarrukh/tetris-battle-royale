@@ -10,6 +10,10 @@ void* Player::threadRoutineView (void* arg){
     shared_ptr<ThreadData> threadData(reinterpret_cast<ThreadData*>(arg));
     bool userIsInGame = threadData->userInGame;
     int sock = threadData->socket;
+
+    //pr l'instant
+    RenderEngineNcurses render;
+
     while (userIsInGame) {
         //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
         //To have info on the data received
@@ -25,20 +29,30 @@ void* Player::threadRoutineView (void* arg){
             userIsInGame = false; // Stop the loop
         }
         
-        else if(type == MessageType::T_PlayerState){
-            /* MODIFY TO RECEIVE A VECTOR OF PLAYERSTATES */
-            Game::PlayerState playerState;
-            if (!recvAll(sock, &playerState, sizeof(Game::PlayerState))){
-                //Repetition de code, pas ouf, need method
-                perror("Client disconnected : ");
-                userIsInGame = false; // Stop the loop
+        else if(type == MessageType::T_PlayerData){
+            int numPlayers;
+            if (!recvAll(sock, &numPlayers, sizeof(numPlayers))) {
+                userIsInGame = false;
+                break;
             }
-            /*
-            *NEED THE FONCTION SHOWING THE GAME WITH PLAYERSTATE AS AN ARG
-            */
+            vector<shared_ptr<Game::NetPlayerData>> playersData;
+            for (int i = 0; i < numPlayers; i++) {
+                shared_ptr<Game::NetPlayerData> playerData;
+                if (!recvAll(sock, &playerData, sizeof(playerData))) {
+                    userIsInGame = false;
+                    break;
+                }
+                playersData.push_back(playerData);
+            }
+            if (numPlayers < 1){
+                render.renderGame(playersData[0]);
+            }
+            else {
+                render.renderGames(playersData);
+            }
         }
     }
-    
+
 }
 
 /**

@@ -143,6 +143,22 @@ void* Server::threadRoutineClient(void* arg){
                 }
                 
             }
+            else if(type == MessageType::T_Endless) {
+                shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
+
+                    ThreadGameData threadGameData;
+                    threadGameData.client_fd = client.client_fd;
+                    threadGameData.eventQueue = eventQueue;
+                    std::vector<ThreadGameData> data;
+                    data.push_back(threadGameData);
+                    
+                    std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, "Endless");
+
+                    std::thread gameThread([soloGame]() {
+                        soloGame->run();
+                    });
+                    gameThread.detach();
+            }
             // Display message if there's one.
             /* ? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
             //std::string message(buffer, bytesReceived);

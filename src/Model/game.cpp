@@ -9,19 +9,17 @@ const int GRID_WIDTH = 10;
 
 
 
-Game::Game(shared_ptr<EventQueue> eventQueue, int numPlayers)
-    :   eventQueue(move(eventQueue)),
-        grid(std::make_shared<Grid>()),
-        figureGenerator(),
-        activeFigure(std::make_shared<MovingFigure>(std::make_shared<Figure>(figureGenerator.randomFigure()), grid)),
-        movement(Action::NONE, activeFigure),
-        gameData(0, 0, false, "Endless"),
-        isRunning(false)
+Game::Game(std::vector<Server::ThreadGameData> playersData, int numPlayers, string mode)
+    :   isRunning(false),
+        gameMode(mode)
+
 {
     for (int i = 0; i < numPlayers; i++) {
         PlayerState ps(i);
 
         ps.grid = std::make_shared<Grid>();
+        ps.eventQueue = playersData[i].eventQueue;
+        ps.fd = playersData[i].client_fd;
 
         auto fig = std::make_shared<Figure>(figureGenerator.randomFigure());
         auto movingFig = std::make_shared<MovingFigure>(fig, ps.grid);
@@ -31,7 +29,7 @@ Game::Game(shared_ptr<EventQueue> eventQueue, int numPlayers)
 
         ps.nextTetromino = std::make_shared<Figure>(figureGenerator.randomFigure());
 
-        ps.gameData = GameData(0, 0, false, "Multiplayer");
+        ps.gameData = GameData(0, 0, false, "ff");
 
         players.push_back(ps);
     }
@@ -43,7 +41,6 @@ Game::~Game() {}
  *@brief Gère la boucle principale du jeu.   
  */
 void Game::run() {
-    gameController->startGameInput();
     isRunning = true;
     auto chronoDropEvent = std::chrono::steady_clock::now();
 
@@ -52,21 +49,22 @@ void Game::run() {
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
 
-        checkInput();
-
         if (elapsedTimeDropEvent > std::chrono::milliseconds(500)) {
-            //todo make variable interval of time(maybe corresponding to level)
-            //todo check gamedata for level
-            eventQueue->addEvent(make_shared<TimerDropEvent>());
-            chronoDropEvent = std::chrono::steady_clock::now();
+            for (int p = 0; p < (int)players.size(); p++) {
+                if (!players[p].isGameOver) {
+                    bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                    if (!canDrop) {
+                        placePieceOnBoard(p);
+                    }
+                }
+            }
+            chronoDropEvent = now;
         }
 
         updateGame();
         gameController->renderGame();
         checkGameOver();
-
     }
-    gameController->stopGameInput();
 }
 
 
@@ -82,13 +80,14 @@ void Game::updateGame() {
     // Je tente de faire descendre la activeFigure en appelant Mouvement::setMouvement() avec l'action SOFT_DROP.
     // si elle retourne false, ca veut dire MovingFigure::setPosition() consider cette action comme !allowAction.
 
-    shared_ptr<Event> event = eventQueue->getEvent(); // get the next event from the queue
-
-    //next function take an event and try to cast it as an appopriate event subclass
-    // if successful, it will treat the event
-    handleMovementActionEvent(event); // handle keyboard imput events
-    handleTimerDropEvent(event);       // handle timer events (soft drop figure and line completion check)
-
+    for (int p = 0; p < (int)players.size(); p++) {
+        if (players[p].isGameOver) continue;
+        while (true) {
+            auto evt = players[p].eventQueue->getEvent();
+            if (!evt) break; // no more events
+            handleMovementActionEvent(p, evt);
+        }
+    }
 }
 
 
@@ -102,28 +101,15 @@ void Game::updateGame() {
  *
  * @param event The event to be handled.
  */
-void Game::handleMovementActionEvent(shared_ptr<Event> event) {
-    auto moveEvt = std::dynamic_pointer_cast<MovementActionEvent>(event);
-    if (!moveEvt) {
-        return;
-    }
+void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
+    auto moveEvt = std::dynamic_pointer_cast<MovementActionEvent>(e);
+    if (!moveEvt) return;
 
-    int p = moveEvt->getPlayerId();
     Action a = moveEvt->getEventData();
-
-    // Safety check
-    if (p < 0 || p >= (int)players.size()) {
-        return;
-    }
-    if (players[p].isGameOver) {
-        return;
-    }
-
     if (a == Action::ESCAPE) {
         stop();
         return;
     }
-
     bool moved = players[p].movement.setMouvement(a);
     if (!moved && a == Action::SOFT_DROP) {
         placePieceOnBoard(p);
@@ -142,7 +128,8 @@ void Game::handleMovementActionEvent(shared_ptr<Event> event) {
  * cannot spawn, the game ends.
  *
  * @param event The event to be handled.
- */
+
+
 void Game::handleTimerDropEvent(std::shared_ptr<Event> event) {
     auto timerEvt = std::dynamic_pointer_cast<TimerDropEvent>(event);
     if (!timerEvt) {
@@ -158,7 +145,7 @@ void Game::handleTimerDropEvent(std::shared_ptr<Event> event) {
         }
     }
 }
-
+ */
 
 void Game::placePieceOnBoard(int p) {
     auto &ps = players[p];
@@ -239,12 +226,61 @@ void Game::handleLineCompletion(int p) {
 void Game::setGameController(shared_ptr<GameController> controller) {
     gameController = move(controller);
 }
-
+/*
 Color Game::getBlockColor(Coordinates cell) {
     Color blockColor = activeFigure->getMovingFigureBlockColor(cell);
     if (blockColor == Color::nullcolor) {
         blockColor = grid->getBlockColor(cell.x, cell.y);
     }
     return blockColor;
+}
+*/
+
+
+void Game::broadcastGame() {
+    std::vector<NetPlayerData> netArray;
+
+    for (auto &ps : players) {
+        NetPlayerData nd;
+        nd.playerId    = ps.playerId;
+        nd.isGameOver  = ps.isGameOver;
+        nd.linesCleared= ps.gameData.get_numberBrokenLines();
+        nd.score       = ps.gameData.get_score();
+
+        int w = 10;
+        int h = 20;
+        nd.grid.resize(w * h);
+
+        for (int row = 0; row < h; row++) {
+            for (int col = 0; col < w; col++) {
+                Color c = ps.grid->getBlockColor(col, row);
+                nd.grid[row * w + col] = c;
+            }
+        }
+        netArray.push_back(std::move(nd));
+    }
+
+    for (auto &ps : players) {
+        int sock = ps.fd; 
+        if (sock <= 0) continue;
+
+        int type = (int)MessageType::T_PlayerData;
+        if (!sendAll(sock, &type, sizeof(type))) {
+            continue;
+        }
+
+        int numPlayers = (int)netArray.size();
+        if (!sendAll(sock, &numPlayers, sizeof(numPlayers))) {
+            continue;
+        }
+
+        for (int i = 0; i < numPlayers; i++) {
+            NetPlayerData &nd = netArray[i];
+
+            if (!sendAll(sock, &nd, sizeof(nd))) {
+                break;
+            }
+        }
+    }
 }
 
