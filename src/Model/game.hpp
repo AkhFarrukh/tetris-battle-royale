@@ -31,29 +31,40 @@ public:
     
     void setGameController(shared_ptr<GameController> controller);
     Color getBlockColor(Coordinates cell);
+    void broadcastGame();
 
 
+    struct NetPlayerData {
+        int playerId;
+        bool isGameOver;
+        int linesCleared;
+        int score;
 
+        vector<Color> grid;
+    };
+
+    struct PlayerState {
+
+        std::shared_ptr<Grid>            grid;
+        std::shared_ptr<MovingFigure>    activeFigure;
+        Mouvement                        movement;
+        GameData                         gameData;
+        std::shared_ptr<Figure>          nextTetromino;
+        std::shared_ptr<EventQueue> eventQueue;
+    
+        int                              playerId;
+        bool                             isGameOver = false;
+        int                              fd;
+    
+        PlayerState(int pid)
+            : playerId(pid),
+              movement(Action::NONE, nullptr),
+              gameData(0, 0, false, "Royal"){}  
+    };
+    
 private:
 
-struct PlayerState {
 
-    std::shared_ptr<Grid>            grid;
-    std::shared_ptr<MovingFigure>    activeFigure;
-    Mouvement                        movement;
-    GameData                         gameData;
-    std::shared_ptr<Figure>          nextTetromino;
-    std::shared_ptr<EventQueue> eventQueue;
-
-    int                              playerId;
-    bool                             isGameOver = false;
-    int                              fd;
-
-    PlayerState(int pid)
-        : playerId(pid),
-          movement(Action::NONE, nullptr),
-          gameData(0, 0, false, "Royal"){}  
-};
 
     std::chrono::steady_clock::time_point lastDropTime;
     std::vector<PlayerState> players;

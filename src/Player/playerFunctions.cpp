@@ -25,9 +25,9 @@ void* Player::threadRoutineView (void* arg){
             userIsInGame = false; // Stop the loop
         }
         
-        else if(type == MessageType::T_PlayerState){
-            Game::PlayerState playerState;
-            if (!recvAll(sock, &playerState, sizeof(Game::PlayerState))){
+        else if(type == MessageType::T_PlayerData){
+            Game::NetPlayerData playerData;
+            if (!recvAll(sock, &playerData, sizeof(Game::NetPlayerData))){
                 //Repetition de code, pas ouf, need method
                 perror("Client disconnected : ");
                 userIsInGame = false; // Stop the loop

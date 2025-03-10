@@ -10,7 +10,8 @@ const int GRID_WIDTH = 10;
 
 
 Game::Game(std::vector<Server::ThreadGameData> playersData, int numPlayers, string mode)
-    :   isRunning(false)
+    :   isRunning(false),
+        gameMode(mode)
 
 {
     for (int i = 0; i < numPlayers; i++) {
@@ -234,4 +235,52 @@ Color Game::getBlockColor(Coordinates cell) {
     return blockColor;
 }
 */
+
+
+void Game::broadcastGame() {
+    std::vector<NetPlayerData> netArray;
+
+    for (auto &ps : players) {
+        NetPlayerData nd;
+        nd.playerId    = ps.playerId;
+        nd.isGameOver  = ps.isGameOver;
+        nd.linesCleared= ps.gameData.get_numberBrokenLines();
+        nd.score       = ps.gameData.get_score();
+
+        int w = 10;
+        int h = 20;
+        nd.grid.resize(w * h);
+
+        for (int row = 0; row < h; row++) {
+            for (int col = 0; col < w; col++) {
+                Color c = ps.grid->getBlockColor(col, row);
+                nd.grid[row * w + col] = c;
+            }
+        }
+        netArray.push_back(std::move(nd));
+    }
+
+    for (auto &ps : players) {
+        int sock = ps.fd; 
+        if (sock <= 0) continue;
+
+        int type = (int)MessageType::T_PlayerData;
+        if (!sendAll(sock, &type, sizeof(type))) {
+            continue;
+        }
+
+        int numPlayers = (int)netArray.size();
+        if (!sendAll(sock, &numPlayers, sizeof(numPlayers))) {
+            continue;
+        }
+
+        for (int i = 0; i < numPlayers; i++) {
+            NetPlayerData &nd = netArray[i];
+
+            if (!sendAll(sock, &nd, sizeof(nd))) {
+                break;
+            }
+        }
+    }
+}
 
