@@ -13,16 +13,10 @@ class MovementActionEvent : public Event {
         int playerId;
         Action action;
     public:
-        MovementActionEvent(int pId, Action act)
-          : playerId(pId), action(act)
+        MovementActionEvent(Action act)
+          : action(act)
         {
         }
-    
-        // Provide a function to retrieve playerId
-        int getPlayerId() const {
-            return playerId;
-        }
-    
         // Provide a function to retrieve the Action
         Action getEventData() const {
             return action;

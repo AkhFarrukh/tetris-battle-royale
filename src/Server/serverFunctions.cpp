@@ -89,9 +89,10 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
  */
 void* Server::threadRoutineClient(void* arg){
     std::cout << "Starting thread routine for client" << std::endl;
-
+    
     // Get thread data from arg
     std::shared_ptr<ThreadData> threadData(reinterpret_cast<ThreadData*>(arg));
+    ThreadGameData threadGameData;
     Server* server = threadData->serverInstance;
     ClientSession& client = threadData->client;
 
@@ -114,11 +115,13 @@ void* Server::threadRoutineClient(void* arg){
         bool userIsOnline = true;
 
         while (userIsOnline) {
+            
             //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
 
             //To have info on the data received
             int type;
             int size;
+            
 
             //Sending info to server
             int bytesReceivedType = recv (client.client_fd, &type, sizeof(int), 0);
@@ -146,19 +149,38 @@ void* Server::threadRoutineClient(void* arg){
             else if(type == MessageType::T_Endless) {
                 shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
 
-                    ThreadGameData threadGameData;
-                    threadGameData.client_fd = client.client_fd;
-                    threadGameData.eventQueue = eventQueue;
-                    std::vector<ThreadGameData> data;
-                    data.push_back(threadGameData);
-                    
-                    std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, "Endless");
+                
+                threadGameData.client_fd = client.client_fd;
+                threadGameData.eventQueue = eventQueue;
+                std::vector<ThreadGameData> data;
+                data.push_back(threadGameData);
+                
+                std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, "Endless");
 
-                    std::thread gameThread([soloGame]() {
-                        soloGame->run();
-                    });
-                    gameThread.detach();
+                std::thread gameThread([soloGame]() {
+                    soloGame->run();
+                });
+                gameThread.detach();
             }
+            else if (type == MessageType::T_Input) {
+                // input enum pas le bail a chier dans la vue ^^
+                Input in;
+                if (size != sizeof(Input)) {
+                    continue;
+                }
+                if (!recvAll(client.client_fd, &in, size)) {
+                    std::cout << "Client disconnected while reading Input\n";
+                    close(client.client_fd);
+                    userIsOnline = false;
+                    break;
+                }
+                // gogogogo
+                // action enum demerdez vs 
+                Action a;
+                auto movEvt = make_shared<MovementActionEvent>(a);
+                threadGameData.eventQueue->addEvent(movEvt);
+            }
+            
             // Display message if there's one.
             /* ? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
             //std::string message(buffer, bytesReceived);
