@@ -112,38 +112,36 @@ void* Server::threadRoutineClient(void* arg){
         // Using bool "UserIsOnline" for better readability of while loop
         char buffer[1024] = {0};
         bool userIsOnline = true;
-        bool userIsInGame = false;
 
         while (userIsOnline) {
-            int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
+            //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
+
+            //To have info on the data received
+            int type;
+            int size;
+
+            //Sending info to server
+            int bytesReceivedType = recv (client.client_fd, &type, sizeof(int), 0);
+            int bytesReceivedSize = recv (client.client_fd, &size, sizeof(int), 0);
+
             //Client disconnected or error
-            if (bytesReceived <= 0) {
+            if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 server->udbm.removeSession(client.userId);
                 close(client.client_fd);
-
-                /**
-                 * TODO: IDK what's happening here. So just commenting it out
-                 * STP Complete this part. 
-                 */
-                /* server->clients.erase(remove_if(server->clients.begin(), 
-                    server->clients.end(), [client](const ClientSession& c) 
-                    { return c.client_fd == client.client_fd; }), server->clients.end()); */
                 userIsOnline = false; // Stop the loop
             }
             
-            else{
-                buffer[bytesReceived] = '\0';
-                //We capture an event from the client if InGame
-                if (userIsInGame){ 
-
+            else if(type == MenuActions::A_Play){
+                Menu menu;
+                if (!recvAll(client.client_fd, &menu, sizeof(Menu))){
+                    //Repetition de code, pas ouf, need method
+                    std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+                    server->udbm.removeSession(client.userId);
+                    close(client.client_fd);
+                    userIsOnline = false; // Stop the loop
                 }
-                //We start a game 
-                else{
-                    ThreadGameData threadGameData;
-                    threadGameData.client_fd = client.client_fd;
-                    shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
-                }
+                
             }
             // Display message if there's one.
             /* ? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */

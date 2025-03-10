@@ -20,7 +20,15 @@ struct Input{
 };
 
 struct Menu{
+    string action;
+    string mode;
+};
 
+enum MenuActions{
+    A_Play,
+    A_CreateRoom,
+    A_JoinRoom,
+    A_Chat,
 };
 
 enum MessageType {

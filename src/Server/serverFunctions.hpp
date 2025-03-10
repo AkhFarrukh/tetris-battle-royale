@@ -20,6 +20,7 @@
 #include "database.hpp"
 #include "userdatabasemanager.hpp"
 #include "EventQueue.hpp"
+#include "communication.hpp"
 
 
 class Server{

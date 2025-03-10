@@ -46,6 +46,7 @@ int main() {
 
     std::cout << "Connecté au serveur !\n";
 
+    //Game loop
     bool playing = true;
     while(playing){
         InterfaceTerminal terminal;
@@ -55,17 +56,45 @@ int main() {
             playing = false;
         }
         else{
+            //Ask to start a game
+            int type = MessageType::T_Menu;
+            int size = sizeof(type);
+
+            //Defining the struct we will send
+            Menu menu;
+            menu.action = MenuActions::A_Play;
+            //menu.mode = InterfaceTerminal::modeNames[selectedMode];
+            menu.mode = "Endless Mode";
+
+            //Sending info to server
+            send (sock, &type, sizeof(int), 0);
+            send (sock, &size, sizeof(int), 0);
+            sendAll(sock, &menu, sizeof(Menu));
             
+            /*
+            *NEED TO IMPLEMENT LOOP GETTING INPUTS AND SENDING IT TO SERV
+            */
+
+            /*
+            *NEED TO IMPLEMENT LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
+            */
+
         }
     }
-
-    /**********************************************************************************
-     * START GAME
-     *********************************************************************************/
-
-    
-
     close(sock); // Fermer le socket après utilisation
     return 0;
 }
 //add a loop so that if i press escape in game i come back to the menu, but also when i end a game
+
+
+/**
+ * @brief Manière d'envoyer un message au serv
+ * Def a type   : int type = MessageType::Input
+ * Def the size : int size = sizeof(struct Input)
+ * 
+ * send (sock, &type, sizeof(int), 0);
+ * send (sock, &size, sizeof(int), 0);
+ * send (sock, &messageOfTypeInput, sizeof(Input), 0)
+ * 
+ * NB : Le faire avec sendAll mais le principe reste le même
+ */
