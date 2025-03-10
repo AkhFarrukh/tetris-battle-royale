@@ -35,6 +35,7 @@ class Server{
             std::string password;
         };
         std::vector<ClientSession> clients;
+        
 
         // Synchronisation management
         std::mutex mtx;
