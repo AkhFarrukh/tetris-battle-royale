@@ -26,6 +26,7 @@ void* Player::threadRoutineView (void* arg){
         }
         
         else if(type == MessageType::T_PlayerState){
+            /* MODIFY TO RECEIVE A VECTOR OF PLAYERSTATES */
             Game::PlayerState playerState;
             if (!recvAll(sock, &playerState, sizeof(Game::PlayerState))){
                 //Repetition de code, pas ouf, need method
