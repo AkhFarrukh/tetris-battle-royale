@@ -17,6 +17,7 @@
 #include <pthread.h>            // Threads
 #include "communication.hpp"    //Struct & fonctions for com w/ serv
 #include "game.hpp"             //Struct PlayerState
+#include "input.hpp"            //Captures inputs
 
 using namespace std;
 
