@@ -132,7 +132,7 @@ void* Server::threadRoutineClient(void* arg){
                 userIsOnline = false; // Stop the loop
             }
             
-            else if(type == MenuActions::A_Play){
+            else if(type == MessageType::T_Menu){
                 Menu menu;
                 if (!recvAll(client.client_fd, &menu, sizeof(Menu))){
                     //Repetition de code, pas ouf, need method
