@@ -148,7 +148,7 @@ void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                    printw("Endless Mode selected! Starting game...\n");
                    refresh();
                    napms(500);
-                   //MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
+                   MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
                    /* MODIF SERVER */
                    return;
                

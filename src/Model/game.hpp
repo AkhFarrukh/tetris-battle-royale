@@ -36,23 +36,23 @@ public:
     int getGameNumberOfBrokenLines() { return gameData.get_numberBrokenLines(); }
     Color getBlockColor(Coordinates cell);
 
-
-
-private:
-struct PlayerState {
-    std::shared_ptr<Grid>            grid;
-    std::shared_ptr<MovingFigure>    activeFigure;
-    Mouvement                         movement;
-    GameData                         gameData;
-    std::shared_ptr<Figure>          nextTetromino;
-
-    int                               playerId;
-    bool                              isGameOver = false;
+    struct PlayerState {
+        std::shared_ptr<Grid>            grid;
+        std::shared_ptr<MovingFigure>    activeFigure;
+        Mouvement                         movement;
+        GameData                         gameData;
+        std::shared_ptr<Figure>          nextTetromino;
     
-    PlayerState(int pid)
-        : playerId(pid), movement(Action::NONE, nullptr), gameData(0, 0, false, "Royal")
+        int                               playerId;
+        bool                              isGameOver = false;
+
+    PlayerState()
+    : movement(Action::NONE, nullptr), gameData(0, 0, false, "Endless Mode")
     {}  
     };
+
+private:
+    
     
     std::chrono::steady_clock::time_point lastDropTime;
     std::vector<PlayerState> players;
