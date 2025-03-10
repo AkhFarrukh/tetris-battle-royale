@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include <cstring>      // Pour memset
 #include "communication.hpp"    //sendAll & recvAll
+#include "playerFunctions.hpp" //Functions for main
 
 using namespace std;
 
@@ -56,6 +57,9 @@ int main() {
             playing = false;
         }
         else{
+            /*
+            *SHOULD BE ELSE IF AND CHANGE DEPENDING ON SELECTEDMODE
+            */
             //Ask to start a game
             int type = MessageType::T_Menu;
             int size = sizeof(type);
@@ -65,27 +69,31 @@ int main() {
             menu.action = MenuActions::A_Play;
             //menu.mode = InterfaceTerminal::modeNames[selectedMode];
             menu.mode = "Endless Mode";
-
+            
             //Sending info to server
             send (sock, &type, sizeof(int), 0);
             send (sock, &size, sizeof(int), 0);
             sendAll(sock, &menu, sizeof(Menu));
             
             /*
+            *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
+            */
+            pthread_t threadID;
+            Player::ThreadData threadData;
+            threadData.socket = sock;
+            if(pthread_create(&threadID, nullptr, Player::threadRoutineView, &threadData) < 0){
+                perror("Error on thread creation : ");
+                playing = false;
+            }
+            /*
             *NEED TO IMPLEMENT LOOP GETTING INPUTS AND SENDING IT TO SERV
             */
-
-            /*
-            *NEED TO IMPLEMENT LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
-            */
-
+            Player::sendInput(threadData);
         }
     }
     close(sock); // Fermer le socket après utilisation
     return 0;
 }
-//add a loop so that if i press escape in game i come back to the menu, but also when i end a game
-
 
 /**
  * @brief Manière d'envoyer un message au serv
