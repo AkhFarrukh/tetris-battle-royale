@@ -142,6 +142,7 @@ void* Server::threadRoutineClient(void* arg){
                     userIsOnline = false; // Stop the loop
                 }
                 
+                
             }
             // Display message if there's one.
             /* ? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
