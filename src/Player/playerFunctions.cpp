@@ -35,9 +35,9 @@ void* Player::threadRoutineView (void* arg){
                 userIsInGame = false;
                 break;
             }
-            vector<shared_ptr<Game::NetPlayerData>> playersData;
+            vector<shared_ptr<NetPlayerData>> playersData;
             for (int i = 0; i < numPlayers; i++) {
-                shared_ptr<Game::NetPlayerData> playerData;
+                shared_ptr<NetPlayerData> playerData;
                 if (!recvAll(sock, &playerData, sizeof(playerData))) {
                     userIsInGame = false;
                     break;

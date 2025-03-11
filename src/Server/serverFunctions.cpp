@@ -91,8 +91,11 @@ void* Server::threadRoutineClient(void* arg){
     std::cout << "Starting thread routine for client" << std::endl;
     
     // Get thread data from arg
+
+    shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
     std::shared_ptr<ThreadData> threadData(reinterpret_cast<ThreadData*>(arg));
     ThreadGameData threadGameData;
+    GameController gameController(eventQueue);
     Server* server = threadData->serverInstance;
     ClientSession& client = threadData->client;
 
@@ -113,6 +116,8 @@ void* Server::threadRoutineClient(void* arg){
         // Using bool "UserIsOnline" for better readability of while loop
         char buffer[1024] = {0};
         bool userIsOnline = true;
+
+
 
         while (userIsOnline) {
             
@@ -147,7 +152,7 @@ void* Server::threadRoutineClient(void* arg){
                 
             }
             else if(type == MessageType::T_Endless) {
-                shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
+                
 
                 
                 threadGameData.client_fd = client.client_fd;
@@ -164,21 +169,16 @@ void* Server::threadRoutineClient(void* arg){
             }
             else if (type == MessageType::T_Input) {
                 // input enum pas le bail a chier dans la vue ^^
-                Input in;
-                if (size != sizeof(Input)) {
-                    continue;
-                }
-                if (!recvAll(client.client_fd, &in, size)) {
+                KeyboardAction action;
+
+                if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))) {
                     std::cout << "Client disconnected while reading Input\n";
                     close(client.client_fd);
                     userIsOnline = false;
                     break;
                 }
-                // gogogogo
-                // action enum demerdez vs 
-                Action a;
-                auto movEvt = make_shared<MovementActionEvent>(a);
-                threadGameData.eventQueue->addEvent(movEvt);
+                
+                gameController.getAction(action);
             }
             
             // Display message if there's one.

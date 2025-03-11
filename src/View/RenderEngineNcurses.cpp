@@ -11,7 +11,7 @@ const int GRID_WIDTH = 10;
 
 
 
-void RenderEngineNcurses::renderGames(const vector<shared_ptr<Game::NetPlayerData>>& players) {
+void RenderEngineNcurses::renderGames(const vector<shared_ptr<NetPlayerData>>& players) {
     erase();
     Coordinates offset(0, 0);
     const int maxPlayersPerRow = 5; //todo move to a better place
@@ -29,7 +29,7 @@ void RenderEngineNcurses::renderGames(const vector<shared_ptr<Game::NetPlayerDat
     refresh();
 }
 
-void RenderEngineNcurses::renderGame(shared_ptr<Game::NetPlayerData> player, Coordinates offset) {
+void RenderEngineNcurses::renderGame(shared_ptr<NetPlayerData> player, Coordinates offset) {
     mvprintw(offset.y, offset.x, "Score: %d", player->score);
     mvprintw(offset.y + 1, offset.x, "Lines: %d", player->linesCleared);
     mvprintw(offset.y + 2, offset.x, "+--------------------+");
@@ -58,7 +58,7 @@ void RenderEngineNcurses::renderGame(shared_ptr<Game::NetPlayerData> player, Coo
     mvprintw(offset.y + GRID_HEIGHT + 3, offset.x, "+--------------------+");
 }
 
-void RenderEngineNcurses::renderGame(shared_ptr<Game::NetPlayerData> player) {
+void RenderEngineNcurses::renderGame(shared_ptr<NetPlayerData> player) {
     renderGame(player, Coordinates(0, 0));
 }
 

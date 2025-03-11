@@ -24,10 +24,8 @@ private:
     shared_ptr<Game> game;
     shared_ptr<EventQueue> eventQueue;
 public:
-    GameController(shared_ptr<Game> game, shared_ptr<EventQueue> eventQueue);
-    void startGameInput() {input.start();}
-    void stopGameInput() {input.stop();}
-    void getAction();
+    GameController(shared_ptr<EventQueue> eventQueue);
+    void getAction(KeyboardAction in);
 
     /*
     int getGameScore();

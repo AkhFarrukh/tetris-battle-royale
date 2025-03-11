@@ -172,10 +172,11 @@ void Game::stop() {
     isRunning = false;
 }
 
-
+/*
 void Game::checkInput() {
     gameController->getAction();
 }
+*/
 
 
 /**
