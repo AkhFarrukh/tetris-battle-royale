@@ -97,7 +97,7 @@ int main() {
             pthread_t threadID;
             std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
             threadData->socket = sock;
-            std::shared_ptr<ThreadData>* threadDataPtr = new std::shared_ptr<ThreadData>();
+            std::shared_ptr<Player::ThreadData>* threadDataPtr = new std::shared_ptr<Player::ThreadData>(threadData);
             if(pthread_create(&threadID, nullptr, Player::threadRoutineView, threadDataPtr) < 0){
                 perror("Error on thread creation : ");
                 playing = false;
