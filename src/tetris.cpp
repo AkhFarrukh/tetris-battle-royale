@@ -83,22 +83,26 @@ int main() {
             else if(selectedMode == 3){
                 //menu.mode = "Royal Competition Mode";
             }
+            printf("sock 0 = %d\n", sock);
             //Sending info to server
             int bytesSent = send (sock, &type, sizeof(int), 0);
             printf("bytes envoyés = %d \n", bytesSent);
             bytesSent = send (sock, &size, sizeof(int), 0);
             printf("bytes envoyés = %d \n", bytesSent);
-            sendAll(sock, &menu, sizeof(Menu));
+            bytesSent = sendAll(sock, &menu, sizeof(Menu));
+            printf("bytes envoyés = %d \n", bytesSent);
             /*
             *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
             */
             pthread_t threadID;
-            Player::ThreadData threadData;
-            threadData.socket = sock;
-            if(pthread_create(&threadID, nullptr, Player::threadRoutineView, &threadData) < 0){
+            std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
+            threadData->socket = sock;
+            std::shared_ptr<ThreadData>* threadDataPtr = new std::shared_ptr<ThreadData>();
+            if(pthread_create(&threadID, nullptr, Player::threadRoutineView, threadDataPtr) < 0){
                 perror("Error on thread creation : ");
                 playing = false;
             }
+            printf("loolpppo\n");
             /*
             *LOOP GETTING INPUTS AND SENDING IT TO SERV
             */
