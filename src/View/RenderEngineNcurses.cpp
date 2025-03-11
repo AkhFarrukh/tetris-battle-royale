@@ -29,6 +29,57 @@ void RenderEngineNcurses::renderGames(const vector<shared_ptr<NetPlayerData>>& p
     }
     refresh();
 }
+/*
+*OVERLOAD NOT TAKING SHARED_PTR
+*/
+void RenderEngineNcurses::renderGames(const vector<NetPlayerData>& players) {
+    std::cout<<"Starting to render in renderGames"<<std::endl;
+    erase();
+    Coordinates offset(0, 0);
+    const int maxPlayersPerRow = 5; //todo move to a better place
+    std::cout<<"players.size() : "<<players.size()<<std::endl;
+    for (size_t i = 0; i < players.size(); ++i) {
+        if (i > 0 && i % maxPlayersPerRow == 0) {
+            offset.x = 0;
+            offset.y += GRID_HEIGHT + 4; // Adjust offset for next row
+        }
+
+
+        renderGame(players[i], offset);
+        offset.x += GRID_WIDTH * 2 + 3; // Adjust offset for next game
+    }
+    refresh();
+}
+
+void RenderEngineNcurses::renderGame(NetPlayerData player, Coordinates offset) {
+    std::cout<<"Starting to render 1 player game in renderGame"<<std::endl;
+    mvprintw(offset.y, offset.x, "Score: %d", player.score);
+    mvprintw(offset.y + 1, offset.x, "Lines: %d", player.linesCleared);
+    mvprintw(offset.y + 2, offset.x, "+--------------------+");
+    for (int y = 0; y < GRID_HEIGHT; ++y) {
+        mvprintw(y + 3 + offset.y, offset.x, "|");
+        for (int x = 0; x < GRID_WIDTH; ++x) {
+            Color blockColor = Color::nullcolor;
+
+            int index = y * GRID_WIDTH + x;// Convert 2D coordinates to 1D index
+
+            // Check if the index is within bounds
+            if (index < player.grid.size()) {
+                blockColor = player.grid[index];
+            }
+
+            if (blockColor != Color::nullcolor) {
+                int colorIndex = applyColor(blockColor);
+                mvprintw(y + 3 + offset.y, offset.x + x * 2 + 1, "\u2588\u2588");
+                attroff(COLOR_PAIR(colorIndex));
+            } else {
+                mvprintw(y + 3 + offset.y, offset.x + x * 2 + 1, "  ");
+            }
+        }
+        mvprintw(y + 3 + offset.y, offset.x + GRID_WIDTH * 2 + 1, "|");
+    }
+    mvprintw(offset.y + GRID_HEIGHT + 3, offset.x, "+--------------------+");
+}
 
 void RenderEngineNcurses::renderGame(shared_ptr<NetPlayerData> player, Coordinates offset) {
     std::cout<<"Starting to render 1 player game in renderGame"<<std::endl;

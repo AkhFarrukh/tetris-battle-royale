@@ -22,11 +22,13 @@ void* Player::threadRoutineView (void* arg){
         //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
         //To have info on the data received
         int type;
+        size_t vectorNPDsize;
         int size;
         //Sending info to server
         /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
         int bytesReceivedType = recv (sock, &type, sizeof(int), 0);
-        int bytesReceivedSize = recv (sock, &size, sizeof(int), 0);
+        int bytesReceivedSize = recv (sock, &vectorNPDsize, sizeof(size_t), 0);
+        recv (sock, &size, sizeof(int), 0);
         std::cout<<"Received a message in threadRoutineView"<<std::endl;
         //Client disconnected or error
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
@@ -35,12 +37,12 @@ void* Player::threadRoutineView (void* arg){
         }
 
         else if(type == MessageType::T_PlayerData){
-            vector<shared_ptr<NetPlayerData>> playersData;
-            if (!recvAll(sock, &playersData, size)) {
+            vector<NetPlayerData> playersData(size);
+            if (!recvAll(sock, playersData.data(), vectorNPDsize)) {
                 userIsInGame = false;
                 break;
             }
-            std::cout<<"Done playersData"<<std::endl;
+            std::cout<<"Done playersData, and size is : "<< playersData.size() <<std::endl;
             //for (int i = 0; i < numPlayers; i++) {
             //    shared_ptr<NetPlayerData> playerData;
             //    if (!recvAll(sock, &playerData, sizeof(playerData))) {

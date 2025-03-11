@@ -272,8 +272,12 @@ void Game::broadcastGame() {
             continue;
         }
 
-        int vectorNPDsize = sizeof(NetPlayerData) * netArray.size();
+        size_t vectorNPDsize = static_cast<size_t>(sizeof(NetPlayerData) * netArray.size());
         if (!sendAll(sock, &vectorNPDsize, sizeof(vectorNPDsize))) {
+            continue;
+        }
+        int size = netArray.size();
+        if (!sendAll(sock, &size, sizeof(size))) {
             continue;
         }
         cout << "netArray.size() : " << netArray.size()<<endl;
