@@ -36,25 +36,11 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         }
         std::cout << "Nouveau client connecté : " << client_fd << std::endl;
 
-        // The password MUST be a plain password (what received from the client).
-        // The User Database Manager will take care of password hash validation.
-        char username[256] = {0};
-        char password[256] = {0};
-        
-        // Check if the server received both username and password or not
-        if (recv(client_fd, username, sizeof(username), 0) <= 0 ||
-            recv(client_fd, password, sizeof(password), 0) <= 0) {
-            perror("Erreur lors de la réception des credentials");
-            close(client_fd);
-            continue;
-        }
 
         // Create a "new session" with client info to be sent to thread routine
         // and push the client into a vector of clients
         ClientSession new_session;
         new_session.client_fd = client_fd;
-        new_session.username = std::string(username);
-        new_session.password = std::string(password);
         clients.push_back(new_session);
 
         // Create a smart pointer containing data to be passed into thread routine.
@@ -93,15 +79,14 @@ void* Server::threadRoutineClient(void* arg){
     // Get thread data from arg
 
     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
-    std::shared_ptr<ThreadData> threadData(reinterpret_cast<ThreadData*>(arg));
+    ThreadData* threadData = reinterpret_cast<ThreadData*>(arg);
     ThreadGameData threadGameData;
     GameController gameController(eventQueue);
     Server* server = threadData->serverInstance;
     ClientSession& client = threadData->client;
 
     // Check if both username and password are correct or not.
-    bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(), 
-                                                       client.password.c_str());
+    bool successfulLogin = true;
 
     if (successfulLogin){
         // Get user ID and insert user into sessions table
@@ -120,7 +105,7 @@ void* Server::threadRoutineClient(void* arg){
 
 
         while (userIsOnline) {
-            
+            std::cout << "start listening cuh" << std::endl;
             //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
 
             //To have info on the data received
@@ -130,9 +115,9 @@ void* Server::threadRoutineClient(void* arg){
 
             //Sending info to server
             int bytesReceivedType = recv (client.client_fd, &type, sizeof(int), 0);
-            std::cout << "loool" << endl;
             int bytesReceivedSize = recv (client.client_fd, &size, sizeof(int), 0);
-            std::cout << "loool" << endl;
+            std::cout << "fdp ma lumiere : " << type << std::endl;
+            std::cout << "fdp ma lumiere : " << size << std::endl;
 
             //Client disconnected or error
             if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
@@ -142,7 +127,12 @@ void* Server::threadRoutineClient(void* arg){
                 userIsOnline = false; // Stop the loop
             }
             
+
             else if(type == MessageType::T_Menu){
+                if (size != sizeof(Menu)) {
+                    std::cout << "fdp ma lumiere : " << client.client_fd << std::endl;
+                }
+                std::cout << "Menut" << std::endl;
                 Menu menu;
                 if (!recvAll(client.client_fd, &menu, sizeof(Menu))){
                     //Repetition de code, pas ouf, need method
