@@ -130,7 +130,9 @@ void* Server::threadRoutineClient(void* arg){
 
             //Sending info to server
             int bytesReceivedType = recv (client.client_fd, &type, sizeof(int), 0);
+            std::cout << "loool" << endl;
             int bytesReceivedSize = recv (client.client_fd, &size, sizeof(int), 0);
+            std::cout << "loool" << endl;
 
             //Client disconnected or error
             if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {

@@ -52,7 +52,8 @@ int main() {
     bool playing = true;
     while(playing){
         InterfaceTerminal terminal;
-        int selectedMode = terminal.start(); 
+        int selectedMode = terminal.start();
+        printf("%d \n", selectedMode);
         if (selectedMode == -1){
             //Quit game
             playing = false;
@@ -81,8 +82,10 @@ int main() {
                 //menu.mode = "Royal Competition Mode";
             }
             //Sending info to server
-            send (sock, &type, sizeof(int), 0);
-            send (sock, &size, sizeof(int), 0);
+            int bytesSent = send (sock, &type, sizeof(int), 0);
+            printf("bytes envoyés = %d \n", bytesSent);
+            bytesSent = send (sock, &size, sizeof(int), 0);
+            printf("bytes envoyés = %d \n", bytesSent);
             sendAll(sock, &menu, sizeof(Menu));
             /*
             *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD

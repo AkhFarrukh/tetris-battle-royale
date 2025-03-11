@@ -121,7 +121,7 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
  *Seulement "Endless Mode" est fonctionnel pour l'instant.
  *
  */
-void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {   
+int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
    while (true) {
        
     displayGameModeMenu(selectedMode);  // affiche le menu avec les modes 
@@ -149,6 +149,7 @@ void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                    napms(500);
                    //MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
                    /* MODIF SERVER */
+                   return selectedMode;
                 } if (selectedMode == 1){
                     erase();
                     printw("Classic Mode selected!\n");
@@ -171,7 +172,7 @@ void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
            case 'q':
            case 'Q':
                endwin();
-               return;
+               return -1;
        }
    }
 }
@@ -190,11 +191,11 @@ void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
  *
  *@param selectedOption Indice de l'action sélectionnée.
  */
-void InterfaceTerminal::handleOptionSelection(int &selectedOption) {
+int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
    switch (selectedOption) {
        case 0:
             // Si l'utilisateur sélectionne "Play", on affiche le menu des modes de jeu.
-           handleGameModeSelection(selectedOption);
+           return handleGameModeSelection(selectedOption);
            break;
        
        // dans les trois 'case' suivants, le programme effectue la meme chose  (parce que les fonctionnalités pas encore dispo)
@@ -209,6 +210,7 @@ void InterfaceTerminal::handleOptionSelection(int &selectedOption) {
            nodelay(stdscr, TRUE);
            break;
    }
+   return -1;
 }
 
 /**
@@ -218,6 +220,7 @@ void InterfaceTerminal::handleOptionSelection(int &selectedOption) {
  *
  */
 int InterfaceTerminal::start() {
+   int returnValue;
    initNcurses();
    int selectedOption = 0;
    
@@ -237,8 +240,9 @@ int InterfaceTerminal::start() {
                }
                break;
            case '\n':   // touche 'entrée'
-               handleOptionSelection(selectedOption);
-               return selectedOption;
+               returnValue = handleOptionSelection(selectedOption);
+               if(returnValue!=-1)return returnValue;
+               break;
            case 'q':
            case 'Q':
                endwin();
