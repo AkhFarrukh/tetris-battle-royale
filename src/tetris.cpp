@@ -72,16 +72,13 @@ int main() {
                 menu.mode = "Endless Mode";
             }
             else if(selectedMode == 1){
-                //menu.mode = InterfaceTerminal::modeNames[selectedMode];
-                menu.mode = "Classic Mode";
+                //menu.mode = "Classic Mode";
             }
             else if(selectedMode == 2){
-                //menu.mode = InterfaceTerminal::modeNames[selectedMode];
-                menu.mode = "Duel Mode";
+                //menu.mode = "Duel Mode";
             }
             else if(selectedMode == 3){
-                //menu.mode = InterfaceTerminal::modeNames[selectedMode];
-                menu.mode = "Royal Competition Mode";
+                //menu.mode = "Royal Competition Mode";
             }
             //Sending info to server
             send (sock, &type, sizeof(int), 0);
