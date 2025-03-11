@@ -5,6 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <condition_variable>
+#include "playerData.hpp"
 
 // Forward declarations
 class Game;
@@ -64,7 +65,7 @@ private:
 private:
     int minPlayers;
     int maxPlayers;
-
+    std::vector<ThreadGameData> players;
     std::vector<int> playerFds;  // store FDs or IDs for each joined player
     bool matchStarted;
 
@@ -75,8 +76,6 @@ private:
     // The game object (once started)
     std::shared_ptr<Game> gamePtr;
 
-    // Possibly an EventQueue for the match
-    std::shared_ptr<EventQueue> eventQueue;
 };
 
 #endif // ROOM_HPP

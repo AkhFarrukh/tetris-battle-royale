@@ -22,6 +22,7 @@
 #include "EventQueue.hpp"
 #include "communication.hpp"
 #include "game.hpp"
+#include "playerData.hpp"
 
 
 class Server{
@@ -74,11 +75,7 @@ class Server{
          * eventQueue so the player thread can put player input inside and game thread will treat them.
          * 
          */
-        struct ThreadGameData {
-            int client_fd;
-            int gameMode;
-            shared_ptr<EventQueue> eventQueue;
-        };
+        
 };
 
 #endif  // SERVER_FUNCTIONS_HPP

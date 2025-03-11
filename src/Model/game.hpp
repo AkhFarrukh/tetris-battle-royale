@@ -16,8 +16,8 @@
 #include "EventQueue.hpp"
 #include "MovementActionEvent.hpp"
 #include "TimerDropEvent.hpp"
-#include "serverFunctions.hpp"
 #include "playerData.hpp"
+#include "communication.hpp"
 
 class GameController; // forward declaration
 
@@ -25,7 +25,7 @@ class GameController; // forward declaration
 class Game {
 public:
 
-    Game(std::vector<Server::ThreadGameData> playersData, int numPlayers, string gameMode);
+    Game(std::vector<ThreadGameData> playersData, int numPlayers, string gameMode);
     ~Game();
 
     void run();

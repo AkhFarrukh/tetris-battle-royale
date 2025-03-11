@@ -1,4 +1,4 @@
-#ifndef PLAYERDATA_PP
+#ifndef PLAYERDATA_HPP
 #define PLAYERDATA_HPP
 
 #include "Mouvement.hpp"
@@ -8,7 +8,6 @@
 #include "EventQueue.hpp"
 #include "MovementActionEvent.hpp"
 #include "TimerDropEvent.hpp"
-#include "serverFunctions.hpp"
 
 struct PlayerState {
 
@@ -36,6 +35,11 @@ struct NetPlayerData {
     int score;
 
     vector<Color> grid;
+};
+
+struct ThreadGameData {
+    int client_fd;
+    shared_ptr<EventQueue> eventQueue;
 };
 
 #endif 

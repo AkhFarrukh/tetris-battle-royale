@@ -9,7 +9,7 @@ const int GRID_WIDTH = 10;
 
 
 
-Game::Game(std::vector<Server::ThreadGameData> playersData, int numPlayers, string mode)
+Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string mode)
     :   isRunning(false),
         gameMode(mode)
 
