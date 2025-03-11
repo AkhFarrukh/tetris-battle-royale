@@ -44,14 +44,14 @@ void RenderEngineNcurses::renderGames(const vector<NetPlayerData>& players) {
             offset.y += GRID_HEIGHT + 4; // Adjust offset for next row
         }
 
-
-        renderGame(players[i], offset);
+        std::cout<<"rendering..."<<std::endl;
+        renderGame(players.at(i), offset);
         offset.x += GRID_WIDTH * 2 + 3; // Adjust offset for next game
     }
     refresh();
 }
 
-void RenderEngineNcurses::renderGame(NetPlayerData player, Coordinates offset) {
+void RenderEngineNcurses::renderGame(const NetPlayerData& player, Coordinates offset) {
     std::cout<<"Starting to render 1 player game in renderGame"<<std::endl;
     mvprintw(offset.y, offset.x, "Score: %d", player.score);
     mvprintw(offset.y + 1, offset.x, "Lines: %d", player.linesCleared);

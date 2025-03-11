@@ -20,7 +20,7 @@ private:
 
 public:
     void renderGame(std::shared_ptr<NetPlayerData> player, Coordinates offset);
-    void renderGame(NetPlayerData player, Coordinates offset);
+    void renderGame(const NetPlayerData& player, Coordinates offset);
     void renderGame(std::shared_ptr<NetPlayerData> player);
     void renderGames(const vector<std::shared_ptr<NetPlayerData>> &players);
     void renderGames(const vector<NetPlayerData> &players);
