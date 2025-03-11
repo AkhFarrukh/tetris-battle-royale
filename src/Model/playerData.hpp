@@ -1,4 +1,4 @@
-#ifndef PLAYERDATA_PP
+#ifndef PLAYERDATA_HPP
 #define PLAYERDATA_HPP
 
 #include "Mouvement.hpp"
