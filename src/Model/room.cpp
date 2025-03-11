@@ -1,15 +1,23 @@
-/*
 #include "room.hpp"
 #include "game.hpp"
 #include "EventQueue.hpp"
 #include <iostream>
 #include <thread>
 
-Room::Room(int minPlayers, int maxPlayers)
-    : minPlayers(minPlayers),
+Room::Room(int sockHoster, int gameMode, int minPlayers, int maxPlayers)
+    : sockHoster(sockHoster),
+      gameMode(gameMode),
+      minPlayers(minPlayers),
       maxPlayers(maxPlayers),
       matchStarted(false)
-{}
+{
+    ThreadGameData thread;
+    eventQueue = std::make_shared<EventQueue>();
+    thread.client_fd = sockHoster;
+    thread.gameMode = gameMode;
+    thread.eventQueue = eventQueue;
+    playersThread.push_back(thread);
+}
 
 Room::~Room() {
 }
@@ -17,21 +25,20 @@ Room::~Room() {
 bool Room::addPlayer(int playerFd) {
     std::unique_lock<std::mutex> lock(mtx);
 
-    // Compare players.size() with maxPlayers
-    if (matchStarted || (int)players.size() >= maxPlayers) {
+    if (matchStarted || (int)playerFds.size() >= maxPlayers) {
         return false;
     }
-
-    ThreadGameData newplayer;
-    newplayer.client_fd = playerFd;
-    newplayer.eventQueue = std::make_shared<EventQueue>();
-
-    players.push_back(newplayer);
-
+    ThreadGameData thread;
+    eventQueue = std::make_shared<EventQueue>(); //event queue different pour chaque client?
+    thread.client_fd = playerFd;
+    thread.gameMode = gameMode;
+    thread.eventQueue = eventQueue;
+    playersThread.push_back(thread);
+    playerFds.push_back(playerFd);
     std::cout << "Player joined room: fd=" << playerFd 
-              << " (now " << players.size() << " players)" << std::endl;
+              << " (now " << playerFds.size() << " players)" << std::endl;
 
-    if ((int)players.size() >= maxPlayers) {
+    if ((int)playerFds.size() >= maxPlayers) {
         std::cout << "Room is full, automatically starting match..." << std::endl;
         matchStarted = true;
         launchGame();
@@ -43,7 +50,6 @@ bool Room::addPlayer(int playerFd) {
     return true;
 }
 
-
 int Room::getPlayerCount() const {
     std::lock_guard<std::mutex> lock(mtx);
     return (int)playerFds.size();
@@ -52,9 +58,10 @@ int Room::getPlayerCount() const {
 void Room::startMatchIfPossible() {
     std::unique_lock<std::mutex> lock(mtx);
     if (!matchStarted) {
-        if ((int)players.size() >= minPlayers) {
+        // We can only start if we have at least minPlayers
+        if ((int)playerFds.size() >= minPlayers) {
             matchStarted = true;
-            std::cout << "Match started with " << players.size() << " players\n";
+            std::cout << "Match started with " << playerFds.size() << " players\n";
             launchGame();
             cv.notify_all();
         } else {
@@ -63,7 +70,6 @@ void Room::startMatchIfPossible() {
         }
     }
 }
-
 
 void Room::forceStart() {
     std::unique_lock<std::mutex> lock(mtx);
@@ -85,15 +91,17 @@ void Room::waitForMatchToStart() {
 }
 
 void Room::launchGame() {
-    std::cout << "Launching game with " << players.size() << " players\n";
+    std::cout << "Launching game with " << playerFds.size() << " players\n";
+    
+    int numPlayers = (int)playerFds.size();
+    std::string mode = "Endless";
+    gamePtr = std::make_shared<Game>(std::vector<ThreadGameData>(playersThread), int(numPlayers), std::string(mode));
 
-    int numPlayers = (int)players.size();
-    gamePtr = std::make_shared<Game>(players, numPlayers, "Endless");
+    // gamePtr->setPlayerFDs(playerFds);
 
     std::thread gameThread([this] {
         gamePtr->run();
     });
     gameThread.detach();
-}
 
-*/
+}

@@ -5,10 +5,9 @@
 #include <memory>
 #include <mutex>
 #include <condition_variable>
-#include "playerData.hpp"
+#include <ServerData.hpp>
 
 // Forward declarations
-class Game;
 class EventQueue;
 
 /**
@@ -22,7 +21,7 @@ public:
      * @param minPlayers Minimum number of players required to start (3).
      * @param maxPlayers Maximum number of players in the room (9).
      */
-    Room(int minPlayers = 3, int maxPlayers = 9);
+    Room(int sockHoster, int gameMode, int minPlayers = 3, int maxPlayers = 9);
 
     ~Room();
 
@@ -63,9 +62,12 @@ private:
     void launchGame();
 
 private:
+    int sockHoster;
+    int gameMode;
     int minPlayers;
     int maxPlayers;
-    std::vector<ThreadGameData> players;
+
+    std::vector<ThreadGameData> playersThread;
     std::vector<int> playerFds;  // store FDs or IDs for each joined player
     bool matchStarted;
 
@@ -76,6 +78,8 @@ private:
     // The game object (once started)
     std::shared_ptr<Game> gamePtr;
 
+    // Possibly an EventQueue for the match
+    std::shared_ptr<EventQueue> eventQueue;
 };
 
 #endif // ROOM_HPP

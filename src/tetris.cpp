@@ -1,3 +1,4 @@
+#include "serverFunctions.hpp"
 #include "InterFaceTerminal.hpp"
 #include "MenuGameModeController.hpp"
 #include <sys/types.h>      //socket

@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstdlib>
 
+#include "serverFunctions.hpp"
 #include "Mouvement.hpp"
 #include "game_data.hpp"
 #include "figureGenerator.hpp"
@@ -15,11 +16,12 @@
 #include "EventQueue.hpp"
 #include "MovementActionEvent.hpp"
 #include "TimerDropEvent.hpp"
+#include "ServerData.hpp"
 #include "playerData.hpp"
 #include "communication.hpp"
 
 class GameController; // forward declaration
-
+class Server;
 
 class Game {
 public:
