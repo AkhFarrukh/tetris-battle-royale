@@ -53,6 +53,8 @@ void RenderEngineNcurses::renderGames(const vector<NetPlayerData>& players) {
 
 void RenderEngineNcurses::renderGame(const NetPlayerData& player, Coordinates offset) {
     std::cout<<"Starting to render 1 player game in renderGame"<<std::endl;
+    clear();
+    refresh();
     mvprintw(offset.y, offset.x, "Score: %d", player.score);
     mvprintw(offset.y + 1, offset.x, "Lines: %d", player.linesCleared);
     mvprintw(offset.y + 2, offset.x, "+--------------------+");
