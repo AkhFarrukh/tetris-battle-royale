@@ -27,8 +27,8 @@ void* Player::threadRoutineView (void* arg){
         //Sending info to server
         /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
         int bytesReceivedType = recv (sock, &type, sizeof(int), 0);
-        int bytesReceivedSize = recv (sock, &vectorNPDsize, sizeof(size_t), 0);
-        recv (sock, &size, sizeof(int), 0);
+        int bytesReceivedSize = recv (sock, &size, sizeof(size), 0);
+        //recv (sock, &size, sizeof(int), 0);
         std::cout<<"Received a message in threadRoutineView"<<std::endl;
         //Client disconnected or error
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
@@ -38,19 +38,37 @@ void* Player::threadRoutineView (void* arg){
 
         else if(type == MessageType::T_PlayerData){
             vector<NetPlayerData> playersData(size);
-            if (!recvAll(sock, playersData.data(), vectorNPDsize)) {
-                userIsInGame = false;
-                break;
-            }
-            std::cout<<"Done playersData, and size is : "<< playersData.size() <<std::endl;
-            //for (int i = 0; i < numPlayers; i++) {
-            //    shared_ptr<NetPlayerData> playerData;
-            //    if (!recvAll(sock, &playerData, sizeof(playerData))) {
-            //        userIsInGame = false;
-            //        break;
-            //    }
-            //    playersData.push_back(playerData);
+            for (int i = 0; i < size; ++i) {
+                NetPlayerData player;
+            
+                recvAll(sock, &player.playerId, sizeof(player.playerId));
+                recvAll(sock, &player.isGameOver, sizeof(player.isGameOver));
+                recvAll(sock, &player.linesCleared, sizeof(player.linesCleared));
+                recvAll(sock, &player.score, sizeof(player.score));
+            
+                int gridSize;
+                recvAll(sock, &gridSize, sizeof(gridSize));
+            
+                player.grid.resize(gridSize);
+                if (gridSize > 0)
+                    recvAll(sock, player.grid.data(), gridSize * sizeof(Color));
+            
+                playersData.push_back(player);
+            }            
+            //vector<NetPlayerData> playersData(size);
+            //if (!recvAll(sock, playersData.data(), vectorNPDsize)) {
+            //    userIsInGame = false;
+            //    break;
             //}
+            //std::cout<<"Done playersData, and size is : "<< playersData.size() <<std::endl;
+            ////for (int i = 0; i < numPlayers; i++) {
+            ////    shared_ptr<NetPlayerData> playerData;
+            ////    if (!recvAll(sock, &playerData, sizeof(playerData))) {
+            ////        userIsInGame = false;
+            ////        break;
+            ////    }
+            ////    playersData.push_back(playerData);
+            ////}
             if (playersData.size() <= 1){
                 render.renderGames(playersData);
                 std::cout<<"Rendered games"<<std::endl;
