@@ -288,21 +288,8 @@ void Game::broadcastGame() {
         
             int gridSize = player.grid.size();
             sendAll(sock, &gridSize, sizeof(gridSize));
-            if (gridSize > 0)
-                sendAll(sock, player.grid.data(), gridSize * sizeof(Color));
+            sendAll(sock, player.grid.data(), gridSize * sizeof(Color));
         }
-        //size_t vectorNPDsize = static_cast<size_t>(sizeof(NetPlayerData) * netArray.size());
-        //if (!sendAll(sock, &vectorNPDsize, sizeof(vectorNPDsize))) {
-        //    continue;
-        //}
-        //int size = netArray.size();
-        //if (!sendAll(sock, &size, sizeof(size))) {
-        //    continue;
-        //}
-        //cout << "netArray.size() : " << netArray.size()<<endl;
-        //if (!sendAll(sock, netArray.data(), vectorNPDsize)) {
-        //    break;
-        //}
     }
 }
 

@@ -52,8 +52,8 @@ void* Player::threadRoutineView (void* arg){
                 recvAll(sock, &gridSize, sizeof(gridSize));
             
                 player.grid.resize(gridSize);
-                if (gridSize > 0)
-                    recvAll(sock, player.grid.data(), gridSize * sizeof(Color));
+
+                recvAll(sock, player.grid.data(), gridSize * sizeof(Color));
             
                 playersData.push_back(player);
             }            
