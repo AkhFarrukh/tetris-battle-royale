@@ -14,7 +14,7 @@ BUILD_DIR = ../build
 # Liste des fichiers source
 # SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -path "$(SRC_DIR)/Server/*" ! -name "server.cpp")
 SERVER_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -name "tetris.cpp")
-CLIENT_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -path "$(SRC_DIR)/Server/*" ! -name "server.cpp")
+CLIENT_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -name "server.cpp") #! -path "$(SRC_DIR)/Server/*"
 SERVER_OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SERVER_SRCS))
 CLIENT_OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(CLIENT_SRCS))
 

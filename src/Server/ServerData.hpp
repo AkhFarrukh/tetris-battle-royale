@@ -3,9 +3,9 @@
 
 
 #include <string>
-#include "serverFunctions.hpp"
 
 class Server;
+class EventQueue;
 
 // All data of clients and their sessions
 struct ClientSession{
@@ -40,7 +40,7 @@ struct ThreadData {
 struct ThreadGameData {
     int client_fd;
     int gameMode;
-    shared_ptr<EventQueue> eventQueue;
+    std::shared_ptr<EventQueue> eventQueue;
 };
 
 #endif //SERVERDATA_HPP
