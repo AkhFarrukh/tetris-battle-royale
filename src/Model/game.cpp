@@ -62,7 +62,8 @@ void Game::run() {
         }
 
         updateGame();
-        gameController->renderGame();
+        //gameController->renderGame();
+        /* NEED BROADCAST PLAYERSTATE */
         checkGameOver();
     }
 }
