@@ -8,8 +8,8 @@
  */
 void* Player::threadRoutineView (void* arg){
 
-    std::shared_ptr<ThreadData>* threadDataPtr = reinterpret_cast<std::shared_ptr<ThreadData>*>(arg);
-    std::shared_ptr<ThreadData> threadData = *threadDataPtr;
+    std::shared_ptr<Player::ThreadData>* threadDataPtr = reinterpret_cast<std::shared_ptr<Player::ThreadData>*>(arg);
+    std::shared_ptr<Player::ThreadData> threadData = *threadDataPtr;
     bool userIsInGame = threadData->userInGame;
     int sock = threadData->socket;
 
