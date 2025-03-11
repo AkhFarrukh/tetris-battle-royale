@@ -15,7 +15,7 @@ struct Message{
     string message;
 };
 
-struct Input{
+struct InputMessage{
 
 };
 

@@ -44,7 +44,7 @@ void* Player::threadRoutineView (void* arg){
                 }
                 playersData.push_back(playerData);
             }
-            if (numPlayers < 1){
+            if (numPlayers <= 1){
                 render.renderGame(playersData[0]);
             }
             else {

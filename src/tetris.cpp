@@ -86,7 +86,7 @@ int main() {
                 playing = false;
             }
             /*
-            *NEED TO IMPLEMENT LOOP GETTING INPUTS AND SENDING IT TO SERV
+            *LOOP GETTING INPUTS AND SENDING IT TO SERV
             */
             Player::sendInput(threadData);
         }

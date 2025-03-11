@@ -20,7 +20,6 @@ class Game; // foreward declaration
 
 class GameController {
 private:
-    Input input;
     shared_ptr<Game> game;
     shared_ptr<EventQueue> eventQueue;
 public:
