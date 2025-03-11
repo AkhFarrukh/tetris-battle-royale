@@ -64,18 +64,29 @@ int main() {
             //Ask to start a game
             int type = MessageType::T_Menu;
             int size = sizeof(type);
-
             //Defining the struct we will send
             Menu menu;
             menu.action = MenuActions::A_Play;
-            //menu.mode = InterfaceTerminal::modeNames[selectedMode];
-            menu.mode = "Endless Mode";
-            
+            if(selectedMode == 0){
+                //menu.mode = InterfaceTerminal::modeNames[selectedMode];
+                menu.mode = "Endless Mode";
+            }
+            else if(selectedMode == 1){
+                //menu.mode = InterfaceTerminal::modeNames[selectedMode];
+                menu.mode = "Classic Mode";
+            }
+            else if(selectedMode == 2){
+                //menu.mode = InterfaceTerminal::modeNames[selectedMode];
+                menu.mode = "Duel Mode";
+            }
+            else if(selectedMode == 3){
+                //menu.mode = InterfaceTerminal::modeNames[selectedMode];
+                menu.mode = "Royal Competition Mode";
+            }
             //Sending info to server
             send (sock, &type, sizeof(int), 0);
             send (sock, &size, sizeof(int), 0);
             sendAll(sock, &menu, sizeof(Menu));
-            
             /*
             *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
             */

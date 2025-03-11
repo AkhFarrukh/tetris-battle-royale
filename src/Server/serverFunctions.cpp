@@ -152,9 +152,6 @@ void* Server::threadRoutineClient(void* arg){
                 
             }
             else if(type == MessageType::T_Endless) {
-                
-
-                
                 threadGameData.client_fd = client.client_fd;
                 threadGameData.eventQueue = eventQueue;
                 std::vector<ThreadGameData> data;
