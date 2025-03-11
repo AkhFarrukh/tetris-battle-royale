@@ -141,7 +141,6 @@ void* Server::threadRoutineClient(void* arg){
                     close(client.client_fd);
                     userIsOnline = false; // Stop the loop
                 }
-
                 if (menu.action == MenuActions::A_Play) {
                     if (menu.mode == Modes::Endless) {
                         
