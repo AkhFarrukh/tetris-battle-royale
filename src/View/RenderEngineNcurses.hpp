@@ -8,7 +8,7 @@
 #include <ncurses.h>
 #include <memory>
 #include "GameController.hpp"
-#include "game.hpp"
+#include "playerData.hpp"
 
 using namespace std;
 
