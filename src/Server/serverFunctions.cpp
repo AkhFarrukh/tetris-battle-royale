@@ -149,26 +149,36 @@ void* Server::threadRoutineClient(void* arg){
                     close(client.client_fd);
                     userIsOnline = false; // Stop the loop
                 }
-                
-            }
-            else if(type == MessageType::T_Endless) {
-                
 
-                
-                threadGameData.client_fd = client.client_fd;
-                threadGameData.eventQueue = eventQueue;
-                std::vector<ThreadGameData> data;
-                data.push_back(threadGameData);
-                
-                std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, "Endless");
+                if (menu.action == MenuActions::A_Play) {
+                    if (menu.mode == Modes::Endless) {
+                        
+                        std::cout << "Client wants Endless mode\n";
 
-                std::thread gameThread([soloGame]() {
-                    soloGame->run();
-                });
-                gameThread.detach();
+                        threadGameData.client_fd = client.client_fd;
+                        threadGameData.eventQueue = eventQueue;
+                        std::vector<ThreadGameData> data;
+                        data.push_back(threadGameData);
+                        
+                        std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, "Endless");
+
+                        std::thread gameThread([soloGame]() {
+                            soloGame->run();
+                        });
+                        gameThread.detach();
+                    }
+                    else if (menu.mode == Modes::Classic) {
+                        std::cout << "Client wants Classic mode\n";
+                        // ...
+                    }
+                    else {
+                        std::cout << "Unknown game mode: " << menu.mode << "\n";
+                    }
+                }
+                
             }
             else if (type == MessageType::T_Input) {
-                // input enum pas le bail a chier dans la vue ^^
+
                 KeyboardAction action;
 
                 if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))) {

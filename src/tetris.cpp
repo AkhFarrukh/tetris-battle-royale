@@ -69,7 +69,7 @@ int main() {
             Menu menu;
             menu.action = MenuActions::A_Play;
             //menu.mode = InterfaceTerminal::modeNames[selectedMode];
-            menu.mode = "Endless Mode";
+            menu.mode = Modes::Endless;
             
             //Sending info to server
             send (sock, &type, sizeof(int), 0);

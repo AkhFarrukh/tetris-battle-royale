@@ -11,7 +11,6 @@
 // tableau déclaré static dans fichier .hpp, pour permettre economie de memoire et partage dans la classe
 // voir fichier Hpp
 const char* InterfaceTerminal::modeNames[] = { 
-                                            "None",
                                             "Endless Mode",  
                                             "Classic Mode",  
                                             "Duel Mode",  

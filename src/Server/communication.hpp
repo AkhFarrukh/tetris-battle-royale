@@ -10,6 +10,13 @@ using namespace std;
 bool recvAll(int sock, void* buffer, size_t length);
 bool sendAll(int sock, const void* buffer, size_t length);
 
+enum Modes{
+    Endless,
+    Duel,
+    Royal,
+    Classic
+};
+
 struct Message{
     string destinataire;
     string message;
@@ -19,11 +26,6 @@ struct InputMessage{
 
 };
 
-struct Menu{
-    string action;
-    string mode;
-};
-
 enum MenuActions{
     A_Play,
     A_CreateRoom,
@@ -31,12 +33,18 @@ enum MenuActions{
     A_Chat,
 };
 
+struct Menu{
+    MenuActions action;
+    Modes mode;
+};
+
+
+
 enum MessageType {
     T_Message,
     T_Input,
     T_Menu,
-    T_PlayerData,
-    T_Endless
+    T_PlayerData
 };
 
 /**
