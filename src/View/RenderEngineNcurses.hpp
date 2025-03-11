@@ -19,9 +19,9 @@ private:
     static int applyColor(Color blockColor);
 
 public:
-    void renderGame(::std::shared_ptr<NetPlayerData> player, Coordinates offset);
-    void renderGame(::std::shared_ptr<NetPlayerData> player);
-    void renderGames(const vector<::std::shared_ptr<NetPlayerData>> &players);
+    void renderGame(std::shared_ptr<NetPlayerData> player, Coordinates offset);
+    void renderGame(std::shared_ptr<NetPlayerData> player);
+    void renderGames(const vector<std::shared_ptr<NetPlayerData>> &players);
     static void printGameOver();
 
 };

@@ -1,4 +1,3 @@
-
 #ifndef GAME_HPP
 #define GAME_HPP
 
@@ -36,13 +35,7 @@ public:
     void broadcastGame();
 
 
-    
-
-    
-    
 private:
-
-
 
     std::chrono::steady_clock::time_point lastDropTime;
     std::vector<PlayerState> players;
