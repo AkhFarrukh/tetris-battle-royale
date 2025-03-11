@@ -3,11 +3,17 @@
 
 #include "Mouvement.hpp"
 #include "game_data.hpp"
-#include "figureGenerator.hpp"
-#include "GameController.hpp"
-#include "EventQueue.hpp"
-#include "MovementActionEvent.hpp"
-#include "TimerDropEvent.hpp"
+//#include "figureGenerator.hpp"
+//#include "GameController.hpp"
+//#include "EventQueue.hpp"
+//#include "MovementActionEvent.hpp"
+//#include "TimerDropEvent.hpp"
+
+class Grid;
+class MovingFigure;
+class Figure;
+class EvenQueue;
+enum class Color;
 
 struct PlayerState {
 
