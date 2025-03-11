@@ -64,12 +64,13 @@ int main() {
             //Ask to start a game
             int type = MessageType::T_Menu;
             int size = sizeof(type);
-            //Defining the struct we will send
+            //Defining the struct we will send  
             Menu menu;
             menu.action = MenuActions::A_Play;
             if(selectedMode == 0){
                 //menu.mode = InterfaceTerminal::modeNames[selectedMode];
-                menu.mode = "Endless Mode";
+                menu.mode = Modes::Endless;
+                
             }
             else if(selectedMode == 1){
                 //menu.mode = "Classic Mode";
