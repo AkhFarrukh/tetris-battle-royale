@@ -94,16 +94,19 @@ int main() {
             *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
             */
             pthread_t threadID;
-            Player::ThreadData threadData;
-            threadData.socket = sock;
-            if(pthread_create(&threadID, nullptr, Player::threadRoutineView, &threadData) < 0){
+            std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
+            threadData->socket = sock;
+
+            if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
                 perror("Error on thread creation : ");
                 playing = false;
             }
             printf("loolpppo\n");
+            sleep(100);
             /*
             *LOOP GETTING INPUTS AND SENDING IT TO SERV
             */
+
             Player::sendInput(threadData);
         }
     }
