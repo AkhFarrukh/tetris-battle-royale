@@ -47,7 +47,7 @@ void Game::run() {
     auto chronoDropEvent = std::chrono::steady_clock::now();
 
     while (isRunning) {
-
+        cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
 
@@ -64,8 +64,11 @@ void Game::run() {
         }
 
         updateGame();
+        cout<<"Updated game"<<endl;
         broadcastGame();
+        cout<<"Broadcasted game"<<endl;
         checkGameOver();
+        cout<<"Checked gameOver"<<endl;
     }
 }
 
@@ -191,7 +194,7 @@ void Game::checkGameOver() {
             aliveCount++;
         }
     }
-    if (aliveCount <= 1) {
+    if (aliveCount < 1) {
         stop();
     }
 }
