@@ -1,8 +1,5 @@
 #include "room.hpp"
-#include "game.hpp"
-#include "EventQueue.hpp"
-#include <iostream>
-#include <thread>
+
 
 Room::Room(int sockHoster, int gameMode, int minPlayers, int maxPlayers)
     : sockHoster(sockHoster),
