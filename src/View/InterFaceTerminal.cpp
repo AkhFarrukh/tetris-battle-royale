@@ -10,7 +10,7 @@
 
 // tableau déclaré static dans fichier .hpp, pour permettre economie de memoire et partage dans la classe
 // voir fichier Hpp
-const char* InterfaceTerminal::modeNames[] = { 
+const char* InterfaceTerminal::modeNames[] = {
                                             "Endless Mode",  
                                             "Classic Mode",  
                                             "Duel Mode",  
@@ -149,21 +149,19 @@ void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                    napms(500);
                    //MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
                    /* MODIF SERVER */
-                   return;
-               
-                } if (selectedMode = 1){
+                } if (selectedMode == 1){
                     erase();
                     printw("Classic Mode selected!\n");
                     refresh();
                     napms(500);
 
-                } if (selectedMode = 2) {
+                } if (selectedMode == 2) {
                     erase();
                     printw("Duel Mode selected!\n");
                     refresh();
                     napms(500);
 
-                } if (selectedMode = 3) {
+                } if (selectedMode == 3) {
                     erase();
                     printw("Royal Competition Mode selected!\n");
                     refresh();
