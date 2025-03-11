@@ -8,7 +8,7 @@ GameController::GameController(shared_ptr<Game> game, shared_ptr<EventQueue> eve
 
 
 void GameController::getAction() {
-    KeyboardAction keyboardAction = input.getKeyboardInput();
+    KeyboardAction keyboardAction = Input::getKeyboardInput();
     Action action = Action::NONE;
     switch (keyboardAction) {
         case KeyboardAction::LEFT_DIRECTION_KEY:
