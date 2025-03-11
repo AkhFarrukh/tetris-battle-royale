@@ -23,6 +23,7 @@
 #include "communication.hpp"
 #include "game.hpp"
 #include "playerData.hpp"
+#include "ServerData.hpp"
 
 
 class Server{

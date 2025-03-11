@@ -37,9 +37,9 @@ struct NetPlayerData {
     vector<Color> grid;
 };
 
-struct ThreadGameData {
-    int client_fd;
-    shared_ptr<EventQueue> eventQueue;
-};
+//struct ThreadGameData {
+//    int client_fd;
+//    shared_ptr<EventQueue> eventQueue;
+//};
 
 #endif 
