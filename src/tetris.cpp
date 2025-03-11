@@ -89,16 +89,14 @@ int main() {
             printf("bytes envoyés = %d \n", bytesSent);
             bytesSent = send (sock, &size, sizeof(int), 0);
             printf("bytes envoyés = %d \n", bytesSent);
-            bytesSent = sendAll(sock, &menu, sizeof(Menu));
-            printf("bytes envoyés = %d \n", bytesSent);
+            sendAll(sock, &menu, sizeof(Menu));
             /*
             *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
             */
             pthread_t threadID;
-            std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
-            threadData->socket = sock;
-            std::shared_ptr<Player::ThreadData>* threadDataPtr = new std::shared_ptr<Player::ThreadData>(threadData);
-            if(pthread_create(&threadID, nullptr, Player::threadRoutineView, threadDataPtr) < 0){
+            Player::ThreadData threadData;
+            threadData.socket = sock;
+            if(pthread_create(&threadID, nullptr, Player::threadRoutineView, &threadData) < 0){
                 perror("Error on thread creation : ");
                 playing = false;
             }

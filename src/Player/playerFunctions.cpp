@@ -8,10 +8,10 @@
  */
 void* Player::threadRoutineView (void* arg){
 
-    std::shared_ptr<Player::ThreadData>* threadDataPtr = reinterpret_cast<std::shared_ptr<Player::ThreadData>*>(arg);
-    std::shared_ptr<Player::ThreadData> threadData = *threadDataPtr;
+    Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
     bool userIsInGame = threadData->userInGame;
     int sock = threadData->socket;
+
 
     printf("sock = %d\n", sock);
     printf("loioiiool4\n");
@@ -64,9 +64,9 @@ void* Player::threadRoutineView (void* arg){
  * @param threadData containing socket & bool for the loop
  * @return int 
  */
-int Player::sendInput (std::shared_ptr<ThreadData> threadData){
+int Player::sendInput (ThreadData& threadData){
   printf("looofff\n");
-    while(threadData->userInGame){
+    while(threadData.userInGame){
         /*
         *NEED TO CAPTURE INPUTS, AND SEND IT TO THE SERV (Input::start,   Input::getKeyboardInput() ?)
         */
