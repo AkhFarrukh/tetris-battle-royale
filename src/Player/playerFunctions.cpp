@@ -18,6 +18,8 @@ void* Player::threadRoutineView (void* arg){
     //pr l'instant
     RenderEngineNcurses render;
     std::cout<<"Starting threadRoutineView loop"<<std::endl;
+    clear();
+    refresh();
     while (userIsInGame) {
         //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
         //To have info on the data received
@@ -29,7 +31,7 @@ void* Player::threadRoutineView (void* arg){
         int bytesReceivedType = recv (sock, &type, sizeof(int), 0);
         int bytesReceivedSize = recv (sock, &size, sizeof(size), 0);
         //recv (sock, &size, sizeof(int), 0);
-        std::cout<<"Received a message in threadRoutineView"<<std::endl;
+        //std::cout<<"Received a message in threadRoutineView"<<std::endl;
         //Client disconnected or error
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
             perror("Client disconnected : ");
@@ -71,7 +73,7 @@ void* Player::threadRoutineView (void* arg){
             ////}
             if (playersData.size() <= 1){
                 render.renderGames(playersData);
-                std::cout<<"Rendered games"<<std::endl;
+                //std::cout<<"Rendered games"<<std::endl;
             }
             else {
                 render.renderGames(playersData);

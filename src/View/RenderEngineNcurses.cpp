@@ -33,18 +33,18 @@ void RenderEngineNcurses::renderGames(const vector<shared_ptr<NetPlayerData>>& p
 *OVERLOAD NOT TAKING SHARED_PTR
 */
 void RenderEngineNcurses::renderGames(const vector<NetPlayerData>& players) {
-    std::cout<<"Starting to render in renderGames"<<std::endl;
+    //std::cout<<"Starting to render in renderGames"<<std::endl;
     erase();
     Coordinates offset(0, 0);
     const int maxPlayersPerRow = 5; //todo move to a better place
-    std::cout<<"players.size() : "<<players.size()<<std::endl;
+    //std::cout<<"players.size() : "<<players.size()<<std::endl;
     for (size_t i = 0; i < players.size(); ++i) {
         if (i > 0 && i % maxPlayersPerRow == 0) {
             offset.x = 0;
             offset.y += GRID_HEIGHT + 4; // Adjust offset for next row
         }
 
-        std::cout<<"rendering..."<<std::endl;
+        //std::cout<<"rendering..."<<std::endl;
         renderGame(players.at(i), offset);
         offset.x += GRID_WIDTH * 2 + 3; // Adjust offset for next game
     }
@@ -52,9 +52,7 @@ void RenderEngineNcurses::renderGames(const vector<NetPlayerData>& players) {
 }
 
 void RenderEngineNcurses::renderGame(const NetPlayerData& player, Coordinates offset) {
-    std::cout<<"Starting to render 1 player game in renderGame"<<std::endl;
-    clear();
-    refresh();
+    //std::cout<<"Starting to render 1 player game in renderGame"<<std::endl;
     mvprintw(offset.y, offset.x, "Score: %d", player.score);
     mvprintw(offset.y + 1, offset.x, "Lines: %d", player.linesCleared);
     mvprintw(offset.y + 2, offset.x, "+--------------------+");
