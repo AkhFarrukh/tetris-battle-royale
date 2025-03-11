@@ -116,7 +116,9 @@ void* Server::threadRoutineClient(void* arg){
             //Sending info to server
             int bytesReceivedType = recv (client.client_fd, &type, sizeof(int), 0);
             int bytesReceivedSize = recv (client.client_fd, &size, sizeof(int), 0);
-
+            std::cout << "fdp ma lumiere : " << type << std::endl;
+            std::cout << "fdp ma lumiere : " << size << std::endl;
+            
             //Client disconnected or error
             if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
@@ -125,7 +127,11 @@ void* Server::threadRoutineClient(void* arg){
                 userIsOnline = false; // Stop the loop
             }
             
+
             else if(type == MessageType::T_Menu){
+                if (size != sizeof(Menu)) {
+                    std::cout << "fdp ma lumiere : " << client.client_fd << std::endl;
+                }
                 std::cout << "Menut" << std::endl;
                 Menu menu;
                 if (!recvAll(client.client_fd, &menu, sizeof(Menu))){
