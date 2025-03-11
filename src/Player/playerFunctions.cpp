@@ -40,7 +40,7 @@ void* Player::threadRoutineView (void* arg){
             vector<NetPlayerData> playersData;
             for (int i = 0; i < size; ++i) {
                 NetPlayerData player;
-            
+                /* NEED ERROR HANDLING */
                 recvAll(sock, &player.playerId, sizeof(player.playerId));
                 recvAll(sock, &player.isGameOver, sizeof(player.isGameOver));
                 recvAll(sock, &player.linesCleared, sizeof(player.linesCleared));

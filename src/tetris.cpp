@@ -101,12 +101,14 @@ int main() {
                 perror("Error on thread creation : ");
                 playing = false;
             }
-            printf("loolpppo\n");
-            sleep(100);
+            printf("player loop in tetrip.cpp\n");
+            sleep(10);
             /*
             *LOOP GETTING INPUTS AND SENDING IT TO SERV
             */
-
+            void* ret;
+            /* TEMPORARY, TO TEST WITHOUT MANAGING INPUT HANDLING */
+            pthread_join(threadID, &ret);
             Player::sendInput(threadData);
         }
     }
