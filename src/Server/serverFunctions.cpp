@@ -87,11 +87,11 @@ void* Server::threadRoutineClient(void* arg){
 
     // Check if both username and password are correct or not.
     bool successfulLogin = true;
-
+    std::cout<< "Got thread data from arg"<< std::endl;
     if (successfulLogin){
-        // Get user ID and insert user into sessions table
-        client.userId = server->udbm.getUserId(client.username.c_str());
-        server->udbm.addSession(client.userId, client.client_fd);
+        //// Get user ID and insert user into sessions table
+        //client.userId = server->udbm.getUserId(client.username.c_str());
+        //server->udbm.addSession(client.userId, client.client_fd);
 
         /* Unlock the mutex and notifies it outside the thread */
         server->lockThread = true;
@@ -132,7 +132,7 @@ void* Server::threadRoutineClient(void* arg){
                 if (size != sizeof(Menu)) {
                     std::cout << "fdp ma lumiere : " << client.client_fd << std::endl;
                 }
-                std::cout << "Menut" << std::endl;
+                std::cout << "Menu" << std::endl;
                 Menu menu;
                 if (!recvAll(client.client_fd, &menu, sizeof(Menu))){
                     //Repetition de code, pas ouf, need method

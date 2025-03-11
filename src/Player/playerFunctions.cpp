@@ -8,16 +8,16 @@
  */
 void* Player::threadRoutineView (void* arg){
 
+    std::cout<<"Starting threadRoutineView"<<std::endl;
     Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
 
     bool userIsInGame = threadData->userInGame;
     int sock = threadData->socket;
 
 
-    printf("sock = %d\n", sock);
-    printf("loioiiool4\n");
     //pr l'instant
     RenderEngineNcurses render;
+    std::cout<<"Starting threadRoutineView loop"<<std::endl;
     while (userIsInGame) {
         //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
         //To have info on the data received
@@ -27,12 +27,13 @@ void* Player::threadRoutineView (void* arg){
         /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
         int bytesReceivedType = recv (sock, &type, sizeof(int), 0);
         int bytesReceivedSize = recv (sock, &size, sizeof(int), 0);
+        std::cout<<"Received a message in threadRoutineView"<<std::endl;
         //Client disconnected or error
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
             perror("Client disconnected : ");
             userIsInGame = false; // Stop the loop
         }
-        
+
         else if(type == MessageType::T_PlayerData){
             int numPlayers;
             if (!recvAll(sock, &numPlayers, sizeof(numPlayers))) {
