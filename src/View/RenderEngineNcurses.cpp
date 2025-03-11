@@ -16,7 +16,7 @@ void RenderEngineNcurses::renderGames(const vector<shared_ptr<NetPlayerData>>& p
     erase();
     Coordinates offset(0, 0);
     const int maxPlayersPerRow = 5; //todo move to a better place
-
+    std::cout<<"players.size() : "<<players.size()<<std::endl;
     for (size_t i = 0; i < players.size(); ++i) {
         if (i > 0 && i % maxPlayersPerRow == 0) {
             offset.x = 0;
