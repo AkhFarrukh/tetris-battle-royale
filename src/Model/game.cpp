@@ -276,8 +276,8 @@ void Game::broadcastGame() {
         if (!sendAll(sock, &vectorNPDsize, sizeof(vectorNPDsize))) {
             continue;
         }
-
-        if (!sendAll(sock, &netArray, vectorNPDsize)) {
+        cout << "netArray.size() : " << netArray.size()<<endl;
+        if (!sendAll(sock, netArray.data(), vectorNPDsize)) {
             break;
         }
     }
