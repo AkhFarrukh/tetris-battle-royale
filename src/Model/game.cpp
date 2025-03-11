@@ -62,7 +62,7 @@ void Game::run() {
         }
 
         updateGame();
-        gameController->renderGame();
+        broadcastGame();
         checkGameOver();
     }
 }
