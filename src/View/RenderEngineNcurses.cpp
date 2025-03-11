@@ -12,6 +12,7 @@ const int GRID_WIDTH = 10;
 
 
 void RenderEngineNcurses::renderGames(const vector<shared_ptr<NetPlayerData>>& players) {
+    std::cout<<"Starting to render in renderGames"<<std::endl;
     erase();
     Coordinates offset(0, 0);
     const int maxPlayersPerRow = 5; //todo move to a better place

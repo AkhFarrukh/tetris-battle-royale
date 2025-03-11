@@ -14,6 +14,7 @@ Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string mode)
         gameMode(mode)
 
 {
+    cout<< "Starting Game constructor"<<endl;
     for (int i = 0; i < numPlayers; i++) {
         PlayerState ps(i);
 
@@ -29,10 +30,11 @@ Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string mode)
 
         ps.nextTetromino = std::make_shared<Figure>(figureGenerator.randomFigure());
 
-        ps.gameData = GameData(0, 0, false, "ff");
+        ps.gameData = GameData(0, 0, false, "Endless mode");
 
         players.push_back(ps);
     }
+    cout<<"Ending Game constructor"<<endl;
 }
 
 Game::~Game() {}
@@ -265,22 +267,18 @@ void Game::broadcastGame() {
         int sock = ps.fd; 
         if (sock <= 0) continue;
 
-        int type = (int)MessageType::T_PlayerData;
+        int type = MessageType::T_PlayerData;
         if (!sendAll(sock, &type, sizeof(type))) {
             continue;
         }
 
-        int numPlayers = (int)netArray.size();
-        if (!sendAll(sock, &numPlayers, sizeof(numPlayers))) {
+        int vectorNPDsize = sizeof(NetPlayerData) * netArray.size();
+        if (!sendAll(sock, &vectorNPDsize, sizeof(vectorNPDsize))) {
             continue;
         }
 
-        for (int i = 0; i < numPlayers; i++) {
-            NetPlayerData &nd = netArray[i];
-
-            if (!sendAll(sock, &nd, sizeof(nd))) {
-                break;
-            }
+        if (!sendAll(sock, &netArray, vectorNPDsize)) {
+            break;
         }
     }
 }

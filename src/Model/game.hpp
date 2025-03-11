@@ -20,6 +20,8 @@
 #include "playerData.hpp"
 #include "communication.hpp"
 
+using namespace std;
+
 class GameController; // forward declaration
 class Server;
 

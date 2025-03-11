@@ -35,22 +35,23 @@ void* Player::threadRoutineView (void* arg){
         }
 
         else if(type == MessageType::T_PlayerData){
-            int numPlayers;
-            if (!recvAll(sock, &numPlayers, sizeof(numPlayers))) {
+            vector<shared_ptr<NetPlayerData>> playersData;
+            if (!recvAll(sock, &playersData, size)) {
                 userIsInGame = false;
                 break;
             }
-            vector<shared_ptr<NetPlayerData>> playersData;
-            for (int i = 0; i < numPlayers; i++) {
-                shared_ptr<NetPlayerData> playerData;
-                if (!recvAll(sock, &playerData, sizeof(playerData))) {
-                    userIsInGame = false;
-                    break;
-                }
-                playersData.push_back(playerData);
-            }
-            if (numPlayers <= 1){
-                render.renderGame(playersData[0]);
+            std::cout<<"Done playersData"<<std::endl;
+            //for (int i = 0; i < numPlayers; i++) {
+            //    shared_ptr<NetPlayerData> playerData;
+            //    if (!recvAll(sock, &playerData, sizeof(playerData))) {
+            //        userIsInGame = false;
+            //        break;
+            //    }
+            //    playersData.push_back(playerData);
+            //}
+            if (playersData.size() <= 1){
+                render.renderGames(playersData);
+                std::cout<<"Rendered games"<<std::endl;
             }
             else {
                 render.renderGames(playersData);
