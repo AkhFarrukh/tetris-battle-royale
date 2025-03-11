@@ -37,7 +37,7 @@ void* Player::threadRoutineView (void* arg){
         }
 
         else if(type == MessageType::T_PlayerData){
-            vector<NetPlayerData> playersData(size);
+            vector<NetPlayerData> playersData;
             for (int i = 0; i < size; ++i) {
                 NetPlayerData player;
             
