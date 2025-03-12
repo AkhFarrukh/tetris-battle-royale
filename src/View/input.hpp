@@ -5,7 +5,7 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <chrono>
 #include "ControllerEnum.hpp" // This includes the Action enum class
 #include "keyboardAction.hpp"
