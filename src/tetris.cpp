@@ -107,7 +107,7 @@ int main() {
             */
             void* ret;
             /* TEMPORARY, TO TEST WITHOUT MANAGING INPUT HANDLING */
-            pthread_join(threadID, &ret);
+            //pthread_join(threadID, &ret);
             Player::sendInput(threadData);
         }
     }

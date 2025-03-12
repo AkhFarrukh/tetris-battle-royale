@@ -20,6 +20,7 @@
 #include "playerData.hpp"
 
 using namespace std;
+//pthread_mutex_t mutexPlayer = PTHREAD_MUTEX_INITIALIZER;
 
 class Player {
     public:

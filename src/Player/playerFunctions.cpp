@@ -91,7 +91,7 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
             InputMessage inputMessage;
             inputMessage.input = currentAction;
             int bytesSent = send (threadData->socket, &type, sizeof(int), 0);
-            bytesSent = send (threadData->socket, &size, sizeof(int), 0);
+            bytesSent = send (threadData->socket, &size, sizeof(size), 0);
             sendAll(threadData->socket, &inputMessage, sizeof(InputMessage));
         }
         
