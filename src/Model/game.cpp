@@ -47,7 +47,7 @@ void Game::run() {
     auto chronoDropEvent = std::chrono::steady_clock::now();
 
     while (isRunning) {
-        cout<<"Starting game loop"<<endl;
+        //cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
 
@@ -64,11 +64,11 @@ void Game::run() {
         }
 
         updateGame();
-        cout<<"Updated game"<<endl;
+        //cout<<"Updated game"<<endl;
         broadcastGame();
-        cout<<"Broadcasted game"<<endl;
+        //cout<<"Broadcasted game"<<endl;
         checkGameOver();
-        cout<<"Checked gameOver"<<endl;
+        //cout<<"Checked gameOver"<<endl;
     }
 }
 
@@ -296,7 +296,7 @@ void Game::broadcastGame() {
         if (!sendAll(sock, &size, sizeof(size))) {
             continue;
         }
-        cout << "netArray.size() : " << netArray.size()<<endl;
+        //cout << "netArray.size() : " << netArray.size()<<endl;
         for (auto& player : netArray) {
             sendAll(sock, &player.playerId, sizeof(player.playerId));
             sendAll(sock, &player.isGameOver, sizeof(player.isGameOver));
