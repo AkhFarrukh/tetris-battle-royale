@@ -30,7 +30,7 @@ void* Player::threadRoutineView (void* arg){
         //Sending info to server
         /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
         int bytesReceivedType = recv (sock, &type, sizeof(int), 0);
-        int bytesReceivedSize = recv (sock, &size, sizeof(size), 0);
+        int bytesReceivedSize = recv (sock, &size, sizeof(int), 0);
         //recv (sock, &size, sizeof(int), 0);
         //std::cout<<"Received a message in threadRoutineView"<<std::endl;
         //Client disconnected or error
@@ -50,8 +50,13 @@ void* Player::threadRoutineView (void* arg){
                 recvAll(sock, &player.score, sizeof(player.score));
             
                 int gridSize;
-                recvAll(sock, &gridSize, sizeof(gridSize));
-            
+           	recvAll(sock, &gridSize, sizeof(gridSize));
+
+		if (gridSize <= 0 || gridSize > 10000) {  // juste pour detecter quand gridSize devient trop grand
+    			std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
+    			continue;
+		}
+
                 player.grid.resize(gridSize);
 
                 recvAll(sock, player.grid.data(), gridSize * sizeof(Color));
