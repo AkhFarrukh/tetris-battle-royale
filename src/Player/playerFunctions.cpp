@@ -30,7 +30,7 @@ void* Player::threadRoutineView (void* arg){
         //Sending info to server
         /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
         int bytesReceivedType = recv (sock, &type, sizeof(int), 0);
-        int bytesReceivedSize = recv (sock, &size, sizeof(size), 0);
+        int bytesReceivedSize = recv (sock, &size, sizeof(int), 0);
         //recv (sock, &size, sizeof(int), 0);
         //std::cout<<"Received a message in threadRoutineView"<<std::endl;
         //Client disconnected or error

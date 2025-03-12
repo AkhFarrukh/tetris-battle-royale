@@ -71,8 +71,8 @@ void RenderEngineNcurses::renderGame(const NetPlayerData& player, Coordinates of
 
             if (blockColor != Color::nullcolor) {
                 int colorIndex = applyColor(blockColor);
-                //mvprintw(y + 3 + offset.y, offset.x + x * 2 + 1, "\u2588\u2588");
-                mvprintw(y + 3 + offset.y, offset.x + x * 2 + 1, "CO");
+                mvprintw(y + 3 + offset.y, offset.x + x * 2 + 1, "\u2588\u2588");
+                //mvprintw(y + 3 + offset.y, offset.x + x * 2 + 1, "CO");
                 attroff(COLOR_PAIR(colorIndex));
             } else {
                 mvprintw(y + 3 + offset.y, offset.x + x * 2 + 1, "  ");
