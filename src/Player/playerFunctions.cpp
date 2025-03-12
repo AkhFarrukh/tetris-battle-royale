@@ -8,7 +8,7 @@
  */
 void* Player::threadRoutineView (void* arg){
 
-    std::cout<<"Starting threadRoutineView"<<std::endl;
+    //std::cout<<"Starting threadRoutineView"<<std::endl;
     Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
 
     bool userIsInGame = threadData->userInGame;
@@ -17,7 +17,9 @@ void* Player::threadRoutineView (void* arg){
 
     //pr l'instant
     RenderEngineNcurses render;
-    std::cout<<"Starting threadRoutineView loop"<<std::endl;
+    //std::cout<<"Starting threadRoutineView loop"<<std::endl;
+    //clear();
+    //refresh();
     while (userIsInGame) {
         //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
         //To have info on the data received
@@ -29,7 +31,7 @@ void* Player::threadRoutineView (void* arg){
         int bytesReceivedType = recv (sock, &type, sizeof(int), 0);
         int bytesReceivedSize = recv (sock, &size, sizeof(size), 0);
         //recv (sock, &size, sizeof(int), 0);
-        std::cout<<"Received a message in threadRoutineView"<<std::endl;
+        //std::cout<<"Received a message in threadRoutineView"<<std::endl;
         //Client disconnected or error
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
             perror("Client disconnected : ");
@@ -50,28 +52,14 @@ void* Player::threadRoutineView (void* arg){
                 recvAll(sock, &gridSize, sizeof(gridSize));
             
                 player.grid.resize(gridSize);
-                if (gridSize > 0)
-                    recvAll(sock, player.grid.data(), gridSize * sizeof(Color));
+
+                recvAll(sock, player.grid.data(), gridSize * sizeof(Color));
             
                 playersData.push_back(player);
             }            
-            //vector<NetPlayerData> playersData(size);
-            //if (!recvAll(sock, playersData.data(), vectorNPDsize)) {
-            //    userIsInGame = false;
-            //    break;
-            //}
-            //std::cout<<"Done playersData, and size is : "<< playersData.size() <<std::endl;
-            ////for (int i = 0; i < numPlayers; i++) {
-            ////    shared_ptr<NetPlayerData> playerData;
-            ////    if (!recvAll(sock, &playerData, sizeof(playerData))) {
-            ////        userIsInGame = false;
-            ////        break;
-            ////    }
-            ////    playersData.push_back(playerData);
-            ////}
             if (playersData.size() <= 1){
                 render.renderGames(playersData);
-                std::cout<<"Rendered games"<<std::endl;
+                //std::cout<<"Rendered games"<<std::endl;
             }
             else {
                 render.renderGames(playersData);
