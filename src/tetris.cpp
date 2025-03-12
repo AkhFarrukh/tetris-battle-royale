@@ -46,14 +46,14 @@ int main() {
         return 1;
     }
 
-    std::cout << "Connecté au serveur !\n";
+    //std::cout << "Connecté au serveur !\n";
 
     //Game loop
     bool playing = true;
     while(playing){
         InterfaceTerminal terminal;
         int selectedMode = terminal.start();
-        printf("%d \n", selectedMode);
+        //printf("%d \n", selectedMode);
         if (selectedMode == -1){
             //Quit game
             playing = false;
@@ -83,12 +83,12 @@ int main() {
             else if(selectedMode == 3){
                 //menu.mode = "Royal Competition Mode";
             }
-            printf("sock 0 = %d\n", sock);
+            //printf("sock 0 = %d\n", sock);
             //Sending info to server
             int bytesSent = send (sock, &type, sizeof(int), 0);
-            printf("bytes envoyés = %d \n", bytesSent);
+            //printf("bytes envoyés = %d \n", bytesSent);
             bytesSent = send (sock, &size, sizeof(int), 0);
-            printf("bytes envoyés = %d \n", bytesSent);
+            //printf("bytes envoyés = %d \n", bytesSent);
             sendAll(sock, &menu, sizeof(Menu));
             /*
             *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
@@ -101,8 +101,7 @@ int main() {
                 perror("Error on thread creation : ");
                 playing = false;
             }
-            printf("player loop in tetrip.cpp\n");
-            sleep(10);
+            //printf("player loop in tetrip.cpp\n");
             /*
             *LOOP GETTING INPUTS AND SENDING IT TO SERV
             */

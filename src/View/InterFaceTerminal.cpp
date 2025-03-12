@@ -25,7 +25,7 @@ InterfaceTerminal::~InterfaceTerminal() {}
 * @brief Initialise ncurses et configure l'affichage du terminal.
 */
 void InterfaceTerminal::initNcurses() {
-   setlocale(LC_ALL, "");
+   setlocale(LC_ALL, ""); //Enable UTF-8
    initscr();
    cbreak();
    noecho();
