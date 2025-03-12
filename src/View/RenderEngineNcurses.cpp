@@ -81,6 +81,7 @@ void RenderEngineNcurses::renderGame(const NetPlayerData& player, Coordinates of
         mvprintw(y + 3 + offset.y, offset.x + GRID_WIDTH * 2 + 1, "|");
     }
     mvprintw(offset.y + GRID_HEIGHT + 3, offset.x, "+--------------------+");
+    refresh();
 }
 
 void RenderEngineNcurses::renderGame(shared_ptr<NetPlayerData> player, Coordinates offset) {
