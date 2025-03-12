@@ -70,6 +70,7 @@ void Game::run() {
         checkGameOver();
         //cout<<"Checked gameOver"<<endl;
     }
+
 }
 
 
@@ -112,7 +113,9 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
 
     Action a = moveEvt->getEventData();
     if (a == Action::ESCAPE) {
-        stop();
+        players[p].isGameOver = true;
+
+        checkGameOver();
         return;
     }
     bool moved = players[p].movement.setMouvement(a);

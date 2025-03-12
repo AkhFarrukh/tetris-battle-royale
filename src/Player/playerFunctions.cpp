@@ -12,7 +12,6 @@ void* Player::threadRoutineView (void* arg){
     //std::cout<<"Starting threadRoutineView"<<std::endl;
     Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
 
-    bool userIsInGame = threadData->userInGame;
     int sock = threadData->socket;
 
 
@@ -21,7 +20,7 @@ void* Player::threadRoutineView (void* arg){
     //std::cout<<"Starting threadRoutineView loop"<<std::endl;
     //clear();
     //refresh();
-    while (userIsInGame) {
+    while (threadData->userInGame) {
         //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
         //To have info on the data received
         int type;
@@ -29,16 +28,20 @@ void* Player::threadRoutineView (void* arg){
         int size;
         //Sending info to server
         /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
+        threadData->mux.lock();
         int bytesReceivedType = recv (sock, &type, sizeof(int), 0);
         int bytesReceivedSize = recv (sock, &size, sizeof(int), 0);
+        threadData->mux.unlock();
         //recv (sock, &size, sizeof(int), 0);
         //std::cout<<"Received a message in threadRoutineView"<<std::endl;
         //Client disconnected or error
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
             perror("Client disconnected : ");
-            userIsInGame = false; // Stop the loop
+            threadData->userInGame = false; // Stop the loop
         }
-
+        else if(type == MessageType::A_Exit){
+            threadData->userInGame = false;
+        }
         else if(type == MessageType::T_PlayerData){
             vector<NetPlayerData> playersData;
             for (int i = 0; i < size; ++i) {
@@ -103,9 +106,11 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
             int size = sizeof(InputMessage);
             InputMessage inputMessage;
             inputMessage.input = currentAction;
-	    send(threadData->socket, &type, sizeof(int), 0);
+            threadData->mux.lock();
+	        send(threadData->socket, &type, sizeof(int), 0);
             send(threadData->socket, &size, sizeof(int), 0);
             sendAll(threadData->socket, &inputMessage, sizeof(InputMessage));
+            threadData->mux.unlock();
         }
     }
     return 0;

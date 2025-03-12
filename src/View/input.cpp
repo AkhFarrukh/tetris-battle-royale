@@ -58,6 +58,5 @@ KeyboardAction Input::getKeyboardInput() {
             currentAction = KeyboardAction::NO_ACTION;
             break;
     }
-    refresh();
     return currentAction;
 }
