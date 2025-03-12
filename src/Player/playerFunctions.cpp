@@ -1,4 +1,5 @@
 #include "playerFunctions.hpp"
+#include "input.hpp"
 
 /**
  * @brief Routine capturing all the thing the server sends, and if it's a player state, show it
@@ -78,9 +79,7 @@ void* Player::threadRoutineView (void* arg){
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
   printf("looofff\n");
     while(threadData->userInGame){
-        /*
-        *NEED TO CAPTURE INPUTS, AND SEND IT TO THE SERV (Input::start,   Input::getKeyboardInput() ?)
-        */
+
         
     }
     

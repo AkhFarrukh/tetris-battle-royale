@@ -4,6 +4,7 @@
 #include <iostream>             // io management
 #include <sys/socket.h>         // socket management
 #include <unistd.h>
+#include "keyboardAction.hpp"
 
 using namespace std;
 
@@ -23,7 +24,7 @@ struct Message{
 };
 
 struct InputMessage{
-
+    KeyboardAction input;
 };
 
 enum MenuActions{
