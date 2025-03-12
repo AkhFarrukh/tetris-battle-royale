@@ -53,6 +53,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         if(pthread_create(&threadID, nullptr, threadRoutineClient, threadData.get()) < 0){
             perror("Error on thread creation : ");
             close(client_fd);
+            clients.pop_back();
             return -1;
         }
         
@@ -124,6 +125,14 @@ void* Server::threadRoutineClient(void* arg){
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 server->udbm.removeSession(client.userId);
                 close(client.client_fd);
+                
+                auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                                       [&client](const ClientSession& c) { 
+                                       return c.client_fd == client.client_fd; 
+                                       });
+                if (it != server->clients.end()) {
+                    server->clients.erase(it);
+                }
                 userIsOnline = false; // Stop the loop
             }
             
