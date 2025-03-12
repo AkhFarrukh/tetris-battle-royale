@@ -33,7 +33,7 @@ $(SERVER_TARGET): $(SERVER_OBJS)
 
 # Compilation de l'exécutable client
 $(CLIENT_TARGET): $(CLIENT_OBJS)
-	$(CXX) $(CXXFLAGS) -L$(LIB_DIR) -o $@ $^ -lncurses -lsqlite3
+	$(CXX) $(CXXFLAGS) -L$(LIB_DIR) -o $@ $^ -lncursesw -lsqlite3
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
