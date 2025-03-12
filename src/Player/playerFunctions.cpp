@@ -81,20 +81,32 @@ void* Player::threadRoutineView (void* arg){
  * @param threadData containing socket & bool for the loop
  * @return int 
  */
+
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
-    while(threadData->userInGame){
+    while (true) {
+        threadData->mux.lock();
+        bool keepRunning = threadData->userInGame;
+        threadData->mux.unlock();
+
+        if (!keepRunning) {
+		break;
+	}
+
         KeyboardAction currentAction = Input::getKeyboardInput();
         if(currentAction != KeyboardAction::NO_ACTION){
-            if(currentAction == KeyboardAction::EXIT_KEY)threadData->userInGame = false;
+            if(currentAction == KeyboardAction::EXIT_KEY) {
+                threadData->mux.lock();
+                threadData->userInGame = false;
+                threadData->mux.unlock();
+            }
             int type = MessageType::T_Input;
             int size = sizeof(InputMessage);
             InputMessage inputMessage;
             inputMessage.input = currentAction;
-            int bytesSent = send (threadData->socket, &type, sizeof(int), 0);
-            bytesSent = send (threadData->socket, &size, sizeof(size), 0);
+	    send(threadData->socket, &type, sizeof(int), 0);
+            send(threadData->socket, &size, sizeof(int), 0);
             sendAll(threadData->socket, &inputMessage, sizeof(InputMessage));
         }
-        
     }
-    
+    return 0;
 }

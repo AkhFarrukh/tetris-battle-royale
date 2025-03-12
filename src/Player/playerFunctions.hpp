@@ -26,6 +26,7 @@ class Player {
     public:
         struct ThreadData {
             int socket;
+	    mutex mux;
             bool userInGame = true;
         };
 
