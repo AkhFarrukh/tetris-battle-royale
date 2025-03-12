@@ -40,7 +40,10 @@ void* Player::threadRoutineView (void* arg){
             threadData->userInGame = false; // Stop the loop
         }
         else if(type == MessageType::T_Exit){
+            printf("looooool\n");
+            threadData->mux.lock();
             threadData->userInGame = false;
+            threadData->mux.unlock();
         }
         else if(type == MessageType::T_PlayerData){
             vector<NetPlayerData> playersData;
@@ -86,15 +89,7 @@ void* Player::threadRoutineView (void* arg){
  */
 
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
-    while (true) {
-        threadData->mux.lock();
-        bool keepRunning = threadData->userInGame;
-        threadData->mux.unlock();
-
-        if (!keepRunning) {
-		break;
-	}
-
+   while(threadData->userInGame){
         KeyboardAction currentAction = Input::getKeyboardInput();
         if(currentAction != KeyboardAction::NO_ACTION){
             if(currentAction == KeyboardAction::EXIT_KEY) {

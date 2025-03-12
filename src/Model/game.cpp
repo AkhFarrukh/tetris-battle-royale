@@ -114,6 +114,7 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
     Action a = moveEvt->getEventData();
     if (a == Action::ESCAPE) {
         players[p].isGameOver = true;
+        players[p].isInGame = false;
         int type = MessageType::T_Exit;
         int size = sizeof(MessageType);
         send(players[p].fd, &type, sizeof(int), 0);
@@ -180,6 +181,14 @@ void Game::placePieceOnBoard(int p) {
 
 
 void Game::stop() {
+    for (auto &ps : players) {
+        if (ps.isInGame) {
+            int type = MessageType::T_Exit;
+            int size = sizeof(MessageType);
+            send(ps.fd, &type, sizeof(int), 0);
+            send(ps.fd, &size, sizeof(int), 0);
+        }
+    }
     isRunning = false;
 }
 
