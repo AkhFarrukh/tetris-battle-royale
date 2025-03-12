@@ -45,7 +45,8 @@ enum MessageType {
     T_Message,
     T_Input,
     T_Menu,
-    T_PlayerData
+    T_PlayerData,
+    A_Exit
 };
 
 /**
