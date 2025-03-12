@@ -7,11 +7,12 @@ SRC_DIR = ../src
 BUILD_DIR = ../build
 LIB_DIR = ../lib
 NCURSES_DIR = $(LIB_DIR)/ncurses-install
+SQLITE_DIR = $(LIB_DIR)/sqlite-install
 
 # Environment variables for compilation and linking
-export LD_LIBRARY_PATH := $(LIB_DIR):$(NCURSES_DIR)/lib:$(LD_LIBRARY_PATH)
-LDFLAGS = -L$(NCURSES_DIR)/lib -L$(LIB_DIR)
-INCLUDE_FLAGS = -I$(NCURSES_DIR)/include -I$(LIB_DIR)/include
+export LD_LIBRARY_PATH := $(LIB_DIR):$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LD_LIBRARY_PATH)
+LDFLAGS = -L$(NCURSES_DIR)/lib -L$(SQLITE_DIR)/lib -L$(LIB_DIR)
+INCLUDE_FLAGS = -I$(NCURSES_DIR)/include -I$(SQLITE_DIR)/include -I$(LIB_DIR)/include
 
 # Compilateur et options
 CXX = g++
@@ -48,4 +49,4 @@ clean:
 
 # Exécuter le jeu après compilation
 run: all
-	LD_LIBRARY_PATH=$(NCURSES_DIR)/lib:$(LIB_DIR):$$LD_LIBRARY_PATH ./$(CLIENT_TARGET)
+	LD_LIBRARY_PATH=$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LIB_DIR):$$LD_LIBRARY_PATH ./$(CLIENT_TARGET)
