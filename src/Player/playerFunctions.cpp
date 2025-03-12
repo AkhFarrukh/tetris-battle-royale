@@ -50,8 +50,13 @@ void* Player::threadRoutineView (void* arg){
                 recvAll(sock, &player.score, sizeof(player.score));
             
                 int gridSize;
-                recvAll(sock, &gridSize, sizeof(gridSize));
-            
+           	recvAll(sock, &gridSize, sizeof(gridSize));
+
+		if (gridSize <= 0 || gridSize > 10000) {  // juste pour detecter quand gridSize devient trop grand
+    			std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
+    			continue;
+		}
+
                 player.grid.resize(gridSize);
 
                 recvAll(sock, player.grid.data(), gridSize * sizeof(Color));
