@@ -169,7 +169,6 @@ void* Server::threadRoutineClient(void* arg){
                 
             }
             else if (type == MessageType::T_Input) {
-
                 KeyboardAction action;
 
                 if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))) {
@@ -178,7 +177,6 @@ void* Server::threadRoutineClient(void* arg){
                     userIsOnline = false;
                     break;
                 }
-                
                 gameController.getAction(action);
             }
             
