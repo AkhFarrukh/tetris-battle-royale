@@ -21,7 +21,7 @@ bool sendAll(int sock, const void* buffer, size_t length) {
         }
         totalSent += sent;
     }
-    std::cout<<"sent All : "<<std::endl;
+    //std::cout<<"sent All : "<<std::endl;
     return true;
 }
 
