@@ -4,7 +4,8 @@ CLIENT_TARGET := ../tetris.exe
 
 # Compilateur et options
 CXX = g++
-CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Player -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(SRC_DIR)/Database -I$(SRC_DIR)/Server -I$(LIB_DIR)/ncurses-install/include -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
+CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Player -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(SRC_DIR)/Database -I$(SRC_DIR)/Server -I$(LIB_DIR)/ncurses-install/include -L/opt/homebrew/opt/ncurses/lib -I/opt/homebrew/opt/ncurses/include -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
+
 #-fsanitize=address,undefined
 
 # Dossiers sources et objets
