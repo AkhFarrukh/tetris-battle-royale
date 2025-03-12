@@ -12,6 +12,9 @@ void Input::start() {
     keypad(stdscr, TRUE);  // Enable special keys like arrow keys
 }
 
+void Input::stop() {
+    endwin();
+}
 
 
 /**
@@ -21,6 +24,7 @@ void Input::start() {
  */
 KeyboardAction Input::getKeyboardInput() {
     int ch = getch();  // Non-blocking key press
+    flushinp();
     if (ch == ERR) {
         return KeyboardAction::NO_ACTION;
     }

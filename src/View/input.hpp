@@ -21,7 +21,7 @@ class Input {
 public:
     static KeyboardAction getKeyboardInput();
     static void start();
-    static void stop(){endwin();}
+    static void stop();
 };
 
 #endif
