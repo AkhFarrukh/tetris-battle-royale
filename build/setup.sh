@@ -48,7 +48,7 @@ else
 fi
 
 # Step 2: Install SQLite3
-if [ ! -f "$LIB_DIR/libsqlite3.so" ] && [ ! -f "$LIB_DIR/libsqlite3.a" ]; then
+if [ ! -d "$LIB_DIR/sqlite-install" ]; then
   echo "=== Installing SQLite3 locally ==="
 
   wget -q -P "$LIB_DIR" "https://www.sqlite.org/$SQLITE_YEAR/sqlite-autoconf-$SQLITE_VERSION.tar.gz"
@@ -60,9 +60,6 @@ if [ ! -f "$LIB_DIR/libsqlite3.so" ] && [ ! -f "$LIB_DIR/libsqlite3.a" ]; then
   make -j$(nproc)
   make install
 
-  # Copy to main lib directory
-  cp "$LIB_DIR/sqlite-install/lib/libsqlite3.so" "$LIB_DIR/"
-  cp "$LIB_DIR/sqlite-install/include/sqlite3.h" "$INCLUDE_DIR/"
   echo "SQLite3 installed locally at $LIB_DIR/sqlite-install"
   cd "$PROJECT_ROOT"
 else
@@ -72,14 +69,13 @@ fi
 echo "=== All dependencies installed successfully ==="
 
 # Set environment variables for compilation
-export LD_LIBRARY_PATH="$LIB_DIR:$NCURSES_INSTALL_DIR/lib:$LD_LIBRARY_PATH"
-export CXXFLAGS="-I$NCURSES_INSTALL_DIR/include -I$INCLUDE_DIR $CXXFLAGS"
-export LDFLAGS="-L$NCURSES_INSTALL_DIR/lib -L$LIB_DIR $LDFLAGS"
+export LD_LIBRARY_PATH="$LIB_DIR:$NCURSES_INSTALL_DIR/lib:$LIB_DIR/sqlite-install/lib:$LD_LIBRARY_PATH"
+export CXXFLAGS="-I$NCURSES_INSTALL_DIR/include -I$LIB_DIR/sqlite-install/include -I$INCLUDE_DIR $CXXFLAGS"
+export LDFLAGS="-L$NCURSES_INSTALL_DIR/lib -L$LIB_DIR/sqlite-install/lib -L$LIB_DIR $LDFLAGS"
 
 # Step 3: Build the project using the Makefile
 echo "=== Building the project ==="
 cd "$PROJECT_ROOT/build"
-#make clean
 make all
 
 echo "=== Build complete ==="
@@ -88,4 +84,4 @@ echo "To run the client: ../tetris.exe"
 echo "To run the server: ../server.exe"
 echo ""
 echo "Note: When running manually, make sure to set the environment variables:"
-echo "export LD_LIBRARY_PATH=\"$LIB_DIR:$NCURSES_INSTALL_DIR/lib:\$LD_LIBRARY_PATH\""
+echo "export LD_LIBRARY_PATH=\"$LIB_DIR:$NCURSES_INSTALL_DIR/lib:$LIB_DIR/sqlite-install/lib:\$LD_LIBRARY_PATH\""
