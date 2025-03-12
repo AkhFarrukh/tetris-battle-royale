@@ -191,7 +191,7 @@ void Game::checkGameOver() {
             aliveCount++;
         }
     }
-    if (aliveCount <= 1) {
+    if (aliveCount < 1) {
         stop();
     }
 }
@@ -254,10 +254,22 @@ void Game::broadcastGame() {
         int h = 20;
         nd.grid.resize(w * h);
 
+        //4 blocks 
+        
         for (int row = 0; row < h; row++) {
             for (int col = 0; col < w; col++) {
                 Color c = ps.grid->getBlockColor(col, row);
-                nd.grid[row * w + col] = c;
+
+                if (!ps.isGameOver) {
+                    for (auto& figureBlock : ps.activeFigure->getBlocksRealPositions()) {
+                      if (figureBlock.getX() == col && figureBlock.getY() == row) {
+                        c = ps.activeFigure->getMovingFigureBlockColor(Coordinates(figureBlock.getX(), figureBlock.getY()));
+                        break;
+                      }
+                    }
+                  }
+              
+                  nd.grid[row * GRID_WIDTH + col] = c;
             }
         }
         netArray.push_back(std::move(nd));
