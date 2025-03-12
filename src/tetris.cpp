@@ -64,7 +64,7 @@ int main() {
             */
             //Ask to start a game
             int type = MessageType::T_Menu;
-            int size = sizeof(Menu);
+            int size = sizeof(InputMessage);
             //Defining the struct we will send  
             Menu menu;
             menu.action = MenuActions::A_Play;
@@ -107,7 +107,7 @@ int main() {
             */
             void* ret;
             /* TEMPORARY, TO TEST WITHOUT MANAGING INPUT HANDLING */
-            pthread_join(threadID, &ret);
+            //pthread_join(threadID, &ret);
             Player::sendInput(threadData);
         }
     }

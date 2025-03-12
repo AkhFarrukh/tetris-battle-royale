@@ -77,9 +77,16 @@ void* Player::threadRoutineView (void* arg){
  * @return int 
  */
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
-  printf("looofff\n");
     while(threadData->userInGame){
+        KeyboardAction currentAction = Input::getKeyboardInput();
+        if(currentAction != KeyboardAction::NO_ACTION){
+        int type = MessageType::T_Input;
+        int size = sizeof(Menu);
+        InputMessage inputMessage;
+        inputMessage.input = currentAction;
 
+
+        }
         
     }
     
