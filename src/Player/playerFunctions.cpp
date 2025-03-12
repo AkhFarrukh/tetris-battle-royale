@@ -84,8 +84,9 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
         int size = sizeof(Menu);
         InputMessage inputMessage;
         inputMessage.input = currentAction;
-
-
+        int bytesSent = send (threadData->socket, &type, sizeof(int), 0);
+        bytesSent = send (threadData->socket, &size, sizeof(int), 0);
+        sendAll(threadData->socket, &inputMessage, sizeof(Menu));
         }
         
     }
