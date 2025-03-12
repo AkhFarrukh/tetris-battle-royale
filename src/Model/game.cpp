@@ -114,7 +114,11 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
     Action a = moveEvt->getEventData();
     if (a == Action::ESCAPE) {
         players[p].isGameOver = true;
-
+        int type = MessageType::T_Exit;
+        int size = sizeof(struct Input);
+        send(sock, &type, sizeof(int), 0);
+        send(sock, &size, sizeof(int), 0);
+        send(sock, &messageOfTypeInput, sizeof(Input), 0);
         checkGameOver();
         return;
     }

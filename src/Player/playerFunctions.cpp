@@ -39,7 +39,7 @@ void* Player::threadRoutineView (void* arg){
             perror("Client disconnected : ");
             threadData->userInGame = false; // Stop the loop
         }
-        else if(type == MessageType::A_Exit){
+        else if(type == MessageType::T_Exit){
             threadData->userInGame = false;
         }
         else if(type == MessageType::T_PlayerData){

@@ -64,7 +64,7 @@ int main() {
             */
             //Ask to start a game
             int type = MessageType::T_Menu;
-            int size = sizeof(InputMessage);
+            int size = sizeof(Menu);
             //Defining the struct we will send  
             Menu menu;
             menu.action = MenuActions::A_Play;
