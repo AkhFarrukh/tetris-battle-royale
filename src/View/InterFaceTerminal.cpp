@@ -1,5 +1,5 @@
 #include "InterFaceTerminal.hpp"
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <locale.h>  // Needed for wide characters (if printing Unicode blocks)
 
 
