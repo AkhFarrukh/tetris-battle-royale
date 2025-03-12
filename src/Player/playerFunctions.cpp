@@ -80,13 +80,14 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
     while(threadData->userInGame){
         KeyboardAction currentAction = Input::getKeyboardInput();
         if(currentAction != KeyboardAction::NO_ACTION){
-        int type = MessageType::T_Input;
-        int size = sizeof(Menu);
-        InputMessage inputMessage;
-        inputMessage.input = currentAction;
-        int bytesSent = send (threadData->socket, &type, sizeof(int), 0);
-        bytesSent = send (threadData->socket, &size, sizeof(int), 0);
-        sendAll(threadData->socket, &inputMessage, sizeof(Menu));
+            if(currentAction == KeyboardAction::EXIT_KEY)threadData->userInGame = false;
+            int type = MessageType::T_Input;
+            int size = sizeof(Menu);
+            InputMessage inputMessage;
+            inputMessage.input = currentAction;
+            int bytesSent = send (threadData->socket, &type, sizeof(int), 0);
+            bytesSent = send (threadData->socket, &size, sizeof(int), 0);
+            sendAll(threadData->socket, &inputMessage, sizeof(Menu));
         }
         
     }
