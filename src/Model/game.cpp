@@ -263,18 +263,23 @@ void Game::broadcastGame() {
             for (int col = 0; col < w; col++) {
                 Color c = ps.grid->getBlockColor(col, row);
 
-                if (!ps.isGameOver) {
-                    for (auto& figureBlock : ps.activeFigure->getBlocksRealPositions()) {
-                      if (figureBlock.getX() == col && figureBlock.getY() == row) {
-                        c = ps.activeFigure->getMovingFigureBlockColor(Coordinates(figureBlock.getX(), figureBlock.getY()));
-                        break;
-                      }
-                    }
-                  }
-              
-                  nd.grid[row * GRID_WIDTH + col] = c;
+                //if (!ps.isGameOver) {
+                //    for (auto& figureBlock : ps.activeFigure->getBlocksRealPositions()) {
+                //        if (figureBlock.getX() == col && figureBlock.getY() == row) {
+                //            c = ps.activeFigure->getMovingFigureBlockColor(Coordinates(figureBlock.getX(), figureBlock.getY()));
+                //            break;
+                //        }
+                //    }
+                //}
+                nd.grid[row * GRID_WIDTH + col] = c;
             }
         }
+        if (!ps.isGameOver) {
+            for (auto& figureBlock : ps.activeFigure->getBlocksRealPositions()) {
+                nd.grid[figureBlock.getY() * GRID_WIDTH + figureBlock.getX()] = figureBlock.getColour();
+            }
+        }
+        
         netArray.push_back(std::move(nd));
     }
 
