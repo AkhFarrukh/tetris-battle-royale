@@ -85,9 +85,9 @@ int main() {
             }
             //printf("sock 0 = %d\n", sock);
             //Sending info to server
-            int bytesSent = send (sock, &type, sizeof(int), 0);
+            int bytesSent = sendAll(sock, &type, sizeof(int));
             //printf("bytes envoyés = %d \n", bytesSent);
-            bytesSent = send (sock, &size, sizeof(int), 0);
+            bytesSent = sendAll(sock, &size, sizeof(int));
             //printf("bytes envoyés = %d \n", bytesSent);
             sendAll(sock, &menu, sizeof(Menu));
             /*
@@ -95,7 +95,8 @@ int main() {
             */
             pthread_t threadID;
             std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
-            threadData->socket = sock;
+            threadData->userInGame = true;
+	    threadData->socket = sock;
 
             if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
                 perror("Error on thread creation : ");

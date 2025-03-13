@@ -24,7 +24,7 @@
 #include "game.hpp"
 #include "playerData.hpp"
 #include "ServerData.hpp"
-
+#include <algorithm>
 
 class Server{
     private:

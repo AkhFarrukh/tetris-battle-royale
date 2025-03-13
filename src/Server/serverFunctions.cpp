@@ -115,8 +115,8 @@ void* Server::threadRoutineClient(void* arg){
             
 
             //Sending info to server
-            int bytesReceivedType = recv (client.client_fd, &type, sizeof(int), 0);
-            int bytesReceivedSize = recv (client.client_fd, &size, sizeof(int), 0);
+            int bytesReceivedType = recvAll(client.client_fd, &type, sizeof(int));
+            int bytesReceivedSize = recvAll(client.client_fd, &size, sizeof(int));
             std::cout << "fdp ma lumiere : " << type << std::endl;
             std::cout << "fdp ma lumiere : " << size << std::endl;
 
