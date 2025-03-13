@@ -21,7 +21,7 @@ protected:
 public:
     Mode(int numPlayers);
     virtual ~Mode(); // Destructeur virtuel pour assurer la bonne destruction des objets dérivés
-    virtual void setPlayers(int num) = 0; //Virtuel oblige les modes à implémenter à leur façon.
+    virtual void setPlayers(int num) = 0;
     virtual int getPlayers() = 0;
     virtual void applyRules(Grid& grid, int linesCleared) = 0;
 };
