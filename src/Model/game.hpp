@@ -50,7 +50,7 @@ private:
     bool isRunning;
     shared_ptr<GameController> gameController;
     string gameMode;
-    //Mode mode;
+    shared_ptr<Mode>  mode;
 
 
 
