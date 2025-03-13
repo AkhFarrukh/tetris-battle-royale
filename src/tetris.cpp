@@ -85,9 +85,9 @@ int main() {
             }
             //printf("sock 0 = %d\n", sock);
             //Sending info to server
-            int bytesSent = sendAll(sock, &type, sizeof(int));
+            int bytesSentType = sendAll(sock, &type, sizeof(int));
             //printf("bytes envoyés = %d \n", bytesSent);
-            bytesSent = sendAll(sock, &size, sizeof(int));
+            int bytesSentSize = sendAll(sock, &size, sizeof(int));
             //printf("bytes envoyés = %d \n", bytesSent);
             sendAll(sock, &menu, sizeof(Menu));
             /*

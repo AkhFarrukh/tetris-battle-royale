@@ -17,6 +17,8 @@ enum class Color;
 
 struct PlayerState {
 
+    int                              playerId;
+
     std::shared_ptr<Grid>            grid;
     std::shared_ptr<MovingFigure>    activeFigure;
     Mouvement                        movement;
@@ -24,7 +26,6 @@ struct PlayerState {
     std::shared_ptr<Figure>          nextTetromino;
     std::shared_ptr<EventQueue> eventQueue;
 
-    int                              playerId;
     bool                             isGameOver = false;
     int                              fd;
     bool                             isInGame = true;

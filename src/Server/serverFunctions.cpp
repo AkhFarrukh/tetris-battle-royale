@@ -4,7 +4,7 @@
  * TODO: COMMENTS TO BE ADDED BY THOSE WHO WROTE THIS FUNCTION/METHOD. STP
  */
 void Server::broadcastMessage(const std::string& message, int sender_fd) {
-    for (const auto client : clients) {
+    for (const auto& client : clients) {
         if (client.client_fd != sender_fd) {
             send(client.client_fd, message.c_str(), message.length(), 0);
         }
@@ -101,7 +101,6 @@ void* Server::threadRoutineClient(void* arg){
         
         // Keep looking for any message sent by the user to the server
         // Using bool "UserIsOnline" for better readability of while loop
-        char buffer[1024] = {0};
         bool userIsOnline = true;
 
 

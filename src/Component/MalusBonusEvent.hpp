@@ -6,8 +6,9 @@
 
 class MalusBonusEvent : public Event {
     private:
-        int target;
         MalusBonus malusBonus;
+        int target;
+        
     public:
         MalusBonusEvent(MalusBonus malBon, int target)
           : malusBonus(malBon), target(target)

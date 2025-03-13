@@ -24,7 +24,6 @@ void* Player::threadRoutineView (void* arg){
         //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
         //To have info on the data received
         int type;
-        size_t vectorNPDsize;
         int size;
         //Sending info to server
         /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
@@ -79,7 +78,7 @@ void* Player::threadRoutineView (void* arg){
             }
         }
     }
-
+return 0;
 }
 
 /**

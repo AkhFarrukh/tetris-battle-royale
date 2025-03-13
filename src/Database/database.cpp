@@ -42,7 +42,7 @@ Database::~Database(){
  * @param statement: a statement to prepare
  */
 void Database::prepareStatement(const char* statement){
-    int returnCode = sqlite3_prepare_v2(db, statement, strlen(statement), &stmt, nullptr);
+    int returnCode = sqlite3_prepare_v2(db, statement, static_cast<int>(strlen(statement)), &stmt, nullptr);
     if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR PREPARING STATEMENT!");
 
 }
@@ -54,7 +54,7 @@ void Database::prepareStatement(const char* statement){
  * @param index: a column index (starting from 1 (not zero!) from the most left)
  */
 void Database::bindText(const char* value, int index){
-    int returnCode = sqlite3_bind_text(stmt, index, value, strlen(value), SQLITE_STATIC);
+    int returnCode = sqlite3_bind_text(stmt, index, value, static_cast<int>(strlen(value)), SQLITE_STATIC);
     if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR BINDING VALUE!");
 }
 

@@ -40,7 +40,7 @@ int main () {
     size_t addressLen = sizeof(address);
 
     //Bind socket to addr & port
-    if (bind (server_fd, (struct sockaddr *)&address, addressLen) <= -1){
+    if (bind (server_fd, (struct sockaddr *)&address, static_cast<socklen_t>(addressLen)) <= -1){
         perror("Couldn't bind socket to address : ");
         return 1;
     }

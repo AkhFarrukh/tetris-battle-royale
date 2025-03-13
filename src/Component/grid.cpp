@@ -164,7 +164,7 @@ void Grid::malusLines(int numLines) {
             //todo "Perdu"
         }
         for (line; line > heightAfterAddingLines; --line) {
-            srand(time(nullptr));  // Initialisation avec l'heure actuelle
+            srand(static_cast<uint>(time(nullptr)));  // Initialisation avec l'heure actuelle
             int indiceCaseVide = rand() % GRID_WIDTH;   //Selection au hasard de la case qui sera vide
             for (int row=0; row < GRID_WIDTH; row++){
                 if (row != indiceCaseVide) {

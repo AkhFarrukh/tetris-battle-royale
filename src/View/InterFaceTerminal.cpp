@@ -135,7 +135,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                }
                break;
            case KEY_DOWN: // descendre
-               if (selectedMode < std::size(modeNames) - 1) {
+               if (selectedMode < static_cast<int>(std::size(modeNames)) - 1) {
                    selectedMode++;
                }
                break;

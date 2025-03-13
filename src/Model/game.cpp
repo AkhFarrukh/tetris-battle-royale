@@ -348,7 +348,7 @@ void Game::broadcastGame() {
             continue;
         }
 
-        int size = netArray.size();
+        int size = static_cast<int>(netArray.size());
         if (!sendAll(sock, &size, sizeof(size))) {
             continue;
         }
@@ -359,7 +359,7 @@ void Game::broadcastGame() {
             sendAll(sock, &player.linesCleared, sizeof(player.linesCleared));
             sendAll(sock, &player.score, sizeof(player.score));
         
-            int gridSize = player.grid.size();
+            int gridSize = static_cast<int>(player.grid.size());
             sendAll(sock, &gridSize, sizeof(gridSize));
             sendAll(sock, player.grid.data(), gridSize * sizeof(Color));
         }

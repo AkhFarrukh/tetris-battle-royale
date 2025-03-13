@@ -66,7 +66,7 @@ void RenderEngineNcurses::renderGame(const NetPlayerData& player, Coordinates of
             int index = y * GRID_WIDTH + x;// Convert 2D coordinates to 1D index
 
             // Check if the index is within bounds
-            if (index < player.grid.size()) {
+            if (index < static_cast<int>(player.grid.size())) {
                 blockColor = player.grid[index];
             }
 
@@ -105,7 +105,7 @@ void RenderEngineNcurses::renderGame(shared_ptr<NetPlayerData> player, Coordinat
             int index = y * GRID_WIDTH + x;// Convert 2D coordinates to 1D index
 
             // Check if the index is within bounds
-            if (index < player->grid.size()) {
+            if (index < static_cast<int>(player->grid.size())) {
                 blockColor = player->grid[index];
             }
 
