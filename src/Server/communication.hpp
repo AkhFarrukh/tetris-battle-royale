@@ -32,6 +32,7 @@ enum MenuActions{
     A_CreateRoom,
     A_JoinRoom,
     A_Chat,
+    A_ForceStart
 };
 
 struct Menu{

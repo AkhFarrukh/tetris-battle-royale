@@ -27,6 +27,8 @@ struct PlayerState {
     int                              playerId;
     bool                             isGameOver = false;
     int                              fd;
+    bool                             isInGame = true;
+    MalusBonus                       malusBonus;
 
     PlayerState(int pid)
         : playerId(pid),

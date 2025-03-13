@@ -25,7 +25,8 @@ void RenderEngineNcurses::renderGames(const vector<shared_ptr<NetPlayerData>>& p
 
 
         renderGame(players[i], offset);
-        offset.x += GRID_WIDTH * 2 + 3; // Adjust offset for next game
+        //offset.x += GRID_WIDTH * 2 + 3; // Adjust offset for next game
+        offset.x += (GRID_WIDTH + 1) * 2;
     }
     refresh();
 }
@@ -83,6 +84,13 @@ void RenderEngineNcurses::renderGame(const NetPlayerData& player, Coordinates of
     mvprintw(offset.y + GRID_HEIGHT + 3, offset.x, "+--------------------+");
     refresh();
 }
+
+// // une mileur implimentation pour la deuxieme rederGame quand shared_ptr<NetPlayerData>
+//void RenderEngineNcurses::renderGame(shared_ptr<NetPlayerData> player, Coordinates offset) {
+//    if (player) {
+//        renderGame(*player, offset);
+//    }
+//}
 
 void RenderEngineNcurses::renderGame(shared_ptr<NetPlayerData> player, Coordinates offset) {
     std::cout<<"Starting to render 1 player game in renderGame"<<std::endl;
@@ -142,12 +150,15 @@ int RenderEngineNcurses::applyColor(Color blockColor) {
 
  if (pairIndex != 0) {
      attron(COLOR_PAIR(pairIndex));
- }
+ }else{
+    attroff(A_BOLD);
+  }
  return pairIndex;
 }
 
 
 void RenderEngineNcurses::printGameOver() {
+    //faut mieux calculer la place exact avec les resultat de getmaxyx(), pcq la 24 ne convient pas tt les terminals
     mvprintw(24, 0, "Game Over");
     refresh();
 }

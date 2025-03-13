@@ -51,9 +51,11 @@ void Game::run() {
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
 
+
         if (elapsedTimeDropEvent > std::chrono::milliseconds(500)) {
             for (int p = 0; p < (int)players.size(); p++) {
-                if (!players[p].isGameOver) {
+                if (!players[p].isGameOver /* and !players[p].slowed*/) {
+                    //if (players[p].blackout != 0){players[p].blackout--;}
                     bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
                     if (!canDrop) {
                         placePieceOnBoard(p);
@@ -62,7 +64,19 @@ void Game::run() {
             }
             chronoDropEvent = now;
         }
-
+        /*
+        if (elapsedTimeDropEvent > std::chrono::milliseconds(250)) {
+            for (int p = 0; p < (int)players.size(); p++) {
+                if (!players[p].isGameOver and players[p].slowed) {
+                    bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                    if (!canDrop) {
+                        placePieceOnBoard(p);
+                    }
+                }
+            }
+            chronoDropEvent = now;
+        }
+        */
         updateGame();
         //cout<<"Updated game"<<endl;
         broadcastGame();
@@ -91,7 +105,13 @@ void Game::updateGame() {
         while (true) {
             auto evt = players[p].eventQueue->getEvent();
             if (!evt) break; // no more events
-            handleMovementActionEvent(p, evt);
+            //if event malus 
+                //handlemalus(event)
+            if (players[p].malusBonus != MalusBonus::BLOCKED){
+                
+                handleMovementActionEvent(p, evt);
+            }
+            
         }
     }
 }
@@ -114,11 +134,11 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
     Action a = moveEvt->getEventData();
     if (a == Action::ESCAPE) {
         players[p].isGameOver = true;
+        players[p].isInGame = false;
         int type = MessageType::T_Exit;
-        int size = sizeof(struct Input);
-        send(sock, &type, sizeof(int), 0);
-        send(sock, &size, sizeof(int), 0);
-        send(sock, &messageOfTypeInput, sizeof(Input), 0);
+        int size = sizeof(MessageType);
+        sendAll(players[p].fd, &type, sizeof(int));
+        sendAll(players[p].fd, &size, sizeof(int));
         checkGameOver();
         return;
     }
@@ -127,6 +147,25 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
         placePieceOnBoard(p);
     }
 }
+/*
+void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int player) {
+    auto moveEvt = std::dynamic_pointer_cast<MalusBonusEvent>(e);
+    if (!moveEvt) return;
+
+    MalusBonus bm = moveEvt->getMalusBonus();
+    if (bm == MalusBonus::){
+        //if bonus
+        //players[p].slowed = true;``
+
+        //if malus
+        //int target = moveEvt->getTarget();
+        //players[target].blocked = true;
+
+
+    }
+
+}
+*/
 
 
 
@@ -181,6 +220,14 @@ void Game::placePieceOnBoard(int p) {
 
 
 void Game::stop() {
+    for (auto &ps : players) {
+        if (ps.isInGame) {
+            int type = MessageType::T_Exit;
+            int size = sizeof(MessageType);
+            sendAll(ps.fd, &type, sizeof(int));
+            sendAll(ps.fd, &size, sizeof(int));
+        }
+    }
     isRunning = false;
 }
 
@@ -268,6 +315,8 @@ void Game::broadcastGame() {
         
         for (int row = 0; row < h; row++) {
             for (int col = 0; col < w; col++) {
+
+
                 Color c = ps.grid->getBlockColor(col, row);
 
                 //if (!ps.isGameOver) {

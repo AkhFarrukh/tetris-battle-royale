@@ -19,6 +19,7 @@
 #include "ServerData.hpp"
 #include "playerData.hpp"
 #include "communication.hpp"
+#include "MalusBonusEvent.hpp"
 
 using namespace std;
 
@@ -55,6 +56,7 @@ private:
     void updateGame();
 
     void handleMovementActionEvent(int p, std::shared_ptr<Event> e);
+    void handleMalusBonusEvent(std::shared_ptr<Event> e, int p);
 
     void renderGame();
     int  applyColor(Color blockColor);

@@ -21,7 +21,8 @@ void Server::broadcastMessage(const std::string& message, int sender_fd) {
  * @param addressLen Address length
  * @return return -1 in case of error else return 0
  */
-int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen) {
+int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen, std::shared_ptr<std::vector<std::shared_ptr<Room>>> rooms){
+    roomsList = rooms;
     while (true) {
 
         // Mutex
@@ -53,6 +54,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         if(pthread_create(&threadID, nullptr, threadRoutineClient, threadData.get()) < 0){
             perror("Error on thread creation : ");
             close(client_fd);
+            clients.pop_back();
             return -1;
         }
         
@@ -109,13 +111,13 @@ void* Server::threadRoutineClient(void* arg){
             //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
 
             //To have info on the data received
-            int type;
-            int size;
+            int type = {0};
+            int size = {0};
             
 
             //Sending info to server
-            int bytesReceivedType = recv (client.client_fd, &type, sizeof(int), 0);
-            int bytesReceivedSize = recv (client.client_fd, &size, sizeof(int), 0);
+            int bytesReceivedType = recvAll(client.client_fd, &type, sizeof(int));
+            int bytesReceivedSize = recvAll(client.client_fd, &size, sizeof(int));
             std::cout << "fdp ma lumiere : " << type << std::endl;
             std::cout << "fdp ma lumiere : " << size << std::endl;
 
@@ -124,6 +126,14 @@ void* Server::threadRoutineClient(void* arg){
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 server->udbm.removeSession(client.userId);
                 close(client.client_fd);
+                
+                auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                                       [&client](const ClientSession& c) { 
+                                       return c.client_fd == client.client_fd; 
+                                       });
+                if (it != server->clients.end()) {
+                    server->clients.erase(it);
+                }
                 userIsOnline = false; // Stop the loop
             }
             
@@ -158,16 +168,44 @@ void* Server::threadRoutineClient(void* arg){
                         });
                         gameThread.detach();
                     }
-                    else if (menu.mode == Modes::Classic) {
-                        std::cout << "Client wants Classic mode\n";
-                        // ...
-                    }
-                    else {
-                        std::cout << "Unknown game mode: " << menu.mode << "\n";
-                    }
                 }
-                
+                if (menu.action == MenuActions::A_CreateRoom) {
+                    auto r = std::make_shared<Room>(client.client_fd, menu.mode);
+                    server->roomsList->push_back(r);
+                    server->myRoom = r;
+                    std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
+
+                } else if (menu.action == MenuActions::A_JoinRoom) {
+                    int nbRooms = (int)server->roomsList->size();
+                    sendAll(client.client_fd, &nbRooms, sizeof(nbRooms));
+
+                    for (int i = 0; i < nbRooms; i++) {
+                        int count = server->roomsList->at(i)->getPlayerCount();
+                        sendAll(client.client_fd, &count, sizeof(count));
+                    }
+
+                    int chosenIndex;
+                    if (!recvAll(client.client_fd, &chosenIndex, sizeof(chosenIndex))) {
+                        std::cout << "Disconnected while picking room\n";
+                        close(client.client_fd);
+                        userIsOnline = false;
+                        break;
+                    }
+
+                    if (chosenIndex >= 0 && chosenIndex < nbRooms) {
+                        auto chosenRoom = server->roomsList->at(chosenIndex);
+                        if (!chosenRoom->addPlayer(client.client_fd)) {
+                            std::cout << "Failed to join room\n";
+                        } else {
+                            std::cout << "Client joined room index " << chosenIndex << std::endl;
+                        }
+                    }
+                } else if (menu.action == MenuActions::A_ForceStart) {
+                    server->myRoom->forceStart();
+                }
             }
+                
+            
             else if (type == MessageType::T_Input) {
                 KeyboardAction action;
 

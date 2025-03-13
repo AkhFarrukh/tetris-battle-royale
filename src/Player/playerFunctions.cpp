@@ -28,19 +28,21 @@ void* Player::threadRoutineView (void* arg){
         int size;
         //Sending info to server
         /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
-        threadData->mux.lock();
-        int bytesReceivedType = recv (sock, &type, sizeof(int), 0);
-        int bytesReceivedSize = recv (sock, &size, sizeof(int), 0);
-        threadData->mux.unlock();
+        int bytesReceivedType = recvAll(sock, &type, sizeof(int));
+        int bytesReceivedSize = recvAll(sock, &size, sizeof(int));
         //recv (sock, &size, sizeof(int), 0);
         //std::cout<<"Received a message in threadRoutineView"<<std::endl;
         //Client disconnected or error
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
             perror("Client disconnected : ");
+            threadData->mux.lock();
             threadData->userInGame = false; // Stop the loop
+            threadData->mux.unlock();
         }
         else if(type == MessageType::T_Exit){
+            threadData->mux.lock();
             threadData->userInGame = false;
+            threadData->mux.unlock();
         }
         else if(type == MessageType::T_PlayerData){
             vector<NetPlayerData> playersData;
@@ -67,7 +69,9 @@ void* Player::threadRoutineView (void* arg){
                 playersData.push_back(player);
             }            
             if (playersData.size() <= 1){
+                threadData->displayMut.lock();
                 render.renderGames(playersData);
+                threadData->displayMut.unlock();
                 //std::cout<<"Rendered games"<<std::endl;
             }
             else {
@@ -87,15 +91,14 @@ void* Player::threadRoutineView (void* arg){
 
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
     while (true) {
-        threadData->mux.lock();
         bool keepRunning = threadData->userInGame;
-        threadData->mux.unlock();
 
         if (!keepRunning) {
-		break;
-	}
-
+            break;
+        }
+        threadData->displayMut.lock();
         KeyboardAction currentAction = Input::getKeyboardInput();
+        threadData->displayMut.unlock();
         if(currentAction != KeyboardAction::NO_ACTION){
             if(currentAction == KeyboardAction::EXIT_KEY) {
                 threadData->mux.lock();
@@ -106,11 +109,9 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
             int size = sizeof(InputMessage);
             InputMessage inputMessage;
             inputMessage.input = currentAction;
-            threadData->mux.lock();
-	        send(threadData->socket, &type, sizeof(int), 0);
-            send(threadData->socket, &size, sizeof(int), 0);
+	        sendAll(threadData->socket, &type, sizeof(int));
+            sendAll(threadData->socket, &size, sizeof(int));
             sendAll(threadData->socket, &inputMessage, sizeof(InputMessage));
-            threadData->mux.unlock();
         }
     }
     return 0;

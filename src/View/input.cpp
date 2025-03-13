@@ -12,6 +12,9 @@ void Input::start() {
     keypad(stdscr, TRUE);  // Enable special keys like arrow keys
 }
 
+void Input::stop() {
+    endwin();
+}
 
 
 /**
