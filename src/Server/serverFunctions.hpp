@@ -25,6 +25,7 @@
 #include "playerData.hpp"
 #include "ServerData.hpp"
 #include "room.hpp"
+#include <algorithm>
 
 
 class Server{
