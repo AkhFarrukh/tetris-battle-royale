@@ -22,7 +22,7 @@ public:
     FigureGenerator();
 
     // Working function
-    Figure randomFigure();
+    Figure randomFigure(bool isBonusCube);
 };
 
 
