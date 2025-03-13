@@ -13,7 +13,7 @@ void GameController::getAction(KeyboardAction in) {
     Action action = Action::NONE;
     if(not controlsBlocked){
       if (not controlsInverted){
-        switch (keyboardAction) {
+        switch (in) {
         	case KeyboardAction::LEFT_DIRECTION_KEY:
             	action = Action::MOVE_LEFT;
             	break;
@@ -41,7 +41,7 @@ void GameController::getAction(KeyboardAction in) {
         }
       }
       else{  //Si les commandes se font inverser par un malus
-      	switch (keyboardAction) {
+      	switch (in) {
         	case KeyboardAction::LEFT_DIRECTION_KEY:
             	action = Action::MOVE_RIGHT;
             	break;

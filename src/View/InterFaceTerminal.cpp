@@ -420,21 +420,22 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
 
 
 void InterfaceTerminal::displayFriendOptions(int selectedOption) {
-    erase();
-    printw("Choose an action to do with :\n\n");
-    int numberFriendsOptionsPossible = 5; //friendsOptions;   // taille du tableau contenant les modes de jeu
-
-    for (int i = 0; i < numberFriendsOptionsPossible; ++i) {
-        if (i == selectedOption) {
-            printw("-> %d. %s", i + 1, friendsOptions[i]);
-        } else {
-            printw("   %d. %s", i + 1, friendsOptions[i]);
-        }
-        printw("\n");
-    }
-    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    if(!(user==""))printw("Press 't' to open the message box\n");
-    refresh();
+    /* LA METHODE EST DEFAILLANTE */
+    //erase();
+    //printw("Choose an action to do with :\n\n");
+    //int numberFriendsOptionsPossible = 5;   // taille du tableau contenant les modes de jeu
+//
+    //for (int i = 0; i < numberFriendsOptionsPossible; ++i) {
+    //    if (i == selectedOption) {
+    //        printw("-> %d. %s", i + 1, friendsOptions[i]);
+    //    } else {
+    //        printw("   %d. %s", i + 1, friendsOptions[i]);
+    //    }
+    //    printw("\n");
+    //}
+    //printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
+    //if(!(user==""))printw("Press 't' to open the message box\n");
+    //refresh();
 }
 
 void InterfaceTerminal::enterName(){

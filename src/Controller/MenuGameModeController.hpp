@@ -23,5 +23,3 @@ public:
 
 
 #endif //MENUGAMEMODECONTROLLER_HPP
-
-*/
