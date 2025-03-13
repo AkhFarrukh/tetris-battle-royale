@@ -139,7 +139,7 @@ int main() {
            break;
         }
         terminal.setSock(sock);
-        /********************************************************************************************************* */
+        /**************************************CRASH AFTER******************************************************************* */
         //Getting the selected menu in terminal
         int selectedMode = terminal.start();
         if (selectedMode == -1){

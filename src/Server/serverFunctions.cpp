@@ -127,9 +127,9 @@ void* Server::threadRoutineClient(void* arg){
     GameController gameController(eventQueue);
     Server* server = threadData->serverInstance;
     ClientSession client = threadData->client;
-
+    std::cout<< "Initialised and got the args" << std::endl;
     // Check if both username and password are correct or not.
-   bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(),
+    bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(),
                                                        client.password.c_str());
     if (successfulLogin){
         // Get user ID and insert user into sessions table
