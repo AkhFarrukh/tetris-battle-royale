@@ -91,4 +91,87 @@ void RoyalCompetition::applyRules(Grid& grid, int linesCleared) {
     std::cout << "Royal Competition mode: energy gained = " << energy << "\n";
 }
 
-//todo ajouter les différents malus et bonus propre au mode Royal competition
+/**
+ * @brief Inverse les commandes d'un adversaire. (malus)
+ */
+
+//
+void RoyalCompetition::malusReverseControls(PlayerState& player){
+  	player.countTetriminoGenerated = 1;
+    player.inverted = true;
+    while(player.countTetriminoGenerated <= 3){}
+    player.inverted = false;
+}
+/**
+ * @brief Bloque les commandes d'un adversaire. (malus)
+ */
+void RoyalCompetition::malusFreezeControls(PlayerState& player){
+  	player.countTetriminoGenerated = 1;
+    player.blocked = true;
+    while(player.countTetriminoGenerated <= 1){}
+    player.blocked = false;
+}
+
+/**
+ * @brief Va ralentir notre prochaine chute. (bonus)
+ */
+void RoyalCompetition::bonusReduceFallSpeed(PlayerState& player){
+  player.countTetriminoGenerated = 1;
+  player.slowed = true;
+  while(player.countTetriminoGenerated <= 1){}
+  player.slowed = false;
+}
+
+/**
+ * @brief Va accelerer la chute chez l'adversaire séléctionné. (malus)
+ */
+void RoyalCompetition::malusIncreaseFallSpeed(PlayerState& player){
+  player.countTetriminoGenerated = 1;
+  player.sped_up = true;
+  while(player.countTetriminoGenerated <= 1){}
+  player.sped_up = false;
+
+}
+/**
+ * @brief Va faire tomber la foudre sur un adversaire séléctionner, ce qui aura
+ * pour effet de detruire une zone 2X2 de block.(Malus)
+ */
+void RoyalCompetition::malusThunder(PlayerState& player) {
+
+  int GRID_HEIGHT = 20;
+  int GRID_WIDTH = 10;
+  srand(time(nullptr));
+  int columnTargeted = rand() % GRID_WIDTH; //Va choisir une colonne ou la foudre va s'abattre.
+  int thunderPositionLine = 0; //Commence tout en haut.
+  while (player.grid->isLocationFree({columnTargeted, thunderPositionLine})) { //Fait chuter la foudre(couleur blanche) et stop au lieu d'impact
+    if (thunderPositionLine + 1 == GRID_HEIGHT) {
+      break;
+    }
+    thunderPositionLine += 1;
+  }
+  player.slowed = true;
+  for (int i = 0; i <100; i++) {
+    player.grid->lightningBlock2X2(Coordinates(columnTargeted, thunderPositionLine));
+    player.grid->deleteBlock2X2(Coordinates(columnTargeted, thunderPositionLine));
+  }
+  player.slowed = false;
+
+}
+
+/**
+ * @brief Va aveugler l'adversaire pendant 5 secondes.(Malus)
+ */
+void RoyalCompetition::malusBlackOut(PlayerState& player) {
+  player.blackout = 10;
+}
+
+/**
+ * @brief Les 2 prochains Tetrimino seront des cubes 1X1.(bonus)
+ */
+void RoyalCompetition::bonusBlockCube(PlayerState& player) {
+  player.countTetriminoGenerated = 1;
+  player.isBonusCube = true;
+  while(player.countTetriminoGenerated <= 2){
+  }
+  player.isBonusCube = false;
+}
