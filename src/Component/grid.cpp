@@ -177,4 +177,66 @@ void Grid::malusLines(int numLines) {
     }
 }
 
+/**
+ * @brief Utiliser dans le mode Royal Competition.
+ *
+ * Sera utiliser pour le malus Thunder qui détruit un bloc 2X2.
+ *
+ */
+void Grid::lightningBlock2X2(Coordinates blocLocation) {
+    int x = blocLocation.x;
+    int y = blocLocation.y;
+    if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+        setBlock(Block(Color::white, 1, blocLocation));
+        if (x+1 < GRID_WIDTH) {
+            setBlock(Block(Color::white, 1, Coordinates(x+1, y)));
+            if (y + 1 < GRID_HEIGHT) {
+                setBlock(Block(Color::white, 1, Coordinates(x, y+1)));
+                setBlock(Block(Color::white, 1, Coordinates(x+1, y+1)));
+            }
+        }
+        else if (x-1 >= 0) {
+            setBlock(Block(Color::white, 1, Coordinates(x-1, y)));
+            if (y + 1 < GRID_HEIGHT) {
+                setBlock(Block(Color::white, 1, Coordinates(x, y+1)));
+                setBlock(Block(Color::white, 1, Coordinates(x-1, y+1)));
+            }
+        }
+    }
+}
+
+
+/**
+ * @brief Utiliser dans le mode Royal Competition.
+ *
+ * Sera utiliser pour le malus Thunder qui détruit un bloc 2X2.
+ *
+ */
+void Grid::deleteBlock2X2(Coordinates blocLocation) {
+    int x = blocLocation.x;
+    int y = blocLocation.y;
+    Block empty = Block(Color::nullcolor, 1, blocLocation);
+    empty.setEmpty(true); //todo peut etre devoir crée un block pour chaque lieu
+    if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+        setBlock(empty);
+        if (x+1 < GRID_WIDTH) {
+            empty.setPosition(Coordinates(x+1, y));
+            setBlock(empty);
+            if (y + 1 < GRID_HEIGHT) {
+                empty.setPosition(Coordinates(x, y+1));
+                setBlock(empty);
+                empty.setPosition(Coordinates(x+1, y+1));
+                setBlock(empty);
+            }
+        }
+        else if (x-1 >= 0) {
+            setBlock(Block(Color::nullcolor, 1, Coordinates(x-1, y)));
+            if (y + 1 < GRID_HEIGHT) {
+                setBlock(Block(Color::nullcolor, 1, Coordinates(x, y+1)));
+                setBlock(Block(Color::nullcolor, 1, Coordinates(x-1, y+1)));
+            }
+        }
+    }
+}
+
 
