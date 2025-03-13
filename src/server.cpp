@@ -20,7 +20,7 @@ UserDatabaseManager userdata;
 Database basedata("tetris.db");
 
 void handle_sigint(int sig) {
-    std::vector<ClientSession> clients = server.getClients();
+    std::vector<ClientSession> clients;// = server.getClients(); NEED IMPLEMENTATION
     for(const auto& client:clients){
     int user_id = basedata.getUserId(client.username.c_str());
     while(userdata.isLoggedIn(client.username.c_str())){

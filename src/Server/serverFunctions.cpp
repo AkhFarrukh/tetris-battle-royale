@@ -92,7 +92,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         
         // Create a thread for a user if the username and password is correct.
         pthread_t threadID;
-        if(pthread_create(&threadID, nullptr, threadRoutineClient, threadDataPtr) < 0){
+        if(pthread_create(&threadID, nullptr, threadRoutineClient, &threadData) < 0){
             perror("Error on thread creation : ");
             close(client_fd);
             clients.pop_back();
@@ -126,15 +126,15 @@ void* Server::threadRoutineClient(void* arg){
     ThreadGameData threadGameData;
     GameController gameController(eventQueue);
     Server* server = threadData->serverInstance;
-    std::shared_ptr<ClientSession> client = threadData->client;
+    ClientSession client = threadData->client;
 
     // Check if both username and password are correct or not.
-   bool successfulLogin = server->udbm.isCorrectLogin(client->username.c_str(),
-                                                       client->password.c_str());
+   bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(),
+                                                       client.password.c_str());
     if (successfulLogin){
         // Get user ID and insert user into sessions table
-        client->userId = server->udbm.getUserId(client->username.c_str());
-        server->udbm.addSession(client->userId, client->client_fd);
+        client.userId = server->udbm.getUserId(client.username.c_str());
+        server->udbm.addSession(client.userId, client.client_fd);
 
         //Unlock the mutex and notifies it outside the thread
         server->lockThread = true;

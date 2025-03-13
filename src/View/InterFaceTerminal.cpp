@@ -422,7 +422,7 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
 void InterfaceTerminal::displayFriendOptions(int selectedOption) {
     erase();
     printw("Choose an action to do with :\n\n");
-    int numberFriendsOptionsPossible = std::size(friendsOptions);   // taille du tableau contenant les modes de jeu
+    int numberFriendsOptionsPossible = 5; //friendsOptions;   // taille du tableau contenant les modes de jeu
 
     for (int i = 0; i < numberFriendsOptionsPossible; ++i) {
         if (i == selectedOption) {
