@@ -12,10 +12,10 @@ bool recvAll(int sock, void* buffer, size_t length);
 bool sendAll(int sock, const void* buffer, size_t length);
 
 enum Modes{
-    Endless,
-    Duel,
-    Royal,
-    Classic
+    Endless_,
+    Duel_,
+    Royal_,
+    Classic_
 };
 
 struct Message{
