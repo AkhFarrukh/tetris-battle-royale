@@ -24,7 +24,6 @@ void Input::stop() {
  */
 KeyboardAction Input::getKeyboardInput() {
     int ch = getch();  // Non-blocking key press
-    flushinp();
     if (ch == ERR) {
         return KeyboardAction::NO_ACTION;
     }

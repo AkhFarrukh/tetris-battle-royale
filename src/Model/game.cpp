@@ -117,8 +117,8 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
         players[p].isInGame = false;
         int type = MessageType::T_Exit;
         int size = sizeof(MessageType);
-        send(players[p].fd, &type, sizeof(int), 0);
-        send(players[p].fd, &size, sizeof(int), 0);
+        sendAll(players[p].fd, &type, sizeof(int));
+        sendAll(players[p].fd, &size, sizeof(int));
         checkGameOver();
         return;
     }
@@ -185,8 +185,8 @@ void Game::stop() {
         if (ps.isInGame) {
             int type = MessageType::T_Exit;
             int size = sizeof(MessageType);
-            send(ps.fd, &type, sizeof(int), 0);
-            send(ps.fd, &size, sizeof(int), 0);
+            sendAll(ps.fd, &type, sizeof(int));
+            sendAll(ps.fd, &size, sizeof(int));
         }
     }
     isRunning = false;
