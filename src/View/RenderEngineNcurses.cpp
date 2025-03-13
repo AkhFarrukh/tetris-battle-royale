@@ -150,12 +150,15 @@ int RenderEngineNcurses::applyColor(Color blockColor) {
 
  if (pairIndex != 0) {
      attron(COLOR_PAIR(pairIndex));
- }
+ }else{
+    attroff(A_BOLD);
+  }
  return pairIndex;
 }
 
 
 void RenderEngineNcurses::printGameOver() {
+    //faut mieux calculer la place exact avec les resultat de getmaxyx(), pcq la 24 ne convient pas tt les terminals
     mvprintw(24, 0, "Game Over");
     refresh();
 }

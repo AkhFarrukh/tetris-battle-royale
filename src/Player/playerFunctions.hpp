@@ -18,6 +18,7 @@
 #include "communication.hpp"    //Struct & fonctions for com w/ serv
 #include "game.hpp"             //Struct PlayerState
 #include "playerData.hpp"
+#include <algorithm> 
 
 using namespace std;
 //pthread_mutex_t mutexPlayer = PTHREAD_MUTEX_INITIALIZER;
