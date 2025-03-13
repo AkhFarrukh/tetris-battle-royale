@@ -13,7 +13,6 @@
 /**
  * @brief A class responsible for operations regarding users with the database
  */
-
 class UserDatabaseManager {
     
     private:

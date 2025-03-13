@@ -4,13 +4,6 @@
 
 
 
-// TODO ------  Docstrings à modofier quand les fonctionnalités seront disponiibles ------
-// TODO ------- ENLEVER '(Unreleased)' aux modes de jeu, quand on pourra jouer à tous les modes.
-
-
-// tableau déclaré static dans fichier .hpp, pour permettre economie de memoire et partage dans la classe
-// voir fichier Hpp
-
 Database db("tetris.db");
 UserDatabaseManager udm;
 Chat chat;
@@ -26,7 +19,7 @@ const char* InterfaceTerminal::modeNames[] = {
                                             "Royal Competition Mode (Unreleased)"  
                                             };    
 
-InterfaceTerminal::InterfaceTerminal() {}
+InterfaceTerminal::InterfaceTerminal() {initNcurses();}
 InterfaceTerminal::~InterfaceTerminal() {}
 
 
@@ -75,7 +68,7 @@ void InterfaceTerminal::displayMenu(int selectedOption) const {
                                 "Account (currently being updated)"
                                 };
    
-   int numberPossibleOptions = std::size(menuOptions); // taille du tableau contanant options du menu principal
+   int numberPossibleOptions = std::size(menuOptions); // taille du tableau contenant options du menu principal
    
    for (int i = 0; i < numberPossibleOptions; ++i) {
        if (i == selectedOption) {
@@ -741,7 +734,7 @@ vector<std::string> InterfaceTerminal::handleRegister(){
 }
 
 vector<std::string> InterfaceTerminal::handleConnexionOption() {
-    initNcurses();
+    //initNcurses();
     vector<std::string> dataConnexion;
     int selectedOption = 0;
 
@@ -883,7 +876,7 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
  */
 int InterfaceTerminal::start() {
    int returnValue;
-   initNcurses();
+   //initNcurses();
    int selectedOption = 0;
 
    while (!flag) {

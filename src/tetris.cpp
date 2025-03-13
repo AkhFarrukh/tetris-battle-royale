@@ -12,9 +12,10 @@
 #include <cstring>      // Pour memset
 #include "communication.hpp"    //sendAll & recvAll
 #include "playerFunctions.hpp" //Functions for main
+#include <csignal>      //sigint
 
 using namespace std;
-#include <csignal>      //sigint
+
 
 std::string username = "";
 
@@ -116,12 +117,12 @@ int main() {
             return -1;
         }
 
-    //std::cout << "Connecté au serveur !\n";
-
     //Game loop
     bool playing = true;
     while(playing){
         InterfaceTerminal terminal;
+
+        //Identification auprès de la db
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
         if(dataConnexion.size()==2){
             username = dataConnexion[0];
@@ -130,14 +131,16 @@ int main() {
             perror("Erreur lors de l'envoie des credentials");
             playing = false;
             break;
+            }
         }
-    }
         else{
            std::cout << "Echec de la connexion au compte.\n";
            playing = false;
            break;
-    }
+        }
         terminal.setSock(sock);
+        /********************************************************************************************************* */
+        //Getting the selected menu in terminal
         int selectedMode = terminal.start();
         if (selectedMode == -1){
             //Quit game
@@ -170,11 +173,18 @@ int main() {
             }
             //printf("sock 0 = %d\n", sock);
             //Sending info to server
-            int bytesSentType = sendAll(sock, &type, sizeof(int));
-            //printf("bytes envoyés = %d \n", bytesSent);
-            int bytesSentSize = sendAll(sock, &size, sizeof(int));
-            //printf("bytes envoyés = %d \n", bytesSent);
-            sendAll(sock, &menu, sizeof(Menu));
+            if(sendAll(sock, &type, sizeof(int)) == false){
+                perror("Error while sending info : ");
+                return 1;
+            }
+            if(sendAll(sock, &size, sizeof(int)) == false){
+                perror("Error while sending info : ");
+                return 1;
+            }
+            if(sendAll(sock, &menu, sizeof(Menu)) == false){
+                perror("Error while sending info : ");
+                return 1;
+            }
             /*
             *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
             */
@@ -205,8 +215,8 @@ int main() {
     ///**********************************************************************************
     // * START GAME
     // *********************************************************************************/
-//
-//
+    //
+    //
     //if (username != ""){ //si la personne s'est connecté
     //	int user_id = db.getUserId(username.c_str());
     //    while(udm.isLoggedIn(username.c_str())){

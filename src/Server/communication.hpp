@@ -41,13 +41,13 @@ struct Menu{
 };
 
 
-
 enum MessageType {
     T_Message,
     T_Input,
     T_Menu,
     T_PlayerData,
-    T_Exit
+    T_Exit,
+    T_Data,
 };
 
 /**
