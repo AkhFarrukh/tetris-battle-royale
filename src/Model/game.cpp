@@ -1,9 +1,11 @@
 #include "game.hpp"
+#include "gameModes.h"
 #include <utility>
 
 
 const int GRID_HEIGHT = 20;
 const int GRID_WIDTH = 10;
+
 
 
 
@@ -22,13 +24,13 @@ Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string mode)
         ps.fd = playersData[i].client_fd;
         ps.malusBonus = MalusBonus::MalusNONE;
 
-        auto fig = std::make_shared<Figure>(figureGenerator.randomFigure());
+        auto fig = std::make_shared<Figure>(figureGenerator.randomFigure(ps.isBonusCube)); //todo bonus 1X1
         auto movingFig = std::make_shared<MovingFigure>(fig, ps.grid);
         ps.activeFigure = movingFig;
 
         ps.movement = Mouvement(Action::NONE, movingFig);
 
-        ps.nextTetromino = std::make_shared<Figure>(figureGenerator.randomFigure());
+        ps.nextTetromino = std::make_shared<Figure>(figureGenerator.randomFigure(ps.isBonusCube));
 
         ps.gameData = GameData(0, 0, false, "Endless mode");
 
@@ -52,11 +54,10 @@ void Game::run() {
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
 
-
         if (elapsedTimeDropEvent > std::chrono::milliseconds(500)) {
             for (int p = 0; p < (int)players.size(); p++) {
-                if (!players[p].isGameOver /* and !players[p].slowed*/) {
-                    //if (players[p].blackout != 0){players[p].blackout--;}
+                if (!players[p].isGameOver and !players[p].slowed and !players[p].sped_up) {
+                    if (players[p].blackout != 0){players[p].blackout--;} //Il y a 10 unités lors d'un BO, cela durera 5 sec
                     bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
                     if (!canDrop) {
                         placePieceOnBoard(p);
@@ -65,10 +66,10 @@ void Game::run() {
             }
             chronoDropEvent = now;
         }
-        /*
-        if (elapsedTimeDropEvent > std::chrono::milliseconds(250)) {
+        if (elapsedTimeDropEvent > std::chrono::milliseconds(250)) { //Malus sped Up (RC mode)
             for (int p = 0; p < (int)players.size(); p++) {
-                if (!players[p].isGameOver and players[p].slowed) {
+                if (!players[p].isGameOver and players[p].sped_up and !players[p].slowed) {
+                    //todo si on peut activer plusieurs malus il faut décrementer blackout
                     bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
                     if (!canDrop) {
                         placePieceOnBoard(p);
@@ -77,7 +78,19 @@ void Game::run() {
             }
             chronoDropEvent = now;
         }
-        */
+
+        if (elapsedTimeDropEvent > std::chrono::milliseconds(1000)) { // Bonus Slowed (RC mode)
+            for (int p = 0; p < (int)players.size(); p++) {
+                if (!players[p].isGameOver and !players[p].sped_up and players[p].slowed) {
+                    bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                    if (!canDrop) {
+                        placePieceOnBoard(p);
+                    }
+                }
+            }
+            chronoDropEvent = now;
+        }
+
         updateGame();
         //cout<<"Updated game"<<endl;
         broadcastGame();
@@ -113,9 +126,26 @@ void Game::updateGame() {
            }
             
         }
-    }
 }
 
+Action reverse(Action action) {
+    switch (action) {
+        case Action::MOVE_RIGHT:
+            return Action::MOVE_LEFT;
+        case Action::MOVE_LEFT:
+            return Action::MOVE_RIGHT;
+        case Action::ROTATE_LEFT:
+            return Action::ROTATE_RIGHT;
+        case Action::ROTATE_RIGHT:
+            return Action::ROTATE_LEFT;
+        case Action::SOFT_DROP:
+            return Action::DROP;  //todo pas sur de cette inversion
+        case Action::DROP:
+            return Action::SOFT_DROP;
+        default:
+            return Action::NONE;
+    }
+}
 
 /**
  * @brief Handles movement action events.
@@ -134,7 +164,7 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
     Action a = moveEvt->getEventData();
     if (a == Action::ESCAPE) {
         players[p].isGameOver = true;
-        players[p].isInGame = false;
+        //players[p].isInGame = false;
         int type = MessageType::T_Exit;
         int size = sizeof(MessageType);
         sendAll(players[p].fd, &type, sizeof(int));
@@ -142,12 +172,16 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
         checkGameOver();
         return;
     }
+    if (players[p].inverted) {//if malusInverted (RC mode)
+        a = reverse(a);
+    }
     bool moved = players[p].movement.setMouvement(a);
     if (!moved && a == Action::SOFT_DROP) {
         placePieceOnBoard(p);
     }
 }
-/*
+
+
 void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int player) {
     auto moveEvt = std::dynamic_pointer_cast<MalusBonusEvent>(e);
     if (!moveEvt) return;
@@ -165,8 +199,6 @@ void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int player) {
     }
 
 }
-*/
-
 
 
 /**
@@ -215,6 +247,9 @@ void Game::placePieceOnBoard(int p) {
         ps.isGameOver = true;
         ps.gameData.set_isGameOver(true);
     }
+    else {
+        ps.countTetriminoGenerated +=1;
+    }
 }
 
 // void Game::stop() {
@@ -223,14 +258,6 @@ void Game::placePieceOnBoard(int p) {
 
 
 void Game::stop() {
-    for (auto &ps : players) {
-        if (ps.isInGame) {
-            int type = MessageType::T_Exit;
-            int size = sizeof(MessageType);
-            sendAll(ps.fd, &type, sizeof(int));
-            sendAll(ps.fd, &size, sizeof(int));
-        }
-    }
     isRunning = false;
 }
 
@@ -319,9 +346,13 @@ void Game::broadcastGame() {
         
         for (int row = 0; row < h; row++) {
             for (int col = 0; col < w; col++) {
-
-
-                Color c = ps.grid->getBlockColor(col, row);
+                Color c;
+                if (ps.blackout == 0) {//Le temps d'aveuglement est nul
+                    c = ps.grid->getBlockColor(col, row);
+                }
+                else { //On est aveuglé
+                    c = Color::white; //Blackout malus (RC mode)
+                }
 
                 //if (!ps.isGameOver) {
                 //    for (auto& figureBlock : ps.activeFigure->getBlocksRealPositions()) {
