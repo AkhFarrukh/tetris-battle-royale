@@ -1,6 +1,5 @@
 #include "userdatabasemanager.hpp"
 
-
 /**
  * @brief Try to create an account with the given username and password
  * @param username A username passed by user
@@ -56,7 +55,6 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
         database.prepareStatement(query);
         database.bindText(username, 1);
         database.execute();
-
         // If the username exists, get a resulting hash in a database and convert 
         // it to string type then destruct the statement after getting the result
         if (database.getReturnCode() == SQLITE_ROW){
@@ -89,6 +87,10 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
  * @return true if logged in. Else return false
  */
 bool UserDatabaseManager::isLoggedIn(const char* username){
+    const char* begSql = "BEGIN TRANSACTION;";
+    database.prepareStatement(begSql);
+    database.execute();
+    database.destructStatement();
     // Always check the user input first
     bool isLoggedIn = false;
     if (isValidUsername(username)){
@@ -98,7 +100,7 @@ bool UserDatabaseManager::isLoggedIn(const char* username){
         database.bindText(username, 1);
 
         // Execute the statement and get the result (0 or 1)
-        database.execute(); 
+        database.execute();
         if (database.getReturnCode() == SQLITE_ROW){
             isLoggedIn = static_cast<bool>(database.getIntValueFromColumn(0));
         }
@@ -106,6 +108,10 @@ bool UserDatabaseManager::isLoggedIn(const char* username){
         // Destruct the statement after getting the result then return a result
         database.destructStatement();
     }
+    const char* commit = "COMMIT;";
+    database.prepareStatement(commit);
+    database.execute();
+    database.destructStatement();
     return isLoggedIn;
 }
 
@@ -157,7 +163,9 @@ bool UserDatabaseManager::usernameChanged(int userId, const char* newUsername){
         // Execute the statement, destruct the statement, then set the return value
         database.execute();
         database.destructStatement();
-        usernameChanged = true;
+        if (database.getReturnCode() == SQLITE_DONE) {
+            usernameChanged = true;
+        }
     }
     return usernameChanged;
 }
@@ -204,12 +212,12 @@ void UserDatabaseManager::setSendingFileDescriptor(int userId, int fileDescripto
  * @param fileDescriptor a file descriptor
  * @param userId a user ID
  */
-void UserDatabaseManager::setReceivingFileDescriptor(int userId, int fileDescriptor){
+void UserDatabaseManager::setReceivingFileDescriptor(const string& username, int fileDescriptor){
     // Prepare Statement and bind receiving file descriptor to a statement
-    const char* query = "UPDATE users SET receiving_file_descriptor = ? WHERE id = ?";
+    const char* query = "UPDATE users SET receiving_file_descriptor = ? WHERE username = ?";
     database.prepareStatement(query);
     database.bindInt(fileDescriptor, 1);
-    database.bindInt(userId, 2);
+    database.bindText(username.c_str(), 2);
 
     // Execute the statement and destruct the statement
     database.execute();
@@ -222,12 +230,23 @@ void UserDatabaseManager::setReceivingFileDescriptor(int userId, int fileDescrip
  * @param userId a user ID
  */
 void UserDatabaseManager::logOut(int userId){
+
+    const char* begSql = "BEGIN TRANSACTION;";
+    database.prepareStatement(begSql);
+    database.execute();
+    database.destructStatement();
+
     // Prepare Statement and bind user ID  to a statement
     const char* query = "UPDATE users SET logged_in = 0 WHERE id = ?";
     database.prepareStatement(query);
     database.bindInt(userId, 1);
 
     // Execute the statement then destruct the statement
+    database.execute();
+    database.destructStatement();
+
+    const char* commit = "COMMIT;";
+    database.prepareStatement(commit);
     database.execute();
     database.destructStatement();
 }
@@ -303,137 +322,16 @@ bool UserDatabaseManager::isValidUsername(const char* username){
 
 
 /**
- * @brief Check of a user ID exists in the HighestScore table or not
- * @param userId a user ID
- * @return true if the user ID already exists in the table. Else return false
- */
-bool UserDatabaseManager::isInHighestScoreTable(int userId){
-    // Prepare Statement and bind user ID to a statement
-    const char* query = "SELECT count(user_id) FROM HighestScore WHERE user_id = ?";
-    database.prepareStatement(query);
-    database.bindInt(userId, 1);
-
-    // Get count result from the column (index = 0 on the most left column)
-    database.execute();
-    int countResult = database.getIntValueFromColumn(0);
-
-    // Destruct the statement after getting the result
-    database.destructStatement();
-
-    // Return the result
-    bool isInTable;
-    if (countResult == 0) // i.e. the user ID doesn't yet exist in the table.
-        isInTable = false;
-    else
-        isInTable = true;
-
-    return isInTable;
-}
-
-
-/**
- * @brief Set the highest score of a particular user ID
- * @param highestScore a highest score
- * @param userId a user ID
- */
-void UserDatabaseManager::setHighestScore(int userId, int highestScore){
-    // If the user ID is not yet in a table, use "INSERT". Else use "UPDATE"
-    const char* statement;
-    if (isInHighestScoreTable(userId)){
-        // UPDATE ONLY IF highest score is greater than the current score in DB
-        statement = "UDPATE HighestScore SET highest_score = ? WHERE user_id = ? \
-                     AND highest_score < ?"; 
-        database.prepareStatement(statement);
-        database.bindInt(highestScore, 3);
-    }
-    else{
-        statement = "INSERT INTO HighestScore (highest_score, user_id) VALUES (?, ?)";
-        database.prepareStatement(statement);
-    }
-
-    // Bind the common values
-    database.bindInt(highestScore, 1);
-    database.bindInt(userId, 2);
-        
-    // Execute then destruct the statement
-    database.execute();
-    database.destructStatement();
-}
-
-/**
- * @brief Delete the highest score of a particular user ID
- * @param userId a user ID
- */
-void UserDatabaseManager::deleteHighestScore(int userId){
-    // Prepare Statement and bind user ID to a statement
-    const char* query = "DELETE FROM HighestScore WHERE user_id = ?";
-    database.prepareStatement(query);
-    database.bindInt(userId, 1);
-
-    // Execute the statement then destruct the statement
-    database.execute();
-    database.destructStatement();
-}
-
-
-/**
- * @brief Return a ranking of users in DESCENDING order.
- * @param limit optional: the number of top users (e.g. limit = 10 means TOP 10 users only).
- * Else, return a ranking of ALL USERS.
- * @return A vector which contains tuple(s). Each tuple has a rank, username, and 
- * highest score respectively. If there is no result, an empty vector is returned.
- * 
- */
-std::vector<std::tuple<int, std::string, int>> UserDatabaseManager::getRanking(int limit){
-    
-    std::vector<std::tuple<int, std::string, int>> ranking;
-
-    // Prepare Statement and bind values to "?" then execute
-    std::string query = "SELECT ROW_NUMBER() OVER (ORDER BY HighestScore.highest_score \
-                         DESC) AS rank, users.username, HighestScore.highest_score \
-                         FROM users INNER JOIN HighestScore ON users.id = \
-                         HighestScore.user_id";
-
-    // Add limit condition to statement if limit > 0 and bind limit to statement
-    if (limit > 0){
-        query += " LIMIT ?";
-        database.prepareStatement(query.c_str());
-        database.bindInt(limit, 1);  
-    }
-    else{
-        database.prepareStatement(query.c_str());
-    }
-    
-    // Get a result
-    database.execute();
-    while(database.getReturnCode() == SQLITE_ROW){
-        // Take each value
-        int rank = database.getIntValueFromColumn(0);
-        const unsigned char* username = database.getTextValueFromColumn(1);
-        std::string stringUsername = reinterpret_cast<const char*>(username);
-        int highestScore = database.getIntValueFromColumn(2);
-
-        // Make a tuple, push to a vector, and fetch the next row
-        ranking.push_back(std::make_tuple(rank, stringUsername, highestScore));
-        database.execute();
-    }
-
-    database.destructStatement(); // Destruct a statement after getting a result
-    return ranking;
-}
-
-
-/**
  * @brief Add the session and a client file descriptor
  * @param client_fd a client file descriptor
  * @param userId a user ID
  */
 void UserDatabaseManager::addSession(int userId, int client_fd){
     // Prepare Statement and bind values to a statement
-    const char* query = "INSERT INTO sessions SET client_fd = ? WHERE user_id = ?";
+    const char* query = "INSERT INTO sessions (user_id, client_fd) VALUES (?, ?)";
     database.prepareStatement(query);
-    database.bindInt(client_fd, 1);
-    database.bindInt(userId, 2);
+    database.bindInt(client_fd, 2);
+    database.bindInt(userId, 1);
 
     // Execute the statement and destruct the statement
     database.execute();
@@ -454,4 +352,201 @@ void UserDatabaseManager::removeSession(int userId){
     // Execute the statement then destruct the statement
     database.execute();
     database.destructStatement();
+}
+
+
+// /**
+//  * @brief Check of a user ID exists in the HighestScore table or not
+//  * @param userId a user ID
+//  * @return true if the user ID already exists in the table. Else return false
+//  */
+// bool UserDatabaseManager::isInHighestScoreTable(int userId){
+//     // Prepare Statement and bind user ID to a statement
+//     const char* query = "SELECT count(user_id) FROM HighestScore WHERE user_id = ?";
+//     database.prepareStatement(query);
+//     database.bindInt(userId, 1);
+
+//     // Get count result from the column (index = 0 on the most left column)
+//     database.execute();
+//     int countResult = database.getIntValueFromColumn(0);
+
+//     // Destruct the statement after getting the result
+//     database.destructStatement();
+
+//     // Return the result
+//     bool isInTable;
+//     if (countResult == 0) // i.e. the user ID doesn't yet exist in the table.
+//         isInTable = false;
+//     else
+//         isInTable = true;
+
+//     return isInTable;
+// }
+
+
+// /**
+//  * @brief Delete the highest score of a particular user ID
+//  * @param userId a user ID
+//  */
+// void UserDatabaseManager::deleteHighestScore(int userId){
+//     // Prepare Statement and bind user ID to a statement
+//     const char* query = "DELETE FROM HighestScore WHERE user_id = ?";
+//     database.prepareStatement(query);
+//     database.bindInt(userId, 1);
+
+//     // Execute the statement then destruct the statement
+//     database.execute();
+//     database.destructStatement();
+// }
+
+
+// /**
+//  * @brief Set the highest score of a particular user ID
+//  * @param highestScore a highest score
+//  * @param userId a user ID
+//  */
+// void UserDatabaseManager::setHighestScore(int userId, int highestScore){
+//     // If the user ID is not yet in a table, use "INSERT". Else use "UPDATE"
+//     const char* statement;
+//     if (isInHighestScoreTable(userId)){
+//         // UPDATE ONLY IF highest score is greater than the current score in DB
+//         statement = "UDPATE HighestScore SET highest_score = ? WHERE user_id = ? \
+//                      AND highest_score < ?"; 
+//         database.prepareStatement(statement);
+//         database.bindInt(highestScore, 3);
+//     }
+//     else{
+//         statement = "INSERT INTO HighestScore (highest_score, user_id) VALUES (?, ?)";
+//         database.prepareStatement(statement);
+//     }
+
+//     // Bind the common values
+//     database.bindInt(highestScore, 1);
+//     database.bindInt(userId, 2);
+        
+//     // Execute then destruct the statement
+//     database.execute();
+//     database.destructStatement();
+// }
+
+
+void UserDatabaseManager::updatePlayerStats(int userId, int newScore, bool won, int energyUsed, std::string gameMode) {
+    const char* statement = "UPDATE leaderboard SET highest_score = GREATEST(highest_score, ?), \
+                             games_played = games_played + 1, \
+                             wins = wins + ?, \
+                             losses = losses + ?, \
+                             total_energy_used = total_energy_used + ?, \
+                             last_game_date = CURRENT_TIMESTAMP \
+                             WHERE user_id = ? AND mode_played = ?";
+
+    database.prepareStatement(statement);
+    database.bindInt(newScore, 1);
+    database.bindInt(won ? 1 : 0, 2);
+    database.bindInt(won ? 0 : 1, 3);
+    database.bindInt(energyUsed, 4);
+    database.bindInt(userId, 5);
+    database.bindText(gameMode.c_str(), 6);
+
+    database.execute();
+    database.destructStatement();
+}
+
+
+// /**
+//  * @brief Return a ranking of users in DESCENDING order.
+//  * @param limit optional: the number of top users (e.g. limit = 10 means TOP 10 users only).
+//  * Else, return a ranking of ALL USERS.
+//  * @return A vector which contains tuple(s). Each tuple has a rank, username, and 
+//  * highest score respectively. If there is no result, an empty vector is returned.
+//  * 
+//  */
+// std::vector<std::tuple<int, std::string, int>> UserDatabaseManager::getRanking(int limit){
+    
+//     std::vector<std::tuple<int, std::string, int>> ranking;
+
+//     // Prepare Statement and bind values to "?" then execute
+//     std::string query = "SELECT ROW_NUMBER() OVER (ORDER BY HighestScore.highest_score \
+//                          DESC) AS rank, users.username, HighestScore.highest_score \
+//                          FROM users INNER JOIN HighestScore ON users.id = \
+//                          HighestScore.user_id";
+
+//     // Add limit condition to statement if limit > 0 and bind limit to statement
+//     if (limit > 0){
+//         query += " LIMIT ?";
+//         database.prepareStatement(query.c_str());
+//         database.bindInt(limit, 1);  
+//     }
+//     else{
+//         database.prepareStatement(query.c_str());
+//     }
+    
+//     // Get a result
+//     database.execute();
+//     while(database.getReturnCode() == SQLITE_ROW){
+//         // Take each value
+//         int rank = database.getIntValueFromColumn(0);
+//         const unsigned char* username = database.getTextValueFromColumn(1);
+//         std::string stringUsername = reinterpret_cast<const char*>(username);
+//         int highestScore = database.getIntValueFromColumn(2);
+
+//         // Make a tuple, push to a vector, and fetch the next row
+//         ranking.push_back(std::make_tuple(rank, stringUsername, highestScore));
+//         database.execute();
+//     }
+
+//     database.destructStatement(); // Destruct a statement after getting a result
+//     return ranking;
+// }
+
+
+std::vector<std::tuple<int, std::string, int, int, int, int>> UserDatabaseManager::getRanking(std::string mode, int limit){
+    std::vector<std::tuple<int, std::string, int, int, int, int>> ranking;
+    std::string query;
+    
+    if (mode == "Endless") {
+        query = "SELECT users.username, leaderboard.highest_score, \
+                 leaderboard.games_played, leaderboard.wins, leaderboard.losses, 0 AS energy_used \
+                 FROM users INNER JOIN leaderboard ON users.id = leaderboard.user_id \
+                 WHERE leaderboard.mode_played = 'Endless' \
+                 ORDER BY leaderboard.highest_score DESC, leaderboard.games_played ASC";
+    }
+    else { // Classic, Duel, Royal
+        query = "SELECT users.username, 0 AS highest_score, \
+                 leaderboard.games_played, leaderboard.wins, leaderboard.losses, leaderboard.total_energy_used \
+                 FROM users INNER JOIN leaderboard ON users.id = leaderboard.user_id \
+                 WHERE leaderboard.mode_played = ? \
+                 ORDER BY leaderboard.wins DESC, leaderboard.games_played ASC, leaderboard.total_energy_used DESC";
+    }
+    if (limit > 0){
+        query += " LIMIT ?";
+        database.prepareStatement(query.c_str());
+        database.bindText(mode.c_str(), 1);
+        database.bindInt(limit, 2);
+    }
+    else{
+        database.prepareStatement(query.c_str());
+        database.bindText(mode.c_str(), 1);
+    }
+    
+    database.execute();
+    int rank = 1;
+    while(database.getReturnCode() == SQLITE_ROW) {
+        const unsigned char* username = database.getTextValueFromColumn(0);
+        std::string stringUsername = reinterpret_cast<const char*>(username);
+        int highestScore = database.getIntValueFromColumn(1);
+        int gamesPlayed = database.getIntValueFromColumn(2);
+        int wins = database.getIntValueFromColumn(3);
+        int losses = database.getIntValueFromColumn(4);
+        int energyUsed = database.getIntValueFromColumn(5);
+    
+        ranking.push_back(std::make_tuple(rank++, stringUsername, highestScore, gamesPlayed, wins, energyUsed));
+        database.execute();
+    }
+    
+    if (database.getReturnCode() != SQLITE_DONE) {
+        std::cerr << "Error" << std::endl;
+    }    
+
+    database.destructStatement();
+    return ranking;
 }

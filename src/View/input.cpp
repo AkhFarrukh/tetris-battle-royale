@@ -30,6 +30,7 @@ KeyboardAction Input::getKeyboardInput() {
     while (getch() != ERR);
 
     KeyboardAction currentAction = KeyboardAction::NO_ACTION;
+
     switch (ch) {
         case KEY_LEFT:
         case 'q':

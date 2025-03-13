@@ -25,6 +25,8 @@ using namespace std;
 
 class GameController; // forward declaration
 class Server;
+#include "userdatabasemanager.hpp"
+#include "gameModes.h"
 
 class Game {
 public:
@@ -64,6 +66,8 @@ private:
     void handleLineCompletion(int p);
 
     void placePieceOnBoard(int p);
+    
+
 
 
 };

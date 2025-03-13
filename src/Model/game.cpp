@@ -1,5 +1,4 @@
 #include "game.hpp"
-
 #include <utility>
 
 
@@ -40,6 +39,14 @@ Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string mode)
 
 Game::~Game() {}
 
+
+int Game::getTimeDrop(){
+  return timeDropEvent;
+}
+
+void Game::setTimeDrop(int newTime){
+  timeDropEvent = newTime;
+}
 /**
  *@brief Gère la boucle principale du jeu.   
  */
@@ -217,6 +224,17 @@ void Game::placePieceOnBoard(int p) {
     }
 }
 
+int Game::getTetriminoCounter(){
+  return countTetriminoGenerated;
+}
+
+void Game::setTetriminoCount(int& count){
+  countTetriminoGenerated = count;
+}
+
+// void Game::stop() {
+//     isRunning = false;
+// }
 
 
 void Game::stop() {
@@ -229,7 +247,25 @@ void Game::stop() {
         }
     }
     isRunning = false;
+    int finalScore = gameData.get_score();
+    std::string gameMode = gameData.get_gameMode();
+
+    bool won;
+    if(gameMode == "Endless"){
+        won = false;
+    }else{
+        won = !gameData.get_isGameOver();
+    }
+    int energyUsed;
+    if (gameMode == "Royal"){
+        energyUsed = royalCompetition.getEnergyUsed();
+    } else{ 
+        energyUsed = 0;
+    }
+
+    userDatabaseManager.updatePlayerStats(user_id, finalScore, won, energyUsed, gameMode);
 }
+
 
 /*
 void Game::checkInput() {

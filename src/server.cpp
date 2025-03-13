@@ -15,11 +15,27 @@ const int type = SOCK_STREAM;
 const int protocol = 0;
 const int MAX_PENDING_CONNECTION = 10;
 
+Server server;
+UserDatabaseManager userdata;
+Database basedata("tetris.db");
 
-
+void handle_sigint(int sig) {
+    std::vector<ClientSession> clients = server.getClients();
+    for(const auto& client:clients){
+    int user_id = basedata.getUserId(client.username.c_str());
+    while(userdata.isLoggedIn(client.username.c_str())){
+        userdata.logOut(user_id);} //on marque la personne comme deconnecté
+    basedata.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+                                                                                    //comme telle
+    while(basedata.isUserInSession(user_id)){
+        basedata.deleteSession(user_id);}}
+    signal(SIGINT, SIG_DFL);
+    raise(SIGINT);
+}
 
 
 int main () {
+    signal(SIGINT, handle_sigint);
     /**************************************************************
     *LAUNCH THE SERVER
     **************************************************************/

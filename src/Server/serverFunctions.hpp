@@ -26,6 +26,7 @@
 #include "ServerData.hpp"
 #include "room.hpp"
 #include <algorithm>
+#include <csignal>
 
 
 class Server{
@@ -39,10 +40,7 @@ class Server{
         std::mutex mtx;
         std::condition_variable cv;
         bool lockThread;
-
-        // Database part
-        Database database{"tetris.db"};
-        UserDatabaseManager udbm; // Abbreviation of User Database Manager
+        UserDatabaseManager udbm;
 
     public:
         int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen, std::shared_ptr<std::vector<std::shared_ptr<Room>>> rooms); 

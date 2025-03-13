@@ -1,12 +1,28 @@
 #include "serverFunctions.hpp"
+#include <algorithm>
+
 
 /**
  * TODO: COMMENTS TO BE ADDED BY THOSE WHO WROTE THIS FUNCTION/METHOD. STP
  */
-void Server::broadcastMessage(const std::string& message, int sender_fd) {
-    for (const auto& client : clients) {
-        if (client.client_fd != sender_fd) {
-            send(client.client_fd, message.c_str(), message.length(), 0);
+void Server::broadcastMessage(const char* buffer, const std::string& sender_username) {
+    size_t friendNameLength = std::find(buffer, buffer+strlen(buffer), '\0') - buffer;
+
+    // Extraire le nom d'utilisateur
+    std::string friendName(buffer, friendNameLength);
+
+    // Extraire le message (après le nom d'utilisateur)
+    std::string message(buffer + friendNameLength + 1);
+    for (const auto client : clients) {
+        if (client.username == friendName) {
+            std::vector<char> messageToSend(sender_username.size()+1+message.size());
+            memcpy(messageToSend.data(), sender_username.c_str(), sender_username.size()+1);
+            memcpy(messageToSend.data() + sender_username.size()+1, message.c_str(), message.size());
+            int bytesReceived = send(client.client_fd, messageToSend.data(), messageToSend.size(), 0);
+            if (bytesReceived <= 0) {
+                std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+                //TODO l'enlever de la liste?
+            }
         }
     }
 }
@@ -37,6 +53,29 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         }
         std::cout << "Nouveau client connecté : " << client_fd << std::endl;
 
+        /* CHECK AFTER MERGE */
+        // The password MUST be a plain password (what received from the client).
+        // The User Database Manager will take care of password hash validation.
+        char credentials[512] = {0};
+        
+        // Check if the server received both username and password or not
+        int bytesReceived = recv(client_fd, credentials, sizeof(credentials), 0);
+        if (bytesReceived <= 0){
+            perror("Erreur lors de la réception des credentials");
+            close(client_fd);
+            continue;
+        }
+
+        std::string receivedData(credentials, bytesReceived);
+        size_t separator = receivedData.find('\0');
+        if (separator == std::string::npos) {
+            perror("Format invalide des credentials");
+            close(client_fd);
+            continue;
+        }
+
+        std::string username = receivedData.substr(0, separator);
+        std::string password = receivedData.substr(separator + 1);
 
         // Create a "new session" with client info to be sent to thread routine
         // and push the client into a vector of clients
@@ -44,24 +83,26 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         new_session.client_fd = client_fd;
         clients.push_back(new_session);
 
+        //printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
+
         std::shared_ptr<ThreadData> threadData = std::make_shared<ThreadData>();
         threadData->client = ClientSession(new_session);
         threadData->serverInstance = this; // "this" = a pointer of server object
         
         // Create a thread for a user if the username and password is correct.
         pthread_t threadID;
-        if(pthread_create(&threadID, nullptr, threadRoutineClient, threadData.get()) < 0){
+        if(pthread_create(&threadID, nullptr, threadRoutineClient, threadDataPtr) < 0){
             perror("Error on thread creation : ");
             close(client_fd);
             clients.pop_back();
             return -1;
         }
-        
         // Unlock mutex when got the signal from inside the thread
         cv.wait(lock, [this]{return lockThread;});
         std::cout << "Thread successfully created !" << std::endl;
         lock.unlock();
+        //pthread_join(threadID, nullptr);
     }
     return 0;
 }
@@ -85,25 +126,25 @@ void* Server::threadRoutineClient(void* arg){
     ThreadGameData threadGameData;
     GameController gameController(eventQueue);
     Server* server = threadData->serverInstance;
-    ClientSession& client = threadData->client;
+    std::shared_ptr<ClientSession> client = threadData->client;
 
     // Check if both username and password are correct or not.
-    bool successfulLogin = true;
-    std::cout<< "Got thread data from arg"<< std::endl;
+   bool successfulLogin = server->udbm.isCorrectLogin(client->username.c_str(),
+                                                       client->password.c_str());
     if (successfulLogin){
-        //// Get user ID and insert user into sessions table
-        //client.userId = server->udbm.getUserId(client.username.c_str());
-        //server->udbm.addSession(client.userId, client.client_fd);
+        // Get user ID and insert user into sessions table
+        client->userId = server->udbm.getUserId(client->username.c_str());
+        server->udbm.addSession(client->userId, client->client_fd);
 
-        /* Unlock the mutex and notifies it outside the thread */
+        //Unlock the mutex and notifies it outside the thread
         server->lockThread = true;
         server->cv.notify_one();
         
         // Keep looking for any message sent by the user to the server
         // Using bool "UserIsOnline" for better readability of while loop
+
         bool userIsOnline = true;
-
-
+        bool userIsInGame = false;
 
         while (userIsOnline) {
             std::cout << "start listening cuh" << std::endl;

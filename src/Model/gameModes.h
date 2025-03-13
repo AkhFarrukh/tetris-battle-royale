@@ -69,6 +69,7 @@ public:
 class RoyalCompetition : public Mode {
     int energy; //l'énergie s'accumule afin de permettre l'utilisation de malus/bonus
 public:
+    RoyalCompetition() : Mode(1), energy(0) {}
     RoyalCompetition(int numPlayers);
     void setPlayers(int num) override;
     int getPlayers() override;
