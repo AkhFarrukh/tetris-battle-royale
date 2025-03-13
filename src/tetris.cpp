@@ -96,7 +96,7 @@ int main() {
             pthread_t threadID;
             std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
             threadData->userInGame = true;
-	    threadData->socket = sock;
+	        threadData->socket = sock;
 
             if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
                 perror("Error on thread creation : ");
@@ -106,10 +106,11 @@ int main() {
             /*
             *LOOP GETTING INPUTS AND SENDING IT TO SERV
             */
-            void* ret;
+            //void* ret;
             /* TEMPORARY, TO TEST WITHOUT MANAGING INPUT HANDLING */
             // pthread_join(threadID, &ret);
             Player::sendInput(threadData);
+            napms(500);
         }
     }
     close(sock); // Fermer le socket après utilisation
