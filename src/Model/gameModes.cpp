@@ -97,6 +97,10 @@ void RoyalCompetition::applyRules(Grid& grid, int linesCleared) {
 
 //
 void RoyalCompetition::malusReverseControls(PlayerState& player){
+  if (player.inverted && player.countTetriminoGenerated <= 3) {
+    player.inverted = false;
+  }
+  else{}
   	player.countTetriminoGenerated = 1;
     player.inverted = true;
     while(player.countTetriminoGenerated <= 3){}
