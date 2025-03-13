@@ -14,7 +14,8 @@ enum Action {
         };
 
 enum MalusBonus {
-
+    BLOCKED,
+    
 };
 
 

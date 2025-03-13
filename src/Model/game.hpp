@@ -55,7 +55,7 @@ private:
 
     void updateGame();
 
-    void handleMovementActionEvent(int p, std::shared_ptr<Event> e, bool inverted);
+    void handleMovementActionEvent(int p, std::shared_ptr<Event> e);
     void handleMalusBonusEvent(std::shared_ptr<Event> e, int p);
 
     void renderGame();

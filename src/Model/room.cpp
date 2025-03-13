@@ -1,4 +1,6 @@
 #include "room.hpp"
+#include "game.hpp"
+
 
 Room::Room(){}
 

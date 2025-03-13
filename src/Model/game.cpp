@@ -54,8 +54,8 @@ void Game::run() {
 
         if (elapsedTimeDropEvent > std::chrono::milliseconds(500)) {
             for (int p = 0; p < (int)players.size(); p++) {
-                if (!players[p].isGameOver and !players[p].slowed) {
-                    if (players[p].blackout != 0){players[p].blackout--;}
+                if (!players[p].isGameOver /* and !players[p].slowed*/) {
+                    //if (players[p].blackout != 0){players[p].blackout--;}
                     bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
                     if (!canDrop) {
                         placePieceOnBoard(p);
@@ -64,6 +64,7 @@ void Game::run() {
             }
             chronoDropEvent = now;
         }
+        /*
         if (elapsedTimeDropEvent > std::chrono::milliseconds(250)) {
             for (int p = 0; p < (int)players.size(); p++) {
                 if (!players[p].isGameOver and players[p].slowed) {
@@ -75,7 +76,7 @@ void Game::run() {
             }
             chronoDropEvent = now;
         }
-
+        */
         updateGame();
         //cout<<"Updated game"<<endl;
         broadcastGame();
@@ -104,10 +105,11 @@ void Game::updateGame() {
         while (true) {
             auto evt = players[p].eventQueue->getEvent();
             if (!evt) break; // no more events
-            if (!players[p].blocked){
-                //if event malus 
+            //if event malus 
                 //handlemalus(event)
-                handleMovementActionEvent(p, evt, players[p].inverted);
+            if (players[p].malusBonus != MalusBonus::BLOCKED){
+                
+                handleMovementActionEvent(p, evt);
             }
             
         }
@@ -125,7 +127,7 @@ void Game::updateGame() {
  *
  * @param event The event to be handled.
  */
-void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e, bool inverted) {
+void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
     auto moveEvt = std::dynamic_pointer_cast<MovementActionEvent>(e);
     if (!moveEvt) return;
 

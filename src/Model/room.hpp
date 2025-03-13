@@ -6,10 +6,12 @@
 #include <mutex>
 #include <condition_variable>
 #include <ServerData.hpp>
-#include "game.hpp"
 #include "EventQueue.hpp"
 #include <iostream>
 #include <thread>
+#include "communication.hpp"
+
+class Game; // Forward declaration
 
 // Forward declarations
 class EventQueue;
