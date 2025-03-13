@@ -151,7 +151,7 @@ void* Server::threadRoutineClient(void* arg){
                     close(client.client_fd);
                     userIsOnline = false; // Stop the loop
                 }
-                if (menu.action == MenuActions::A_Play) {
+                else if (menu.action == MenuActions::A_Play) {
                     if (menu.mode == Modes::Endless) {
                         
                         std::cout << "Client wants Endless mode\n";
@@ -168,14 +168,16 @@ void* Server::threadRoutineClient(void* arg){
                         });
                         gameThread.detach();
                     }
+                    //autre mode
                 }
-                if (menu.action == MenuActions::A_CreateRoom) {
+                else if (menu.action == MenuActions::A_CreateRoom) {
                     auto r = std::make_shared<Room>(client.client_fd, menu.mode);
                     server->roomsList->push_back(r);
                     server->myRoom = r;
                     std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
 
-                } else if (menu.action == MenuActions::A_JoinRoom) {
+                }
+                else if (menu.action == MenuActions::A_JoinRoom) {
                     int nbRooms = (int)server->roomsList->size();
                     sendAll(client.client_fd, &nbRooms, sizeof(nbRooms));
 
@@ -200,7 +202,8 @@ void* Server::threadRoutineClient(void* arg){
                             std::cout << "Client joined room index " << chosenIndex << std::endl;
                         }
                     }
-                } else if (menu.action == MenuActions::A_ForceStart) {
+                }
+                else if (menu.action == MenuActions::A_ForceStart) {
                     server->myRoom->forceStart();
                 }
             }
@@ -208,7 +211,6 @@ void* Server::threadRoutineClient(void* arg){
             
             else if (type == MessageType::T_Input) {
                 KeyboardAction action;
-
                 if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))) {
                     std::cout << "Client disconnected while reading Input\n";
                     close(client.client_fd);

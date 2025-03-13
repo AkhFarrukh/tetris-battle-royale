@@ -92,7 +92,6 @@ void* Player::threadRoutineView (void* arg){
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
     while (true) {
         bool keepRunning = threadData->userInGame;
-
         if (!keepRunning) {
             break;
         }
