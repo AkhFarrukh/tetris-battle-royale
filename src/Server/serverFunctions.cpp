@@ -111,8 +111,8 @@ void* Server::threadRoutineClient(void* arg){
             //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
 
             //To have info on the data received
-            int type;
-            int size;
+            int type = {0};
+            int size = {0};
             
 
             //Sending info to server
