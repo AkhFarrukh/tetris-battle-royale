@@ -38,11 +38,6 @@ public:
      */
     bool addPlayer(int playerFd);
 
-    /**
-     * @brief Tells the room to try launching the game if conditions are met 
-     * (i.e., #players >= minPlayers).
-     */
-    void startMatchIfPossible();
 
     /**
      * @brief Force start if we have at least minPlayers. 
@@ -55,11 +50,6 @@ public:
      */
     int getPlayerCount() const;
 
-    /**
-     * @brief The main logic that blocks until the match is started.
-     * Or you can rely on some external call to startMatchIfPossible().
-     */
-    void waitForMatchToStart();
 
     Modes getRoomMode(){
         return gameMode;
