@@ -6,13 +6,10 @@
 #include <mutex>
 #include <condition_variable>
 #include <ServerData.hpp>
+#include "game.hpp"
 #include "EventQueue.hpp"
 #include <iostream>
 #include <thread>
-#include "communication.hpp"
-
-static int globalRoomCounter = 0;
-class Game; // Forward declaration
 
 // Forward declarations
 class EventQueue;
@@ -28,8 +25,7 @@ public:
      * @param minPlayers Minimum number of players required to start (3).
      * @param maxPlayers Maximum number of players in the room (9).
      */
-    Room(int sockHoster, Modes mode);
-    Room();
+    Room(int sockHoster, int gameMode, int minPlayers = 3, int maxPlayers = 9);
 
     ~Room();
 
@@ -42,6 +38,11 @@ public:
      */
     bool addPlayer(int playerFd);
 
+    /**
+     * @brief Tells the room to try launching the game if conditions are met 
+     * (i.e., #players >= minPlayers).
+     */
+    void startMatchIfPossible();
 
     /**
      * @brief Force start if we have at least minPlayers. 
@@ -54,10 +55,11 @@ public:
      */
     int getPlayerCount() const;
 
-
-    Modes getRoomMode(){
-        return gameMode;
-    }
+    /**
+     * @brief The main logic that blocks until the match is started.
+     * Or you can rely on some external call to startMatchIfPossible().
+     */
+    void waitForMatchToStart();
 
 private:
     /**
@@ -68,10 +70,9 @@ private:
 
 private:
     int sockHoster;
-    Modes gameMode;
-    int minPlayers = 3, maxPlayers = 9;
-    bool matchStarted;
-    int roomID;
+    int gameMode;
+    int minPlayers;
+    int maxPlayers;
 
     std::vector<ThreadGameData> playersThread;
     std::vector<int> playerFds;  // store FDs or IDs for each joined player
