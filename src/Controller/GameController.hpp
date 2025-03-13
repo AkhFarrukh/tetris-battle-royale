@@ -30,7 +30,7 @@ public:
     GameController(shared_ptr<EventQueue> eventQueue);
     void startGameInput() {input.start();}
     void stopGameInput() {input.stop();}
-    void getAction();
+    void getAction(KeyboardAction in);
 
      // Getters
     bool areControlsBlocked() const { return controlsBlocked; }

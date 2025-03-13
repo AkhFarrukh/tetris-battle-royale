@@ -256,14 +256,6 @@ void Game::stop() {
     }else{
         won = !gameData.get_isGameOver();
     }
-    int energyUsed;
-    if (gameMode == "Royal"){
-        energyUsed = royalCompetition.getEnergyUsed();
-    } else{ 
-        energyUsed = 0;
-    }
-
-    userDatabaseManager.updatePlayerStats(user_id, finalScore, won, energyUsed, gameMode);
 }
 
 
