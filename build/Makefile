@@ -8,7 +8,6 @@ BUILD_DIR = ../build
 LIB_DIR = ../lib
 NCURSES_DIR = $(LIB_DIR)/ncurses-install
 SQLITE_DIR = $(LIB_DIR)/sqlite-install
-
 # Environment variables for compilation and linking
 export LD_LIBRARY_PATH := $(LIB_DIR):$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LD_LIBRARY_PATH)
 LDFLAGS = -L$(NCURSES_DIR)/lib -L$(SQLITE_DIR)/lib -L$(LIB_DIR)
@@ -32,11 +31,11 @@ all: $(SERVER_TARGET) $(CLIENT_TARGET)
 
 # Compilation de l'exécutable server
 $(SERVER_TARGET): $(SERVER_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ -lncurses -lsqlite3
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ -lncursesw -lsqlite3
 
 # Compilation de l'exécutable client
 $(CLIENT_TARGET): $(CLIENT_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ -lncurses -lsqlite3
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ -lncursesw -lsqlite3
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
