@@ -1,21 +1,17 @@
 #include "room.hpp"
-#include "game.hpp"
 
 
-Room::Room(){}
-
-Room::Room(int sockHoster, Modes mode)
+Room::Room(int sockHoster, int gameMode, int minPlayers, int maxPlayers)
     : sockHoster(sockHoster),
-      gameMode(mode),
+      gameMode(gameMode),
+      minPlayers(minPlayers),
+      maxPlayers(maxPlayers),
       matchStarted(false)
-{   
-    if (mode == Modes::Duel){
-        minPlayers = 2;
-        maxPlayers = 2;
-    }
+{
     ThreadGameData thread;
     eventQueue = std::make_shared<EventQueue>();
     thread.client_fd = sockHoster;
+    thread.gameMode = gameMode;
     thread.eventQueue = eventQueue;
     playersThread.push_back(thread);
 }
@@ -32,6 +28,7 @@ bool Room::addPlayer(int playerFd) {
     ThreadGameData thread;
     eventQueue = std::make_shared<EventQueue>(); //event queue different pour chaque client?
     thread.client_fd = playerFd;
+    thread.gameMode = gameMode;
     thread.eventQueue = eventQueue;
     playersThread.push_back(thread);
     playerFds.push_back(playerFd);
@@ -55,6 +52,21 @@ int Room::getPlayerCount() const {
     return (int)playerFds.size();
 }
 
+void Room::startMatchIfPossible() {
+    std::unique_lock<std::mutex> lock(mtx);
+    if (!matchStarted) {
+        // We can only start if we have at least minPlayers
+        if ((int)playerFds.size() >= minPlayers) {
+            matchStarted = true;
+            std::cout << "Match started with " << playerFds.size() << " players\n";
+            launchGame();
+            cv.notify_all();
+        } else {
+            std::cout << "Not enough players yet to start (need at least " 
+                      << minPlayers << ")\n";
+        }
+    }
+}
 
 void Room::forceStart() {
     std::unique_lock<std::mutex> lock(mtx);
@@ -67,6 +79,12 @@ void Room::forceStart() {
             std::cout << "Cannot force start, not enough players.\n";
         }
     }
+}
+
+void Room::waitForMatchToStart() {
+    std::unique_lock<std::mutex> lock(mtx);
+    cv.wait(lock, [this] { return matchStarted; });
+    // Once we pass this, the match has started
 }
 
 void Room::launchGame() {
