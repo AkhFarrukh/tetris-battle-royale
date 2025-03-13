@@ -13,7 +13,16 @@ enum Action {
             ESCAPE
         };
 
+enum MalusBonus {
+    Bonus_Block1X1,
+    BonusReduceFallSpeed,
+    MalusIncreaseFallSpeed,
+    MalusReverseControls,
+    MalusFreezeControls,
+    MalusBlackOut,
+    MalusThunder
 
+};
 
 
 
