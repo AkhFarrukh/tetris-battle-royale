@@ -20,11 +20,13 @@
 #include "playerData.hpp"
 #include "communication.hpp"
 #include "MalusBonusEvent.hpp"
+#include "gameModes.h"
 
 using namespace std;
 
 class GameController; // forward declaration
 class Server;
+
 
 class Game {
 public:
@@ -48,6 +50,7 @@ private:
     bool isRunning;
     shared_ptr<GameController> gameController;
     string gameMode;
+    //Mode mode;
 
 
 
