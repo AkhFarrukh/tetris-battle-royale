@@ -10,12 +10,23 @@ const int GRID_WIDTH = 10;
 
 
 
-Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string mode)
+Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string gameMode)
     :   isRunning(false),
-        gameMode(mode)
+        gameMode(gameMode)
 
 {
     cout<< "Starting Game constructor"<<endl;
+    if (gameMode == "Endless") {
+        mode = std::make_shared<Endless>();
+    } else if (gameMode == "Classic") {
+        mode = std::make_shared<Classic>(numPlayers);
+    } else if (gameMode == "Duel") {
+        mode = std::make_shared<Duel>();
+    } else if (gameMode == "RoyalCompetition") {
+        mode = std::make_shared<RoyalCompetition>(numPlayers);
+    } else {
+        throw std::invalid_argument("Unknown game mode: " + gameMode);
+    }
     for (int i = 0; i < numPlayers; i++) {
         PlayerState ps(i);
 
@@ -181,13 +192,54 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
     }
 }
 
-
-void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int player) {
+/**
+ * @brief Handles malus/bonus events.
+ *This function is made for the mode RoyalCompetition only.
+ *It takes the playerID and apply the eventMalusBonus to the targetted player.
+ *
+ * @param event The event to be handled.
+ * @param playerHimself the id of the player for the Bonus.
+ */
+void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
     auto moveEvt = std::dynamic_pointer_cast<MalusBonusEvent>(e);
     if (!moveEvt) return;
 
     MalusBonus bm = moveEvt->getMalusBonus();
-    if (bm == MalusBonus::){
+    // Vérifier si le mode actuel est RoyalCompetition
+    auto royalMode = std::dynamic_pointer_cast<RoyalCompetition>(mode);
+    if (!royalMode) {
+        std::cerr << "Error: MalusBonus event triggered, but game mode is not RoyalCompetition.\n";
+        return;
+    }
+    int target = moveEvt->getTarget();//Le joueur ciblé par les malus
+    // Appliquer le bon malus en fonction du type
+    switch (bm) {
+        case MalusBonus::MalusIncreaseFallSpeed:
+            royalMode->malusIncreaseFallSpeed(players[target]);
+        break;
+        case MalusBonus::MalusReverseControls:
+            royalMode->malusReverseControls(players[target]);
+        break;
+        case MalusBonus::MalusFreezeControls:
+            royalMode->malusFreezeControls(players[target]);
+        break;
+        case MalusBonus::MalusThunder:
+            royalMode->malusThunder(players[target]);
+        break;
+        case MalusBonus::MalusBlackOut:
+            royalMode->malusBlackOut(players[target]);
+        break;
+        case MalusBonus::BonusReduceFallSpeed:
+            royalMode->bonusReduceFallSpeed(players[playerHimself]);
+        break;
+        case MalusBonus::Bonus_Block1X1:
+            royalMode->bonusBlockCube(players[playerHimself]);
+        break;
+        default:
+            std::cerr << "Unknown MalusBonus event.\n";
+        break;
+    }
+}
         //if bonus
         //players[p].slowed = true;``
 
