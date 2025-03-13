@@ -73,13 +73,13 @@ public:
     void setPlayers(int num) override;
     int getPlayers() override;
     void applyRules(Grid& grid, int linesCleared) override;
-    void malusReverseControls(Game game, GameController& controller, bool isReverse);
-    void malusFreezeControls(Game game, GameController controller, bool isBlocked);
-    void bonusReduceFallSpeed(Game game);
-    void malusIncreaseFallSpeed(Game game);
-    void malusThunder(Game game);
-    void malusBlackOut(Game game);
-    void bonusBlockCube(Game game);
+    void malusReverseControls(PlayerState& player);
+    void malusFreezeControls(PlayerState& player);
+    void bonusReduceFallSpeed(PlayerState& player);
+    void malusIncreaseFallSpeed(PlayerState& player);
+    void malusThunder(PlayerState& player);
+    void malusBlackOut(PlayerState& player);
+    void bonusBlockCube(PlayerState& player);
     int getEnergyUsed() {return energy;}
 };
 
