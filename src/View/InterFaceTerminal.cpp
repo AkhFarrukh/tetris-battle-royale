@@ -1,5 +1,5 @@
 #include "InterFaceTerminal.hpp"
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <locale.h>  // Needed for wide characters (if printing Unicode blocks)
 
 
@@ -135,7 +135,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                }
                break;
            case KEY_DOWN: // descendre
-               if (selectedMode < 3) {
+               if (selectedMode < std::size(modeNames) - 1) {
                    selectedMode++;
                }
                break;

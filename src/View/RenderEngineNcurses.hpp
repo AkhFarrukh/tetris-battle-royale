@@ -5,7 +5,8 @@
 #ifndef RENDERENGINENCURSES_HPP
 #define RENDERENGINENCURSES_HPP
 
-#include <ncurses.h>
+
+#include <ncursesw/ncurses.h>
 #include <memory>
 #include "GameController.hpp"
 #include "playerData.hpp"

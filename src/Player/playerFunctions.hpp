@@ -18,14 +18,19 @@
 #include "communication.hpp"    //Struct & fonctions for com w/ serv
 #include "game.hpp"             //Struct PlayerState
 #include "playerData.hpp"
+#include <algorithm> 
+#include <atomic>
 
 using namespace std;
+//pthread_mutex_t mutexPlayer = PTHREAD_MUTEX_INITIALIZER;
 
 class Player {
     public:
         struct ThreadData {
             int socket;
-            bool userInGame = true;
+	    mutex mux;
+	    mutex displayMut;
+	    atomic<bool> userInGame = true;
         };
 
         static void* threadRoutineView (void* arg); //Routine qui recoit la grid et l'affiche

@@ -54,6 +54,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         if(pthread_create(&threadID, nullptr, threadRoutineClient, threadData.get()) < 0){
             perror("Error on thread creation : ");
             close(client_fd);
+            clients.pop_back();
             return -1;
         }
         
@@ -115,8 +116,8 @@ void* Server::threadRoutineClient(void* arg){
             
 
             //Sending info to server
-            int bytesReceivedType = recv (client.client_fd, &type, sizeof(int), 0);
-            int bytesReceivedSize = recv (client.client_fd, &size, sizeof(int), 0);
+            int bytesReceivedType = recvAll(client.client_fd, &type, sizeof(int));
+            int bytesReceivedSize = recvAll(client.client_fd, &size, sizeof(int));
             std::cout << "fdp ma lumiere : " << type << std::endl;
             std::cout << "fdp ma lumiere : " << size << std::endl;
 
@@ -125,6 +126,14 @@ void* Server::threadRoutineClient(void* arg){
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 server->udbm.removeSession(client.userId);
                 close(client.client_fd);
+                
+                auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                                       [&client](const ClientSession& c) { 
+                                       return c.client_fd == client.client_fd; 
+                                       });
+                if (it != server->clients.end()) {
+                    server->clients.erase(it);
+                }
                 userIsOnline = false; // Stop the loop
             }
             

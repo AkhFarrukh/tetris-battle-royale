@@ -3,6 +3,9 @@
 //
 
 #include "gameModes.h"
+#include "../Controller/GameController.hpp"
+#include <unistd.h>
+
 using namespace std;
 
 /**
@@ -87,5 +90,3 @@ void RoyalCompetition::applyRules(Grid& grid, int linesCleared) {
     energy += linesCleared * 10;
     std::cout << "Royal Competition mode: energy gained = " << energy << "\n";
 }
-
-//todo ajouter les différents malus et bonus propre au mode Royal competition

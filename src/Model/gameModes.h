@@ -6,8 +6,9 @@
 #define GAMEMODES_H
 
 #include <iostream>
-#include "grid.hpp"
-
+#include "../Component/grid.hpp"
+#include "../Controller/GameController.hpp"
+#include "game.hpp"
 
 /**
  * @brief Classe de base abstraite pour définir un mode de jeu.
@@ -72,6 +73,14 @@ public:
     void setPlayers(int num) override;
     int getPlayers() override;
     void applyRules(Grid& grid, int linesCleared) override;
+    void malusReverseControls(Game game, GameController& controller, bool isReverse);
+    void malusFreezeControls(Game game, GameController controller, bool isBlocked);
+    void bonusReduceFallSpeed(Game game);
+    void malusIncreaseFallSpeed(Game game);
+    void malusThunder(Game game);
+    void malusBlackOut(Game game);
+    void bonusBlockCube(Game game);
+    int getEnergyUsed() {return energy;}
 };
 
 #endif // GAMEMODES_H

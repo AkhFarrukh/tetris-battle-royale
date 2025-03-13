@@ -83,6 +83,7 @@ void Game::run() {
         checkGameOver();
         //cout<<"Checked gameOver"<<endl;
     }
+
 }
 
 
@@ -130,7 +131,13 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e, bool inver
 
     Action a = moveEvt->getEventData();
     if (a == Action::ESCAPE) {
-        stop();
+        players[p].isGameOver = true;
+        players[p].isInGame = false;
+        int type = MessageType::T_Exit;
+        int size = sizeof(MessageType);
+        sendAll(players[p].fd, &type, sizeof(int));
+        sendAll(players[p].fd, &size, sizeof(int));
+        checkGameOver();
         return;
     }
     bool moved = players[p].movement.setMouvement(a);
@@ -211,6 +218,14 @@ void Game::placePieceOnBoard(int p) {
 
 
 void Game::stop() {
+    for (auto &ps : players) {
+        if (ps.isInGame) {
+            int type = MessageType::T_Exit;
+            int size = sizeof(MessageType);
+            sendAll(ps.fd, &type, sizeof(int));
+            sendAll(ps.fd, &size, sizeof(int));
+        }
+    }
     isRunning = false;
 }
 
