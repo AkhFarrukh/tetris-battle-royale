@@ -28,8 +28,13 @@ struct PlayerState {
 
     bool                             isGameOver = false;
     int                              fd;
-    bool                             isInGame = true;
-    MalusBonus                       malusBonus;
+    int                              blackout = 0;
+    bool                             slowed = false;
+    bool                             blocked = false;
+    bool                             inverted = false;
+    bool                             sped_up = false;
+    int                              countTetriminoGenerated = 0;
+    bool                             isBonusCube = false;
 
     PlayerState(int pid)
         : playerId(pid),
