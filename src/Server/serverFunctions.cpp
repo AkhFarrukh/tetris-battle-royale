@@ -126,7 +126,7 @@ void* Server::threadRoutineClient(void* arg){
     ThreadGameData threadGameData;
     GameController gameController(eventQueue);
     Server* server = threadData->serverInstance;
-    ClientSession client = threadData->client;
+    ClientSession& client = threadData->client;
     std::cout<< "Initialised and got the args" << std::endl;
     // Check if both username and password are correct or not.
     bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(),
