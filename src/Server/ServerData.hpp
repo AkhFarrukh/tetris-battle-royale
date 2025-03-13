@@ -39,7 +39,7 @@ struct ThreadData {
  */
 struct ThreadGameData {
     int client_fd;
-    int gameMode;
+    //int gameMode;
     std::shared_ptr<EventQueue> eventQueue;
 };
 

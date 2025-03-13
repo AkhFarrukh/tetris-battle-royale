@@ -24,11 +24,13 @@
 #include "game.hpp"
 #include "playerData.hpp"
 #include "ServerData.hpp"
+#include "room.hpp"
 
 
 class Server{
     private:
-
+        std::shared_ptr<std::vector<std::shared_ptr<Room>>> roomsList;
+        std::shared_ptr<Room> myRoom;
         std::vector<ClientSession> clients;
         
 
@@ -42,7 +44,7 @@ class Server{
         UserDatabaseManager udbm; // Abbreviation of User Database Manager
 
     public:
-        int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen); 
+        int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen, std::shared_ptr<std::vector<std::shared_ptr<Room>>> rooms); 
         void broadcastMessage(const std::string& message, int sender_fd);
         static void* threadRoutineClient(void* arg);
 };

@@ -51,9 +51,22 @@ void Game::run() {
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
 
+
         if (elapsedTimeDropEvent > std::chrono::milliseconds(500)) {
             for (int p = 0; p < (int)players.size(); p++) {
-                if (!players[p].isGameOver) {
+                if (!players[p].isGameOver and !players[p].slowed) {
+                    if (players[p].blackout != 0){players[p].blackout--;}
+                    bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                    if (!canDrop) {
+                        placePieceOnBoard(p);
+                    }
+                }
+            }
+            chronoDropEvent = now;
+        }
+        if (elapsedTimeDropEvent > std::chrono::milliseconds(250)) {
+            for (int p = 0; p < (int)players.size(); p++) {
+                if (!players[p].isGameOver and players[p].slowed) {
                     bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
                     if (!canDrop) {
                         placePieceOnBoard(p);
@@ -90,7 +103,12 @@ void Game::updateGame() {
         while (true) {
             auto evt = players[p].eventQueue->getEvent();
             if (!evt) break; // no more events
-            handleMovementActionEvent(p, evt);
+            if (!players[p].blocked){
+                //if event malus 
+                //handlemalus(event)
+                handleMovementActionEvent(p, evt, players[p].inverted);
+            }
+            
         }
     }
 }
@@ -106,7 +124,7 @@ void Game::updateGame() {
  *
  * @param event The event to be handled.
  */
-void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
+void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e, bool inverted) {
     auto moveEvt = std::dynamic_pointer_cast<MovementActionEvent>(e);
     if (!moveEvt) return;
 
@@ -120,6 +138,25 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
         placePieceOnBoard(p);
     }
 }
+/*
+void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int player) {
+    auto moveEvt = std::dynamic_pointer_cast<MalusBonusEvent>(e);
+    if (!moveEvt) return;
+
+    MalusBonus bm = moveEvt->getMalusBonus();
+    if (bm == MalusBonus::){
+        //if bonus
+        //players[p].slowed = true;``
+
+        //if malus
+        //int target = moveEvt->getTarget();
+        //players[target].blocked = true;
+
+
+    }
+
+}
+*/
 
 
 
@@ -261,6 +298,8 @@ void Game::broadcastGame() {
         
         for (int row = 0; row < h; row++) {
             for (int col = 0; col < w; col++) {
+
+
                 Color c = ps.grid->getBlockColor(col, row);
 
                 //if (!ps.isGameOver) {

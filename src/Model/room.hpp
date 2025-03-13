@@ -25,7 +25,8 @@ public:
      * @param minPlayers Minimum number of players required to start (3).
      * @param maxPlayers Maximum number of players in the room (9).
      */
-    Room(int sockHoster, int gameMode, int minPlayers = 3, int maxPlayers = 9);
+    Room(int sockHoster, Modes mode);
+    Room();
 
     ~Room();
 
@@ -58,6 +59,10 @@ public:
      */
     void waitForMatchToStart();
 
+    Modes getRoomMode(){
+        return gameMode;
+    }
+
 private:
     /**
      * @brief Actually create the Game object with the current players,
@@ -67,9 +72,8 @@ private:
 
 private:
     int sockHoster;
-    int gameMode;
-    int minPlayers;
-    int maxPlayers;
+    Modes gameMode;
+    int minPlayers = 3, maxPlayers = 9;
 
     std::vector<ThreadGameData> playersThread;
     std::vector<int> playerFds;  // store FDs or IDs for each joined player

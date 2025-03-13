@@ -7,6 +7,7 @@
 #include <netinet/in.h>     //ip management
 
 #include "serverFunctions.hpp"
+#include "room.hpp"
 
 using namespace std;
 const int domain = AF_INET;
@@ -43,7 +44,7 @@ int main () {
         perror("Couldn't bind socket to address : ");
         return 1;
     }
-
+    auto rooms = std::make_shared<std::vector<std::shared_ptr<Room>>>();
     //Wait for a client
     if (listen (server_fd, MAX_PENDING_CONNECTION) <= -1){
         perror("Error while listening : ");
@@ -54,7 +55,7 @@ int main () {
     *HANDLE THE CLIENT
     **************************************************************/
     Server server;
-    if (server.handleClient(server_fd, address, addressLen) <= -1){
+    if (server.handleClient(server_fd, address, addressLen, rooms) <= -1){
         perror("Error while handling client : ");
         close(server_fd);
         return 1;

@@ -1,17 +1,19 @@
 #include "room.hpp"
 
+Room::Room(){}
 
-Room::Room(int sockHoster, int gameMode, int minPlayers, int maxPlayers)
+Room::Room(int sockHoster, Modes mode)
     : sockHoster(sockHoster),
-      gameMode(gameMode),
-      minPlayers(minPlayers),
-      maxPlayers(maxPlayers),
+      gameMode(mode),
       matchStarted(false)
-{
+{   
+    if (mode == Modes::Duel){
+        minPlayers = 2;
+        maxPlayers = 2;
+    }
     ThreadGameData thread;
     eventQueue = std::make_shared<EventQueue>();
     thread.client_fd = sockHoster;
-    thread.gameMode = gameMode;
     thread.eventQueue = eventQueue;
     playersThread.push_back(thread);
 }
@@ -28,7 +30,6 @@ bool Room::addPlayer(int playerFd) {
     ThreadGameData thread;
     eventQueue = std::make_shared<EventQueue>(); //event queue different pour chaque client?
     thread.client_fd = playerFd;
-    thread.gameMode = gameMode;
     thread.eventQueue = eventQueue;
     playersThread.push_back(thread);
     playerFds.push_back(playerFd);

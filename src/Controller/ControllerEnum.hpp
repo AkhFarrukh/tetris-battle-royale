@@ -13,7 +13,9 @@ enum Action {
             ESCAPE
         };
 
+enum MalusBonus {
 
+};
 
 
 

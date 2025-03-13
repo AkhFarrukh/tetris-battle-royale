@@ -27,6 +27,11 @@ struct PlayerState {
     int                              playerId;
     bool                             isGameOver = false;
     int                              fd;
+    int                              blackout = 0;
+    bool                             slowed = false;
+    bool                             blocked = false;
+    bool                             inverted = false;
+
 
     PlayerState(int pid)
         : playerId(pid),
