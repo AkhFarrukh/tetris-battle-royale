@@ -55,21 +55,6 @@ int Room::getPlayerCount() const {
     return (int)playerFds.size();
 }
 
-void Room::startMatchIfPossible() {
-    std::unique_lock<std::mutex> lock(mtx);
-    if (!matchStarted) {
-        // We can only start if we have at least minPlayers
-        if ((int)playerFds.size() >= minPlayers) {
-            matchStarted = true;
-            std::cout << "Match started with " << playerFds.size() << " players\n";
-            launchGame();
-            cv.notify_all();
-        } else {
-            std::cout << "Not enough players yet to start (need at least " 
-                      << minPlayers << ")\n";
-        }
-    }
-}
 
 void Room::forceStart() {
     std::unique_lock<std::mutex> lock(mtx);
@@ -82,12 +67,6 @@ void Room::forceStart() {
             std::cout << "Cannot force start, not enough players.\n";
         }
     }
-}
-
-void Room::waitForMatchToStart() {
-    std::unique_lock<std::mutex> lock(mtx);
-    cv.wait(lock, [this] { return matchStarted; });
-    // Once we pass this, the match has started
 }
 
 void Room::launchGame() {
