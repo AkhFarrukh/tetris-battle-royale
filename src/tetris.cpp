@@ -117,6 +117,8 @@ int main() {
             return -1;
         }
 
+    //std::cout << "Connecté au serveur !\n";
+
     //Game loop
     bool playing = true;
     while(playing){
@@ -126,13 +128,18 @@ int main() {
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
         if(dataConnexion.size()==2){
             username = dataConnexion[0];
-            std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];
-            if (send(sock, credentials.c_str(), credentials.size(), 0) <= 0) {
-            perror("Erreur lors de l'envoie des credentials");
-            playing = false;
-            break;
-            }
-        }
+            //std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];
+            int type = MessageType::T_Connexion;
+            int size = sizeof(struct Connexion);
+            Connexion connexionData;
+            std::strncpy(connexionData.username, dataConnexion[0].c_str(), sizeof(connexionData.username) - 1);
+            connexionData.username[sizeof(connexionData.username) - 1] = '\0';  // Sécuriser la fin du string
+            std::strncpy(connexionData.password, dataConnexion[1].c_str(), sizeof(connexionData.password) - 1);
+            connexionData.password[sizeof(connexionData.password) - 1] = '\0';
+            int bytesSentType = sendAll(sock, &type, sizeof(int));
+            int bytesSentSize = sendAll(sock, &size, sizeof(int));
+            sendAll(sock, &connexionData, sizeof(Connexion));
+    }
         else{
            std::cout << "Echec de la connexion au compte.\n";
            playing = false;

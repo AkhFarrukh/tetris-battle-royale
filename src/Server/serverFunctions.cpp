@@ -56,32 +56,35 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         /* CHECK AFTER MERGE */
         // The password MUST be a plain password (what received from the client).
         // The User Database Manager will take care of password hash validation.
-        char credentials[512] = {0};
-        
-        // Check if the server received both username and password or not
-        int bytesReceived = recv(client_fd, credentials, sizeof(credentials), 0);
-        if (bytesReceived <= 0){
-            perror("Erreur lors de la réception des credentials");
-            close(client_fd);
-            continue;
+        int type;
+        int size;
+        int bytesReceivedType = recvAll(client_fd, &type, sizeof(int));
+        int bytesReceivedSize = recvAll(client_fd, &size, sizeof(int));
+        Connexion connexionData;
+        if(type == MessageType::T_Connexion && size == sizeof(struct Connexion)){
+            if(!recvAll(client_fd, &connexionData, size)){
+                std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
+                return 0;
+            }
         }
-
-        std::string receivedData(credentials, bytesReceived);
-        size_t separator = receivedData.find('\0');
-        if (separator == std::string::npos) {
-            perror("Format invalide des credentials");
-            close(client_fd);
-            continue;
+        else{
+            std::cout << "Mauvais type de confidentials" << std::endl;
+            return 0;
         }
-
-        std::string username = receivedData.substr(0, separator);
-        std::string password = receivedData.substr(separator + 1);
-
+        printf("goood\n");
         // Create a "new session" with client info to be sent to thread routine
         // and push the client into a vector of clients
         ClientSession new_session;
+        printf("1a\n");
         new_session.client_fd = client_fd;
+        printf("2a\n");
+        printf("%s, %s\n", connexionData.username, connexionData.password);
+        new_session.username = std::string(connexionData.username);
+        printf("3a\n");
+        new_session.password = std::string(connexionData.password);
+        printf("4a\n");
         clients.push_back(new_session);
+        printf("5a\n");
 
         //printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
@@ -122,15 +125,23 @@ void* Server::threadRoutineClient(void* arg){
     // Get thread data from arg
 
     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
+    printf("1\n");
     ThreadData* threadData = reinterpret_cast<ThreadData*>(arg);
+    printf("2\n");
     ThreadGameData threadGameData;
+    printf("3\n");
     GameController gameController(eventQueue);
+    printf("4\n");
     Server* server = threadData->serverInstance;
+    printf("5\n");
     ClientSession client = threadData->client;
+    printf("6\n");
+
     std::cout<< "Initialised and got the args" << std::endl;
     // Check if both username and password are correct or not.
     bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(),
                                                        client.password.c_str());
+   printf("%d\n", successfulLogin);
     if (successfulLogin){
         // Get user ID and insert user into sessions table
         client.userId = server->udbm.getUserId(client.username.c_str());

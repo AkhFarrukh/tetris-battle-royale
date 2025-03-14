@@ -40,6 +40,10 @@ struct Menu{
     Modes mode;
 };
 
+struct Connexion{
+    char username[32];
+    char password[32];
+};
 
 enum MessageType {
     T_Message,
@@ -47,6 +51,7 @@ enum MessageType {
     T_Menu,
     T_PlayerData,
     T_Exit,
+    T_Connexion,
     T_Data,
 };
 
