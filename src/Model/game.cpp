@@ -12,6 +12,7 @@ const int GRID_WIDTH = 10;
 
 Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string gameMode)
     :   isRunning(false),
+        numPlayers_(numPlayers),
         gameMode(gameMode)
 
 {
@@ -19,11 +20,11 @@ Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string gameM
     if (gameMode == "Endless") {
         mode = std::make_shared<Endless>();
     } else if (gameMode == "Classic") {
-        mode = std::make_shared<Classic>(numPlayers);
+        mode = std::make_shared<Classic>();
     } else if (gameMode == "Duel") {
         mode = std::make_shared<Duel>();
     } else if (gameMode == "RoyalCompetition") {
-        mode = std::make_shared<RoyalCompetition>(numPlayers);
+        mode = std::make_shared<RoyalCompetition>();
     } else {
         throw std::invalid_argument("Unknown game mode: " + gameMode);
     }
@@ -291,7 +292,7 @@ void Game::placePieceOnBoard(int p) {
 
     handleLineCompletion(p);
 
-    auto newFig = make_shared<Figure>(figureGenerator.randomFigure());
+    auto newFig = make_shared<Figure>(figureGenerator.randomFigure(ps.isBonusCube));
     ps.activeFigure = make_shared<MovingFigure>(newFig, ps.grid);
     ps.movement = Mouvement(Action::NONE, ps.activeFigure);
 
@@ -301,6 +302,21 @@ void Game::placePieceOnBoard(int p) {
     }
     else {
         ps.countTetriminoGenerated +=1;
+        if (ps.countTetriminoGenerated > 1 && ps.slowed) {
+            ps.slowed = false;
+        }
+        if (ps.countTetriminoGenerated > 1 && ps.sped_up) {
+            ps.sped_up = false;
+        }
+        if (ps.countTetriminoGenerated > 1 && ps.blocked) {
+            ps.blocked = false;
+        }
+        if (ps.countTetriminoGenerated > 3 && ps.inverted) {
+            ps.inverted = false;
+        }
+        if (ps.countTetriminoGenerated > 2 && ps.isBonusCube) {
+            ps.isBonusCube = false;
+        }
     }
 }
 
@@ -337,6 +353,34 @@ void Game::checkGameOver() {
 }
 
 
+void Game::handleMalus(int targetID, int playerID) {
+    if (gameMode == "Duel") {
+        auto selectedMode = std::dynamic_pointer_cast<Duel>(mode);
+        selectedMode->applyRules(players[playerID], players[targetID]);
+    }
+    else if (gameMode == "Classic") {
+        auto selectedMode = std::dynamic_pointer_cast<Classic>(mode);
+        selectedMode->applyRules(players[playerID], players[targetID]);
+    }
+    else {
+        std::cerr << "Error: Malus triggered, but game mode is not Duel or Classic.\n";
+        return;
+    }
+
+}
+
+int findTarget(int playerId, int numPlayers) {
+    if (numPlayers <= 1) {
+        throw invalid_argument("Not enough players to find a target.");
+    }
+
+    int target;
+    do {
+        target = rand() % numPlayers;  // Génère un nombre entre 0 et numPlayers - 1
+    } while (target == playerId);      // Continue tant que la cible est le joueur lui-même
+
+    return target;
+}
 /**
  *@brief gestion de la complétion des lignes.
  * vérification de chaque ligne de la grille pour savoir si elle est complète.
@@ -354,6 +398,13 @@ void Game::handleLineCompletion(int p) {
             ps.grid->applyDominoEffect(y);
             cleared++;
             ps.gameData.updateLines(1);
+            ps.completedLines +=1; //Duel et Classic
+            ps.energy += 5; //RC mode
+            if (gameMode == "Duel" || gameMode == "Classic") { // S'occupe des malus automatiques
+                int target = findTarget(p, numPlayers_);
+                handleMalus(target, p);
+
+            }
         }
     }
 
