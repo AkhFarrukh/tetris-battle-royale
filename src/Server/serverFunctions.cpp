@@ -111,6 +111,9 @@ void* Server::threadRoutineClient(void* arg){
     Server* server = threadData->serverInstance;
     ClientSession& client = threadData->client;
 
+    server->lockThread = true;
+    server->cv.notify_one();
+
     bool flagConnexion = true;
     bool successfulLogin = false;
 
@@ -173,9 +176,6 @@ void* Server::threadRoutineClient(void* arg){
         server->udbm.setLogin(client.userId);
         server->udbm.addSession(client.userId, client.client_fd);
 
-        //Unlock the mutex and notifies it outside the thread
-        server->lockThread = true;
-        server->cv.notify_one();
         
         // Keep looking for any message sent by the user to the server
         // Using bool "UserIsOnline" for better readability of while loop

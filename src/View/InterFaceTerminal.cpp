@@ -790,7 +790,11 @@ vector<std::string> InterfaceTerminal::handleConnexionOption() {
             break;
             case 'q':
             case 'Q':
-
+              int sock = getSock();
+              int exitType = MessageType::T_Exit;
+              int size = sizeof(int);
+              int bytesSentType = sendAll(sock, &exitType, sizeof(int));
+              int bytesSentSize = sendAll(sock, &size, sizeof(int));
                 endwin();
             return dataConnexion;
         }
