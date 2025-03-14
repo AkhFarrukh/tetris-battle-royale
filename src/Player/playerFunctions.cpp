@@ -230,9 +230,9 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                 int size = sizeof(InputMessage);
                 InputMessage inputMessage;
                 inputMessage.input = currentAction;
-                sendAll(threadData->socket, &type, sizeof(int));
-                sendAll(threadData->socket, &size, sizeof(int));
-                sendAll(threadData->socket, &inputMessage, sizeof(InputMessage));
+                if (sendAll(threadData->socket, &type, sizeof(int))) {return -1;}
+                if (sendAll(threadData->socket, &size, sizeof(int))) {return -1;}
+                if (sendAll(threadData->socket, &inputMessage, sizeof(InputMessage))) {return -1;}
             }
         }
     }
