@@ -21,6 +21,18 @@ std::string username = "";
 
 void handle_sigint(int sig) {
    flag = true;
+   cout << "call me dady" << endl ;
+//    if (!username.empty()){ //si la personne s'est connecté
+        int user_id = db.getUserId(username.c_str());
+        while(udm.isLoggedIn(username.c_str())){
+            udm.logOut(user_id); //on marque la personne comme deconnecté
+        } 
+        db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué comme telle
+        while(db.isUserInSession(user_id)){
+            db.deleteSession(user_id);
+        }
+    // }
+    exit(0);
 }
 
 
@@ -122,10 +134,13 @@ int main() {
     //Game loop
     bool playing = true;
     while(playing){
-        InterfaceTerminal terminal;
+        // InterfaceTerminal terminal;
+        InterfaceTerminal* terminal = new InterfaceTerminal();
 
         //Identification auprès de la db
-        vector<std::string> dataConnexion = terminal.handleConnexionOption();
+        vector<std::string> dataConnexion = terminal->handleConnexionOption();
+        std::cout << "nimlah = " << &terminal << std::endl;
+
         if(dataConnexion.size()==2){
             username = dataConnexion[0];
             //std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];
@@ -137,16 +152,16 @@ int main() {
             int bytesSentType = sendAll(sock, &type, sizeof(int));
             int bytesSentSize = sendAll(sock, &size, sizeof(int));
             sendAll(sock, &connexionData, sizeof(Connexion));
-    }
+        }
         else{
            std::cout << "Echec de la connexion au compte.\n";
            playing = false;
            break;
         }
-        terminal.setSock(sock);
+        terminal->setSock(sock);
         /**************************************CRASH AFTER******************************************************************* */
         //Getting the selected menu in terminal
-        int selectedMode = terminal.start();
+        int selectedMode = terminal->start();
         if (selectedMode == -1){
             //Quit game
             playing = false;
@@ -212,6 +227,7 @@ int main() {
             Player::sendInput(threadData);
             napms(500);
         }
+        delete terminal;
     }
     /* COMING FROM CHAT, BUT BAD IDEA IMO*/
     //flag = true;//thread principal a terminé et va demander à threadLecture de se terminer.
@@ -222,20 +238,21 @@ int main() {
     // *********************************************************************************/
     //
     //
-    //if (username != ""){ //si la personne s'est connecté
-    //	int user_id = db.getUserId(username.c_str());
-    //    while(udm.isLoggedIn(username.c_str())){
-    //	udm.logOut(user_id);} //on marque la personne comme deconnecté
-    //    db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
-    //                                                                                        //comme telle
-	//	while(db.isUserInSession(user_id)){
-  	//		db.deleteSession(user_id);}
-    //}
-    ////on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec un SIGINT)
-    //nocbreak();
-    //keypad(stdscr, false);
-    //curs_set(1);
-    //nodelay(stdscr, false);
+    // if (username != ""){ //si la personne s'est connecté
+    //     int user_id = db.getUserId(username.c_str());
+    //     while(udm.isLoggedIn(username.c_str())){
+    //         udm.logOut(user_id); //on marque la personne comme deconnecté
+    //     } 
+    //     db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué comme telle
+    //     while(db.isUserInSession(user_id)){
+    //         db.deleteSession(user_id);
+    //     }
+    // }
+    //on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec un SIGINT)
+    nocbreak();
+    keypad(stdscr, false);
+    curs_set(1);
+    nodelay(stdscr, false);
     close(sock); // Fermer le socket après utilisation
     return 0;
 }
