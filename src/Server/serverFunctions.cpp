@@ -269,9 +269,24 @@ void* Server::threadRoutineClient(void* arg){
                     int typeToSend = MessageType::T_RoomInfo;
                     int sizeToSend = 1;
                 
-                    sendAll(client.client_fd, &typeToSend, sizeof(typeToSend));
-                    sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend));
-                    sendAll(client.client_fd, &info, sizeof(RoomInfo));
+                    if (sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){
+                        server->udbm.removeSession(client.userId);
+                            close(client.client_fd);
+                            userIsOnline = false; // Stop the loop
+                            break;
+                    }
+                    if (sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){
+                        server->udbm.removeSession(client.userId);
+                            close(client.client_fd);
+                            userIsOnline = false; // Stop the loop
+                            break;
+                    }
+                    if (sendAll(client.client_fd, &info, sizeof(RoomInfo))){
+                        server->udbm.removeSession(client.userId);
+                            close(client.client_fd);
+                            userIsOnline = false; // Stop the loop
+                            break;
+                    }
                 
                 }
                 else if (menu.action == MenuActions::A_JoinRoom) {
