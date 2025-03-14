@@ -69,9 +69,7 @@ int main () {
     *HANDLE THE CLIENT
     **************************************************************/
 
-    auto rooms = std::make_shared<std::vector<std::shared_ptr<Room>>>();
-
-    if (server.handleClient(server_fd, address, addressLen, rooms) <= -1){
+    if (server.handleClient(server_fd, address, addressLen) <= -1){
         perror("Error while handling client : ");
         close(server_fd);
         return 1;

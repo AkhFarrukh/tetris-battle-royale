@@ -2,6 +2,11 @@
 #include <algorithm>
 
 
+Server::Server(){
+    roomsList = make_shared<vector<shared_ptr<Room>>>();
+}
+
+
 /**
  * TODO: COMMENTS TO BE ADDED BY THOSE WHO WROTE THIS FUNCTION/METHOD. STP
  */
@@ -37,8 +42,7 @@ void Server::broadcastMessage(const char* buffer, const std::string& sender_user
  * @param addressLen Address length
  * @return return -1 in case of error else return 0
  */
-int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen, std::shared_ptr<std::vector<std::shared_ptr<Room>>> rooms){
-    auto roomsList = rooms;
+int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen){
     while (true) {
 
         // Mutex
@@ -257,8 +261,9 @@ void* Server::threadRoutineClient(void* arg){
                 else if (menu.action == MenuActions::A_CreateRoom) {
                     std::cout<<"Received CreateRoom"<<std::endl;
                     auto r = std::make_shared<Room>(client.client_fd, menu.mode);
-                    server->roomsList->push_back(r);
+                    auto allRoom = server->roomsList;
                     server->myRoom = r;
+                    allRoom->push_back(r);
                     std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
                 
                     RoomInfo info;
