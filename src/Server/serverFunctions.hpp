@@ -48,6 +48,7 @@ class Server{
         void broadcastMessage(const char* buffer, const std::string& sender_username);
         static void* threadRoutineClient(void* arg);
         std::vector<ClientSession> getClients(){return clients;}
+        static void* threadRoutineGame(void* arg);
 };
 
 #endif  // SERVERFUNCTIONS_HPP

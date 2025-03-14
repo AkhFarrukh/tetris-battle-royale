@@ -84,11 +84,12 @@ void Game::run() {
         }
 
         updateGame();
-        //cout<<"Updated game"<<endl;
-        broadcastGame();
-        //cout<<"Broadcasted game"<<endl;
+        if(broadcastGame() == false)
+        {
+            perror("Error while broadcasting the game : ");
+            isRunning = false;
+        }
         checkGameOver();
-        //cout<<"Checked gameOver"<<endl;
     }
 
 }
@@ -414,7 +415,7 @@ Color Game::getBlockColor(Coordinates cell) {
 */
 
 
-void Game::broadcastGame() {
+bool Game::broadcastGame() {
     std::vector<NetPlayerData> netArray;
 
     for (auto &ps : players) {
@@ -439,15 +440,6 @@ void Game::broadcastGame() {
                 else { //On est aveuglé
                     c = Color::white; //Blackout malus (RC mode)
                 }
-
-                //if (!ps.isGameOver) {
-                //    for (auto& figureBlock : ps.activeFigure->getBlocksRealPositions()) {
-                //        if (figureBlock.getX() == col && figureBlock.getY() == row) {
-                //            c = ps.activeFigure->getMovingFigureBlockColor(Coordinates(figureBlock.getX(), figureBlock.getY()));
-                //            break;
-                //        }
-                //    }
-                //}
                 nd.grid[row * GRID_WIDTH + col] = c;
             }
         }
@@ -459,31 +451,27 @@ void Game::broadcastGame() {
         
         netArray.push_back(std::move(nd));
     }
-
+    //Envoie toutes les infos nécessaire à l'affichage à chaque joueur
     for (auto &ps : players) {
         int sock = ps.fd; 
         if (sock <= 0) continue;
 
         int type = MessageType::T_PlayerData;
-        if (!sendAll(sock, &type, sizeof(type))) {
-            continue;
-        }
+        if (!sendAll(sock, &type, sizeof(type))){return false;}
 
         int size = static_cast<int>(netArray.size());
-        if (!sendAll(sock, &size, sizeof(size))) {
-            continue;
-        }
-        //cout << "netArray.size() : " << netArray.size()<<endl;
+        if (!sendAll(sock, &size, sizeof(size))){return false;}
         for (auto& player : netArray) {
-            sendAll(sock, &player.playerId, sizeof(player.playerId));
-            sendAll(sock, &player.isGameOver, sizeof(player.isGameOver));
-            sendAll(sock, &player.linesCleared, sizeof(player.linesCleared));
-            sendAll(sock, &player.score, sizeof(player.score));
+            if (!sendAll(sock, &player.playerId, sizeof(player.playerId))) {return false;}
+            if (!sendAll(sock, &player.isGameOver, sizeof(player.isGameOver))) {return false;}
+            if (!sendAll(sock, &player.linesCleared, sizeof(player.linesCleared))) {return false;}
+            if (!sendAll(sock, &player.score, sizeof(player.score))) {return false;}
         
             int gridSize = static_cast<int>(player.grid.size());
-            sendAll(sock, &gridSize, sizeof(gridSize));
-            sendAll(sock, player.grid.data(), gridSize * sizeof(Color));
+            if (!sendAll(sock, &gridSize, sizeof(gridSize))) {return false;}
+            if (!sendAll(sock, player.grid.data(), gridSize * sizeof(Color))) {return false;}
         }
     }
+    return true;
 }
 

@@ -42,7 +42,7 @@ public:
     
     void setGameController(shared_ptr<GameController> controller);
     Color getBlockColor(Coordinates cell);
-    void broadcastGame();
+    bool broadcastGame();
 
 
 private:

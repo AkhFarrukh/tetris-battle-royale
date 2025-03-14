@@ -241,11 +241,15 @@ void* Server::threadRoutineClient(void* arg){
                         data.push_back(threadGameData);
                         
                         std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, "Endless");
-
-                        std::thread gameThread([soloGame]() {
-                            soloGame->run();
-                        });
-                        gameThread.detach();
+                        auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
+                        pthread_t threadGamePID;
+                        if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
+                            perror("Error on thread creation for game : ");
+                            server->udbm.removeSession(client.userId);
+                            close(client.client_fd);
+                            userIsOnline = false; // Stop the loop
+                            break;
+                        }
                     }
                     //autre mode
                 }
@@ -253,8 +257,7 @@ void* Server::threadRoutineClient(void* arg){
                     auto r = std::make_shared<Room>(client.client_fd, menu.mode);
                     server->roomsList->push_back(r);
                     server->myRoom = r;
-                    std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
-
+                    std::cout << "Created new room with host fd = " << client.client_fd << std::endl;
                 }
                 else if (menu.action == MenuActions::A_JoinRoom) {
 
@@ -344,15 +347,25 @@ void* Server::threadRoutineClient(void* arg){
                 }
                 return nullptr;
             }
-            // Display message if there's one.
-            /* ? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
-            //std::string message(buffer, bytesReceived);
-            //std::cout << "Message reçu de " << client.username << " : " << message << std::endl;
-            //server->broadcastMessage(message, client.client_fd);
         }
     }
     else {
         std::cerr << "login failed";
     }
+    return nullptr;
+}
+
+/**
+ * @brief Routine avec Game() qui tourne
+ * 
+ * @param arg shared_ptr<Game>
+ * @return void* 
+ */
+void* threadRoutineGame(void* arg){
+    //Retreive arg
+    auto* gamePtrWrapper = static_cast<std::shared_ptr<Game>*>(arg);
+    std::shared_ptr<Game> game = *gamePtrWrapper;
+    delete gamePtrWrapper;
+    game->run();
     return nullptr;
 }
