@@ -407,7 +407,7 @@ void* Server::threadRoutineClient(void* arg){
  * @param arg shared_ptr<Game>
  * @return void* 
  */
-void* threadRoutineGame(void* arg){
+void* Server::threadRoutineGame(void* arg){
     //Retreive arg
     auto* gamePtrWrapper = static_cast<std::shared_ptr<Game>*>(arg);
     std::shared_ptr<Game> game = *gamePtrWrapper;
