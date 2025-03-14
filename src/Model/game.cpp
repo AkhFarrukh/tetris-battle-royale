@@ -20,7 +20,7 @@ Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string mode)
         ps.grid = std::make_shared<Grid>();
         ps.eventQueue = playersData[i].eventQueue;
         ps.fd = playersData[i].client_fd;
-        ps.malusBonus = MalusBonus::NO;
+        ps.malusBonus = MalusBonus::MalusNONE;
 
         auto fig = std::make_shared<Figure>(figureGenerator.randomFigure());
         auto movingFig = std::make_shared<MovingFigure>(fig, ps.grid);
