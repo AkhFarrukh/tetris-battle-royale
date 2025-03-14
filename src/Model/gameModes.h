@@ -16,14 +16,10 @@
  * Chaque mode de jeu doit implémenter ses propres règles via la méthode `applyRules`.
  */
 class Mode {
-protected:
-    int numPlayers_;  // le nombre de joueur.
 public:
-    Mode(int numPlayers);
+    Mode();
     virtual ~Mode(); // Destructeur virtuel pour assurer la bonne destruction des objets dérivés
-    virtual void setPlayers(int num) = 0;
-    virtual int getPlayers() = 0;
-    virtual void applyRules(Grid& grid, int linesCleared) = 0;
+
 };
 
 /**
@@ -32,15 +28,6 @@ public:
 class Endless : public Mode {
 public:
     Endless();
-    void setPlayers(int num) override;
-    int getPlayers() override;
-    /**
-     * @brief Applique les règles spécifiques du mode de jeu.
-     *
-     * @param grid La grille de jeu du joueur.
-     * @param linesCleared Le nombre de lignes complétées.
-     */
-    void applyRules(Grid& grid, int linesCleared) override; //S'occupe de la gestion de malus
 };
 
 /**
@@ -48,10 +35,8 @@ public:
  */
 class Classic : public Mode {
 public:
-    Classic(int numPlayers);
-    void setPlayers(int num) override;
-    int getPlayers() override;
-    void applyRules(Grid& grid, int linesCleared) override;
+    Classic();
+    virtual void applyRules(PlayerState& player, PlayerState& targetedPlayer);
 };
 
 /**
@@ -60,6 +45,8 @@ public:
 class Duel : public Classic {
 public:
     Duel();
+    void applyRules(PlayerState& player, PlayerState& targetedPlayer) override;
+
 };
 
 
@@ -67,12 +54,9 @@ public:
  * @brief Mode Royal Competition : les joueurs gagnent de l’énergie et choisissent leurs malus/bonus.
  */
 class RoyalCompetition : public Mode {
-    int energy; //l'énergie s'accumule afin de permettre l'utilisation de malus/bonus
+
 public:
-    RoyalCompetition(int numPlayers);
-    void setPlayers(int num) override;
-    int getPlayers() override;
-    void applyRules(Grid& grid, int linesCleared) override;
+    RoyalCompetition();
     void malusReverseControls(PlayerState& player);
     void malusFreezeControls(PlayerState& player);
     void bonusReduceFallSpeed(PlayerState& player);
@@ -80,7 +64,7 @@ public:
     void malusThunder(PlayerState& player);
     void malusBlackOut(PlayerState& player);
     void bonusBlockCube(PlayerState& player);
-    int getEnergyUsed() {return energy;}
+
 };
 
 #endif // GAMEMODES_H
