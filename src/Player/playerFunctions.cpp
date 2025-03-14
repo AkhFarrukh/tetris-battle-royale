@@ -20,7 +20,7 @@ void* Player::threadRoutineView (void* arg){
     //std::cout<<"Starting threadRoutineView loop"<<std::endl;
     //clear();
     //refresh();
-    while (threadData->userInGame) {
+    while (threadData->userInGame && !flag) {
         //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
         //To have info on the data received
         int type;
@@ -89,7 +89,7 @@ return 0;
  */
 
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
-    while (true) {
+    while (!flag) {
         bool keepRunning = threadData->userInGame;
         if (!keepRunning) {
             break;

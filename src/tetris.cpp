@@ -201,12 +201,13 @@ int main() {
             // pthread_join(threadID, &ret);
             Player::sendInput(threadData);
             napms(500);
+            pthread_join(threadID, nullptr);
         }
     }
-    /* COMING FROM CHAT, BUT BAD IDEA IMO*/
-    //flag = true;//thread principal a terminé et va demander à threadLecture de se terminer.
-    //shutdown(sock, SHUT_RD);
-    //pthread_join(threadLecture, nullptr);
+
+    flag = true;//thread principal a terminé et va demander à threadLecture de se terminer.
+    shutdown(sock, SHUT_RD);
+    pthread_join(threadLecture, nullptr);
     ///**********************************************************************************
     // * START GAME
     // *********************************************************************************/

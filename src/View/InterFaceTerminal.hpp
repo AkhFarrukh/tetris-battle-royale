@@ -16,7 +16,6 @@
 extern std::mutex interfaceMutex;
 extern Database db;
 extern UserDatabaseManager udm;
-extern atomic<bool> flag;
 
 class InterfaceTerminal {
 

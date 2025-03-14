@@ -874,7 +874,6 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
             napms(700);
             return 0;
         break;
-
         case 1:
             // Si l'utilisateur sélectionne "Send message", on envoie un message à l'ami.
                 handleFriends();
