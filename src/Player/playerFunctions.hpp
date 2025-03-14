@@ -40,6 +40,7 @@ class Player {
 
         static void* threadRoutineView (void* arg); //Routine qui recoit la grid et l'affiche
         static int sendInput (std::shared_ptr<Player::ThreadData> threadData); //Envoie les inputs au server
+        static int keyboardActionToInt(KeyboardAction action);
 };
      
 #endif
