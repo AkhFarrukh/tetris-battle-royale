@@ -491,7 +491,6 @@ void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string>
     refresh();
 }
 
-
 int InterfaceTerminal::handleFriendRequests() {
     int selectedOption = 0;
 
