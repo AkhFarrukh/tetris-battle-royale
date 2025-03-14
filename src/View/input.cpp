@@ -58,6 +58,7 @@ KeyboardAction Input::getKeyboardInput() {
         case KEY_CANCEL:
             currentAction = KeyboardAction::EXIT_KEY;
             break;
+        case '&':
         default:
             currentAction = KeyboardAction::NO_ACTION;
             break;

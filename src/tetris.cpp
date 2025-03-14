@@ -160,32 +160,32 @@ int main() {
             menu.action = MenuActions::A_Play;
             if(selectedMode == 0){
                 //menu.mode = InterfaceTerminal::modeNames[selectedMode];
-                menu.mode = Modes::Endless;
+                menu.mode = Modes::Endless_;
                 napms(500);
 
             }
             else if(selectedMode == 10){
-                menu.mode = Modes::Classic;
+                menu.mode = Modes::Classic_;
                 menu.action = MenuActions::A_CreateRoom;
             }
             else if(selectedMode == 11){
-                menu.mode = Modes::Classic;
+                menu.mode = Modes::Classic_;
                 menu.action = MenuActions::A_JoinRoom;
             }
             else if(selectedMode == 20){
-                menu.mode = Modes::Duel;
+                menu.mode = Modes::Duel_;
                 menu.action = MenuActions::A_CreateRoom;
             }
             else if(selectedMode == 21){
-                menu.mode = Modes::Duel;
+                menu.mode = Modes::Duel_;
                 menu.action = MenuActions::A_JoinRoom;
             }
             else if(selectedMode == 30){
-                menu.mode = Modes::Royal;
+                menu.mode = Modes::Royal_;
                 menu.action = MenuActions::A_CreateRoom;
             }
             else if(selectedMode == 31){
-                menu.mode = Modes::Royal;
+                menu.mode = Modes::Royal_;
                 menu.action = MenuActions::A_JoinRoom;
             }
             //Sending info to server

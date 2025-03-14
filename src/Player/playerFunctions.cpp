@@ -169,6 +169,13 @@ void* Player::threadRoutineView (void* arg){
             else {
                 render.renderGames(playersData);
             }
+
+            /* todo add when royal mode is implemented
+            if (gamemode == Modes::Royal_){
+                //std::cout<<"Rendering royal games"<<std::endl;
+                render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
+            }
+            */
         }
     }
 return 0;
@@ -181,7 +188,9 @@ return 0;
  * @return int 
  */
 
-int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
+int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
+    int chosenMalus = 0;
+    int chosenPlayer = 0;
     while (!flag) {
         bool keepRunning = threadData->userInGame;
         if (!keepRunning) {
@@ -196,14 +205,70 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData){
                 threadData->userInGame = false;
                 threadData->mux.unlock();
             }
-            int type = MessageType::T_Input;
-            int size = sizeof(InputMessage);
-            InputMessage inputMessage;
-            inputMessage.input = currentAction;
-	        sendAll(threadData->socket, &type, sizeof(int));
-            sendAll(threadData->socket, &size, sizeof(int));
-            sendAll(threadData->socket, &inputMessage, sizeof(InputMessage));
+
+            int numberKey = keyboardActionToInt(currentAction);
+            if (numberKey != -1) {
+                if (threadData->targetPlayerMenu) {
+                    chosenPlayer = numberKey;
+                    threadData->mux.lock();
+                    threadData->targetPlayerMenu = true;
+                    threadData->mux.unlock();
+
+                } else {
+                    chosenMalus = numberKey;
+                    threadData->mux.lock();
+                    threadData->targetPlayerMenu = false;
+                    threadData->mux.unlock();
+                    //
+                    //todo send chosenMalus and chosenPlayer to server
+                    //
+                    chosenMalus = 0; chosenMalus = 0;
+                }
+            } else {
+                int type = MessageType::T_Input;
+                int size = sizeof(InputMessage);
+                InputMessage inputMessage;
+                inputMessage.input = currentAction;
+                sendAll(threadData->socket, &type, sizeof(int));
+                sendAll(threadData->socket, &size, sizeof(int));
+                sendAll(threadData->socket, &inputMessage, sizeof(InputMessage));
+            }
         }
+        return 0;
     }
-    return 0;
+}
+
+
+
+/**
+ * @brief Convert keyboard action to integer value
+ *
+ * @param action KeyboardAction to convert
+ * @return int Integer value for number keys (0-9), or -1 for other keys
+ */
+int Player::keyboardActionToInt(KeyboardAction action) {
+    switch(action) {
+        case NUMBER_KEY_0:
+            return 0;
+        case NUMBER_KEY_1:
+            return 1;
+        case NUMBER_KEY_2:
+            return 2;
+        case NUMBER_KEY_3:
+            return 3;
+        case NUMBER_KEY_4:
+            return 4;
+        case NUMBER_KEY_5:
+            return 5;
+        case NUMBER_KEY_6:
+            return 6;
+        case NUMBER_KEY_7:
+            return 7;
+        case NUMBER_KEY_8:
+            return 8;
+        case NUMBER_KEY_9:
+            return 9;
+        default:
+            return -1;
+    }
 }

@@ -47,7 +47,7 @@ public:
 
   void displayFriendOptions(int selectedOption);
   void displayGameModeMenu(int selectedMode) const;
-  int displayMultiplayerOption(int selectedMode) const;
+  void displayMultiplayerOption(int selectedMode) const;
 
   int handleGameModeSelection(int& selectedMode);
   void displayFriendsMenu(int selectedOption, vector<string> friends);

@@ -38,7 +38,7 @@ void Server::broadcastMessage(const char* buffer, const std::string& sender_user
  * @return return -1 in case of error else return 0
  */
 int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen, std::shared_ptr<std::vector<std::shared_ptr<Room>>> rooms){
-    roomsList = rooms;
+    auto roomsList = rooms;
     while (true) {
 
         // Mutex
@@ -231,7 +231,7 @@ void* Server::threadRoutineClient(void* arg){
                     break;
                 }
                 else if (menu.action == MenuActions::A_Play) {
-                    if (menu.mode == Modes::Endless) {
+                    if (menu.mode == Modes::Endless_) {
                         
                         std::cout << "Client wants Endless mode\n";
 

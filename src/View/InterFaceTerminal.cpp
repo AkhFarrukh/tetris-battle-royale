@@ -313,8 +313,8 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
    refresh();
 }
 
-int InterfaceTerminal::displayMultiplayerOption(int selectedMode) const {
-    int action = 0;
+void InterfaceTerminal::displayMultiplayerOption(int selectedMode) const {
+    int action = selectedMode;
     erase();
     printw("\n\nNow pick your action:\n");
     const char* subActions[] = { "Create a room", "Join a room"};
@@ -369,10 +369,9 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                    printw("Endless Mode selected! Starting game...\n");
                    refresh();
                    napms(500);
-                   //MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
-                   /* MODIF SERVER */
                    return selectedMode;
-                } if (selectedMode == 1){
+                } 
+                if (selectedMode == 1){
                     erase();
                     printw("Classic Mode selected!\n");
                     refresh();
@@ -404,14 +403,15 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                         }
                     }
 
-                } if (selectedMode == 2) {
+                } 
+                if (selectedMode == 2) {
                     erase();
                     printw("Duel Mode selected!\n");
                     refresh();
                     int act = 0;
                     while (true){
                         displayMultiplayerOption(act);
-                        int ch = getch();    
+                        int ch = getch();
                         switch (ch) {  
                             case KEY_UP:
                                 if (act > 0) act--;
@@ -436,7 +436,8 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                         }
                     }
 
-                } if (selectedMode == 3) {
+                } 
+                if (selectedMode == 3) {
                     erase();
                     printw("Royal Competition Mode selected!\n");
                     refresh();
