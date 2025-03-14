@@ -137,6 +137,8 @@ void Game::updateGame() {
                 handleMovementActionEvent(p, evt);
            }
         }
+    }
+}
 
 Action reverse(Action action) {
     switch (action) {

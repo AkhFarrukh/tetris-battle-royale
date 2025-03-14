@@ -25,7 +25,8 @@ struct PlayerState {
     GameData                         gameData;
     std::shared_ptr<Figure>          nextTetromino;
     std::shared_ptr<EventQueue> eventQueue;
-
+    MalusBonus                       malusBonus;
+    
     bool                             isGameOver = false;
     int                              fd;
     int                              blackout = 0;
