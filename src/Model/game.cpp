@@ -71,6 +71,7 @@ void Game::run() {
                 if (!players[p].isGameOver and !players[p].slowed and !players[p].sped_up) {
                     if (players[p].blackout != 0){players[p].blackout--;} //Il y a 10 unités lors d'un BO, cela durera 5 sec
                     bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                    cout<<"soft dropping"<<endl;
                     if (!canDrop) {
                         placePieceOnBoard(p);
                     }
@@ -176,7 +177,7 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
     Action a = moveEvt->getEventData();
     if (a == Action::ESCAPE) {
         players[p].isGameOver = true;
-        //players[p].isInGame = false;
+        players[p].isInGame = false;
         int type = MessageType::T_Exit;
         int size = sizeof(MessageType);
         sendAll(players[p].fd, &type, sizeof(int));
@@ -321,6 +322,14 @@ void Game::placePieceOnBoard(int p) {
 
 
 void Game::stop() {
+    for (auto &ps : players) {
+        if (ps.isInGame) {
+            int type = MessageType::T_Exit;
+            int size = sizeof(MessageType);
+            sendAll(ps.fd, &type, sizeof(int));
+            sendAll(ps.fd, &size, sizeof(int));
+        }
+    }
     isRunning = false;
 }
 

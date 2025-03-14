@@ -27,6 +27,7 @@ struct PlayerState {
     std::shared_ptr<EventQueue> eventQueue;
     MalusBonus                       malusBonus;
     
+    bool                             isInGame = true;
     bool                             isGameOver = false;
     int                              fd;
     int                              blackout = 0;
