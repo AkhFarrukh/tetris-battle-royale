@@ -5,6 +5,7 @@
 #include <sys/socket.h>         // socket management
 #include <unistd.h>
 #include "keyboardAction.hpp"
+#include "ControllerEnum.hpp"
 
 using namespace std;
 
@@ -25,6 +26,10 @@ struct Message{
 
 struct InputMessage{
     KeyboardAction input;
+};
+struct MalBonus{
+    MalusBonus malusB;
+    int target;
 };
 
 enum MenuActions{
@@ -48,6 +53,7 @@ struct Connexion{
 enum MessageType {
     T_Message,
     T_Input,
+    T_MalusBonus,
     T_Menu,
     T_PlayerData,
     T_Exit,

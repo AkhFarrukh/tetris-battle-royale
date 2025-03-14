@@ -262,31 +262,39 @@ void* Server::threadRoutineClient(void* arg){
 
                 }
                 else if (menu.action == MenuActions::A_JoinRoom) {
-                    int nbRooms = (int)server->roomsList->size();
-                    sendAll(client.client_fd, &nbRooms, sizeof(nbRooms));
 
+                    std::vector<std::shared_ptr<Room>> filteredRooms;
+                    for (auto& r : *server->roomsList) {
+                        if (r->getRoomMode() == menu.mode) {
+                            filteredRooms.push_back(r);
+                        }
+                    }
+                
+                    int nbRooms = (int)filteredRooms.size();
+                    sendAll(client.client_fd, &nbRooms, sizeof(nbRooms));
+                
                     for (int i = 0; i < nbRooms; i++) {
-                        int count = server->roomsList->at(i)->getPlayerCount();
+                        int count = filteredRooms[i]->getPlayerCount();
                         sendAll(client.client_fd, &count, sizeof(count));
+
                     }
 
                     int chosenIndex;
                     if (!recvAll(client.client_fd, &chosenIndex, sizeof(chosenIndex))) {
-                        std::cout << "Disconnected while picking room\n";
-                        close(client.client_fd);
-                        userIsOnline = false;
                         break;
                     }
-
+                
                     if (chosenIndex >= 0 && chosenIndex < nbRooms) {
-                        auto chosenRoom = server->roomsList->at(chosenIndex);
+                        auto chosenRoom = filteredRooms[chosenIndex];
                         if (!chosenRoom->addPlayer(client.client_fd)) {
                             std::cout << "Failed to join room\n";
                         } else {
-                            std::cout << "Client joined room index " << chosenIndex << std::endl;
+                            std::cout << "Client joined room with hostFd " 
+                                      << chosenRoom->getOwnerFd() << std::endl;
                         }
                     }
                 }
+                
                 else if (menu.action == MenuActions::A_ForceStart) {
                     server->myRoom->forceStart();
                 }
@@ -303,6 +311,19 @@ void* Server::threadRoutineClient(void* arg){
                 }
                 gameController.getAction(action);
             }
+            else if (type == MessageType::T_MalusBonus) {
+                MalBonus malusBobo;
+
+                if (!recvAll(client.client_fd, &malusBobo, sizeof(MalBonus))){
+                    std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+                    server->udbm.removeSession(client.userId);
+                    close(client.client_fd);
+                    userIsOnline = false; // Stop the loop
+                }
+
+                eventQueue->addEvent(make_shared<MalusBonusEvent>(malusBobo.malusB, malusBobo.target));
+            }
+            
 
             else if (type == MessageType::T_ForcedExit){
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
