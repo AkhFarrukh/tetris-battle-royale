@@ -396,60 +396,6 @@ std::vector<std::pair<std::string, int>> UserDatabaseManager::getTopScores(int l
 }
 
 
-std::vector<std::tuple<int, std::string, int, int, int, int>> UserDatabaseManager::getRanking(std::string mode, int limit){
-    std::vector<std::tuple<int, std::string, int, int, int, int>> ranking;
-    std::string query;
-    
-    if (mode == "Endless") {
-        query = "SELECT users.username, leaderboard.highest_score, \
-                 leaderboard.games_played, leaderboard.wins, leaderboard.losses, 0 AS energy_used \
-                 FROM users INNER JOIN leaderboard ON users.id = leaderboard.user_id \
-                 WHERE leaderboard.mode_played = 'Endless' \
-                 ORDER BY leaderboard.highest_score DESC, leaderboard.games_played ASC";
-    }
-    else { // Classic, Duel, Royal
-        query = "SELECT users.username, 0 AS highest_score, \
-                 leaderboard.games_played, leaderboard.wins, leaderboard.losses, leaderboard.total_energy_used \
-                 FROM users INNER JOIN leaderboard ON users.id = leaderboard.user_id \
-                 WHERE leaderboard.mode_played = ? \
-                 ORDER BY leaderboard.wins DESC, leaderboard.games_played ASC, leaderboard.total_energy_used DESC";
-    }
-    if (limit > 0){
-        query += " LIMIT ?";
-        database.prepareStatement(query.c_str());
-        database.bindText(mode.c_str(), 1);
-        database.bindInt(limit, 2);
-    }
-    else{
-        database.prepareStatement(query.c_str());
-        database.bindText(mode.c_str(), 1);
-    }
-    
-    database.execute();
-    int rank = 1;
-    while(database.getReturnCode() == SQLITE_ROW) {
-        const unsigned char* username = database.getTextValueFromColumn(0);
-        std::string stringUsername = reinterpret_cast<const char*>(username);
-        int highestScore = database.getIntValueFromColumn(1);
-        int gamesPlayed = database.getIntValueFromColumn(2);
-        int wins = database.getIntValueFromColumn(3);
-        int losses = database.getIntValueFromColumn(4);
-        int energyUsed = database.getIntValueFromColumn(5);
-    
-        ranking.push_back(std::make_tuple(rank++, stringUsername, highestScore, gamesPlayed, wins, energyUsed));
-        database.execute();
-    }
-    
-    if (database.getReturnCode() != SQLITE_DONE) {
-        std::cerr << "Error" << std::endl;
-    }    
-
-    database.destructStatement();
-    return ranking;
-}
-
-
-
 vector<string> UserDatabaseManager::friendsList(const string& username){
     std::vector<std::string> friendsList;
 
