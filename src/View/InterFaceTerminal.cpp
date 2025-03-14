@@ -892,8 +892,8 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
  *
  */
 int InterfaceTerminal::start() {
-   int returnValue;
-   //initNcurses();
+   int returnValue = -1;
+   initNcurses();
    int selectedOption = 0;
 
    while (!flag) {
@@ -912,7 +912,7 @@ int InterfaceTerminal::start() {
                }
                break;
            case '\n':   // touche 'entrée'
-               handleOptionSelection(selectedOption);
+                returnValue = handleOptionSelection(selectedOption);
                if(returnValue!=-1)return returnValue;
                break;
            case 't':

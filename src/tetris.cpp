@@ -212,20 +212,21 @@ int main() {
     // *********************************************************************************/
     //
     //
-    //if (username != ""){ //si la personne s'est connecté
-    //	int user_id = db.getUserId(username.c_str());
-    //    while(udm.isLoggedIn(username.c_str())){
-    //	udm.logOut(user_id);} //on marque la personne comme deconnecté
-    //    db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
-    //                                                                                        //comme telle
-	//	while(db.isUserInSession(user_id)){
-  	//		db.deleteSession(user_id);}
-    //}
-    ////on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec un SIGINT)
-    //nocbreak();
-    //keypad(stdscr, false);
-    //curs_set(1);
-    //nodelay(stdscr, false);
+    // if (username != ""){ //si la personne s'est connecté
+    //     int user_id = db.getUserId(username.c_str());
+    //     while(udm.isLoggedIn(username.c_str())){
+    //         udm.logOut(user_id); //on marque la personne comme deconnecté
+    //     }
+    //     db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué comme telle
+    //     while(db.isUserInSession(user_id)){
+    //         db.deleteSession(user_id);
+    //     }
+    // }
+    //on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec un SIGINT)
+    nocbreak();
+    keypad(stdscr, false);
+    curs_set(1);
+    nodelay(stdscr, false);
     close(sock); // Fermer le socket après utilisation
     return 0;
 }

@@ -70,9 +70,10 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         threadData->client = ClientSession(new_session);
         threadData->serverInstance = this; // "this" = a pointer of server object
         
-        // Create a thread for a user if the username and password is correct.
         pthread_t threadID;
-        if(pthread_create(&threadID, nullptr, threadRoutineClient, threadData.get()) < 0){
+        std::shared_ptr<ThreadData>* threadDataCopy = new std::shared_ptr<ThreadData>(threadData);
+        
+        if(pthread_create(&threadID, nullptr, Server::threadRoutineClient, threadDataCopy) < 0) {
             perror("Error on thread creation : ");
             close(client_fd);
             clients.pop_back();
@@ -102,7 +103,9 @@ void* Server::threadRoutineClient(void* arg){
     // Get thread data from arg
 
     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
-    ThreadData* threadData = reinterpret_cast<ThreadData*>(arg);
+    std::shared_ptr<ThreadData> threadData = *static_cast<std::shared_ptr<ThreadData>*>(arg);
+    delete static_cast<std::shared_ptr<ThreadData>*>(arg);
+
     ThreadGameData threadGameData;
     GameController gameController(eventQueue);
     Server* server = threadData->serverInstance;
