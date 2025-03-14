@@ -86,20 +86,18 @@ void* Player::threadRoutineView (void* arg){
         else if (type == MessageType::T_RoomsInfo){
             RenderRooms renderR;
             std::vector<RoomInfo> roomsInfo;
-
-            for (int i = 0; i < size; ++i)
+            roomsInfo.resize(size);
+            if (!recvAll(sock, &roomsInfo, size *sizeof(RoomInfo)))
             {
-                RoomInfo info;
-                if (!recvAll(sock, &info, sizeof(info)))
-                {
-                    break;
-                }
-                roomsInfo.push_back(info);
+                break;
             }
+            clear();
+            printw("Got it !");
+            refresh();
             int index = -3;
             while (true) {
                 index = renderR.handleListRooms(roomsInfo);
-                if (index < -1) {
+                if ((index != -2) && (index != -1)) {
                     int chosenIndex = index; 
                     int typeToSend = MessageType::T_Join;
                     int sizeToSend = sizeof(int);

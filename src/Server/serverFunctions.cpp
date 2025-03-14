@@ -296,20 +296,19 @@ void* Server::threadRoutineClient(void* arg){
                 else if (menu.action == MenuActions::A_JoinRoom) {
                     cout<<"JoinRoom received"<<endl;
                     std::vector<std::shared_ptr<Room>> filteredRooms;
-                    for (auto& r : *server->roomsList) {
+                    auto allRooms = server->roomsList;
+                    for (auto& r : *allRooms) {
                         if (r->getRoomMode() == menu.mode) {
                             filteredRooms.push_back(r);
                         }
                     }
-                
+                    cout<<"Done filtered Room"<<endl;
+
+                    int type = sizeof(MessageType::T_RoomsInfo);
+                    sendAll(client.client_fd, &type, sizeof(type));
                     int nbRooms = (int)filteredRooms.size();
                     sendAll(client.client_fd, &nbRooms, sizeof(nbRooms));
-                
-                    for (int i = 0; i < nbRooms; i++) {
-                        int count = filteredRooms[i]->getPlayerCount();
-                        sendAll(client.client_fd, &count, sizeof(count));
-                    }
-                
+                    sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo));
                 }  
                 
                 else if (menu.action == MenuActions::A_ForceStart) {

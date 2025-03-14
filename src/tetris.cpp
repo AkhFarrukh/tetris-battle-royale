@@ -141,7 +141,6 @@ int main() {
            playing = false;
            break;
         }
-        /**************************************CRASH AFTER******************************************************************* */
         //Getting the selected menu in terminal
         int selectedMode = terminal.start();
         if (selectedMode == -1){
