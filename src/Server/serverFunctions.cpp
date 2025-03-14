@@ -231,6 +231,7 @@ void* Server::threadRoutineClient(void* arg){
                     break;
                 }
                 else if (menu.action == MenuActions::A_Play) {
+                    cout<<"Play received"<<endl;
                     if (menu.mode == Modes::Endless_) {
                         
                         std::cout << "Client wants Endless mode\n";
@@ -254,6 +255,7 @@ void* Server::threadRoutineClient(void* arg){
                     //autre mode
                 }
                 else if (menu.action == MenuActions::A_CreateRoom) {
+                    std::cout<<"Received CreateRoom"<<std::endl;
                     auto r = std::make_shared<Room>(client.client_fd, menu.mode);
                     server->roomsList->push_back(r);
                     server->myRoom = r;
@@ -273,6 +275,7 @@ void* Server::threadRoutineClient(void* arg){
                 
                 }
                 else if (menu.action == MenuActions::A_JoinRoom) {
+                    cout<<"JoinRoom received"<<endl;
                     std::vector<std::shared_ptr<Room>> filteredRooms;
                     for (auto& r : *server->roomsList) {
                         if (r->getRoomMode() == menu.mode) {
@@ -296,6 +299,7 @@ void* Server::threadRoutineClient(void* arg){
             }
 
             else if (type == MessageType::T_Refresh){
+                cout<<"Refresh received"<<endl;
                 RoomInfo info;
                 info.roomID = server->myRoom->getRoomID();
                 info.currentPlayersCount = server->myRoom->getPlayerCount();
@@ -310,6 +314,7 @@ void* Server::threadRoutineClient(void* arg){
             }
 
             else if (type == MessageType::T_Join) {
+                cout<<"Join received"<<endl;
                 int ownerFd;
                 if (!recvAll(client.client_fd, &ownerFd, sizeof(ownerFd))) {
                     break;
@@ -350,8 +355,8 @@ void* Server::threadRoutineClient(void* arg){
                 
             
             else if (type == MessageType::T_Input) {
+                cout<<"Input received"<<endl;
                 KeyboardAction action;
-                std::cout<< "received an input"<<std::endl;
                 if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))) {
                     std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                     server->udbm.removeSession(client.userId);
@@ -362,6 +367,7 @@ void* Server::threadRoutineClient(void* arg){
                 gameController.getAction(action);
             }
             else if (type == MessageType::T_MalusBonus) {
+                cout<<"MalusBonus received"<<endl;
                 MalBonus malusBobo;
 
                 if (!recvAll(client.client_fd, &malusBobo, sizeof(MalBonus))){
