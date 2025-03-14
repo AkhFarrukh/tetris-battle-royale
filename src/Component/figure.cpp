@@ -18,7 +18,8 @@ const map<TetrominoShape, pair<Color, vector<Coordinates>>> Figure::figReference
             {TetrominoShape::S, {Color::green, {Coordinates(0,-1), Coordinates(1,-1), Coordinates(-1,0)}}},
             {TetrominoShape::Z, {Color::red, {Coordinates(0,-1), Coordinates(-1,-1), Coordinates(1,0)}}},
             {TetrominoShape::L, {Color::orange, {Coordinates(1,0), Coordinates(1,-1), Coordinates(-1,0)}}},
-            {TetrominoShape::J, {Color::blue, {Coordinates(1,0), Coordinates(-1,-1), Coordinates(-1,0)}}}
+            {TetrominoShape::J, {Color::blue, {Coordinates(1,0), Coordinates(-1,-1), Coordinates(-1,0)}}},
+            {TetrominoShape::ONE_BLOCK_CUBE, {Color::purple, {Coordinates(0,0)}}}
         };
 
 

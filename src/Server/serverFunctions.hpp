@@ -31,8 +31,7 @@
 
 class Server{
     private:
-        std::shared_ptr<std::vector<std::shared_ptr<Room>>> roomsList;
-        std::shared_ptr<Room> myRoom;
+
         std::vector<ClientSession> clients;
         
 

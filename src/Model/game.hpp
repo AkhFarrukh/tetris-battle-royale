@@ -20,6 +20,7 @@
 #include "playerData.hpp"
 #include "communication.hpp"
 #include "MalusBonusEvent.hpp"
+#include "gameModes.h"
 
 using namespace std;
 
@@ -27,6 +28,7 @@ class GameController; // forward declaration
 class Server;
 #include "userdatabasemanager.hpp"
 #include "gameModes.h"
+
 
 class Game {
 public:
@@ -50,6 +52,8 @@ private:
     bool isRunning;
     shared_ptr<GameController> gameController;
     string gameMode;
+    shared_ptr<Mode>  mode;
+    int numPlayers_;
 
 
 
@@ -59,6 +63,7 @@ private:
 
     void handleMovementActionEvent(int p, std::shared_ptr<Event> e);
     void handleMalusBonusEvent(std::shared_ptr<Event> e, int p);
+    void handleMalus(int targetID, int playerID);
 
     void renderGame();
     int  applyColor(Color blockColor);
