@@ -673,8 +673,11 @@ vector<std::string> InterfaceTerminal::handleLogin(){
             bool logResult = (type_ == MessageType::T_AcceptConnexion);
             //
             if(logResult){
-                int user_id = db.getUserId(namePlayer);
-                if(db.isUserInSession(user_id)){printw("\nYou are already logged in another session ! \n"); move(5,22);}
+                int doubleSession;
+                recvAll(sock, &doubleSession, sizeof(int));
+                recvAll(sock, &size_, sizeof(int));
+                bool doubleSessionResult = (doubleSession == MessageType::T_RefuseConnexion);
+                if(doubleSessionResult){printw("\nYou are already logged in another session ! \n"); move(5,22);}
                 else{
                		napms(1000);
                		connexionData.push_back(namePlayer);

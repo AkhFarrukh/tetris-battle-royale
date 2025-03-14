@@ -133,24 +133,41 @@ void* Server::threadRoutineClient(void* arg){
 
         std::cout<< "Initialised and got the args" << std::endl;
         // Check if both username and password are correct or not.
-        successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(), client.password.c_str());
-        printf("%d\n", successfulLogin);
-        int type_;
+        std::string username = connexionData.username;
+        std::string password = connexionData.password;
+        successfulLogin = server->udbm.isCorrectLogin(username.c_str(), password.c_str());
+        int typeConnexion;
+        int doubleSession;
         if(successfulLogin){
-            type = MessageType::T_AcceptConnexion;
-            int id = udbm.getUserId(client.username);
-            bool doubleSession = db.isUserInSession(user_id);
+            typeConnexion = MessageType::T_AcceptConnexion;
+            int user_id = server->udbm.getUserId(username.c_str());
+            bool doubleSession_ = server->udbm.isUserInSession(user_id);
+            printf("%d \n", doubleSession_);
+            if(doubleSession_){successfulLogin = false;doubleSession = MessageType::T_RefuseConnexion;}
+            else{
+                doubleSession = MessageType::T_AcceptConnexion;
+                client.userId = user_id;
+                client.username = connexionData.username;
+                client.password = connexionData.password;
+                flagConnexion = false;
+            }
+            int size_ = sizeof(int);
+            int bytesSentType = sendAll(client.client_fd, &typeConnexion, sizeof(int));
+            int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+            bytesSentType = sendAll(client.client_fd, &doubleSession, sizeof(int));
+            bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
         }
         else{
             type = MessageType::T_RefuseConnexion;
+            int size_ = sizeof(int);
+            int bytesSentType = sendAll(client.client_fd, &typeConnexion, sizeof(int));
+            int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
         }
-        int size_ = sizeof(int);
-        int bytesSentType = sendAll(client.client_fd, &type_, sizeof(int));
-        int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
     }
+    napms(111);
     if (successfulLogin){
         // Get user ID and insert user into sessions table
-        client.userId = server->udbm.getUserId(client.username.c_str());
+        server->udbm.setLogin(client.userId);
         server->udbm.addSession(client.userId, client.client_fd);
 
         //Unlock the mutex and notifies it outside the thread

@@ -64,22 +64,20 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
 
             // Compare both hashes from the database and from the user input
             isCorrect = bcrypt::validatePassword(password, stringResultingHash);
-
-            // If the login is correct, change the login status to 1.
-            if(isCorrect){
-                const char* query = "UPDATE users SET logged_in = 1 WHERE username = ?";
-                database.prepareStatement(query);
-                database.bindText(username, 1);
-
-                // Execute the statement then destruct the statement
-                database.execute();
-                database.destructStatement();
-            }
         }
     }
     return isCorrect;
 }
 
+void UserDatabaseManager::setLogin(int user_id){
+    const char* query = "UPDATE users SET logged_in = 1 WHERE id = ?";
+    database.prepareStatement(query);
+    database.bindInt(user_id, 1);
+
+    // Execute the statement then destruct the statement
+    database.execute();
+    database.destructStatement();
+}
 
 /**
  * @brief Check whether a particular user is logged in or not.
@@ -125,8 +123,7 @@ bool UserDatabaseManager::isLoggedIn(const char* username){
 int UserDatabaseManager::getUserId(const char* username){
     int userId;
     // Prepare Statement and bind username to "?" symbols in a statement
-    const char* query = "SELECT id FROM users WHERE username = ? \
-                                                   AND logged_in = 1";
+    const char* query = "SELECT id FROM users WHERE username = ?";
     database.prepareStatement(query);
     database.bindText(username, 1);
     database.execute(); // Execute the statement

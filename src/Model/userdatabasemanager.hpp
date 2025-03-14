@@ -23,6 +23,7 @@ class UserDatabaseManager {
         bool newAccountCreated(const char* username, const char* password);
         bool isCorrectLogin(const char* username, const char* password);
         bool isLoggedIn(const char* username);
+        void setLogin(int user_id);
         int  getUserId(const char* username);
         bool usernameChanged(int userId, const char* newUsername);
         void changePassword(int userId, const char* newPassword);
