@@ -55,6 +55,7 @@ enum MessageType {
     T_AcceptConnexion,
     T_RefuseConnexion,
     T_Data,
+    T_ForcedExit
 };
 
 /**

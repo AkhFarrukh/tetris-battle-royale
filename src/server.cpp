@@ -16,19 +16,18 @@ const int protocol = 0;
 const int MAX_PENDING_CONNECTION = 10;
 
 Server server;
-UserDatabaseManager userdata;
-Database basedata("tetris.db");
 
 void handle_sigint(int sig) {
-    std::vector<ClientSession> clients;// = server.getClients(); NEED IMPLEMENTATION
+    std::vector<ClientSession> clients = server.getClients();// = server.getClients(); NEED IMPLEMENTATION
     for(const auto& client:clients){
-    int user_id = basedata.getUserId(client.username.c_str());
-    while(userdata.isLoggedIn(client.username.c_str())){
-        userdata.logOut(user_id);} //on marque la personne comme deconnecté
-    basedata.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+      printf("%d\n", client.userId);
+    while(server.udbm.isLoggedIn(client.username.c_str())){
+        server.udbm.logOut(client.userId);} //on marque la personne comme deconnecté
+    server.udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
                                                                                     //comme telle
-    while(basedata.isUserInSession(user_id)){
-        basedata.deleteSession(user_id);}}
+    while(server.udbm.isUserInSession(client.userId)){
+        server.udbm.deleteSession(client.userId);}}
+    napms(1000);
     signal(SIGINT, SIG_DFL);
     raise(SIGINT);
 }
@@ -53,7 +52,7 @@ int main () {
     address.sin_family = domain;
     address.sin_port = htons(8080);
     address.sin_addr.s_addr = INADDR_ANY;
-    size_t addressLen = sizeof(address);
+    socklen_t addressLen = sizeof(address);
 
     //Bind socket to addr & port
     if (bind (server_fd, (struct sockaddr *)&address, static_cast<socklen_t>(addressLen)) <= -1){
@@ -69,7 +68,7 @@ int main () {
     /**************************************************************
     *HANDLE THE CLIENT
     **************************************************************/
-    Server server;
+
     auto rooms = std::make_shared<std::vector<std::shared_ptr<Room>>>();
 
     if (server.handleClient(server_fd, address, addressLen, rooms) <= -1){

@@ -15,7 +15,7 @@ INCLUDE_FLAGS = -I$(NCURSES_DIR)/include -I$(SQLITE_DIR)/include -I$(LIB_DIR)/in
 
 # Compilateur et options
 CXX = g++
-CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Player -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(SRC_DIR)/Database -I$(SRC_DIR)/Server $(INCLUDE_FLAGS) -Wall -L/opt/homebrew/opt/ncurses/lib -I/opt/homebrew/opt/ncurses/include -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fsanitize=undefined,address -Wuninitialized -Wmaybe-uninitialized
+CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Player -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(SRC_DIR)/Database -I$(SRC_DIR)/Server $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
 #-fsanitize=address,undefined
 
 # Liste des fichiers source
