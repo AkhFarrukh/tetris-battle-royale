@@ -74,7 +74,7 @@ void InterfaceTerminal::displayMenu(int selectedOption) const {
        if (i == selectedOption) {
            attron(COLOR_PAIR(7));    // activer couleur noir sur blanc pour option selected
            printw("-> %d. %s\n", i + 1, menuOptions[i]);
-           attroff(COLOR_PAIR(7));  
+           attroff(COLOR_PAIR(7));
        } else {
            printw("   %d. %s\n", i + 1, menuOptions[i]);
        }
@@ -313,6 +313,25 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
    refresh();
 }
 
+int InterfaceTerminal::displayMultiplayerOption(int selectedMode) const {
+    int action = 0;
+    erase();
+    printw("\n\nNow pick your action:\n");
+    const char* subActions[] = { "Create a room", "Join a room"};
+    for (int j = 0; j < 2; ++j) {
+        if (j == action) {
+            attron(COLOR_PAIR(7));
+            printw("-> %s\n", subActions[j]);
+            attroff(COLOR_PAIR(7));
+        }
+        else {
+            printw("   %s\n", subActions[j]);
+        }
+    }
+
+    printw("\nUse UP/DOWN to select mode, LEFT/RIGHT to pick action.\nPress ENTER to confirm.\nPress 'q' to quit.\n");
+    refresh();
+}
 
 
 
@@ -357,19 +376,97 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                     erase();
                     printw("Classic Mode selected!\n");
                     refresh();
-                    napms(500);
+                    int act = 0;
+                    while (true){
+                        displayMultiplayerOption(act);
+                        int ch = getch();    
+                        switch (ch) {  
+                            case KEY_UP:
+                                if (act > 0) act--;
+                                break;
+                            case KEY_DOWN:
+                                if (act < 2) act++;
+                                break;
+                            case '\n': {
+                                if (act == 1){
+                                    return 10;
+                                }
+                                else {
+                                    return 11;
+                                }
+                            }
+                            case 'q':
+                            case 'Q':
+                                endwin();
+                                return -1;
+                            case 'ESC':
+                                break;
+                        }
+                    }
 
                 } if (selectedMode == 2) {
                     erase();
                     printw("Duel Mode selected!\n");
                     refresh();
-                    napms(500);
+                    int act = 0;
+                    while (true){
+                        displayMultiplayerOption(act);
+                        int ch = getch();    
+                        switch (ch) {  
+                            case KEY_UP:
+                                if (act > 0) act--;
+                                break;
+                            case KEY_DOWN:
+                                if (act < 2) act++;
+                                break;
+                            case '\n': {
+                                if (act == 1){
+                                    return 20;
+                                }
+                                else {
+                                    return 21;
+                                }
+                            }
+                            case 'q':
+                            case 'Q':
+                                endwin();
+                                return -1;
+                            case 'ESC':
+                                break;
+                        }
+                    }
 
                 } if (selectedMode == 3) {
                     erase();
                     printw("Royal Competition Mode selected!\n");
                     refresh();
-                    napms(500);
+                    int act = 0;
+                    while (true){
+                        displayMultiplayerOption(act);
+                        int ch = getch();    
+                        switch (ch) {  
+                            case KEY_UP:
+                                if (act > 0) act--;
+                                break;
+                            case KEY_DOWN:
+                                if (act < 2) act++;
+                                break;
+                            case '\n': {
+                                if (act == 1){
+                                    return 30;
+                                }
+                                else {
+                                    return 31;
+                                }
+                            }
+                            case 'q':
+                            case 'Q':
+                                endwin();
+                                return -1;
+                            case 'ESC':
+                                break;
+                        }
+                    }
                }
                break;
            case 't':

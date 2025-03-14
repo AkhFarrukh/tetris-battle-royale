@@ -47,6 +47,8 @@ public:
 
   void displayFriendOptions(int selectedOption);
   void displayGameModeMenu(int selectedMode) const;
+  int displayMultiplayerOption(int selectedMode) const;
+
   int handleGameModeSelection(int& selectedMode);
   void displayFriendsMenu(int selectedOption, vector<string> friends);
   int handleFriends();
@@ -56,6 +58,8 @@ public:
   void displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent);
   int handleFriendRequests();
   void displayMessageNoRead(const std::string& user, const string& friendName);
+
+
 
   int start();
 };
