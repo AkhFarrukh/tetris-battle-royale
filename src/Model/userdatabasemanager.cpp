@@ -550,3 +550,340 @@ std::vector<std::tuple<int, std::string, int, int, int, int>> UserDatabaseManage
     database.destructStatement();
     return ranking;
 }
+
+
+
+vector<string> UserDatabaseManager::friendsList(const string& username){
+    std::vector<std::string> friendsList;
+
+    // Préparer la requête SQL pour récupérer les amis de l'utilisateur
+    const char* sql =
+        "SELECT u.username FROM users u "
+        "JOIN friends r ON u.id = r.friend_id "
+        "WHERE r.user_id = (SELECT id FROM users WHERE username = ?);";
+
+    // Préparer la déclaration
+    database.prepareStatement(sql);
+
+    // Binder le nom de l'utilisateur (par exemple, "David")
+    database.bindText(username.c_str(),1);
+
+    database.execute();
+    // Exécuter la requête et récupérer les résultats ligne par ligne
+    while (database.getReturnCode() == SQLITE_ROW) {
+        // Récupérer le nom de l'ami
+        const unsigned char* ami = database.getTextValueFromColumn(0);
+        friendsList.push_back(reinterpret_cast<const char*>(ami));  // Ajouter l'ami au vecteur
+        database.execute();
+    }
+
+    // Libérer la mémoire après exécution
+    database.destructStatement();  // Libération de la mémoire après exécution
+
+    return friendsList;  // Retourner le vecteur des amis
+}
+
+void UserDatabaseManager::deleteFriend(const string& user, const string& friendDelete){
+    std::string sql =
+    "DELETE FROM friends WHERE "
+    "(user_id = (SELECT id FROM users WHERE username = '" + user + "') "
+    "AND friend_id = (SELECT id FROM users WHERE username = '" + friendDelete + "')) "
+    "OR "
+    "(user_id = (SELECT id FROM users WHERE username = '" + friendDelete + "') "
+    "AND friend_id = (SELECT id FROM users WHERE username = '" + user+ "'));";
+    database.prepareStatement(sql.c_str());
+    database.execute();
+}
+
+void UserDatabaseManager::addFriend(const string& user, const string& newFriend){
+    std::string sql =
+      "INSERT INTO friends (user_id, friend_id) VALUES "
+      "((SELECT id FROM users WHERE username = '" + user + "'), "
+      "(SELECT id FROM users WHERE username = '" + newFriend + "')), "
+      "((SELECT id FROM users WHERE username = '" + newFriend + "'), "
+      "(SELECT id FROM users WHERE username = '" + user + "'));";
+    database.prepareStatement(sql.c_str());
+    database.execute();
+}
+
+int UserDatabaseManager::verifyRequestFriend(const string& user, const string& newFriend){
+    int result = -1; //erreur pas prise en charge
+    std::string sql =
+    "SELECT CASE " //fonctionne comme if-else
+    "WHEN NOT EXISTS (SELECT 1 FROM users WHERE username = '" + newFriend + "') THEN 1 " //return 1 si pseude inconnnu
+    "WHEN EXISTS (SELECT 1 FROM friends r "
+    "             JOIN users u1 ON u1.id = r.user_id "
+    "             JOIN users u2 ON u2.id = r.friend_id "
+    "             WHERE u1.username = '" + user + "' AND u2.username = '" + newFriend + "') THEN 2 " //ret 2 si deja amis
+    "WHEN EXISTS (SELECT 1 FROM friendsRequest fr "
+    "             JOIN users u1 ON u1.id = fr.user_id "
+    "             JOIN users u2 ON u2.id = fr.friend_id "
+    "             WHERE u1.username = '" + user + "' AND u2.username = '" + newFriend + "') THEN 3 " //dmd d'amis deja envoyé
+    "WHEN EXISTS (SELECT 1 FROM friendsRequest fr "
+    "             JOIN users u1 ON u1.id = fr.friend_id "
+    "             JOIN users u2 ON u2.id = fr.user_id "
+    "             WHERE u1.username = '" + user + "' AND u2.username = '" + newFriend + "') THEN 4 " //l'autre a deja dmd en ami
+    "ELSE 0 END;";
+    database.prepareStatement(sql.c_str());
+    database.execute();
+    if(database.getReturnCode() == SQLITE_ROW){
+      result = database.getIntValueFromColumn(0);
+    }
+    database.destructStatement();
+    return result;
+}
+
+int UserDatabaseManager::requestFriend(const string& user, const string& newFriend){
+    std::string sql = "INSERT INTO friendsRequest (user_id, friend_id) VALUES ((SELECT id FROM users WHERE username = '" + user + "'), (SELECT id FROM users WHERE username = '" + newFriend + "'));";
+    database.prepareStatement(sql.c_str());
+    database.execute();
+    return(database.getReturnCode() != SQLITE_ERROR);
+}
+
+void UserDatabaseManager::deleteRequestFriend(const string& user, const string& friendDelete){
+    std::string sql =
+    "DELETE FROM friendsRequest WHERE "
+    "(user_id = (SELECT id FROM users WHERE username = '" + user + "') "
+    "AND friend_id = (SELECT id FROM users WHERE username = '" + friendDelete + "')) "
+    "OR "
+    "(user_id = (SELECT id FROM users WHERE username = '" + friendDelete + "') "
+    "AND friend_id = (SELECT id FROM users WHERE username = '" + user+ "'));";
+    database.prepareStatement(sql.c_str());
+    database.execute();
+}
+
+int UserDatabaseManager::getNumberFriendRequestsReceived(const string& user){
+    int numberRequests = 0;
+    std::string sql =
+    "SELECT COUNT(*) FROM friendsRequest "
+    "WHERE friend_id = (SELECT id FROM users WHERE username = ?);";
+    database.prepareStatement(sql.c_str());
+    database.bindText(user.c_str(),1);
+    database.execute();
+    if(database.getReturnCode() == SQLITE_ROW){
+        numberRequests = database.getIntValueFromColumn(0);
+    }
+    database.destructStatement();
+    return numberRequests;
+}
+
+vector<string> UserDatabaseManager::requestReceivedList(const string& username){
+    std::vector<std::string> friendsList;
+
+    // Préparer la requête SQL pour récupérer les amis de l'utilisateur
+    const char* sql =
+        "SELECT u.username FROM users u "
+        "JOIN friendsRequest r ON u.id = r.user_id "
+        "WHERE r.friend_id = (SELECT id FROM users WHERE username = ?);";
+
+    // Préparer la déclaration
+    database.prepareStatement(sql);
+
+    // Binder le nom de l'utilisateur (par exemple, "David")
+    database.bindText(username.c_str(),1);
+
+    database.execute();
+    // Exécuter la requête et récupérer les résultats ligne par ligne
+    while (database.getReturnCode() == SQLITE_ROW) {
+        // Récupérer le nom de l'ami
+        const unsigned char* ami = database.getTextValueFromColumn(0);
+        friendsList.push_back(reinterpret_cast<const char*>(ami));  // Ajouter l'ami au vecteur
+        database.execute();
+    }
+
+    // Libérer la mémoire après exécution
+    database.destructStatement();  // Libération de la mémoire après exécution
+
+    return friendsList;  // Retourner le vecteur des amis
+}
+
+vector<string> UserDatabaseManager::requestSentList(const string& username){
+    std::vector<std::string> friendsList;
+
+    // Préparer la requête SQL pour récupérer les amis de l'utilisateur
+    const char* sql =
+        "SELECT u.username FROM users u "
+        "JOIN friendsRequest r ON u.id = r.friend_id "
+        "WHERE r.user_id = (SELECT id FROM users WHERE username = ?);";
+
+    // Préparer la déclaration
+    database.prepareStatement(sql);
+
+    // Binder le nom de l'utilisateur (par exemple, "David")
+    database.bindText(username.c_str(),1);
+
+    database.execute();
+    // Exécuter la requête et récupérer les résultats ligne par ligne
+    while (database.getReturnCode() == SQLITE_ROW) {
+        // Récupérer le nom de l'ami
+        const unsigned char* ami = database.getTextValueFromColumn(0);
+        friendsList.push_back(reinterpret_cast<const char*>(ami));  // Ajouter l'ami au vecteur
+        database.execute();
+    }
+
+    // Libérer la mémoire après exécution
+    database.destructStatement();  // Libération de la mémoire après exécution
+
+    return friendsList;  // Retourner le vecteur des amis
+}
+
+
+void UserDatabaseManager::conversationOpen(int user_id, int friend_id){
+    std::string sql = "UPDATE friends SET in_conversation = "
+        "CASE WHEN in_conversation = 0 THEN 1 "
+        "ELSE in_conversation END "
+        "WHERE (user_id = ? AND friend_id = ?);";
+
+    database.prepareStatement(sql.c_str());
+    database.bindInt(user_id, 1);
+    database.bindInt(friend_id, 2);
+    database.execute();
+    database.destructStatement();
+}
+
+void UserDatabaseManager::conversationClose(int user_id, int friend_id){
+    std::string sql = "UPDATE friends SET in_conversation = "
+        "CASE WHEN in_conversation = 1 THEN 0 "
+        "ELSE in_conversation END "
+        "WHERE (user_id = ? AND friend_id = ?);";
+
+    database.prepareStatement(sql.c_str());
+    database.bindInt(user_id, 1);
+    database.bindInt(friend_id, 2);
+    database.execute();
+    database.destructStatement();
+}
+
+int UserDatabaseManager::getInConversation(int user_id, int friend_id){
+    int in_conversation = -1;
+    std::string sql =
+        "SELECT in_conversation FROM friends "
+        "WHERE (user_id = ? AND friend_id = ?);";
+
+    database.prepareStatement(sql.c_str());
+    database.bindInt(friend_id, 1);
+    database.bindInt(user_id, 2);
+    database.execute();
+
+    // Vérifier s'il y a un résultat
+    if (database.getReturnCode() == SQLITE_ROW) {
+        in_conversation = database.getIntValueFromColumn(0);
+    }
+
+    database.destructStatement();
+    return in_conversation;
+}
+
+void UserDatabaseManager::addMessage(int sender_id, int receiver_id, const std::string& message) {
+    std::string sql = "INSERT INTO MessageNoRead (sender_id, receiver_id, message) "
+                      "VALUES (?, ?, ?);";
+
+    database.prepareStatement(sql.c_str());
+    database.bindInt(sender_id, 1);
+    database.bindInt(receiver_id, 2);
+    database.bindText(message.c_str(), 3);
+    database.execute();
+    database.destructStatement();
+}
+
+void UserDatabaseManager::deleteMessages(int sender_id, int receiver_id) {
+    std::string sql = "DELETE FROM MessageNoRead "
+                      "WHERE sender_id = ? AND receiver_id = ?;";
+
+    database.prepareStatement(sql.c_str());
+    database.bindInt(sender_id, 1);
+    database.bindInt(receiver_id, 2);
+    database.execute();
+    database.destructStatement();
+}
+
+std::vector<std::string> UserDatabaseManager::getMessages(int sender_id, int receiver_id) {
+    std::vector<std::string> messages;
+    std::string sql = "SELECT message FROM MessageNoRead "
+                      "WHERE sender_id = ? AND receiver_id = ?;";
+
+
+    database.prepareStatement(sql.c_str());
+
+    database.bindInt(sender_id, 1);
+    database.bindInt(receiver_id, 2);
+
+    database.execute();
+
+    while (database.getReturnCode() == SQLITE_ROW) {
+        const char* message = reinterpret_cast<const char*>(database.getTextValueFromColumn(0));  // Récupérer le message
+        messages.push_back(message);  // Ajouter le message au vecteur (au cas où il serait NULL)
+        database.execute();
+    }
+
+    database.destructStatement();
+
+    return messages;
+}
+
+
+int UserDatabaseManager::getNumberMessageNoRead(int user_id, int friend_id){
+    int numberRequests = 0;
+    std::string sql =
+    "SELECT COUNT(*) FROM MessageNoRead "
+    "WHERE sender_id = ? AND receiver_id = ?;";
+    database.prepareStatement(sql.c_str());
+    database.bindInt(friend_id,1);
+    database.bindInt(user_id,2);
+    database.execute();
+    if(database.getReturnCode() == SQLITE_ROW){
+        numberRequests = database.getIntValueFromColumn(0);
+    }
+    database.destructStatement();
+    return numberRequests;
+}
+
+void UserDatabaseManager::setNotInConversation(int user_id){
+    std::string sql =
+    "UPDATE friends SET in_conversation = 0 WHERE user_id = ?;";
+    database.prepareStatement(sql.c_str());
+    database.bindInt(user_id,1);
+    database.execute();
+    database.destructStatement();
+}
+
+bool UserDatabaseManager::isUserInSession(int user_id) {
+  const char* begSql = "BEGIN TRANSACTION;";
+    database.prepareStatement(begSql);
+    database.execute();
+    database.destructStatement();
+
+    const char* sql = "SELECT 1 FROM sessions WHERE user_id = ? LIMIT 1;";
+
+    database.prepareStatement(sql);
+	database.bindInt(user_id,1);
+
+    database.execute();
+    bool exists = (database.getReturnCode() == SQLITE_ROW);
+    database.destructStatement();
+
+    const char* commit = "COMMIT;";
+    database.prepareStatement(commit);
+    database.execute();
+    database.destructStatement();
+
+    return exists;
+}
+
+void UserDatabaseManager::deleteSession(int user_id){
+    const char* begSql = "BEGIN TRANSACTION;";
+    database.prepareStatement(begSql);
+    database.execute();
+    database.destructStatement();
+
+    const char* sql = "DELETE FROM sessions WHERE user_id = ?;";
+    database.prepareStatement(sql);
+    database.bindInt(user_id,1);
+    database.execute();
+    database.destructStatement();
+
+    const char* commit = "COMMIT;";
+    database.prepareStatement(commit);
+    database.execute();
+    database.destructStatement();
+}

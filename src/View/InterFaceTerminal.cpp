@@ -635,6 +635,7 @@ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
 
 
 vector<std::string> InterfaceTerminal::handleLogin(){
+    int sock = getSock();
     vector<std::string> connexionData;
     curs_set(1);
     nodelay(stdscr, false);
@@ -658,7 +659,21 @@ vector<std::string> InterfaceTerminal::handleLogin(){
             wgetnstr(stdscr,passwordPlayer,99);
             if(strlen(passwordPlayer)==0){firstTry = true; break;}
             firstTry = false;
-            if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
+            int type = MessageType::T_Connexion;
+            int size = sizeof(struct Connexion);
+            //demande au serveur de verifier
+            Connexion connexion;
+            std::strncpy(connexion.username, namePlayer, sizeof(connexion.username) - 1);
+            std::strncpy(connexion.password, passwordPlayer, sizeof(connexion.password) - 1);
+            int bytesSentType = sendAll(sock, &type, sizeof(int));
+            int bytesSentSize = sendAll(sock, &size, sizeof(int));
+            sendAll(sock, &connexion, sizeof(Connexion));
+            int type_;int size_;
+            recvAll(sock, &type_, sizeof(int));
+            recvAll(sock, &size_, sizeof(int));
+            bool logResult = (type_ == MessageType::T_AcceptConnexion);
+            //
+            if(logResult){
                 int user_id = db.getUserId(namePlayer);
                 if(db.isUserInSession(user_id)){printw("\nYou are already logged in another session ! \n"); move(5,22);}
                 else{

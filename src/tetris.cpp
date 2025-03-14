@@ -61,6 +61,7 @@ void affichageMessage(const std::string& sender, const std::string& message){
 void* readServer(void* socket){
     int sock = *(int*)socket;
     while(!flag){
+    if(username == "")break;
     char buffer[1024] = {0};
     int bytesReceived = recv(sock, buffer, sizeof(buffer)-1, 0);
     if (bytesReceived <= 0) {
@@ -123,27 +124,16 @@ int main() {
     bool playing = true;
     while(playing){
         InterfaceTerminal terminal;
-
+        terminal.setSock(sock);
         //Identification auprès de la db
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
         if(dataConnexion.size()==2){
-            username = dataConnexion[0];
-            //std::string credentials = dataConnexion[0] + '\0' + dataConnexion[1];
-            int type = MessageType::T_Connexion;
-            int size = sizeof(struct Connexion);
-            Connexion connexionData;
-            std::strncpy(connexionData.username, dataConnexion[0].c_str(), sizeof(connexionData.username) - 1);
-            std::strncpy(connexionData.password, dataConnexion[1].c_str(), sizeof(connexionData.password) - 1);
-            int bytesSentType = sendAll(sock, &type, sizeof(int));
-            int bytesSentSize = sendAll(sock, &size, sizeof(int));
-            sendAll(sock, &connexionData, sizeof(Connexion));
-    }
+            username = dataConnexion[0];}
         else{
            std::cout << "Echec de la connexion au compte.\n";
            playing = false;
            break;
         }
-        terminal.setSock(sock);
         /**************************************CRASH AFTER******************************************************************* */
         //Getting the selected menu in terminal
         int selectedMode = terminal.start();

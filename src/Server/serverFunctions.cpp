@@ -56,35 +56,13 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         /* CHECK AFTER MERGE */
         // The password MUST be a plain password (what received from the client).
         // The User Database Manager will take care of password hash validation.
-        int type;
-        int size;
-        int bytesReceivedType = recvAll(client_fd, &type, sizeof(int));
-        int bytesReceivedSize = recvAll(client_fd, &size, sizeof(int));
-        Connexion connexionData;
-        if(type == MessageType::T_Connexion && size == sizeof(struct Connexion)){
-            if(!recvAll(client_fd, &connexionData, size)){
-                std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
-                return 0;
-            }
-        }
-        else{
-            std::cout << "Mauvais type de confidentials" << std::endl;
-            return 0;
-        }
+
         printf("goood\n");
         // Create a "new session" with client info to be sent to thread routine
         // and push the client into a vector of clients
         ClientSession new_session;
-        printf("1a\n");
         new_session.client_fd = client_fd;
-        printf("2a\n");
-        printf("%s, %s\n", connexionData.username, connexionData.password);
-        new_session.username = connexionData.username;
-        printf("3a\n");
-        new_session.password = connexionData.password;
-        printf("4a\n");
         clients.push_back(new_session);
-        printf("5a\n");
         //printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
 
@@ -129,11 +107,47 @@ void* Server::threadRoutineClient(void* arg){
     GameController gameController(eventQueue);
     Server* server = threadData->serverInstance;
     ClientSession& client = threadData->client;
+    bool flagConnexion = true;
+    bool successfulLogin = false;
 
-    std::cout<< "Initialised and got the args" << std::endl;
-    // Check if both username and password are correct or not.
-    bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(),
-                                                       client.password.c_str());
+    while(flagConnexion){
+        int type;
+        int size;
+        int bytesReceivedType = recvAll(client.client_fd, &type, sizeof(int));
+        int bytesReceivedSize = recvAll(client.client_fd, &size, sizeof(int));
+        Connexion connexionData;
+        if(type == MessageType::T_Connexion && size == sizeof(struct Connexion)){
+            if(!recvAll(client.client_fd, &connexionData, size)){
+                std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
+                return 0;
+            }
+        }
+        else if(type == MessageType::T_Exit){
+             flagConnexion = false;
+             break;
+          }
+        else{
+            std::cout << "Mauvais type de confidentials" << std::endl;
+            return 0;
+        }
+
+        std::cout<< "Initialised and got the args" << std::endl;
+        // Check if both username and password are correct or not.
+        successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(), client.password.c_str());
+        printf("%d\n", successfulLogin);
+        int type_;
+        if(successfulLogin){
+            type = MessageType::T_AcceptConnexion;
+            int id = udbm.getUserId(client.username);
+            bool doubleSession = db.isUserInSession(user_id);
+        }
+        else{
+            type = MessageType::T_RefuseConnexion;
+        }
+        int size_ = sizeof(int);
+        int bytesSentType = sendAll(client.client_fd, &type_, sizeof(int));
+        int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+    }
     if (successfulLogin){
         // Get user ID and insert user into sessions table
         client.userId = server->udbm.getUserId(client.username.c_str());

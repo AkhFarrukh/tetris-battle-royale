@@ -52,6 +52,8 @@ enum MessageType {
     T_PlayerData,
     T_Exit,
     T_Connexion,
+    T_AcceptConnexion,
+    T_RefuseConnexion,
     T_Data,
 };
 
