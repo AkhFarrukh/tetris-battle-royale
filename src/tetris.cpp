@@ -150,7 +150,7 @@ int main() {
         }
         else{
             /*
-            *SHOULD BE ELSE IF AND CHANGE DEPENDING ON SELECTEDMODE
+            *SHOULD BE ELSE IF AND CHANGE DEPENDING ON MENU CLICKED
             */
             //Ask to start a game
             int type = MessageType::T_Menu;
@@ -173,20 +173,20 @@ int main() {
             else if(selectedMode == 3){
                 //menu.mode = "Royal Competition Mode";
             }
-            //printf("sock 0 = %d\n", sock);
             //Sending info to server
             if(sendAll(sock, &type, sizeof(int)) == false){
-                perror("Error while sending info : ");
+                perror("Error sending menu info : ");
                 return 1;
             }
             if(sendAll(sock, &size, sizeof(int)) == false){
-                perror("Error while sending info : ");
+                perror("Error sending menu info : ");
                 return 1;
             }
             if(sendAll(sock, &menu, sizeof(Menu)) == false){
-                perror("Error while sending info : ");
+                perror("Error sending menu info : ");
                 return 1;
             }
+
             /*
             *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
             */
@@ -199,13 +199,10 @@ int main() {
                 perror("Error on thread creation : ");
                 playing = false;
             }
-            //printf("player loop in tetrip.cpp\n");
+
             /*
             *LOOP GETTING INPUTS AND SENDING IT TO SERV
             */
-            //void* ret;
-            /* TEMPORARY, TO TEST WITHOUT MANAGING INPUT HANDLING */
-            // pthread_join(threadID, &ret);
             Player::sendInput(threadData);
             napms(500);
             pthread_join(threadID, nullptr);
