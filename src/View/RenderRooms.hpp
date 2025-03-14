@@ -2,6 +2,7 @@
 #define RENDERROOMS_HPP
 
 #include "ServerData.hpp"
+#include "communication.hpp"
 #include <ncurses.h>
 
 class RenderRooms {

@@ -70,6 +70,13 @@ enum MessageType {
     T_Join
 };
 
+struct RoomInfo {
+    int roomID;
+    int currentPlayersCount;
+    bool isStarted;
+    Modes mode;
+};
+
 /**
  * @brief Manière d'envoyer un message au serv
  * Def a type   : int type = MessageType::Input
