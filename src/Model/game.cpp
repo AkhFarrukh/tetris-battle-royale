@@ -243,11 +243,6 @@ void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
         //players[target].blocked = true;
 
 
-    }
-
-}
-
-
 /**
  * @brief Handles timer drop events.
  *
