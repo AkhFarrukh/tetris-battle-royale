@@ -43,4 +43,11 @@ struct ThreadGameData {
     std::shared_ptr<EventQueue> eventQueue;
 };
 
+struct RoomInfo {
+    int roomID;
+    int currentPlayersCount;
+    bool isStarted;
+    Modes mode;
+};
+
 #endif //SERVERDATA_HPP

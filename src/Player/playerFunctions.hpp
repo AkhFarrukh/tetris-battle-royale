@@ -21,6 +21,7 @@
 #include <algorithm> 
 #include <atomic>
 #include "InterFaceTerminal.hpp"
+#include "RenderRooms.hpp"
 
 using namespace std;
 //pthread_mutex_t mutexPlayer = PTHREAD_MUTEX_INITIALIZER;

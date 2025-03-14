@@ -43,6 +43,99 @@ void* Player::threadRoutineView (void* arg){
             threadData->userInGame = false;
             threadData->mux.unlock();
         }
+        else if (type == MessageType::T_RoomInfo) {
+            RenderRooms renderR;
+            RoomInfo info;
+            if (!recvAll(sock, &info, sizeof(info))) {
+                break;
+            }
+            int act = 0;
+            while (true){
+            act = renderR.handleMyRoom(info);
+                if (act == 1) {
+                    int sendType = MessageType::T_Menu;
+                    int sendSize = sizeof(Menu);
+                    Menu menu;
+                    menu.action = MenuActions::A_ForceStart;
+            
+                    sendAll(sock, &sendType, sizeof(sendType));
+                    sendAll(sock, &sendSize, sizeof(sendSize));
+                    sendAll(sock, &menu, sizeof(Menu));
+                    break;
+                }
+
+                if (act == -2) {
+                    int sendType = MessageType::T_Refresh;
+                    int sendSize = sizeof(int);
+                    int useless = 0;
+
+                    sendAll(sock, &sendType, sizeof(sendType));
+                    sendAll(sock, &sendSize, sizeof(sendSize));
+                    sendAll(sock, &useless, sizeof(int));
+                }
+                if (act == -1) {
+                    //send un delete room
+                    return 0;
+                }
+            }
+
+
+        }
+
+        else if (type == MessageType::T_RoomsInfo){
+            RenderRooms renderR;
+            std::vector<RoomInfo> roomsInfo;
+
+            for (int i = 0; i < size; ++i)
+            {
+                RoomInfo info;
+                if (!recvAll(sock, &info, sizeof(info)))
+                {
+                    break;
+                }
+                roomsInfo.push_back(info);
+            }
+            int index = -3;
+            while (true) {
+                index = renderR.handleListRooms(roomsInfo);
+                if (index < -1) {
+                    int chosenIndex = index; 
+                    int typeToSend = MessageType::T_Join;
+                    int sizeToSend = sizeof(int);
+                    int fd = roomsInfo[index].roomID;
+
+                    sendAll(sock, &typeToSend, sizeof(typeToSend));
+                    sendAll(sock, &sizeToSend, sizeof(sizeToSend));
+                    sendAll(sock, &fd, sizeof(int));
+
+                }
+                if (index == -2) {
+                    int type = MessageType::T_Menu;
+                    int size = sizeof(Menu);
+                    Menu menu;
+                    menu.mode = roomsInfo[0].mode;
+                    menu.action = MenuActions::A_JoinRoom;
+                    
+
+                    if(sendAll(sock, &type, sizeof(int)) == false){
+                        perror("Error sending menu info : ");
+                        return 0;
+                    }
+                    if(sendAll(sock, &size, sizeof(int)) == false){
+                        perror("Error sending menu info : ");
+                        return 0;
+                    }
+                    if(sendAll(sock, &menu, sizeof(Menu)) == false){
+                        perror("Error sending menu info : ");
+                        return 0;
+                    }
+                }
+                if (index == -1) {
+                    return 0;
+                }
+            }
+            
+        }
         else if(type == MessageType::T_PlayerData){
             vector<NetPlayerData> playersData;
             for (int i = 0; i < size; ++i) {

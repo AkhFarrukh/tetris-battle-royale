@@ -45,6 +45,7 @@ struct Menu{
     Modes mode;
 };
 
+
 struct Connexion{
     char username[32];
     char password[32];
@@ -61,7 +62,11 @@ enum MessageType {
     T_AcceptConnexion,
     T_RefuseConnexion,
     T_Data,
-    T_ForcedExit
+    T_ForcedExit,
+    T_RoomInfo,
+    T_RoomsInfo,
+    T_Refresh,
+    T_Join
 };
 
 /**
