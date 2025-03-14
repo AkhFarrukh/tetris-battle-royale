@@ -351,6 +351,7 @@ void* Server::threadRoutineClient(void* arg){
             
             else if (type == MessageType::T_Input) {
                 KeyboardAction action;
+                std::cout<< "received an input"<<std::endl;
                 if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))) {
                     std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                     server->udbm.removeSession(client.userId);

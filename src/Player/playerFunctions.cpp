@@ -235,8 +235,8 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                 sendAll(threadData->socket, &inputMessage, sizeof(InputMessage));
             }
         }
-        return 0;
     }
+    return 0;
 }
 
 
