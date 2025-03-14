@@ -1,4 +1,4 @@
-#ifndef MAlUSBONUSEVENT_HPP
+#ifndef MALUSBONUSEVENT_HPP
 #define MALUSBONUSEVENT_HPP
 
 #include "Event.hpp"
