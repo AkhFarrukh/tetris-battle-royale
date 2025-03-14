@@ -30,9 +30,12 @@ class Player {
     public:
         struct ThreadData {
             int socket;
-	        mutex mux;
-	        mutex displayMut;
-	        atomic<bool> userInGame = true;
+	    mutex mux;
+	    mutex displayMut;
+	    atomic<bool> userInGame = true;
+
+        //for the Royal competition mode to track the state of menu that sends maluses
+        atomic<bool> targetPlayerMenu = false; //false if player is on malus menu, true if player is on target player menu
         };
 
         static void* threadRoutineView (void* arg); //Routine qui recoit la grid et l'affiche
