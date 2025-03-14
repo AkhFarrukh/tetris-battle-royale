@@ -36,19 +36,18 @@ class Server{
         std::vector<ClientSession> clients;
         
 
-        // Synchronisation management
-        std::mutex mtx2;
-
+        bool lockThread;
         std::mutex mtx;
         std::condition_variable cv;
-        bool lockThread;
-        UserDatabaseManager udbm;
+
 
     public:
+        UserDatabaseManager udbm;
         int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen, std::shared_ptr<std::vector<std::shared_ptr<Room>>> rooms); 
         void broadcastMessage(const std::string& message, int sender_fd);
         void broadcastMessage(const char* buffer, const std::string& sender_username);
         static void* threadRoutineClient(void* arg);
+        std::vector<ClientSession> getClients(){return clients;}
 };
 
 #endif  // SERVERFUNCTIONS_HPP

@@ -18,9 +18,15 @@ using namespace std;
 
 
 std::string username = "";
+int socket_serveur = -1;
 
 void handle_sigint(int sig) {
    flag = true;
+   if(socket_serveur != -1){
+    int exitType = MessageType::T_ForcedExit;
+    int size_ = sizeof(int);
+    int bytesSentType = sendAll(socket_serveur, &exitType, sizeof(int));
+    int bytesSentSize = sendAll(socket_serveur, &size_, sizeof(int));}
 }
 
 
@@ -124,7 +130,8 @@ int main() {
     bool playing = true;
     while(playing){
         InterfaceTerminal terminal;
-        terminal.setSock(sock);
+        socket_serveur = sock;
+        terminal.setSock(socket_serveur);
         //Identification auprès de la db
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
         if(dataConnexion.size()==2){
@@ -208,21 +215,11 @@ int main() {
     flag = true;//thread principal a terminé et va demander à threadLecture de se terminer.
     shutdown(sock, SHUT_RD);
     pthread_join(threadLecture, nullptr);
+
     ///**********************************************************************************
     // * START GAME
     // *********************************************************************************/
-    //
-    //
-    // if (username != ""){ //si la personne s'est connecté
-    //     int user_id = db.getUserId(username.c_str());
-    //     while(udm.isLoggedIn(username.c_str())){
-    //         udm.logOut(user_id); //on marque la personne comme deconnecté
-    //     }
-    //     db.setNotInConversation(user_id); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué comme telle
-    //     while(db.isUserInSession(user_id)){
-    //         db.deleteSession(user_id);
-    //     }
-    // }
+
     //on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec un SIGINT)
     nocbreak();
     keypad(stdscr, false);

@@ -129,10 +129,18 @@ void* Server::threadRoutineClient(void* arg){
                 return 0;
             }
         }
-        else if(type == MessageType::T_Exit){
-             flagConnexion = false;
-             break;
-          }
+        else if(type == MessageType::T_ForcedExit || type == MessageType::T_Exit){
+            std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+            close(client.client_fd);
+            auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                                   [&client](const ClientSession& c) {
+                                   return c.client_fd == client.client_fd;
+                                   });
+            if (it != server->clients.end()) {
+                server->clients.erase(it);
+            }
+            return nullptr;
+        }
         else{
             std::cout << "Mauvais type de confidentials" << std::endl;
             return 0;
@@ -170,7 +178,6 @@ void* Server::threadRoutineClient(void* arg){
             int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
         }
     }
-    napms(111);
     if (successfulLogin){
         // Get user ID and insert user into sessions table
         server->udbm.setLogin(client.userId);
@@ -296,7 +303,25 @@ void* Server::threadRoutineClient(void* arg){
                 }
                 gameController.getAction(action);
             }
-            
+
+            else if (type == MessageType::T_ForcedExit){
+                std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+                close(client.client_fd);
+                    while(server->udbm.isLoggedIn(client.username.c_str())){
+                  	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
+                    server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+                                                                                                         //comme telle
+                  	while(server->udbm.isUserInSession(client.userId)){
+                  		server->udbm.deleteSession(client.userId);}
+                auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                                       [&client](const ClientSession& c) {
+                                       return c.client_fd == client.client_fd;
+                                       });
+                if (it != server->clients.end()) {
+                    server->clients.erase(it);
+                }
+                return nullptr;
+            }
             // Display message if there's one.
             /* ? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
             //std::string message(buffer, bytesReceived);
