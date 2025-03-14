@@ -3,6 +3,7 @@
 
 
 #include <string>
+#include "communication.hpp"
 
 class Server;
 class EventQueue;

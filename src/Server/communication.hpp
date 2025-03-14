@@ -4,6 +4,7 @@
 #include <iostream>             // io management
 #include <sys/socket.h>         // socket management
 #include <unistd.h>
+#include <string>
 #include "keyboardAction.hpp"
 #include "ControllerEnum.hpp"
 
@@ -16,7 +17,7 @@ enum Modes{
     Endless_,
     Duel_,
     Royal_,
-    Classic_
+    Classic_,
 };
 
 struct Message{
