@@ -39,6 +39,7 @@ class Server{
         bool lockThread;
         std::mutex mtx;
         std::condition_variable cv;
+        bool userIsInLobby = false;
 
 
     public:

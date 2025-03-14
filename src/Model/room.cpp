@@ -56,6 +56,9 @@ int Room::getPlayerCount() const {
     return (int)playerFds.size();
 }
 
+bool Room::isStarted() {
+    return matchStarted;
+}
 
 void Room::forceStart() {
     std::unique_lock<std::mutex> lock(mtx);

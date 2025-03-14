@@ -22,7 +22,19 @@ private:
 public:
     void renderGame(std::shared_ptr<NetPlayerData> player, Coordinates offset);
     void renderGame(const NetPlayerData& player, Coordinates offset);
+
+    void highlightGridBorders(Coordinates offset);
+
     void renderGame(std::shared_ptr<NetPlayerData> player);
+
+    int getClientPlayerIndex(const vector<NetPlayerData> &players, bool targetPlayerMenu);
+
+    void drawMalusMenu(const NetPlayerData &playerClient);
+
+    void drawPlayerSelectionMenu(const vector<NetPlayerData> &players);
+
+    void renderGamesRoyal(const vector<NetPlayerData> &players, bool targetPlayerMenu);
+
     void renderGames(const vector<std::shared_ptr<NetPlayerData>> &players);
     void renderGames(const vector<NetPlayerData> &players);
     static void printGameOver();

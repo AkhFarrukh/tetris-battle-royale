@@ -25,7 +25,6 @@ bool sendAll(int sock, const void* buffer, size_t length) {
 
 
 
-
 /**
  * @brief Receive all the data with a loop
  * 

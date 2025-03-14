@@ -59,6 +59,8 @@ public:
         return gameMode;
     }
 
+    bool isStarted();
+
 private:
     /**
      * @brief Actually create the Game object with the current players,

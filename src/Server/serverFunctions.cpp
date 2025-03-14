@@ -257,50 +257,96 @@ void* Server::threadRoutineClient(void* arg){
                     auto r = std::make_shared<Room>(client.client_fd, menu.mode);
                     server->roomsList->push_back(r);
                     server->myRoom = r;
-                    std::cout << "Created new room with host fd = " << client.client_fd << std::endl;
+                    std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
+                
+                    RoomInfo info;
+                    info.roomID = r->getRoomID();
+                    info.currentPlayersCount = r->getPlayerCount();
+                    info.isStarted = r->isStarted();
+                
+                    int typeToSend = MessageType::T_RoomInfo;
+                    int sizeToSend = 1;
+                
+                    sendAll(client.client_fd, &typeToSend, sizeof(typeToSend));
+                    sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend));
+                    sendAll(client.client_fd, &info, sizeof(RoomInfo));
+                
                 }
                 else if (menu.action == MenuActions::A_JoinRoom) {
-
                     std::vector<std::shared_ptr<Room>> filteredRooms;
                     for (auto& r : *server->roomsList) {
                         if (r->getRoomMode() == menu.mode) {
                             filteredRooms.push_back(r);
                         }
                     }
-                    /* NEED TO PUT TYPE & SIZE */
+                
                     int nbRooms = (int)filteredRooms.size();
                     sendAll(client.client_fd, &nbRooms, sizeof(nbRooms));
                 
                     for (int i = 0; i < nbRooms; i++) {
                         int count = filteredRooms[i]->getPlayerCount();
                         sendAll(client.client_fd, &count, sizeof(count));
-
-                    }
-
-                    int chosenIndex;
-                    if (!recvAll(client.client_fd, &chosenIndex, sizeof(chosenIndex))) {
-                        std::cout << "Client déconnecté : " << client.client_fd << std::endl;
-                        server->udbm.removeSession(client.userId);
-                        close(client.client_fd);
-                        userIsOnline = false; // Stop the loop
-                        break;
                     }
                 
-                    if (chosenIndex >= 0 && chosenIndex < nbRooms) {
-                        auto chosenRoom = filteredRooms[chosenIndex];
-                        if (!chosenRoom->addPlayer(client.client_fd)) {
-                            std::cout << "Failed to join room\n";
-                        } else {
-                            std::cout << "Client joined room with hostFd " 
-                                      << chosenRoom->getOwnerFd() << std::endl;
-                        }
-                    }
-                }
+                }  
                 
                 else if (menu.action == MenuActions::A_ForceStart) {
                     server->myRoom->forceStart();
                 }
             }
+
+            else if (type == MessageType::T_Refresh){
+                RoomInfo info;
+                info.roomID = server->myRoom->getRoomID();
+                info.currentPlayersCount = server->myRoom->getPlayerCount();
+                info.isStarted = server->myRoom->isStarted();
+            
+                int typeToSend = MessageType::T_RoomInfo;
+                int sizeToSend = 1;
+            
+                sendAll(client.client_fd, &typeToSend, sizeof(typeToSend));
+                sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend));
+                sendAll(client.client_fd, &info, sizeof(RoomInfo));
+            }
+
+            else if (type == MessageType::T_Join) {
+                int ownerFd;
+                if (!recvAll(client.client_fd, &ownerFd, sizeof(ownerFd))) {
+                    break;
+                }
+            
+                std::shared_ptr<Room> chosenRoom = nullptr;
+                for (auto &r : *server->roomsList) {
+                    if (r->getOwnerFd() == ownerFd) {
+                        chosenRoom = r;
+                        break;
+                    }
+                }
+            
+                if (!chosenRoom) {
+                    std::cout << "No matching room or invalid ownerFd = " << ownerFd << "\n";
+                } else {
+                    if (!chosenRoom->addPlayer(client.client_fd)) {
+                        std::cout << "Failed to join room, maybe full or started\n";
+                    } else {
+                        std::cout << "Client joined room with hostFd = " << chosenRoom->getOwnerFd() << std::endl;
+            
+                        RoomInfo info;
+                        info.roomID               = chosenRoom->getRoomID();
+                        info.currentPlayersCount  = chosenRoom->getPlayerCount();
+                        info.isStarted            = chosenRoom->isStarted();
+                        info.mode                 = chosenRoom->getRoomMode();
+            
+                        int typeToSend  = MessageType::T_RoomInfo;
+                        int sizeToSend  = 1;
+            
+                        sendAll(client.client_fd, &typeToSend, sizeof(typeToSend));
+                        sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend));
+                        sendAll(client.client_fd, &info,        sizeof(RoomInfo));
+                    }
+                }
+            }
+            
                 
             
             else if (type == MessageType::T_Input) {
