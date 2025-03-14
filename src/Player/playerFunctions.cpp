@@ -224,7 +224,8 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                     //
                     chosenMalus = 0; chosenMalus = 0;
                 }
-            } else {
+            } 
+            else {
                 int type = MessageType::T_Input;
                 int size = sizeof(InputMessage);
                 InputMessage inputMessage;
