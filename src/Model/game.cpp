@@ -65,41 +65,20 @@ void Game::run() {
         //cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
-
-        if (elapsedTimeDropEvent > std::chrono::milliseconds(500)) {
+        int time = 500;
+        for (int p = 0; p < (int)players.size(); p++) {
+            if(players[p].sped_up){time = 250;}
+            else if(players[p].slowed){time = 1000;}
+        }
+        if (elapsedTimeDropEvent > std::chrono::milliseconds(time)) {
+            cout<<"chrono"<<endl;
             for (int p = 0; p < (int)players.size(); p++) {
-                if (!players[p].isGameOver and !players[p].slowed and !players[p].sped_up) {
                     if (players[p].blackout != 0){players[p].blackout--;} //Il y a 10 unités lors d'un BO, cela durera 5 sec
                     bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
                     cout<<"soft dropping"<<endl;
                     if (!canDrop) {
                         placePieceOnBoard(p);
                     }
-                }
-            }
-            chronoDropEvent = now;
-        }
-        if (elapsedTimeDropEvent > std::chrono::milliseconds(250)) { //Malus sped Up (RC mode)
-            for (int p = 0; p < (int)players.size(); p++) {
-                if (!players[p].isGameOver and players[p].sped_up and !players[p].slowed) {
-                    //todo si on peut activer plusieurs malus il faut décrementer blackout
-                    bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
-                    if (!canDrop) {
-                        placePieceOnBoard(p);
-                    }
-                }
-            }
-            chronoDropEvent = now;
-        }
-
-        if (elapsedTimeDropEvent > std::chrono::milliseconds(1000)) { // Bonus Slowed (RC mode)
-            for (int p = 0; p < (int)players.size(); p++) {
-                if (!players[p].isGameOver and !players[p].sped_up and players[p].slowed) {
-                    bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
-                    if (!canDrop) {
-                        placePieceOnBoard(p);
-                    }
-                }
             }
             chronoDropEvent = now;
         }
