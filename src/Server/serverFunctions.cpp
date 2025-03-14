@@ -134,7 +134,7 @@ void* Server::threadRoutineClient(void* arg){
     printf("4\n");
     Server* server = threadData->serverInstance;
     printf("5\n");
-    ClientSession client = threadData->client;
+    ClientSession& client = threadData->client;
     printf("6\n");
 
     std::cout<< "Initialised and got the args" << std::endl;
