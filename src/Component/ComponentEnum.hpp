@@ -20,7 +20,8 @@ enum class Color{
     red,     // Z-shape (right)
     orange,  // L-shape (right)
     blue,    // J-shape (left)
-    grey     // Malus
+    grey,     // Malus
+    white    //Thunder & BlackOut
 };
 
 /** 
@@ -34,5 +35,6 @@ enum class TetrominoShape {
     Z, // Z-shape (right)
     L,  // L-shape (right)
     J, // J-shape (left)
+    ONE_BLOCK_CUBE //1X1
 };
 #endif

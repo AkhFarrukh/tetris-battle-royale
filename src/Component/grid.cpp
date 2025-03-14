@@ -44,12 +44,12 @@ bool Grid::isLocationFree(Coordinates blocLocation) {  // prend les coordonées 
 /**
  *@brief Vérifie si la ligne dans lea grid est complète.
  *
- *@param row (type int) ligne de la grid.
+ *@param line (type int) ligne de la grid.
  *@return true si la ligne complète, false sinon.
  */
-bool Grid::isFullLine(int row) {
+bool Grid::isFullLine(int line) {
   for(int x=0; x < GRID_WIDTH; ++x) {
-    if(matrix[row][x].isEmpty()) {
+    if(matrix[line][x].isEmpty()) {
       return false; // Case vide touvée, la ligne n'est pas complète
     }
   }
@@ -64,10 +64,10 @@ bool Grid::isFullLine(int row) {
  *
  *@param row ligne qui doit être supprimée.
  */
-void Grid::clearLine(int row) {
+void Grid::clearLine(int line) {
   for(int x=0; x < GRID_WIDTH; ++x) {
-    matrix[row][x].setEmpty(true);
-    matrix[row][x].setColour(Color::nullcolor);
+    matrix[line][x].setEmpty(true);
+    matrix[line][x].setColour(Color::nullcolor);
   }
 }
 
@@ -131,6 +131,20 @@ void Grid::setBlock(Block newblock) {
 }
 
 
+bool Grid::isLineBusy(int line) {
+    for(int x=0; x < GRID_WIDTH; ++x) {
+        if(!matrix[line][x].isEmpty()) {
+            return true; // Cette ligne n'est pas complète mais contient des blocs
+        }
+    }
+    return false; // La ligne est complète
+}
+
+
+
+
+
+
 /**
  *@brief récupère la couleur à une position de la grid.
  *
@@ -150,13 +164,12 @@ Color Grid::getBlockColor(int x, int y) {
  *@param numLines est le nombres de lignes malus à ajouter
  */
 void Grid::malusLines(int numLines) {
-    int line = GRID_HEIGHT;
-    while (not isFullLine(line) && line >= 0) {
-        --line;
+    int line = 0; //Tout en haut
+    while (!isLineBusy(line) && line < GRID_HEIGHT) {
+        ++line;
     }
-    if (line < 0) { //Si aucune line n'est vide (ce qui aurait deja fait finir la game donc jsp
-        //todo "Perdu"
-        // com pour pouvoir merge
+    if (line < GRID_HEIGHT - 1) { //Si aucune line n'est vide (ce qui aurait deja fait finir la game donc jsp
+        --line; //ligne vide au-dessus d'une ligne partiellement rempli
     }
     else {
         int heightAfterAddingLines = line - numLines;
@@ -174,6 +187,68 @@ void Grid::malusLines(int numLines) {
             }
         }
 
+    }
+}
+
+/**
+ * @brief Utiliser dans le mode Royal Competition.
+ *
+ * Sera utiliser pour le malus Thunder qui détruit un bloc 2X2.
+ *
+ */
+void Grid::lightningBlock2X2(Coordinates blocLocation) {
+    int x = blocLocation.x;
+    int y = blocLocation.y;
+    if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+        setBlock(Block(Color::white, 1, blocLocation));
+        if (x+1 < GRID_WIDTH) {
+            setBlock(Block(Color::white, 1, Coordinates(x+1, y)));
+            if (y + 1 < GRID_HEIGHT) {
+                setBlock(Block(Color::white, 1, Coordinates(x, y+1)));
+                setBlock(Block(Color::white, 1, Coordinates(x+1, y+1)));
+            }
+        }
+        else if (x-1 >= 0) {
+            setBlock(Block(Color::white, 1, Coordinates(x-1, y)));
+            if (y + 1 < GRID_HEIGHT) {
+                setBlock(Block(Color::white, 1, Coordinates(x, y+1)));
+                setBlock(Block(Color::white, 1, Coordinates(x-1, y+1)));
+            }
+        }
+    }
+}
+
+
+/**
+ * @brief Utiliser dans le mode Royal Competition.
+ *
+ * Sera utiliser pour le malus Thunder qui détruit un bloc 2X2.
+ *
+ */
+void Grid::deleteBlock2X2(Coordinates blocLocation) {
+    int x = blocLocation.x;
+    int y = blocLocation.y;
+    Block empty = Block(Color::nullcolor, 1, blocLocation);
+    empty.setEmpty(true); //todo peut etre devoir crée un block pour chaque lieu
+    if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+        setBlock(empty);
+        if (x+1 < GRID_WIDTH) {
+            empty.setPosition(Coordinates(x+1, y));
+            setBlock(empty);
+            if (y + 1 < GRID_HEIGHT) {
+                empty.setPosition(Coordinates(x, y+1));
+                setBlock(empty);
+                empty.setPosition(Coordinates(x+1, y+1));
+                setBlock(empty);
+            }
+        }
+        else if (x-1 >= 0) {
+            setBlock(Block(Color::nullcolor, 1, Coordinates(x-1, y)));
+            if (y + 1 < GRID_HEIGHT) {
+                setBlock(Block(Color::nullcolor, 1, Coordinates(x, y+1)));
+                setBlock(Block(Color::nullcolor, 1, Coordinates(x-1, y+1)));
+            }
+        }
     }
 }
 

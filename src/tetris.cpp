@@ -160,7 +160,7 @@ int main() {
             menu.action = MenuActions::A_Play;
             if(selectedMode == 0){
                 //menu.mode = InterfaceTerminal::modeNames[selectedMode];
-                menu.mode = Modes::Endless;
+                menu.mode = Modes::Endless_;
                 napms(500);
 
             }

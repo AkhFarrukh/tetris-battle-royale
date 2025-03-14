@@ -30,9 +30,9 @@ class Player {
     public:
         struct ThreadData {
             int socket;
-	    mutex mux;
-	    mutex displayMut;
-	    atomic<bool> userInGame = true;
+	        mutex mux;
+	        mutex displayMut;
+	        atomic<bool> userInGame = true;
         };
 
         static void* threadRoutineView (void* arg); //Routine qui recoit la grid et l'affiche

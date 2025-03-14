@@ -4,6 +4,7 @@
 #include "Event.hpp"
 #include "ControllerEnum.hpp" // Action
 
+//RC mode Only
 class MalusBonusEvent : public Event {
     private:
         MalusBonus malusBonus;
