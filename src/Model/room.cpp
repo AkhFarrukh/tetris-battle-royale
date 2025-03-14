@@ -10,7 +10,7 @@ Room::Room(int sockHoster, Modes mode)
       matchStarted(false),
       roomID(++globalRoomCounter)
 {   
-    if (mode == Modes::Duel){
+    if (mode == Modes::Duel_){
         minPlayers = 2;
         maxPlayers = 2;
     }
