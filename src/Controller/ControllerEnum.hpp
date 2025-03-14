@@ -14,10 +14,15 @@ enum Action {
         };
 
 enum MalusBonus {
-    NO,
-    BLOCKED,
-    
+    Bonus_Block1X1,
+    BonusReduceFallSpeed,
+    MalusIncreaseFallSpeed,
+    MalusReverseControls,
+    MalusFreezeControls,
+    MalusBlackOut,
+    MalusThunder
 };
+        
 
 
 

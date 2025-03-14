@@ -11,6 +11,7 @@
 #include <thread>
 #include "communication.hpp"
 
+static int globalRoomCounter = 0;
 class Game; // Forward declaration
 
 // Forward declarations
@@ -31,6 +32,9 @@ public:
     Room();
 
     ~Room();
+
+    int getOwnerFd() const { return sockHoster; }
+    int Room::getRoomID() const { return roomID; }
 
     /**
      * @brief Adds a new player (by FD or ID).
@@ -66,6 +70,8 @@ private:
     int sockHoster;
     Modes gameMode;
     int minPlayers = 3, maxPlayers = 9;
+    bool matchStarted;
+    int roomID;
 
     std::vector<ThreadGameData> playersThread;
     std::vector<int> playerFds;  // store FDs or IDs for each joined player
