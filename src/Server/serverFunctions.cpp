@@ -71,9 +71,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         threadData->serverInstance = this; // "this" = a pointer of server object
         
         pthread_t threadID;
-        std::shared_ptr<ThreadData>* threadDataCopy = new std::shared_ptr<ThreadData>(threadData);
-        
-        if(pthread_create(&threadID, nullptr, Server::threadRoutineClient, threadDataCopy) < 0) {
+        if(pthread_create(&threadID, nullptr, threadRoutineClient, threadData.get()) < 0){
             perror("Error on thread creation : ");
             close(client_fd);
             clients.pop_back();
@@ -103,13 +101,12 @@ void* Server::threadRoutineClient(void* arg){
     // Get thread data from arg
 
     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
-    std::shared_ptr<ThreadData> threadData = *static_cast<std::shared_ptr<ThreadData>*>(arg);
-    delete static_cast<std::shared_ptr<ThreadData>*>(arg);
-
+    ThreadData* threadData = reinterpret_cast<ThreadData*>(arg);
     ThreadGameData threadGameData;
     GameController gameController(eventQueue);
     Server* server = threadData->serverInstance;
     ClientSession& client = threadData->client;
+
     bool flagConnexion = true;
     bool successfulLogin = false;
 
@@ -138,14 +135,17 @@ void* Server::threadRoutineClient(void* arg){
         // Check if both username and password are correct or not.
         std::string username = connexionData.username;
         std::string password = connexionData.password;
+        printf("%s, %s\n", connexionData.username, connexionData.password);
         successfulLogin = server->udbm.isCorrectLogin(username.c_str(), password.c_str());
+        printf("lul\n");
         int typeConnexion;
         int doubleSession;
         if(successfulLogin){
             typeConnexion = MessageType::T_AcceptConnexion;
             int user_id = server->udbm.getUserId(username.c_str());
+            printf("%d\n", user_id);
             bool doubleSession_ = server->udbm.isUserInSession(user_id);
-            printf("%d \n", doubleSession_);
+            printf("%d\n", doubleSession_);
             if(doubleSession_){successfulLogin = false;doubleSession = MessageType::T_RefuseConnexion;}
             else{
                 doubleSession = MessageType::T_AcceptConnexion;

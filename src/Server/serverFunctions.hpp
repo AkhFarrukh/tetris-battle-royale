@@ -37,6 +37,8 @@ class Server{
         
 
         // Synchronisation management
+        std::mutex mtx2;
+
         std::mutex mtx;
         std::condition_variable cv;
         bool lockThread;
