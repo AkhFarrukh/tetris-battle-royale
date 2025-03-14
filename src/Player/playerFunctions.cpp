@@ -29,8 +29,6 @@ void* Player::threadRoutineView (void* arg){
         /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
         int bytesReceivedType = recvAll(sock, &type, sizeof(int));
         int bytesReceivedSize = recvAll(sock, &size, sizeof(int));
-        //recv (sock, &size, sizeof(int), 0);
-        //std::cout<<"Received a message in threadRoutineView"<<std::endl;
         //Client disconnected or error
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
             perror("Client disconnected : ");
@@ -46,32 +44,35 @@ void* Player::threadRoutineView (void* arg){
         else if (type == MessageType::T_RoomInfo) {
             RenderRooms renderR;
             RoomInfo info;
-            if (!recvAll(sock, &info, sizeof(info))) {
+            if (!recvAll(sock, &info, size)) {
+                perror("Error on receiving room");
                 break;
             }
             int act = 0;
             while (true){
-            act = renderR.handleMyRoom(info);
+                act = renderR.handleMyRoom(info);
                 if (act == 1) {
+                    cout<<"act = 1"<<endl;
                     int sendType = MessageType::T_Menu;
                     int sendSize = sizeof(Menu);
                     Menu menu;
                     menu.action = MenuActions::A_ForceStart;
             
-                    if(sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
-                    if(sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
-                    if(sendAll(sock, &menu, sizeof(Menu))){return nullptr;}
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
+                    if(!sendAll(sock, &menu, sizeof(Menu))){return nullptr;}
                     break;
                 }
 
                 if (act == -2) {
+                    cout<<"act = 2"<<endl;
                     int sendType = MessageType::T_Refresh;
                     int sendSize = sizeof(int);
                     int useless = 0;
 
-                    if(sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
-                    if(sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
-                    if(sendAll(sock, &useless, sizeof(int))){return nullptr;}
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
+                    if(!sendAll(sock, &useless, sizeof(int))){return nullptr;}
                 }
                 if (act == -1) {
                     //send un delete room
@@ -104,9 +105,9 @@ void* Player::threadRoutineView (void* arg){
                     int sizeToSend = sizeof(int);
                     int fd = roomsInfo[index].roomID;
 
-                    if (sendAll(sock, &typeToSend, sizeof(typeToSend))) {return nullptr;}
-                    if (sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {return nullptr;}
-                    if (sendAll(sock, &fd, sizeof(int))) {return nullptr;}
+                    if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {return nullptr;}
+                    if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {return nullptr;}
+                    if (!sendAll(sock, &fd, sizeof(int))) {return nullptr;}
 
                 }
                 if (index == -2) {
@@ -141,13 +142,13 @@ void* Player::threadRoutineView (void* arg){
             for (int i = 0; i < size; ++i) {
                 NetPlayerData player;
                 /* NEED ERROR HANDLING */
-                if (recvAll(sock, &player.playerId, sizeof(player.playerId))){return nullptr;}
-                if (recvAll(sock, &player.isGameOver, sizeof(player.isGameOver))){return nullptr;}
-                if (recvAll(sock, &player.linesCleared, sizeof(player.linesCleared))){return nullptr;}
-                if (recvAll(sock, &player.score, sizeof(player.score))){return nullptr;}
+                if (!recvAll(sock, &player.playerId, sizeof(player.playerId))){return nullptr;}
+                if (!recvAll(sock, &player.isGameOver, sizeof(player.isGameOver))){return nullptr;}
+                if (!recvAll(sock, &player.linesCleared, sizeof(player.linesCleared))){return nullptr;}
+                if (!recvAll(sock, &player.score, sizeof(player.score))){return nullptr;}
             
                 int gridSize;
-           	    if (recvAll(sock, &gridSize, sizeof(gridSize))){return nullptr;}
+           	    if (!recvAll(sock, &gridSize, sizeof(gridSize))){return nullptr;}
 
 		if (gridSize <= 0 || gridSize > 100000) {  // juste pour detecter quand gridSize devient trop grand
     			//std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
@@ -156,7 +157,7 @@ void* Player::threadRoutineView (void* arg){
 
                 player.grid.resize(gridSize);
 
-                if (recvAll(sock, player.grid.data(), gridSize * sizeof(Color))){return nullptr;}
+                if (!recvAll(sock, player.grid.data(), gridSize * sizeof(Color))){return nullptr;}
             
                 playersData.push_back(player);
             }            
@@ -230,9 +231,9 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                 int size = sizeof(InputMessage);
                 InputMessage inputMessage;
                 inputMessage.input = currentAction;
-                if (sendAll(threadData->socket, &type, sizeof(int))) {return -1;}
-                if (sendAll(threadData->socket, &size, sizeof(int))) {return -1;}
-                if (sendAll(threadData->socket, &inputMessage, sizeof(InputMessage))) {return -1;}
+                if (!sendAll(threadData->socket, &type, sizeof(int))) {return -1;}
+                if (!sendAll(threadData->socket, &size, sizeof(int))) {return -1;}
+                if (!sendAll(threadData->socket, &inputMessage, sizeof(InputMessage))) {return -1;}
             }
         }
     }
