@@ -136,8 +136,8 @@ void Game::updateGame() {
             if (players[p].malusBonus != MalusBonus::BLOCKED){
                 handleMovementActionEvent(p, evt);
            }
-            
         }
+    }
 }
 
 Action reverse(Action action) {
