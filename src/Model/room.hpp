@@ -34,7 +34,7 @@ public:
     ~Room();
 
     int getOwnerFd() const { return sockHoster; }
-    int Room::getRoomID() const { return roomID; }
+    int getRoomID() const { return roomID; }
 
     /**
      * @brief Adds a new player (by FD or ID).
@@ -75,7 +75,6 @@ private:
 
     std::vector<ThreadGameData> playersThread;
     std::vector<int> playerFds;  // store FDs or IDs for each joined player
-    bool matchStarted;
 
     // If you want concurrency around addPlayer, etc.
     mutable std::mutex mtx;
