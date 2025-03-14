@@ -6,9 +6,8 @@
 #define GAMEMODES_H
 
 #include <iostream>
-#include "../Component/grid.hpp"
-#include "../Controller/GameController.hpp"
-#include "game.hpp"
+#include "grid.hpp"
+#include "GameController.hpp"
 
 /**
  * @brief Classe de base abstraite pour définir un mode de jeu.
