@@ -85,7 +85,6 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         printf("4a\n");
         clients.push_back(new_session);
         printf("5a\n");
-
         //printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
 
