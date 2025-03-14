@@ -6,8 +6,10 @@
 #define RENDERENGINENCURSES_HPP
 
 #include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <memory>
 #include "GameController.hpp"
+#include "playerData.hpp"
 
 using namespace std;
 
@@ -16,11 +18,25 @@ class Game;
 class RenderEngineNcurses {
 private:
     static int applyColor(Color blockColor);
-public:
 
-    static void renderGames(const vector<shared_ptr<Game>> &games);
-    static void renderGame(shared_ptr<Game> game, Coordinates offset);
-    static void renderGame(shared_ptr<Game> game);
+public:
+    void renderGame(std::shared_ptr<NetPlayerData> player, Coordinates offset);
+    void renderGame(const NetPlayerData& player, Coordinates offset);
+
+    void highlightGridBorders(Coordinates offset);
+
+    void renderGame(std::shared_ptr<NetPlayerData> player);
+
+    int getClientPlayerIndex(const vector<NetPlayerData> &players, bool targetPlayerMenu);
+
+    void drawMalusMenu(const NetPlayerData &playerClient);
+
+    void drawPlayerSelectionMenu(const vector<NetPlayerData> &players);
+
+    void renderGamesRoyal(const vector<NetPlayerData> &players, bool targetPlayerMenu);
+
+    void renderGames(const vector<std::shared_ptr<NetPlayerData>> &players);
+    void renderGames(const vector<NetPlayerData> &players);
     static void printGameOver();
 
 };

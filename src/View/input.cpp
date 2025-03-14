@@ -12,6 +12,9 @@ void Input::start() {
     keypad(stdscr, TRUE);  // Enable special keys like arrow keys
 }
 
+void Input::stop() {
+    endwin();
+}
 
 
 /**
@@ -55,10 +58,10 @@ KeyboardAction Input::getKeyboardInput() {
         case KEY_CANCEL:
             currentAction = KeyboardAction::EXIT_KEY;
             break;
+        case '&':
         default:
             currentAction = KeyboardAction::NO_ACTION;
             break;
     }
-    refresh();
     return currentAction;
 }

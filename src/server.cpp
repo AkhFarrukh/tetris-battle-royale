@@ -7,6 +7,7 @@
 #include <netinet/in.h>     //ip management
 
 #include "serverFunctions.hpp"
+#include "room.hpp"
 
 using namespace std;
 const int domain = AF_INET;
@@ -14,11 +15,26 @@ const int type = SOCK_STREAM;
 const int protocol = 0;
 const int MAX_PENDING_CONNECTION = 10;
 
+Server server;
 
-
+void handle_sigint(int sig) {
+    std::vector<ClientSession> clients = server.getClients();// = server.getClients(); NEED IMPLEMENTATION
+    for(const auto& client:clients){
+      printf("%d\n", client.userId);
+    while(server.udbm.isLoggedIn(client.username.c_str())){
+        server.udbm.logOut(client.userId);} //on marque la personne comme deconnecté
+    server.udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+                                                                                    //comme telle
+    while(server.udbm.isUserInSession(client.userId)){
+        server.udbm.deleteSession(client.userId);}}
+    napms(1000);
+    signal(SIGINT, SIG_DFL);
+    raise(SIGINT);
+}
 
 
 int main () {
+    signal(SIGINT, handle_sigint);
     /**************************************************************
     *LAUNCH THE SERVER
     **************************************************************/
@@ -36,14 +52,13 @@ int main () {
     address.sin_family = domain;
     address.sin_port = htons(8080);
     address.sin_addr.s_addr = INADDR_ANY;
-    size_t addressLen = sizeof(address);
+    socklen_t addressLen = sizeof(address);
 
     //Bind socket to addr & port
-    if (bind (server_fd, (struct sockaddr *)&address, addressLen) <= -1){
+    if (bind (server_fd, (struct sockaddr *)&address, static_cast<socklen_t>(addressLen)) <= -1){
         perror("Couldn't bind socket to address : ");
         return 1;
     }
-
     //Wait for a client
     if (listen (server_fd, MAX_PENDING_CONNECTION) <= -1){
         perror("Error while listening : ");
@@ -53,7 +68,7 @@ int main () {
     /**************************************************************
     *HANDLE THE CLIENT
     **************************************************************/
-    Server server;
+
     if (server.handleClient(server_fd, address, addressLen) <= -1){
         perror("Error while handling client : ");
         close(server_fd);

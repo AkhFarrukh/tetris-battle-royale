@@ -4,17 +4,16 @@
 
 #include "GameController.hpp"
 
-GameController::GameController(shared_ptr<Game> game, shared_ptr<EventQueue> eventQueue) : game(game), eventQueue(eventQueue) {}
+GameController::GameController(shared_ptr<EventQueue> eventQueue) : eventQueue(eventQueue) {}
 
 
-void GameController::getAction() {
-    KeyboardAction keyboardAction = input.getKeyboardInput();
+void GameController::getAction(KeyboardAction in) {
     bool controlsBlocked = areControlsBlocked();
     bool controlsInverted = areControlsInverted();
     Action action = Action::NONE;
     if(not controlsBlocked){
       if (not controlsInverted){
-        switch (keyboardAction) {
+        switch (in) {
         	case KeyboardAction::LEFT_DIRECTION_KEY:
             	action = Action::MOVE_LEFT;
             	break;
@@ -42,7 +41,7 @@ void GameController::getAction() {
         }
       }
       else{  //Si les commandes se font inverser par un malus
-      	switch (keyboardAction) {
+      	switch (in) {
         	case KeyboardAction::LEFT_DIRECTION_KEY:
             	action = Action::MOVE_RIGHT;
             	break;
@@ -86,7 +85,7 @@ Color GameController::getBlockColor(Coordinates cell) {
     return game->getBlockColor(cell);
 }
 */
-
+/*
 void GameController::renderGame() {
     RenderEngineNcurses::renderGame(game);
 }
@@ -94,3 +93,4 @@ void GameController::renderGame() {
 void GameController::printGameOver() {
     RenderEngineNcurses::printGameOver();
 }
+*/

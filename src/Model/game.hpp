@@ -1,4 +1,3 @@
-
 #ifndef GAME_HPP
 #define GAME_HPP
 
@@ -9,6 +8,7 @@
 #include <vector>
 #include <cstdlib>
 
+#include "serverFunctions.hpp"
 #include "Mouvement.hpp"
 #include "game_data.hpp"
 #include "figureGenerator.hpp"
@@ -16,43 +16,45 @@
 #include "EventQueue.hpp"
 #include "MovementActionEvent.hpp"
 #include "TimerDropEvent.hpp"
+#include "ServerData.hpp"
+#include "playerData.hpp"
+#include "communication.hpp"
+#include "MalusBonusEvent.hpp"
+#include "gameModes.h"
+#include "userdatabasemanager.hpp"
+
+
+using namespace std;
 
 class GameController; // forward declaration
+class Server;
+class Mode;
+
 
 class Game {
 public:
-    Game(shared_ptr<EventQueue> eventQueue);
+
+    Game(std::vector<ThreadGameData> playersData, int numPlayers, string gameMode);
     ~Game();
 
     void run();
     void stop();
-
-
-
+    
     void setGameController(shared_ptr<GameController> controller);
-    int getGameScore() { return gameData.get_score(); }
-    int getGameNumberOfBrokenLines() { return gameData.get_numberBrokenLines(); }
     Color getBlockColor(Coordinates cell);
-	int getTimeDrop();
-    void setTimeDrop(int newTime);
-    int getTetriminoCounter();
-    void setTetriminoCount(int& count);
-    shared_ptr<Grid> getGrid();
-    void switchGridVisibility();
-    void switchIsCube();
+    bool broadcastGame();
+
 
 private:
-    std::shared_ptr<Grid> grid;
+
+    std::chrono::steady_clock::time_point lastDropTime;
+    std::vector<PlayerState> players;
     FigureGenerator figureGenerator;
-    std::shared_ptr<MovingFigure> activeFigure;
-    Mouvement movement;
-    GameData gameData;
     bool isRunning;
-    int timeDropEvent = 500;
     shared_ptr<GameController> gameController;
-    shared_ptr<EventQueue> eventQueue;
-    int countTetriminoGenerated = 0;
-    bool isGridHidden = false;
+    string gameMode;
+    shared_ptr<Mode> mode;
+    int numPlayers_;
 
 
 
@@ -60,14 +62,17 @@ private:
 
     void updateGame();
 
-    void handleMovementActionEvent(shared_ptr<Event> event);
-
-    void handleTimerDropEvent(shared_ptr<Event> event);
+    void handleMovementActionEvent(int p, std::shared_ptr<Event> e);
+    void handleMalusBonusEvent(std::shared_ptr<Event> e, int p);
+    void handleMalus(int targetID, int playerID);
 
     void renderGame();
-    int applyColor(Color blockColor);
+    int  applyColor(Color blockColor);
     void checkGameOver();
-    void handleLineCompletion();
+    void handleLineCompletion(int p);
+
+    void placePieceOnBoard(int p);
+    
 
 
 

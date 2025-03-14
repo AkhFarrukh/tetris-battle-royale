@@ -11,6 +11,7 @@
 #include "RenderEngineNcurses.hpp"
 #include "EventQueue.hpp"
 #include "MovementActionEvent.hpp"
+
 using namespace std;
 
 
@@ -26,10 +27,10 @@ private:
     shared_ptr<Game> game;
     shared_ptr<EventQueue> eventQueue;
 public:
-    GameController(shared_ptr<Game> game, shared_ptr<EventQueue> eventQueue);
+    GameController(shared_ptr<EventQueue> eventQueue);
     void startGameInput() {input.start();}
     void stopGameInput() {input.stop();}
-    void getAction();
+    void getAction(KeyboardAction in);
 
      // Getters
     bool areControlsBlocked() const { return controlsBlocked; }

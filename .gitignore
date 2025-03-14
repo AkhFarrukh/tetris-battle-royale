@@ -8,6 +8,7 @@
 # Allow the Makefile in the build folder
 !/build/Makefile
 !/build/ncurses-setup.sh
+!/build/setup.sh
 
 # Exclude all files and folders in the lib folder
 /lib/*

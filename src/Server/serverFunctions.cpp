@@ -1,12 +1,33 @@
 #include "serverFunctions.hpp"
+#include <algorithm>
+
+
+Server::Server(){
+    roomsList = make_shared<vector<shared_ptr<Room>>>();
+}
+
 
 /**
  * TODO: COMMENTS TO BE ADDED BY THOSE WHO WROTE THIS FUNCTION/METHOD. STP
  */
-void Server::broadcastMessage(const std::string& message, int sender_fd) {
+void Server::broadcastMessage(const char* buffer, const std::string& sender_username) {
+    size_t friendNameLength = std::find(buffer, buffer+strlen(buffer), '\0') - buffer;
+
+    // Extraire le nom d'utilisateur
+    std::string friendName(buffer, friendNameLength);
+
+    // Extraire le message (après le nom d'utilisateur)
+    std::string message(buffer + friendNameLength + 1);
     for (const auto client : clients) {
-        if (client.client_fd != sender_fd) {
-            send(client.client_fd, message.c_str(), message.length(), 0);
+        if (client.username == friendName) {
+            std::vector<char> messageToSend(sender_username.size()+1+message.size());
+            memcpy(messageToSend.data(), sender_username.c_str(), sender_username.size()+1);
+            memcpy(messageToSend.data() + sender_username.size()+1, message.c_str(), message.size());
+            int bytesReceived = send(client.client_fd, messageToSend.data(), messageToSend.size(), 0);
+            if (bytesReceived <= 0) {
+                std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+                //TODO l'enlever de la liste?
+            }
         }
     }
 }
@@ -21,7 +42,7 @@ void Server::broadcastMessage(const std::string& message, int sender_fd) {
  * @param addressLen Address length
  * @return return -1 in case of error else return 0
  */
-int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen) {
+int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen){
     while (true) {
 
         // Mutex
@@ -36,44 +57,37 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         }
         std::cout << "Nouveau client connecté : " << client_fd << std::endl;
 
+        /* CHECK AFTER MERGE */
         // The password MUST be a plain password (what received from the client).
         // The User Database Manager will take care of password hash validation.
-        char username[256] = {0};
-        char password[256] = {0};
-        
-        // Check if the server received both username and password or not
-        if (recv(client_fd, username, sizeof(username), 0) <= 0 ||
-            recv(client_fd, password, sizeof(password), 0) <= 0) {
-            perror("Erreur lors de la réception des credentials");
-            close(client_fd);
-            continue;
-        }
 
+        printf("goood\n");
         // Create a "new session" with client info to be sent to thread routine
         // and push the client into a vector of clients
         ClientSession new_session;
         new_session.client_fd = client_fd;
-        new_session.username = std::string(username);
-        new_session.password = std::string(password);
         clients.push_back(new_session);
-
+        //printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
+
         std::shared_ptr<ThreadData> threadData = std::make_shared<ThreadData>();
         threadData->client = ClientSession(new_session);
         threadData->serverInstance = this; // "this" = a pointer of server object
         
-        // Create a thread for a user if the username and password is correct.
         pthread_t threadID;
-        if(pthread_create(&threadID, nullptr, threadRoutineClient, threadData.get()) < 0){
+        std::shared_ptr<ThreadData>* threadDataCopy = new std::shared_ptr<ThreadData>(threadData);
+
+        if(pthread_create(&threadID, nullptr, Server::threadRoutineClient, threadDataCopy) < 0) {
             perror("Error on thread creation : ");
             close(client_fd);
+            clients.pop_back();
             return -1;
         }
-        
         // Unlock mutex when got the signal from inside the thread
         cv.wait(lock, [this]{return lockThread;});
         std::cout << "Thread successfully created !" << std::endl;
         lock.unlock();
+        //pthread_join(threadID, nullptr);
     }
     return 0;
 }
@@ -89,70 +103,340 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
  */
 void* Server::threadRoutineClient(void* arg){
     std::cout << "Starting thread routine for client" << std::endl;
-
+    
     // Get thread data from arg
-    std::shared_ptr<ThreadData> threadData(reinterpret_cast<ThreadData*>(arg));
+
+    shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
+    std::shared_ptr<ThreadData> threadData = *static_cast<std::shared_ptr<ThreadData>*>(arg);
+    delete static_cast<std::shared_ptr<ThreadData>*>(arg);
+
+    ThreadGameData threadGameData;
+    GameController gameController(eventQueue);
     Server* server = threadData->serverInstance;
     ClientSession& client = threadData->client;
 
-    // Check if both username and password are correct or not.
-    bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(), 
-                                                       client.password.c_str());
+    server->lockThread = true;
+    server->cv.notify_one();
 
+    bool flagConnexion = true;
+    bool successfulLogin = false;
+
+    while(flagConnexion){
+        int type;
+        int size;
+        int bytesReceivedType = recvAll(client.client_fd, &type, sizeof(int));
+        int bytesReceivedSize = recvAll(client.client_fd, &size, sizeof(int));
+        Connexion connexionData;
+        if(type == MessageType::T_Connexion && size == sizeof(struct Connexion)){
+            if(!recvAll(client.client_fd, &connexionData, size)){
+                std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
+                return 0;
+            }
+        }
+        else if(type == MessageType::T_ForcedExit || type == MessageType::T_Exit){
+            std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+            close(client.client_fd);
+            auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                                   [&client](const ClientSession& c) {
+                                   return c.client_fd == client.client_fd;
+                                   });
+            if (it != server->clients.end()) {
+                server->clients.erase(it);
+            }
+            return nullptr;
+        }
+        else{
+            std::cout << "Mauvais type de confidentials" << std::endl;
+            return 0;
+        }
+
+        std::cout<< "Initialised and got the args" << std::endl;
+        // Check if both username and password are correct or not.
+        std::string username = connexionData.username;
+        std::string password = connexionData.password;
+        successfulLogin = server->udbm.isCorrectLogin(username.c_str(), password.c_str());
+        int typeConnexion;
+        int doubleSession;
+        if(successfulLogin){
+            typeConnexion = MessageType::T_AcceptConnexion;
+            int user_id = server->udbm.getUserId(username.c_str());
+            bool doubleSession_ = server->udbm.isUserInSession(user_id);
+            if(doubleSession_){successfulLogin = false;doubleSession = MessageType::T_RefuseConnexion;}
+            else{
+                doubleSession = MessageType::T_AcceptConnexion;
+                client.userId = user_id;
+                client.username = connexionData.username;
+                client.password = connexionData.password;
+                flagConnexion = false;
+            }
+            int size_ = sizeof(int);
+            int bytesSentType = sendAll(client.client_fd, &typeConnexion, sizeof(int));
+            int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+            bytesSentType = sendAll(client.client_fd, &doubleSession, sizeof(int));
+            bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+        }
+        else{
+            type = MessageType::T_RefuseConnexion;
+            int size_ = sizeof(int);
+            int bytesSentType = sendAll(client.client_fd, &typeConnexion, sizeof(int));
+            int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+        }
+    }
     if (successfulLogin){
         // Get user ID and insert user into sessions table
-        client.userId = server->udbm.getUserId(client.username.c_str());
+        server->udbm.setLogin(client.userId);
         server->udbm.addSession(client.userId, client.client_fd);
 
-        /* Unlock the mutex and notifies it outside the thread */
-        server->lockThread = true;
-        server->cv.notify_one();
         
         // Keep looking for any message sent by the user to the server
         // Using bool "UserIsOnline" for better readability of while loop
-        char buffer[1024] = {0};
+
         bool userIsOnline = true;
         bool userIsInGame = false;
 
         while (userIsOnline) {
-            int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
+            std::cout << "start listening cuh" << std::endl;
+            //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
+
+            //To have info on the data received
+            int type = {0};
+            int size = {0};
+            
+
+            //Sending info to server
             //Client disconnected or error
-            if (bytesReceived <= 0) {
+            if (recvAll(client.client_fd, &type, sizeof(int)) == false || recvAll(client.client_fd, &size, sizeof(int)) == false) {
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 server->udbm.removeSession(client.userId);
                 close(client.client_fd);
-
-                /**
-                 * TODO: IDK what's happening here. So just commenting it out
-                 * STP Complete this part. 
-                 */
-                /* server->clients.erase(remove_if(server->clients.begin(), 
-                    server->clients.end(), [client](const ClientSession& c) 
-                    { return c.client_fd == client.client_fd; }), server->clients.end()); */
+                
+                auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                                       [&client](const ClientSession& c) { 
+                                       return c.client_fd == client.client_fd; 
+                                       });
+                if (it != server->clients.end()) {
+                    server->clients.erase(it);
+                }
                 userIsOnline = false; // Stop the loop
             }
-            else{
-                buffer[bytesReceived] = '\0';
-                //We capture an event from the client if InGame
-                if (userIsInGame){ 
 
+            else if(type == MessageType::T_Menu){
+                if (size != sizeof(Menu)) {
+                    std::cout << "fdp ma lumiere : " << client.client_fd << std::endl;
                 }
-                //We start a game 
-                else{
-                    ThreadGameData threadGameData;
-                    threadGameData.client_fd = client.client_fd;
-                    shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
+                std::cout << "Menu" << std::endl;
+                Menu menu;
+                if (!recvAll(client.client_fd, &menu, sizeof(Menu))){
+                    //Repetition de code, pas ouf, need method
+                    std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+                    server->udbm.removeSession(client.userId);
+                    close(client.client_fd);
+                    userIsOnline = false; // Stop the loop
+                    break;
+                }
+                else if (menu.action == MenuActions::A_Play) {
+                    cout<<"Play received"<<endl;
+                    if (menu.mode == Modes::Endless_) {
+                        
+                        std::cout << "Client wants Endless mode\n";
+
+                        threadGameData.client_fd = client.client_fd;
+                        threadGameData.eventQueue = eventQueue;
+                        std::vector<ThreadGameData> data;
+                        data.push_back(threadGameData);
+                        
+                        std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, "Endless");
+                        auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
+                        pthread_t threadGamePID;
+                        if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
+                            perror("Error on thread creation for game : ");
+                            server->udbm.removeSession(client.userId);
+                            close(client.client_fd);
+                            userIsOnline = false; // Stop the loop
+                            break;
+                        }
+                    }
+                    //autre mode
+                }
+                else if (menu.action == MenuActions::A_CreateRoom) {
+                    std::cout<<"Received CreateRoom"<<std::endl;
+                    auto r = std::make_shared<Room>(client.client_fd, menu.mode);
+                    auto allRoom = server->roomsList;
+                    server->myRoom = r;
+                    allRoom->push_back(r);
+                    std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
+                
+                    RoomInfo info;
+                    info.roomID = r->getRoomID();
+                    info.currentPlayersCount = r->getPlayerCount();
+                    info.isStarted = r->isStarted();
+                
+                    int typeToSend = MessageType::T_RoomInfo;
+                    int sizeToSend = sizeof(RoomInfo);
+                    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){
+                        server->udbm.removeSession(client.userId);
+                            close(client.client_fd);
+                            userIsOnline = false; // Stop the loop
+                            break;
+                    }
+                    if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){
+                        server->udbm.removeSession(client.userId);
+                            close(client.client_fd);
+                            userIsOnline = false; // Stop the loop
+                            break;
+                    }
+                    if (!sendAll(client.client_fd, &info, sizeToSend)){
+                        server->udbm.removeSession(client.userId);
+                            close(client.client_fd);
+                            userIsOnline = false; // Stop the loop
+                            break;
+                    }
+                
+                }
+                else if (menu.action == MenuActions::A_JoinRoom) {
+                    cout<<"JoinRoom received"<<endl;
+                    std::vector<std::shared_ptr<Room>> filteredRooms;
+                    auto allRooms = server->roomsList;
+                    for (auto& r : *allRooms) {
+                        if (r->getRoomMode() == menu.mode) {
+                            filteredRooms.push_back(r);
+                        }
+                    }
+                    cout<<"Done filtered Room"<<endl;
+
+                    int type = sizeof(MessageType::T_RoomsInfo);
+                    sendAll(client.client_fd, &type, sizeof(type));
+                    int nbRooms = (int)filteredRooms.size();
+                    sendAll(client.client_fd, &nbRooms, sizeof(nbRooms));
+                    sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo));
+                }  
+                
+                else if (menu.action == MenuActions::A_ForceStart) {
+                    server->myRoom->forceStart();
                 }
             }
-            // Display message if there's one.
-            /* ? what's the purpose of these lines, why send back to client a message, + message isn't always/almost never a string meant to be shown */
-            //std::string message(buffer, bytesReceived);
-            //std::cout << "Message reçu de " << client.username << " : " << message << std::endl;
-            //server->broadcastMessage(message, client.client_fd);
+
+            else if (type == MessageType::T_Refresh){
+                cout<<"Refresh received"<<endl;
+                RoomInfo info;
+                info.roomID = server->myRoom->getRoomID();
+                info.currentPlayersCount = server->myRoom->getPlayerCount();
+                info.isStarted = server->myRoom->isStarted();
+            
+                int typeToSend = MessageType::T_RoomInfo;
+                int sizeToSend = 1;
+            
+                sendAll(client.client_fd, &typeToSend, sizeof(typeToSend));
+                sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend));
+                sendAll(client.client_fd, &info, sizeof(RoomInfo));
+            }
+
+            else if (type == MessageType::T_Join) {
+                cout<<"Join received"<<endl;
+                int ownerFd;
+                if (!recvAll(client.client_fd, &ownerFd, sizeof(ownerFd))) {
+                    break;
+                }
+            
+                std::shared_ptr<Room> chosenRoom = nullptr;
+                for (auto &r : *server->roomsList) {
+                    if (r->getOwnerFd() == ownerFd) {
+                        chosenRoom = r;
+                        break;
+                    }
+                }
+            
+                if (!chosenRoom) {
+                    std::cout << "No matching room or invalid ownerFd = " << ownerFd << "\n";
+                } else {
+                    if (!chosenRoom->addPlayer(client.client_fd)) {
+                        std::cout << "Failed to join room, maybe full or started\n";
+                    } else {
+                        std::cout << "Client joined room with hostFd = " << chosenRoom->getOwnerFd() << std::endl;
+            
+                        RoomInfo info;
+                        info.roomID               = chosenRoom->getRoomID();
+                        info.currentPlayersCount  = chosenRoom->getPlayerCount();
+                        info.isStarted            = chosenRoom->isStarted();
+                        info.mode                 = chosenRoom->getRoomMode();
+            
+                        int typeToSend  = MessageType::T_RoomInfo;
+                        int sizeToSend  = 1;
+            
+                        sendAll(client.client_fd, &typeToSend, sizeof(typeToSend));
+                        sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend));
+                        sendAll(client.client_fd, &info,        sizeof(RoomInfo));
+                    }
+                }
+            }
+            
+                
+            
+            else if (type == MessageType::T_Input) {
+                cout<<"Input received"<<endl;
+                KeyboardAction action;
+                if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))) {
+                    std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+                    server->udbm.removeSession(client.userId);
+                    close(client.client_fd);
+                    userIsOnline = false; // Stop the loop
+                    break;
+                }
+                gameController.getAction(action);
+            }
+            else if (type == MessageType::T_MalusBonus) {
+                cout<<"MalusBonus received"<<endl;
+                MalBonus malusBobo;
+
+                if (!recvAll(client.client_fd, &malusBobo, sizeof(MalBonus))){
+                    std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+                    server->udbm.removeSession(client.userId);
+                    close(client.client_fd);
+                    userIsOnline = false; // Stop the loop
+                    break;
+                }
+
+                eventQueue->addEvent(make_shared<MalusBonusEvent>(malusBobo.malusB, malusBobo.target));
+            }
+            
+
+            else if (type == MessageType::T_ForcedExit){
+                std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+                close(client.client_fd);
+                    while(server->udbm.isLoggedIn(client.username.c_str())){
+                  	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
+                    server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+                                                                                                         //comme telle
+                  	while(server->udbm.isUserInSession(client.userId)){
+                  		server->udbm.deleteSession(client.userId);}
+                auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                                       [&client](const ClientSession& c) {
+                                       return c.client_fd == client.client_fd;
+                                       });
+                if (it != server->clients.end()) {
+                    server->clients.erase(it);
+                }
+                return nullptr;
+            }
         }
     }
     else {
         std::cerr << "login failed";
     }
+    return nullptr;
+}
+
+/**
+ * @brief Routine avec Game() qui tourne
+ * 
+ * @param arg shared_ptr<Game>
+ * @return void* 
+ */
+void* Server::threadRoutineGame(void* arg){
+    //Retreive arg
+    auto* gamePtrWrapper = static_cast<std::shared_ptr<Game>*>(arg);
+    std::shared_ptr<Game> game = *gamePtrWrapper;
+    delete gamePtrWrapper;
+    game->run();
     return nullptr;
 }

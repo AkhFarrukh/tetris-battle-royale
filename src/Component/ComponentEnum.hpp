@@ -21,7 +21,7 @@ enum class Color{
     orange,  // L-shape (right)
     blue,    // J-shape (left)
     grey,     // Malus
-    white   //thunderMalus
+    white    //Thunder & BlackOut
 };
 
 /** 

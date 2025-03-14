@@ -20,10 +20,16 @@ Database::Database(const char* databaseFileName){
         "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT, logged_in INTEGER DEFAULT 0, receiving_file_descriptor INTEGER DEFAULT 0, sending_file_descriptor INTEGER DEFAULT 0);";
         prepareStatement(sql);
         execute();
-        sql = "CREATE TABLE IF NOT EXISTS friends (user_id INTEGER, friend_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(friend_id) REFERENCES users(id), PRIMARY KEY (user_id, friend_id));";
+        sql = "CREATE TABLE IF NOT EXISTS friends (user_id INTEGER, friend_id INTEGER, in_conversation INTEGER DEFAULT 0, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(friend_id) REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (user_id, friend_id));";
         prepareStatement(sql);
         execute();
-        sql = "CREATE TABLE IF NOT EXISTS friendsRequest (user_id INTEGER, friend_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(friend_id) REFERENCES users(id), PRIMARY KEY (user_id, friend_id));";
+        sql = "CREATE TABLE IF NOT EXISTS friendsRequest (user_id INTEGER, friend_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(friend_id) REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (user_id, friend_id));";
+        prepareStatement(sql);
+        execute();
+        sql = "CREATE TABLE IF NOT EXISTS sessions (user_id INTEGER, client_fd INTEGER, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (user_id));";
+        prepareStatement(sql);
+        execute();
+        sql = "CREATE TABLE IF NOT EXISTS MessageNoRead (message_id INTEGER PRIMARY KEY AUTOINCREMENT, sender_id INTEGER, receiver_id INTEGER, message TEXT, FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(receiver_id) REFERENCES users(id) ON DELETE CASCADE);";
         prepareStatement(sql);
         execute();
 }
@@ -42,7 +48,7 @@ Database::~Database(){
  * @param statement: a statement to prepare
  */
 void Database::prepareStatement(const char* statement){
-    int returnCode = sqlite3_prepare_v2(db, statement, strlen(statement), &stmt, nullptr);
+    int returnCode = sqlite3_prepare_v2(db, statement, static_cast<int>(strlen(statement)), &stmt, nullptr);
     if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR PREPARING STATEMENT!");
 
 }
@@ -54,7 +60,7 @@ void Database::prepareStatement(const char* statement){
  * @param index: a column index (starting from 1 (not zero!) from the most left)
  */
 void Database::bindText(const char* value, int index){
-    int returnCode = sqlite3_bind_text(stmt, index, value, strlen(value), SQLITE_STATIC);
+    int returnCode = sqlite3_bind_text(stmt, index, value, static_cast<int>(strlen(value)), SQLITE_STATIC);
     if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR BINDING VALUE!");
 }
 
@@ -121,6 +127,40 @@ void Database::setReturnCode(int newReturnCode){
 int Database::getReturnCode(){
     return returnCode;
 }
+
+
+int Database::getUserId(const char* username){
+    const char* begSql = "BEGIN TRANSACTION;";
+    prepareStatement(begSql);
+    execute();
+    destructStatement();
+    int userId;
+    // Prepare Statement and bind username to "?" symbols in a statement
+    const char* sql = "SELECT id FROM users WHERE username = ?";
+
+    prepareStatement(sql);
+    bindText(username, 1);
+    execute();
+
+    // If there is a result, get the user ID. Else return -1
+    if (getReturnCode() == SQLITE_ROW){
+        userId = getIntValueFromColumn(0);
+    }
+    else{
+        userId = -1;
+    }
+
+    // Destruct the statement after getting the result then return a result
+    destructStatement();
+
+    const char* commit = "COMMIT;";
+    prepareStatement(commit);
+    execute();
+    destructStatement();
+
+    return userId;
+}
+
 
 vector<string> Database::friendsList(const string& username){
     std::vector<std::string> friendsList;
@@ -294,4 +334,165 @@ vector<string> Database::requestSentList(const string& username){
     destructStatement();  // Libération de la mémoire après exécution
 
     return friendsList;  // Retourner le vecteur des amis
+}
+
+
+void Database::conversationOpen(int user_id, int friend_id){
+    std::string sql = "UPDATE friends SET in_conversation = "
+        "CASE WHEN in_conversation = 0 THEN 1 "
+        "ELSE in_conversation END "
+        "WHERE (user_id = ? AND friend_id = ?);";
+
+    prepareStatement(sql.c_str());
+    bindInt(user_id, 1);
+    bindInt(friend_id, 2);
+    execute();
+    destructStatement();
+}
+
+void Database::conversationClose(int user_id, int friend_id){
+    std::string sql = "UPDATE friends SET in_conversation = "
+        "CASE WHEN in_conversation = 1 THEN 0 "
+        "ELSE in_conversation END "
+        "WHERE (user_id = ? AND friend_id = ?);";
+
+    prepareStatement(sql.c_str());
+    bindInt(user_id, 1);
+    bindInt(friend_id, 2);
+    execute();
+    destructStatement();
+}
+
+int Database::getInConversation(int user_id, int friend_id){
+    int in_conversation = -1;
+    std::string sql =
+        "SELECT in_conversation FROM friends "
+        "WHERE (user_id = ? AND friend_id = ?);";
+
+    prepareStatement(sql.c_str());
+    bindInt(friend_id, 1);
+    bindInt(user_id, 2);
+    execute();
+
+    // Vérifier s'il y a un résultat
+    if (getReturnCode() == SQLITE_ROW) {
+        in_conversation = getIntValueFromColumn(0);
+    }
+
+    destructStatement();
+    return in_conversation;
+}
+
+void Database::addMessage(int sender_id, int receiver_id, const std::string& message) {
+    std::string sql = "INSERT INTO MessageNoRead (sender_id, receiver_id, message) "
+                      "VALUES (?, ?, ?);";
+
+    prepareStatement(sql.c_str());
+    bindInt(sender_id, 1);
+    bindInt(receiver_id, 2);
+    bindText(message.c_str(), 3);
+    execute();
+    destructStatement();
+}
+
+void Database::deleteMessages(int sender_id, int receiver_id) {
+    std::string sql = "DELETE FROM MessageNoRead "
+                      "WHERE sender_id = ? AND receiver_id = ?;";
+
+    prepareStatement(sql.c_str());
+    bindInt(sender_id, 1);
+    bindInt(receiver_id, 2);
+    execute();
+    destructStatement();
+}
+
+std::vector<std::string> Database::getMessages(int sender_id, int receiver_id) {
+    std::vector<std::string> messages;
+    std::string sql = "SELECT message FROM MessageNoRead "
+                      "WHERE sender_id = ? AND receiver_id = ?;";
+
+
+    prepareStatement(sql.c_str());
+
+    bindInt(sender_id, 1);
+    bindInt(receiver_id, 2);
+
+    execute();
+
+    while (getReturnCode() == SQLITE_ROW) {
+        const char* message = reinterpret_cast<const char*>(getTextValueFromColumn(0));  // Récupérer le message
+        messages.push_back(message);  // Ajouter le message au vecteur (au cas où il serait NULL)
+        execute();
+    }
+
+    destructStatement();
+
+    return messages;
+}
+
+
+int Database::getNumberMessageNoRead(int user_id, int friend_id){
+    int numberRequests = 0;
+    std::string sql =
+    "SELECT COUNT(*) FROM MessageNoRead "
+    "WHERE sender_id = ? AND receiver_id = ?;";
+    prepareStatement(sql.c_str());
+    bindInt(friend_id,1);
+    bindInt(user_id,2);
+    execute();
+    if(getReturnCode() == SQLITE_ROW){
+        numberRequests = getIntValueFromColumn(0);
+    }
+    destructStatement();
+    return numberRequests;
+}
+
+void Database::setNotInConversation(int user_id){
+    std::string sql =
+    "UPDATE friends SET in_conversation = 0 WHERE user_id = ?;";
+    prepareStatement(sql.c_str());
+    bindInt(user_id,1);
+    execute();
+    destructStatement();
+}
+
+bool Database::isUserInSession(int user_id) {
+  const char* begSql = "BEGIN TRANSACTION;";
+    prepareStatement(begSql);
+    execute();
+    destructStatement();
+
+    const char* sql = "SELECT 1 FROM sessions WHERE user_id = ? LIMIT 1;";
+
+    prepareStatement(sql);
+	bindInt(user_id,1);
+
+    execute();
+    bool exists = (getReturnCode() == SQLITE_ROW);
+    destructStatement();
+
+    const char* commit = "COMMIT;";
+    prepareStatement(commit);
+    execute();
+    destructStatement();
+
+    return exists;
+}
+
+void Database::deleteSession(int user_id){
+    const char* begSql = "BEGIN TRANSACTION;";
+    prepareStatement(begSql);
+    execute();
+    destructStatement();
+
+    const char* sql = "DELETE FROM sessions WHERE user_id = ?;";
+    prepareStatement(sql);
+    bindInt(user_id,1);
+    execute();
+    destructStatement();
+
+    const char* commit = "COMMIT;";
+    prepareStatement(commit);
+    execute();
+    destructStatement();
 }

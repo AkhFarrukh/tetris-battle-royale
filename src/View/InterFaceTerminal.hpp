@@ -7,6 +7,15 @@
 #include "MenuGameModeController.hpp"
 #include "../Database/database.hpp" //changer en "database.hpp" si probleme
 #include "../Model/userdatabasemanager.hpp"
+#include "Chat.hpp"
+#include <unistd.h>
+#include <mutex>
+#include <atomic>
+
+
+extern std::mutex interfaceMutex;
+extern Database db;
+extern UserDatabaseManager udm;
 
 class InterfaceTerminal {
 
@@ -15,7 +24,7 @@ class InterfaceTerminal {
                                      // static pour pouvoir partager dans toutes la classe sans dupliquer de memoire
     static const char* friendsOptions[]; // tableau qui va contenir les options pour les amis
                                          // static pour pouvoir partager dans toutes la classe sans dupliquer de memoire
-
+    int sock_;
 public:
   InterfaceTerminal();
 //  InterfaceTerminal(InterfaceTerminal &&) = default;
@@ -27,22 +36,30 @@ public:
   void initNcurses();
   void displayMenu(int selectedOption) const;
   void displayConnexionOption(int selectedOption);
-  void handleConnexionOption();
-  void handleLogin();
-  void handleRegister();
-  void handleMessageBox();
+  vector<std::string> handleConnexionOption();
+  vector<std::string> handleLogin();
+  vector<std::string> handleRegister();
+  int handleMessageBox();
   void displayMessageBox(int selectedOption, vector<string> friends);
+  int getSock(){return sock_;};
+  void setSock(int sock){sock_ = sock;};
+  int chatWith(const std::string& user, const string& Friend);
 
   void displayFriendOptions(int selectedOption);
   void displayGameModeMenu(int selectedMode) const;
-  void handleGameModeSelection(int& selectedMode);
+  void displayMultiplayerOption(int selectedMode) const;
+
+  int handleGameModeSelection(int& selectedMode);
   void displayFriendsMenu(int selectedOption, vector<string> friends);
-  void handleFriends();
-  void handleFriendsOptionSelection(const string friendName);
-  void handleOptionSelection(int &selectedOption);
+  int handleFriends();
+  int handleFriendsOptionSelection(const string friendName);
+  int handleOptionSelection(int &selectedOption);
   void enterName();
   void displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent);
-  void handleFriendRequests();
+  int handleFriendRequests();
+  void displayMessageNoRead(const std::string& user, const string& friendName);
+
+
 
   int start();
 };

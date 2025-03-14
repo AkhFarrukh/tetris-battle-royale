@@ -4,64 +4,55 @@
 
 
 
-// TODO ------  Docstrings à modofier quand les fonctionnalités seront disponiibles ------
-
-
-// tableau déclaré static dans fichier .hpp, pour permettre economie de memoire et partage dans la classe
-// voir fichier Hpp
-
 Database db("tetris.db");
 UserDatabaseManager udm;
+Chat chat;
 
-
-//std::string user;
+atomic<bool> flag = false; //informer thread de se terminer (ctrlC notamment)
+std::mutex interfaceMutex;
 std::string user = "";
 
 const char* InterfaceTerminal::modeNames[] = {
-                                            "Endless Mode",
-                                            "Classic Mode",
-                                            "Duel Mode",
-                                            "Royal Competition Mode"
-                                            };
+                                            "Endless Mode",  
+                                            "Classic Mode",  
+                                            "Duel Mode",  
+                                            "Royal Competition Mode (Unreleased)"  
+                                            };    
 
-const char* InterfaceTerminal::friendsOptions[] = {
-                                            "Remove from friends list",
-                                            "Send a message (Not available yet)",
-                                            };
-
-InterfaceTerminal::InterfaceTerminal() {}
-
+InterfaceTerminal::InterfaceTerminal() {initNcurses();}
 InterfaceTerminal::~InterfaceTerminal() {}
 
+
+/**
+* @brief Initialise ncurses et configure l'affichage du terminal.
+*/
 void InterfaceTerminal::initNcurses() {
-    setlocale(LC_ALL, "");
-    // Initialize ncurses
-    initscr();            // Start curses mode
-    cbreak();             // Line buffering disabled
-    noecho();             // Don't echo() while we do getch
-    keypad(stdscr, TRUE); // We get F1, F2 etc..
-    curs_set(0);          // Hide the cursor
-    nodelay(stdscr, TRUE);
+   setlocale(LC_ALL, ""); //Enable UTF-8
+   initscr();
+   cbreak();
+   noecho();
+   keypad(stdscr, TRUE);
+   curs_set(0);
+   nodelay(stdscr, TRUE);
+   start_color();
+   init_pair(7, COLOR_BLACK, COLOR_WHITE);  // Texte noir sur fond blanc
 
-    start_color();
-    if (has_colors() && can_change_color()) {
-        use_default_colors();
-    }
-
-    init_pair(1, COLOR_RED, -1);
-    init_pair(2, COLOR_GREEN, -1);
-    init_pair(3, COLOR_YELLOW, -1);
-    init_pair(4, COLOR_BLUE, -1);
-    init_pair(5, COLOR_MAGENTA, -1);
-    init_pair(6, COLOR_CYAN, -1);
-
-    const int numModes = 4;
-    int selectedMode = 0;  // Tracks the currently selected menu option
+   if (has_colors() && can_change_color()) {
+       use_default_colors();
+   }
+   init_pair(1, COLOR_RED, -1);
+   init_pair(2, COLOR_GREEN, -1);
+   init_pair(3, COLOR_YELLOW, -1);
+   init_pair(4, COLOR_BLUE, -1);
+   init_pair(5, COLOR_MAGENTA, -1);
+   init_pair(6, COLOR_CYAN, -1);
 }
+
+
 
 /**
  *@brief Affiche le menu principal et l'option sélectionnée.
- *
+ * 
  *Affichage réalisé en parcourant les options du menu,
  *et une petite flèche pointe vers l'option actuelle.
  *
@@ -74,20 +65,21 @@ void InterfaceTerminal::displayMenu(int selectedOption) const {
    const char* menuOptions[] = {
                                 "Play",
                                 "Handle friends",
-                                "Account"
+                                "Account (currently being updated)"
                                 };
-
-   int numberPossibleOptions = std::size(menuOptions); // taille du tableau contanant options du menu principal
-
+   
+   int numberPossibleOptions = std::size(menuOptions); // taille du tableau contenant options du menu principal
+   
    for (int i = 0; i < numberPossibleOptions; ++i) {
        if (i == selectedOption) {
+           attron(COLOR_PAIR(7));    // activer couleur noir sur blanc pour option selected
            printw("-> %d. %s\n", i + 1, menuOptions[i]);
+           attroff(COLOR_PAIR(7));
        } else {
            printw("   %d. %s\n", i + 1, menuOptions[i]);
        }
    }
    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an action\nPress 'q' to quit\n");
-   if(!(user==""))printw("Press 't' to open the message box\n");
    refresh();
 }
 
@@ -95,14 +87,16 @@ void InterfaceTerminal::displayMenu(int selectedOption) const {
 void InterfaceTerminal::displayMessageBox(int selectedOption, vector<string> friends) {
     erase();
     printw("Message box : \n\n");
+    int user_id = db.getUserId(user.c_str());
     int numberFriends = std::size(friends);   // taille du tableau contenant les amis
     if(numberFriends == 0) {printw("Empty friends list \n");}
     else{
         for (int i = 0; i < numberFriends; ++i) {
+            int friend_id = db.getUserId(friends[i].c_str());
             if (i == selectedOption) {
-                printw("-> %d. %s", i + 1, friends[i].c_str());
+                printw("-> %d. %s(%d)", i + 1, friends[i].c_str(), db.getNumberMessageNoRead(user_id, friend_id));
             } else {
-                printw("   %d. %s", i + 1, friends[i].c_str());
+                printw("   %d. %s(%d)", i + 1, friends[i].c_str(), db.getNumberMessageNoRead(user_id, friend_id));
             }
             printw("\n");
         }
@@ -114,7 +108,7 @@ void InterfaceTerminal::displayMessageBox(int selectedOption, vector<string> fri
 
 
 
-void InterfaceTerminal::handleMessageBox() {
+int InterfaceTerminal::handleMessageBox() {
     int selectedOption = 0;
     while(user==""){
         erase();
@@ -125,9 +119,9 @@ void InterfaceTerminal::handleMessageBox() {
             case 'q':
             case 'Q':
                 endwin();
-            return;}
+            return 0;}
     }
-    while (true) {
+    while (!flag) {
 
         vector<string> friendsList = db.friendsList(user);
         displayMessageBox(selectedOption, friendsList);  // affiche le menu avec les options
@@ -148,7 +142,8 @@ void InterfaceTerminal::handleMessageBox() {
 
             // touche 'entrée'
             case '\n':
-                    //chatWith(user, friendsList[selectedOption]);
+                    if(chatWith(user, friendsList[selectedOption])<0)return -1;
+                    scrollok(stdscr, false);
                     noecho();
                     curs_set(0);
                     nodelay(stdscr, true);
@@ -156,12 +151,140 @@ void InterfaceTerminal::handleMessageBox() {
             case 'q':
             case 'Q':
                 endwin();
-            return;
+            return 0;
         }
     }
+    return 0;
+}
+
+void InterfaceTerminal::displayMessageNoRead(const std::string& user, const string& friendName){
+    int user_id = db.getUserId(user.c_str());
+    int friend_id = db.getUserId(friendName.c_str());
+    vector<std::string> messagesNoRead = db.getMessages(friend_id, user_id);
+    nodelay(stdscr, false);
+    printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+    printw("\nDiscussion with %s : \n", friendName.c_str());
+    refresh();
+    curs_set(0);
+    for (const auto message : messagesNoRead){
+    int currentLine = LINES-1;
+    while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
+        currentLine--;
+    }
+    move(currentLine, 0);
+    printw("%s : %s\n", friendName.c_str(), message.c_str());
+    if (LINES-currentLine<5) {
+        move(LINES-1, 0);
+        clrtoeol();
+        scrollok(stdscr, true);
+        scroll(stdscr);
+        scrollok(stdscr, false);
+        move(3, 0);clrtoeol();
+        move(2, 0);clrtoeol();
+        move(1, 0);clrtoeol();
+        move(0, 0);clrtoeol();
+        printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+        printw("\nDiscussion with %s : \n", friendName.c_str());
+    }
+    refresh();
+    curs_set(1);}
 }
 
 
+int InterfaceTerminal::chatWith(const std::string& user, const string& friendName){
+    int user_id = db.getUserId(user.c_str());
+    int friend_id = db.getUserId(friendName.c_str());
+    erase();
+    interfaceMutex.lock();
+    displayMessageNoRead(user, friendName);
+    interfaceMutex.unlock();
+    db.deleteMessages(friend_id, user_id);
+    db.conversationOpen(user_id, friend_id);
+    refresh();
+    echo();
+    curs_set(1);
+    nodelay(stdscr, false);
+    bool windowFull = false;
+    while(!flag){
+        if (windowFull) {
+            move(3, 0);clrtoeol();
+            move(2, 0);clrtoeol();
+            move(1, 0);clrtoeol();
+            move(0, 0);clrtoeol();
+            printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+            printw("\nDiscussion with %s : \n", friendName.c_str());
+        }
+        char buffer[1024];
+        move(LINES- 1, 0);
+        clrtoeol();
+        printw("Enter your message : ");
+        refresh();
+        wgetnstr(stdscr,buffer,1023-friendName.size()-1);
+        if(strlen(buffer)==0){db.conversationClose(user_id, friend_id); return 0;}
+        else{
+        ///
+        /// MUTEX DEB
+        interfaceMutex.lock();
+        refresh();
+        curs_set(0);
+        int currentLine = LINES-1;
+        while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
+            currentLine--;
+            }
+        move(currentLine, 0);
+        printw("%s : %s\n", user.c_str(), buffer);
+        if(!(udm.isLoggedIn(friendName.c_str()))){printw("Message not delivered, %s is offline\n", friendName.c_str());
+          currentLine++;
+          if(LINES-1-currentLine < 5){
+              move(LINES-1, 0);
+              clrtoeol();
+              scrollok(stdscr, true);
+              scroll(stdscr);
+              scrollok(stdscr, false);
+        }
+        }
+        refresh();
+        if(LINES-1-currentLine < 5){ //bcp de msg donc on arrive proche de la ligne de fin
+          windowFull = true;
+          move(LINES-1, 0);
+          clrtoeol();
+          scrollok(stdscr, true);
+          scroll(stdscr);
+          scrollok(stdscr, false);
+        }
+        refresh();
+        curs_set(1);
+        interfaceMutex.unlock();
+        /// MUTEX FIN
+        ///
+        int socket = getSock();
+        if(udm.isLoggedIn(friendName.c_str())){
+          if(db.getInConversation(user_id, friend_id) == 1){ //si le destinataire est sur la conv
+        std::vector<char> message(friendName.size()+1+strlen(buffer)+1);
+    	memcpy(message.data(), friendName.c_str(), friendName.size()+1);
+        memcpy(message.data() + friendName.size()+1, buffer, strlen(buffer));
+        message[friendName.size() + 1 + strlen(buffer)] = '\0';
+        ssize_t bytesWritten = write(socket , message.data() , friendName.size()+1+strlen(buffer)+1);
+        if (bytesWritten <= 0){
+            if (errno == EPIPE){
+                perror("Serveur est déconnecté");}
+            else{
+                perror("Erreur d'écriture");}
+            db.conversationClose(user_id, friend_id);
+            return -1;
+        }
+        else{//memset(buffer, 0, sizeof(buffer));
+          }
+    }
+    else{ //si le correspondant n'est pas dans la conv
+        db.addMessage(user_id, friend_id, buffer);
+    }
+}
+        }
+    }
+    db.conversationClose(user_id, friend_id);
+    return 0;
+}
 
 /**
  *@brief Affiche le menu de sélection des modes de jeu.
@@ -175,23 +298,40 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
    erase();
    printw("Select a game mode then press Enter to start:\n\n");
    int numberModePossible = std::size(modeNames);   // taille du tableau contenant les modes de jeu
-
+   
    for (int i = 0; i < numberModePossible; ++i) {
        if (i == selectedMode) {
+           attron(COLOR_PAIR(7));   // activer couleur noir sur blanc pour mode selectionné
            printw("-> %d. %s", i + 1, modeNames[i]);
+           attroff(COLOR_PAIR(7));
        } else {
            printw("   %d. %s", i + 1, modeNames[i]);
-       }
-       if (i != 0) {
-           printw(" (Unreleased)");
        }
        printw("\n");
    }
    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select a mode\nPress 'q' to quit\n");
-   if(!(user==""))printw("Press 't' to open the message box\n");
    refresh();
 }
 
+void InterfaceTerminal::displayMultiplayerOption(int selectedMode) const {
+    int action = selectedMode;
+    erase();
+    printw("\n\nNow pick your action:\n");
+    const char* subActions[] = { "Create a room", "Join a room"};
+    for (int j = 0; j < 2; ++j) {
+        if (j == action) {
+            attron(COLOR_PAIR(7));
+            printw("-> %s\n", subActions[j]);
+            attroff(COLOR_PAIR(7));
+        }
+        else {
+            printw("   %s\n", subActions[j]);
+        }
+    }
+
+    printw("\nUse UP/DOWN to select mode, LEFT/RIGHT to pick action.\nPress ENTER to confirm.\nPress 'q' to quit.\n");
+    refresh();
+}
 
 
 
@@ -203,25 +343,25 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
  *Seulement "Endless Mode" est fonctionnel pour l'instant.
  *
  */
-void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {   
-   while (true) {
+int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
+   while (!flag) {
 
     displayGameModeMenu(selectedMode);  // affiche le menu avec les modes
 
     int ch = getch();    // récupère l'entrée utilisateur
-       switch (ch) {
-
+       switch (ch) {  
+        
         case KEY_UP:     // aller vers le haut
                if (selectedMode > 0) {
                    selectedMode--;
                }
                break;
            case KEY_DOWN: // descendre
-               if (selectedMode < 3) {
+               if (selectedMode < static_cast<int>(std::size(modeNames)) - 1) {
                    selectedMode++;
                }
                break;
-
+            
             // touche 'entrée'
             case '\n':
                if (selectedMode == 0) {
@@ -229,29 +369,118 @@ void InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                    printw("Endless Mode selected! Starting game...\n");
                    refresh();
                    napms(500);
-                   //MenuGameModeController::startEndlessMode();  // lance le jeu en mode Endless
-                   /* MODIF SERVER */
-                   return;
+                   return selectedMode;
+                } 
+                if (selectedMode == 1){
+                    erase();
+                    printw("Classic Mode selected!\n");
+                    refresh();
+                    int act = 0;
+                    while (true){
+                        displayMultiplayerOption(act);
+                        int ch = getch();    
+                        switch (ch) {  
+                            case KEY_UP:
+                                if (act > 0) act--;
+                                break;
+                            case KEY_DOWN:
+                                if (act < 2) act++;
+                                break;
+                            case '\n': {
+                                if (act == 0){
+                                    return 10;
+                                }
+                                else {
+                                    return 11;
+                                }
+                            }
+                            case 'q':
+                            case 'Q':
+                                endwin();
+                                return -1;
+                            case 'ESC':
+                                break;
+                        }
+                    }
 
-                } else {        // autres modes de jeu, pas encore implémenté
-                   erase();
-                   printw("%s is not available yet.\nPress any key to return to menu...\n", modeNames[selectedMode]);
-                   refresh();
-                   nodelay(stdscr, FALSE);
-                   getch();
-                   nodelay(stdscr, TRUE);
+                } 
+                if (selectedMode == 2) {
+                    erase();
+                    printw("Duel Mode selected!\n");
+                    refresh();
+                    int act = 0;
+                    while (true){
+                        displayMultiplayerOption(act);
+                        int ch = getch();
+                        switch (ch) {  
+                            case KEY_UP:
+                                if (act > 0) act--;
+                                break;
+                            case KEY_DOWN:
+                                if (act < 2) act++;
+                                break;
+                            case '\n': {
+                                if (act == 0){
+                                    return 20;
+                                }
+                                else {
+                                    return 21;
+                                }
+                            }
+                            case 'q':
+                            case 'Q':
+                                endwin();
+                                return -1;
+                            case 'ESC':
+                                break;
+                        }
+                    }
+
+                } 
+                if (selectedMode == 3) {
+                    erase();
+                    printw("Royal Competition Mode selected!\n");
+                    refresh();
+                    int act = 0;
+                    while (true){
+                        displayMultiplayerOption(act);
+                        int ch = getch();    
+                        switch (ch) {  
+                            case KEY_UP:
+                                if (act > 0) act--;
+                                break;
+                            case KEY_DOWN:
+                                if (act < 2) act++;
+                                break;
+                            case '\n': {
+                                if (act == 0){
+                                    return 30;
+                                }
+                                else {
+                                    return 31;
+                                }
+                            }
+                            case 'q':
+                            case 'Q':
+                                endwin();
+                                return -1;
+                            case 'ESC':
+                                break;
+                        }
+                    }
                }
                break;
            case 't':
            case 'T':
-               if(!(user==""))handleMessageBox();
+               if(!(user==""))if(handleMessageBox()<0)return -1;
             break;
            case 'q':
            case 'Q':
                endwin();
-               return;
+               return 0;
        }
    }
+   return 0;
 }
 
 
@@ -282,21 +511,22 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
 
 
 void InterfaceTerminal::displayFriendOptions(int selectedOption) {
-    erase();
-    printw("Choose an action to do with :\n\n");
-    int numberFriendsOptionsPossible = std::size(friendsOptions);   // taille du tableau contenant les modes de jeu
-
-    for (int i = 0; i < numberFriendsOptionsPossible; ++i) {
-        if (i == selectedOption) {
-            printw("-> %d. %s", i + 1, friendsOptions[i]);
-        } else {
-            printw("   %d. %s", i + 1, friendsOptions[i]);
-        }
-        printw("\n");
-    }
-    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    if(!(user==""))printw("Press 't' to open the message box\n");
-    refresh();
+    /* LA METHODE EST DEFAILLANTE */
+    //erase();
+    //printw("Choose an action to do with :\n\n");
+    //int numberFriendsOptionsPossible = 5;   // taille du tableau contenant les modes de jeu
+//
+    //for (int i = 0; i < numberFriendsOptionsPossible; ++i) {
+    //    if (i == selectedOption) {
+    //        printw("-> %d. %s", i + 1, friendsOptions[i]);
+    //    } else {
+    //        printw("   %d. %s", i + 1, friendsOptions[i]);
+    //    }
+    //    printw("\n");
+    //}
+    //printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
+    //if(!(user==""))printw("Press 't' to open the message box\n");
+    //refresh();
 }
 
 void InterfaceTerminal::enterName(){
@@ -311,7 +541,7 @@ void InterfaceTerminal::enterName(){
 
     char namePlayer[100];
 
-    while (true) {
+    while (!flag) {
         wgetnstr(stdscr,namePlayer,99);
         if(strlen(namePlayer)==0) return;
         if(strcmp(namePlayer, user.c_str())==0) printw("\nPlease enter a name different from yours ! \n");
@@ -359,11 +589,10 @@ void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string>
     refresh();
 }
 
-
-void InterfaceTerminal::handleFriendRequests() {
+int InterfaceTerminal::handleFriendRequests() {
     int selectedOption = 0;
 
-    while (true) {
+    while (!flag) {
 
         vector<string> requestsReceivedList = db.requestReceivedList(user);
         vector<string> requestsSentList = db.requestSentList(user);
@@ -407,18 +636,19 @@ void InterfaceTerminal::handleFriendRequests() {
             break;
             case 't':
             case 'T':
-               if(!(user==""))handleMessageBox();
+               if(!(user==""))if(handleMessageBox()<0)return -1;
             break;
             case 'q':
             case 'Q':
                 endwin();
-            return;
+            return 0;
         }
     }
+    return 0;
 }
 
 
-void InterfaceTerminal::handleFriends() {
+int InterfaceTerminal::handleFriends() {
     int selectedOption = 0;
     while(user==""){
         erase();
@@ -429,9 +659,9 @@ void InterfaceTerminal::handleFriends() {
         case 'q':
         case 'Q':
             endwin();
-        return;}
+        return 0;}
     }
-    while (true) {
+    while (!flag) {
 
         vector<string> friendsList = db.friendsList(user);
         displayFriendsMenu(selectedOption, friendsList);  // affiche le menu avec les options
@@ -468,14 +698,15 @@ void InterfaceTerminal::handleFriends() {
             break;
             case 't':
             case 'T':
-               if(!(user==""))handleMessageBox();
+               if(!(user==""))if(handleMessageBox()<0)return -1;
             break;
             case 'q':
             case 'Q':
                 endwin();
-            return;
+            return 0;
         }
     }
+    return 0;
 }
 
 
@@ -496,16 +727,17 @@ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
         printw("\n");
     }
     printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    if(!(user==""))printw("Press 't' to open the message box\n");
     refresh();
 }
 
 
-void InterfaceTerminal::handleLogin(){
+vector<std::string> InterfaceTerminal::handleLogin(){
+    int sock = getSock();
+    vector<std::string> connexionData;
     curs_set(1);
     nodelay(stdscr, false);
     bool returnValue;
-    while (true) {
+    while (!flag) {
         erase();
         echo();
         clrtobot();
@@ -516,34 +748,58 @@ void InterfaceTerminal::handleLogin(){
         move(3,22);
         char namePlayer[100];
         wgetnstr(stdscr,namePlayer,99);
-        if(strlen(namePlayer)==0) return;
-        while (true) {
+        if(strlen(namePlayer)==0) break;
+        while (!flag) {
             if(firstTry) printw("\nEnter your password : ");
             noecho();
             char passwordPlayer[100];
             wgetnstr(stdscr,passwordPlayer,99);
             if(strlen(passwordPlayer)==0){firstTry = true; break;}
             firstTry = false;
-            if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
-               napms(1000);
-               user = namePlayer;
-               printw("\nConnected ! \n");
-               refresh();
-               napms(1000);
-               return;
+            int type = MessageType::T_Connexion;
+            int size = sizeof(struct Connexion);
+            //demande au serveur de verifier
+            Connexion connexion;
+            std::strncpy(connexion.username, namePlayer, sizeof(connexion.username) - 1);
+            std::strncpy(connexion.password, passwordPlayer, sizeof(connexion.password) - 1);
+            int bytesSentType = sendAll(sock, &type, sizeof(int));
+            int bytesSentSize = sendAll(sock, &size, sizeof(int));
+            sendAll(sock, &connexion, sizeof(Connexion));
+            int type_;int size_;
+            recvAll(sock, &type_, sizeof(int));
+            recvAll(sock, &size_, sizeof(int));
+            bool logResult = (type_ == MessageType::T_AcceptConnexion);
+            //
+            if(logResult){
+                int doubleSession;
+                recvAll(sock, &doubleSession, sizeof(int));
+                recvAll(sock, &size_, sizeof(int));
+                bool doubleSessionResult = (doubleSession == MessageType::T_RefuseConnexion);
+                if(doubleSessionResult){printw("\nYou are already logged in another session ! \n"); move(5,22);}
+                else{
+               		napms(1000);
+               		connexionData.push_back(namePlayer);
+               		connexionData.push_back(passwordPlayer);
+               		user = namePlayer;
+               		printw("\nConnected ! \n");
+               		refresh();
+               		napms(1000);
+               		return connexionData;}
             }
             else {printw("\nIncorrect username or password. \n"); move(5,22);}
             }
     }
+    return connexionData;
 }
 
 
-void InterfaceTerminal::handleRegister(){
+vector<std::string> InterfaceTerminal::handleRegister(){
+    vector<std::string> connexionData;
     curs_set(1);
     nodelay(stdscr, false);
     bool returnValue;
     char repetedPasswordPlayer[100];
-    while (true) {
+    while (!flag) {
         echo();
         bool repetedPasswordHandle = false;
         erase();
@@ -552,16 +808,16 @@ void InterfaceTerminal::handleRegister(){
         printw("\nEnter the username : ");
         char namePlayer[100];
         wgetnstr(stdscr,namePlayer,99);
-        if(strlen(namePlayer)==0) return;
+        if(strlen(namePlayer)==0) break;
         printw("\nEnter the password : ");
-        while (true) {
+        while (!flag) {
             move(5,21);
             clrtobot();
             noecho();
             char passwordPlayer[100];
             wgetnstr(stdscr,passwordPlayer,99);
             if(strlen(passwordPlayer)==0) break;
-            while(strcmp(passwordPlayer, repetedPasswordPlayer)!=0){
+            while(!flag && strcmp(passwordPlayer, repetedPasswordPlayer)!=0){
                 memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); //on vide le buffer pour pas que ca s'accumule
                 if(repetedPasswordHandle) printw("\nThe passwords entered do not match !");
                 else printw("\nRepeat the password : ");
@@ -575,22 +831,29 @@ void InterfaceTerminal::handleRegister(){
                 printw("\nRegistered !\n");
                 if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
                     user = namePlayer;
+                    connexionData.push_back(namePlayer);
+                    connexionData.push_back(passwordPlayer);
+                    //udm.setReceivingFileDescriptor(user, socket);
                     printw("You are now Connected in your new account, good game! \n");
+                    napms(1000);
+                    return connexionData;
                 }
                 else printw("Error while logging into your account, please try again \n");
                 refresh();
                 napms(1000);
-                return;
             }
             else {repetedPasswordHandle = false; memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));}
         }
     }
+    return connexionData;
 }
 
-void InterfaceTerminal::handleConnexionOption() {
+vector<std::string> InterfaceTerminal::handleConnexionOption() {
+    //initNcurses();
+    vector<std::string> dataConnexion;
     int selectedOption = 0;
 
-    while (true) {
+    while (!flag) {
         displayConnexionOption(selectedOption);
         int ch = getch();    //récupère l'entrée utilisateur
         switch (ch) {
@@ -609,61 +872,74 @@ void InterfaceTerminal::handleConnexionOption() {
             // touche 'entrée'
             case '\n':
                 if (selectedOption == 0) { //On a cliqué sur se connecter
-                    handleLogin();
+                    dataConnexion = handleLogin();
+                    if(dataConnexion.size()==2)return dataConnexion;
                     noecho();
                     curs_set(0);
                     nodelay(stdscr, true);
                 }
                 else if (selectedOption == 1) { //on a cliqué sur register
-                    handleRegister();
+                    dataConnexion = handleRegister();
+                    if(dataConnexion.size()==2)return dataConnexion;
                     noecho();
                     curs_set(0);
                     nodelay(stdscr, true);
                 }
             break;
-            case 't':
-            case 'T':
-               if(!(user==""))handleMessageBox();
-            break;
             case 'q':
             case 'Q':
+              int sock = getSock();
+              int exitType = MessageType::T_Exit;
+              int size = sizeof(int);
+              int bytesSentType = sendAll(sock, &exitType, sizeof(int));
+              int bytesSentSize = sendAll(sock, &size, sizeof(int));
                 endwin();
-            return;
+            return dataConnexion;
         }
     }
+    return dataConnexion;
 }
 
 
 
 /**
- *@brief Gère la sélection des options dans le menu principal.
+ *@brief Gère la sélection des options dans le menu principal.                                            
+ *
+ *Seulement la premiere ioption est fonctionnelle pour l'instant: 'Play' (case 0)
+ *Non-Fonctionnels:
+ *  - (case 1): 'add a friend'
+ *  - (case 2): 'delete a friend'
+ *  - (case 3): 'show my friend's list'
+ *
  *@param selectedOption Indice de l'action sélectionnée.
  */
-void InterfaceTerminal::handleOptionSelection(int &selectedOption) {
+int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
    switch (selectedOption) {
        case 0:
             // Si l'utilisateur sélectionne "Play", on affiche le menu des modes de jeu.
-           handleGameModeSelection(selectedOption);
+           return handleGameModeSelection(selectedOption);
            break;
-
+       
+       // dans les trois 'case' suivants, le programme effectue la meme chose  (parce que les fonctionnalités pas encore dispo)
        case 1:
            // Si l'utilisateur sélectionne "Friends", on affiche les options possibles avec les amis.
-           handleFriends();
+           if(handleFriends()<0)return -1;
            break;
 
        case 2:
            // Si l'utilisateur sélectionne "Account", on affiche les options possibles pour se connecter.
-           handleConnexionOption();
+           //handleConnexionOption();
        break;
 
    }
+   return 0;
 }
 
 
-void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
+int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
     int selectedOption = 0;
 
-    while (true) {
+    while (!flag) {
         displayFriendOptions(selectedOption);
 
         int ch = getch();    // récupère l'entrée utilisateur
@@ -683,12 +959,12 @@ void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
             // touche 'entrée'
         case 't':
         case 'T':
-           if(!(user==""))handleMessageBox();
+           if(!(user==""))if(handleMessageBox()<0)return -1;
            break;
         case 'q':
         case 'Q':
                endwin();
-            return;
+            return 0;
         case '\n':
         switch (selectedOption) {
         case 0:
@@ -698,9 +974,8 @@ void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
             printw("Friend removed !\n");
             refresh();
             napms(700);
-            return;
+            return 0;
         break;
-
         case 1:
             // Si l'utilisateur sélectionne "Send message", on envoie un message à l'ami.
                 handleFriends();
@@ -708,44 +983,49 @@ void InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
     }
   }
   }
+  return 0;
 }
 
 /**
- *@brief Démarre l'interface terminal utilisateur et
+ *@brief Démarre l'interface terminal utilisateur et 
  *gère les interactions utilisateur dans
  *le menu principal.
  *
  */
 int InterfaceTerminal::start() {
+   int returnValue = -1;
    initNcurses();
    int selectedOption = 0;
 
-   while (true) {
+   while (!flag) {
        displayMenu(selectedOption);
        int ch = getch();
        switch (ch) {
-
+           
            case KEY_UP:   // monter
                if (selectedOption > 0) {
                    selectedOption--;
                }
-               break;
+               break; 
            case KEY_DOWN:  // descendre
-               if (selectedOption < 2) {
+               if (selectedOption < 3) {
                    selectedOption++;
                }
                break;
            case '\n':   // touche 'entrée'
-               handleOptionSelection(selectedOption);
-               return selectedOption;
+                returnValue = handleOptionSelection(selectedOption);
+               if(returnValue!=-1)return returnValue;
+               break;
            case 't':
            case 'T':
-               if(!(user==""))handleMessageBox();
+               if(!(user==""))if(handleMessageBox()<0)return -1;
                break;
            case 'q':
            case 'Q':
+               if(user!=""){int id = udm.getUserId(user.c_str()); udm.logOut(id);}
                endwin();
                return -1;
        }
    }
+   return -1;
 }

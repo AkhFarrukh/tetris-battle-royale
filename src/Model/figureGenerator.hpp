@@ -26,7 +26,7 @@ public:
     void switchBonusCube();
 
     // Working function
-    Figure randomFigure();
+    Figure randomFigure(bool isBonusCube);
 };
 
 

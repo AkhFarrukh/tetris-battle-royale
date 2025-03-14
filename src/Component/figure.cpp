@@ -20,7 +20,6 @@ const map<TetrominoShape, pair<Color, vector<Coordinates>>> Figure::figReference
             {TetrominoShape::L, {Color::orange, {Coordinates(1,0), Coordinates(1,-1), Coordinates(-1,0)}}},
             {TetrominoShape::J, {Color::blue, {Coordinates(1,0), Coordinates(-1,-1), Coordinates(-1,0)}}},
             {TetrominoShape::ONE_BLOCK_CUBE, {Color::purple, {Coordinates(0,0)}}}
-    //todo à voir si le cube est bien implémenter
         };
 
 
@@ -36,13 +35,10 @@ Figure::Figure(TetrominoShape _figShape): figShape{_figShape}{
     
     pair<Color, vector<Coordinates>> figData = figReferences.at(figShape);          //pair<Color, vector<Coordinates>> correspondant à la forme
     color = figData.first;
-    figBlocks.push_back(Block(color, BLOCK_SIZE, Coordinates(0,0)));
-    if (_figShape != TetrominoShape::ONE_BLOCK_CUBE) {
-        //Block central en (0,0)
-        for (auto& blockCoord : figData.second)                                         //Construit chaque block de la figure
-        {
-            figBlocks.push_back(Block(color, BLOCK_SIZE, blockCoord));
-        }
+    figBlocks.push_back(Block(color, BLOCK_SIZE, Coordinates(0,0)));                //Block central en (0,0)
+    for (auto& blockCoord : figData.second)                                         //Construit chaque block de la figure
+    {
+        figBlocks.push_back(Block(color, BLOCK_SIZE, blockCoord));
     }
     switch (figShape)
     {
@@ -50,7 +46,7 @@ Figure::Figure(TetrominoShape _figShape): figShape{_figShape}{
         center = Coordinates(BLOCK_SIZE/2, BLOCK_SIZE/2);     //For the I, the center isn't (0,0)
         break;
     case TetrominoShape::O :
-        center = Coordinates(BLOCK_SIZE/2, -BLOCK_SIZE/2);     //For the O, the center isn't (0,0)
+        center = Coordinates(BLOCK_SIZE/2, -BLOCK_SIZE/2);     //For the I, the center isn't (0,0)
         break;
     default:
         break;

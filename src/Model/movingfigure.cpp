@@ -322,12 +322,12 @@ bool MovingFigure::setPosAndFig(
  * @return A vector of blocks of the figure with their actual positions.
  */
 std::vector<Block> MovingFigure::getBlocksRealPositions() {
-  std::shared_ptr<Figure> realTetro = tetromino_;
+  Figure realTetro = *tetromino_;
   for (int index = 0; index < BLOCKS_TOTAL_NUMBER; ++index)
   {
-    realTetro->setBlockPos(index, blockPositions_[index]);
+    realTetro.setBlockPos(index, blockPositions_[index]);
   }
-  vector<Block> realBlocks = realTetro->getFigBlocks();
+  vector<Block> realBlocks = realTetro.getFigBlocks();
   return realBlocks;
 }
 

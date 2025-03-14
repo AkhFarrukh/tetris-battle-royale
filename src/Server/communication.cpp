@@ -12,18 +12,16 @@
 bool sendAll(int sock, const void* buffer, size_t length) {
     const char* data = static_cast<const char*>(buffer);
     size_t totalSent = 0;
-
     while (totalSent < length) {
         ssize_t sent = send(sock, data + totalSent, length - totalSent, 0);
         if (sent == -1) {
-            perror("Erreur lors de l'envoi");
+            perror("Erreur lors sendAll");
             return false;
         }
         totalSent += sent;
     }
     return true;
 }
-
 
 
 
@@ -42,7 +40,12 @@ bool recvAll(int sock, void* buffer, size_t length) {
 
     while (totalReceived < length) {
         ssize_t received = recv(sock, data + totalReceived, length - totalReceived, 0);
-        if (received <= 0) {
+        if (received == 0) {
+            std::cerr << "Error: recue/total " << totalReceived << " sur " << length << " bytes." << std::endl;
+            return false; // Client disconnected
+        }
+        if (received < 0) {
+            perror("Error in recvAll");
             return false;
         }
         totalReceived += received;

@@ -21,15 +21,16 @@ class Grid {
   public:
     Grid();
     bool isLocationFree(Coordinates blocLocation);
-    bool isFullLine(int row);
-    void clearLine(int row);
+    bool isFullLine(int line);
+    bool isLineBusy(int line);
+    void clearLine(int line);
     void applyDominoEffect(int clearedRow);
     void clearFullLines();
     void setBlock(Block newblock);
     Color getBlockColor(int x, int y);
-    void malusLines(int y);
-    vector<vector<Block>>& getMatrix();
+    void malusLines(int numLines);
     void deleteBlock2X2(Coordinates blocLocation);
+    void lightningBlock2X2(Coordinates blocLocation);
 };
 
 #endif

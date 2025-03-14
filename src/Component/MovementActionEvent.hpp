@@ -8,12 +8,21 @@
 #include "Event.hpp"
 #include "ControllerEnum.hpp" // Action
 
-class MovementActionEvent: public Event{
-    Action action;
-public:
-    MovementActionEvent(Action action):action{action}{};
-    Action getEventData() {return action;}
-};
+class MovementActionEvent : public Event {
+    private:
+        int playerId;
+        Action action;
+    public:
+        MovementActionEvent(Action act)
+          : action(act)
+        {
+        }
+        // Provide a function to retrieve the Action
+        Action getEventData() const {
+            return action;
+        }
+    };
+    
 
 
 
