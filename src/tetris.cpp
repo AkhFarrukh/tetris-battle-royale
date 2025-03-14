@@ -133,9 +133,7 @@ int main() {
             int size = sizeof(struct Connexion);
             Connexion connexionData;
             std::strncpy(connexionData.username, dataConnexion[0].c_str(), sizeof(connexionData.username) - 1);
-            connexionData.username[sizeof(connexionData.username) - 1] = '\0';  // Sécuriser la fin du string
             std::strncpy(connexionData.password, dataConnexion[1].c_str(), sizeof(connexionData.password) - 1);
-            connexionData.password[sizeof(connexionData.password) - 1] = '\0';
             int bytesSentType = sendAll(sock, &type, sizeof(int));
             int bytesSentSize = sendAll(sock, &size, sizeof(int));
             sendAll(sock, &connexionData, sizeof(Connexion));

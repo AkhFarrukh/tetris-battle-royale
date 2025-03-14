@@ -79,9 +79,9 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         new_session.client_fd = client_fd;
         printf("2a\n");
         printf("%s, %s\n", connexionData.username, connexionData.password);
-        new_session.username = std::string(connexionData.username);
+        new_session.username = connexionData.username;
         printf("3a\n");
-        new_session.password = std::string(connexionData.password);
+        new_session.password = connexionData.password;
         printf("4a\n");
         clients.push_back(new_session);
         printf("5a\n");
@@ -94,7 +94,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         
         // Create a thread for a user if the username and password is correct.
         pthread_t threadID;
-        if(pthread_create(&threadID, nullptr, threadRoutineClient, &threadData) < 0){
+        if(pthread_create(&threadID, nullptr, threadRoutineClient, threadData.get()) < 0){
             perror("Error on thread creation : ");
             close(client_fd);
             clients.pop_back();
@@ -124,23 +124,16 @@ void* Server::threadRoutineClient(void* arg){
     // Get thread data from arg
 
     shared_ptr<EventQueue> eventQueue = make_shared<EventQueue>();
-    printf("1\n");
     ThreadData* threadData = reinterpret_cast<ThreadData*>(arg);
-    printf("2\n");
     ThreadGameData threadGameData;
-    printf("3\n");
     GameController gameController(eventQueue);
-    printf("4\n");
     Server* server = threadData->serverInstance;
-    printf("5\n");
     ClientSession& client = threadData->client;
-    printf("6\n");
 
     std::cout<< "Initialised and got the args" << std::endl;
     // Check if both username and password are correct or not.
     bool successfulLogin = server->udbm.isCorrectLogin(client.username.c_str(),
                                                        client.password.c_str());
-   printf("%d\n", successfulLogin);
     if (successfulLogin){
         // Get user ID and insert user into sessions table
         client.userId = server->udbm.getUserId(client.username.c_str());
