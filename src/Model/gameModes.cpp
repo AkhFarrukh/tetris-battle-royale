@@ -145,3 +145,5 @@ void RoyalCompetition::bonusBlockCube(PlayerState& player) {
   player.countTetriminoGenerated = 1;
   player.isBonusCube = true;
 }
+
+//todo ajouter les différents malus et bonus propre au mode Royal competition
