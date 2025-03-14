@@ -3,6 +3,7 @@
 
 
 #include <string>
+#include <memory>
 
 class Server;
 class EventQueue;

@@ -4,6 +4,8 @@
 #include "ServerData.hpp"
 #include "communication.hpp"
 #include <ncurses.h>
+#include <memory>
+#include <vector>
 
 class RenderRooms {
     private:
