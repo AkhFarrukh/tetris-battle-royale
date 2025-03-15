@@ -34,13 +34,13 @@ class Mode;
 class Game {
 public:
 
+    Game();
     Game(std::vector<ThreadGameData> playersData, int numPlayers, Modes gameMode);
     ~Game();
 
     void run();
     void stop();
     
-    void setGameController(shared_ptr<GameController> controller);
     Color getBlockColor(Coordinates cell);
     bool broadcastGame();
 
@@ -48,11 +48,9 @@ public:
 private:
 
     Modes gameMode;
-    std::chrono::steady_clock::time_point lastDropTime;
     std::vector<PlayerState> players;
     FigureGenerator figureGenerator;
     bool isRunning;
-    shared_ptr<GameController> gameController;
     shared_ptr<Mode> mode;
     int numPlayers_;
 

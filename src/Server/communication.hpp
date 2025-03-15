@@ -13,6 +13,7 @@ bool recvAll(int sock, void* buffer, size_t length);
 bool sendAll(int sock, const void* buffer, size_t length);
 
 enum Modes{
+    NONE_,
     Endless_,
     Duel_,
     Royal_,

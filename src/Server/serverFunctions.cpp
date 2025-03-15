@@ -264,6 +264,9 @@ void* Server::threadRoutineClient(void* arg){
                 Menu menu;
                 if (!recvAll(client.client_fd, &menu, sizeof(Menu))){userIsOnline = false;}
 
+                /************************************
+                *PLAY ENDLESS INFO 
+                */
                 else if (menu.action == MenuActions::A_Play) {
                     cout<<"Play received"<<endl;
                     if (menu.mode == Modes::Endless_) {
@@ -397,8 +400,11 @@ void* Server::threadRoutineClient(void* arg){
                         if (!sendAll(client.client_fd, &info,        sizeof(RoomInfo))){userIsOnline = false;}
                     }
                     if (chosenRoom->checkGameReady()){
+                        cout<<"Asking for gmaeptr"<<endl;
                         std::shared_ptr<Game> gameShPtr =  chosenRoom->launchGame();
+                        cout<<"Doing ptrwrapper"<<endl;
                         auto* gamePtrWrapper = new shared_ptr<Game> (gameShPtr);
+                        cout <<"Creating game thread"<<endl;
                         if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
                             perror("Error on thread creation for game : ");
                             server->udbm.removeSession(client.userId);
@@ -496,6 +502,7 @@ void* Server::threadRoutineGame(void* arg){
     auto* gamePtrWrapper = static_cast<std::shared_ptr<Game>*>(arg);
     std::shared_ptr<Game> game = *gamePtrWrapper;
     delete gamePtrWrapper;
+    cout<<"Going to run game"<<endl;
     game->run();
     return nullptr;
 }

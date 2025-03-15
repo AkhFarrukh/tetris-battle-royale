@@ -14,6 +14,7 @@ Room::Room(int sockHoster, Modes mode)
         minPlayers = 2;
         maxPlayers = 2;
     }
+    gamePtr = nullptr;
     playerFds.push_back(sockHoster);
     ThreadGameData thread;
     eventQueue = std::make_shared<EventQueue>();
@@ -82,4 +83,6 @@ std::shared_ptr<Game> Room::launchGame() {
     
     int numPlayers = (int)playerFds.size();
     gamePtr = std::make_shared<Game>(std::vector<ThreadGameData>(playersThread), int(numPlayers), gameMode);
+    return gamePtr;
+    cout<<"Created gamePtr"<<endl;
 }

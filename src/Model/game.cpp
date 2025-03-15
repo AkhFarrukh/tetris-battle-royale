@@ -9,7 +9,14 @@ const int GRID_WIDTH = 10;
 
 
 
-
+Game::Game(){
+    gameMode = Modes::NONE_;
+    players = vector<PlayerState> ();
+    figureGenerator = FigureGenerator();
+    isRunning = false;
+    mode = make_shared<Mode>();
+    numPlayers_ = 0;
+}
 Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, Modes gameMode)
     :   isRunning(false),
         numPlayers_(numPlayers),
@@ -413,9 +420,7 @@ void Game::handleLineCompletion(int p) {
     }
 }
 
-void Game::setGameController(shared_ptr<GameController> controller) {
-    gameController = move(controller);
-}
+
 /*
 Color Game::getBlockColor(Coordinates cell) {
     Color blockColor = activeFigure->getMovingFigureBlockColor(cell);

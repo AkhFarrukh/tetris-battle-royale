@@ -65,6 +65,9 @@ public:
 
     std::shared_ptr<Game> launchGame();
 
+    // The game object (once started)
+    std::shared_ptr<Game> gamePtr;
+
 private:
     /**
      * @brief Actually create the Game object with the current players,
@@ -86,8 +89,7 @@ private:
     mutable std::mutex mtx;
     std::condition_variable cv;
 
-    // The game object (once started)
-    std::shared_ptr<Game> gamePtr;
+    
 
     // Possibly an EventQueue for the match
     std::shared_ptr<EventQueue> eventQueue;
