@@ -406,7 +406,7 @@ void* Server::threadRoutineClient(void* arg){
                             userIsOnline = false; // Stop the loop
                             break;
                         }
-
+                    cout <<"Successfully launched the game"<<endl;
                     }
                 }
             }

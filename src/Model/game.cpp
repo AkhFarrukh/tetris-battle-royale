@@ -77,6 +77,7 @@ void Game::run() {
             if(players[p].sped_up){time = 250;}
             else if(players[p].slowed){time = 1000;}
         }
+        cout<<"Before chrono"<<endl;
         if (elapsedTimeDropEvent > std::chrono::milliseconds(time)) {
             cout<<"chrono"<<endl;
             for (int p = 0; p < (int)players.size(); p++) {
@@ -91,12 +92,15 @@ void Game::run() {
         }
 
         updateGame();
+        cout<<"Updated"<<endl;
         if(broadcastGame() == false)
         {
             perror("Error while broadcasting the game : ");
             isRunning = false;
         }
+        cout<<"Broadcasted"<<endl;
         checkGameOver();
+        cout<<"CheckGameOver"<<endl;
     }
 
 }
