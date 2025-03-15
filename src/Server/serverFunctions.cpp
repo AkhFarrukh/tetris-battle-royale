@@ -187,6 +187,9 @@ void* Server::threadRoutineClient(void* arg){
             		int bytesSentType = sendAll(client.client_fd, &typeLogin, sizeof(int));
             		int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
                 	successfulLogin = server->udbm.isCorrectLogin(connexionData.username, connexionData.password);
+                    client.userId = server->udbm.getUserId(connexionData.username);
+                    client.username = connexionData.username;
+                    client.password = connexionData.password;
                     flagConnexion = false;
            		}
             	else{
