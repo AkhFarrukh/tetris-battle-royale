@@ -82,12 +82,14 @@ std::shared_ptr<Game> Room::launchGame() {
 }
 
 void Room::broadcastGameStart() {
+    cout<<"Gamestrartmsg  successfully"<<endl;
     int type = MessageType::T_GameStart;
     int size = sizeof(int);
     for (int fd : playerFds) {
         sendAll(fd, &type,  sizeof(type));
         sendAll(fd, &size,  sizeof(size));
     }
+    cout<<"Gamestrartmsg sent successfully"<<endl;
 }
 
 // Room::void deleteRoom(){}

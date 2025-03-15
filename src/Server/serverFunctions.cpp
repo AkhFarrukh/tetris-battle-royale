@@ -341,11 +341,14 @@ void* Server::threadRoutineClient(void* arg){
                 else if (menu.action == MenuActions::A_ForceStart) {
                     auto room = server->myRoom;
                     if (room->checkGameReady()){
-                        cout<<"Asking for gmaeptr"<<endl;
+                        cout<<"gonna send the strt messages"<<endl;
+                        room->broadcastGameStart();
+                        cout<<"Asking  gmaeptr"<<endl;
                         std::shared_ptr<Game> gameShPtr =  room->launchGame();
                         cout<<"Doing ptrwrapper"<<endl;
                         auto* gamePtrWrapper = new shared_ptr<Game> (gameShPtr);
                         cout <<"Creating game thread"<<endl;
+                        
                         if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
                             perror("Error on thread creation for game : ");
                             server->udbm.removeSession(client.userId);

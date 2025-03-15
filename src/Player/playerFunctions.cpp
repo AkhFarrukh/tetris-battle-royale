@@ -90,13 +90,12 @@ void* Player::threadRoutineView (void* arg){
                 int bytesReceivedSize = recvAll(sock, &size, sizeof(int));
 
                 if (type == MessageType::T_GameStart) {
+                    cout<<"le foot"<<endl;
                     break;
+                    cout<<"le foot"<<endl;
                 }
                 //else if (type == MessageType::T_DeletedRoom){}
-
             }
-
-
         }
 
         else if (type == MessageType::T_RoomsInfo){
