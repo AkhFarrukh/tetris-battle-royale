@@ -50,7 +50,9 @@ void* Player::threadRoutineView (void* arg){
             }
             int act = 0;
             while (true){
+                threadData->displayMut.lock();
                 act = renderR.handleMyRoom(info);
+                threadData->displayMut.unlock();
                 if (act == 1) {
                     cout<<"act = 1"<<endl;
                     int sendType = MessageType::T_Menu;
@@ -96,13 +98,15 @@ void* Player::threadRoutineView (void* arg){
             refresh();
             int index = -3;
             while (true) {
+                threadData->displayMut.lock();
                 index = renderR.handleListRooms(roomsInfo);
+                threadData->displayMut.unlock();
                 if ((index != -2) && (index != -1)) {
                     int chosenIndex = index; 
                     int typeToSend = MessageType::T_Join;
                     int sizeToSend = sizeof(int);
                     int fd = roomsInfo[index].roomID;
-                    
+
                     if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {return nullptr;}
                     if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {return nullptr;}
                     if (!sendAll(sock, &fd, sizeof(int))) {return nullptr;}
