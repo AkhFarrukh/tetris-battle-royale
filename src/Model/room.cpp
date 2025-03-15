@@ -14,6 +14,7 @@ Room::Room(int sockHoster, Modes mode)
         minPlayers = 2;
         maxPlayers = 2;
     }
+    playerFds.push_back(sockHoster);
     ThreadGameData thread;
     eventQueue = std::make_shared<EventQueue>();
     thread.client_fd = sockHoster;
@@ -39,15 +40,13 @@ bool Room::addPlayer(int playerFd) {
     std::cout << "Player joined room: fd=" << playerFd 
               << " (now " << playerFds.size() << " players)" << std::endl;
 
-    if ((int)playerFds.size() >= maxPlayers) {
+    /*if ((int)playerFds.size() >= maxPlayers) {
         std::cout << "Room is full, automatically starting match..." << std::endl;
         matchStarted = true;
         launchGame();
         cv.notify_all();
-    } else {
-        cv.notify_all();
-    }
-
+    }*/
+    cv.notify_all();
     return true;
 }
 
@@ -73,7 +72,12 @@ void Room::forceStart() {
     }
 }
 
-void Room::launchGame() {
+bool Room::checkGameReady(){
+    if ((int)playerFds.size() >= maxPlayers){return true;}
+    return false;
+}
+
+std::shared_ptr<Game> Room::launchGame() {
     std::cout << "Launching game with " << playerFds.size() << " players\n";
     
     int numPlayers = (int)playerFds.size();
@@ -81,10 +85,10 @@ void Room::launchGame() {
     gamePtr = std::make_shared<Game>(std::vector<ThreadGameData>(playersThread), int(numPlayers), std::string(mode));
 
     // gamePtr->setPlayerFDs(playerFds);
-
+    /*
     std::thread gameThread([this] {
         gamePtr->run();
     });
     gameThread.detach();
-
+    */
 }

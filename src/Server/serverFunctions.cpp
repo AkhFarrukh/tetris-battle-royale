@@ -227,6 +227,7 @@ void* Server::threadRoutineClient(void* arg){
     /***********************************************************************************
     *                     SUCCESSFUL LOGIN, STARTING LISTENING LOOP
     ***********************************************************************************/
+    pthread_t threadGamePID;
     if (successfulLogin){
         // Get user ID and insert user into sessions table
         server->udbm.setLogin(client.userId);
@@ -378,7 +379,8 @@ void* Server::threadRoutineClient(void* arg){
                 else {
                     if (!chosenRoom->addPlayer(client.client_fd)) {
                         std::cout << "Failed to join room, maybe full or started\n";
-                    } else {
+                    } 
+                    else {
                         std::cout << "Client joined room with hostFd = " << chosenRoom->getOwnerFd() << std::endl;
             
                         RoomInfo info;
@@ -393,6 +395,18 @@ void* Server::threadRoutineClient(void* arg){
                         if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
                         if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
                         if (!sendAll(client.client_fd, &info,        sizeof(RoomInfo))){userIsOnline = false;}
+                    }
+                    if (chosenRoom->checkGameReady()){
+                        std::shared_ptr<Game> gameShPtr =  chosenRoom->launchGame();
+                        auto* gamePtrWrapper = new shared_ptr<Game> (gameShPtr);
+                        if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
+                            perror("Error on thread creation for game : ");
+                            server->udbm.removeSession(client.userId);
+                            close(client.client_fd);
+                            userIsOnline = false; // Stop the loop
+                            break;
+                        }
+
                     }
                 }
             }
@@ -446,6 +460,7 @@ void* Server::threadRoutineClient(void* arg){
                 /* EXIT PROPREMENT DU SERV SI DECO */
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 close(client.client_fd);
+                kill(threadGamePID, SIGKILL);
                     while(server->udbm.isLoggedIn(client.username.c_str())){
                   	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
                     server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué

@@ -59,14 +59,18 @@ public:
         return gameMode;
     }
 
+    bool checkGameReady();
+
     bool isStarted();
+
+    std::shared_ptr<Game> launchGame();
 
 private:
     /**
      * @brief Actually create the Game object with the current players,
      * and run it in a separate thread or in the same thread—depending on your design.
      */
-    void launchGame();
+    
 
 private:
     int sockHoster;
