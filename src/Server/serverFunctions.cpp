@@ -2,9 +2,9 @@
 #include <algorithm>
 
 
-/*Server::Server(){
+Server::Server(){
     roomsList = make_shared<vector<shared_ptr<Room>>>();
-}*/
+}
 
 
 /**
@@ -301,8 +301,9 @@ void* Server::threadRoutineClient(void* arg){
                 else if (menu.action == MenuActions::A_CreateRoom) {
                     std::cout<<"Received CreateRoom"<<std::endl;
                     auto r = std::make_shared<Room>(client.client_fd, menu.mode);
-                    server->roomsList->push_back(r);
+                    auto allRoom = server->roomsList;
                     server->myRoom = r;
+                    allRoom->push_back(r);
                     std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
                 
                     RoomInfo info;

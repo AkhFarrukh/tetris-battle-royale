@@ -424,7 +424,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                                 if (act < 2) act++;
                                 break;
                             case '\n': {
-                                if (act == 1){
+                                if (act == 0){
                                     return 20;
                                 }
                                 else {
@@ -457,7 +457,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                                 if (act < 2) act++;
                                 break;
                             case '\n': {
-                                if (act == 1){
+                                if (act == 0){
                                     return 30;
                                 }
                                 else {
