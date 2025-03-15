@@ -87,7 +87,7 @@ void* Player::threadRoutineView (void* arg){
             RenderRooms renderR;
             std::vector<RoomInfo> roomsInfo;
             roomsInfo.resize(size);
-            if (!recvAll(sock, &roomsInfo, size *sizeof(RoomInfo)))
+            if (!recvAll(sock, roomsInfo.data(), size *sizeof(RoomInfo)))
             {
                 break;
             }

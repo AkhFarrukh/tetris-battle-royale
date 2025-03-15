@@ -295,17 +295,21 @@ void* Server::threadRoutineClient(void* arg){
                 }
                 else if (menu.action == MenuActions::A_JoinRoom) {
                     cout<<"JoinRoom received"<<endl;
-                    std::vector<std::shared_ptr<Room>> filteredRooms;
+                    std::vector<RoomInfo> filteredRooms;
                     auto allRooms = server->roomsList;
                     for (auto& r : *allRooms) {
                         if (r->getRoomMode() == menu.mode) {
-                            filteredRooms.push_back(r);
+                            RoomInfo info;
+                            info.roomID = r->getRoomID();
+                            info.currentPlayersCount = r->getPlayerCount();
+                            info.isStarted = r->isStarted();
+                            filteredRooms.push_back(info);
                         }
                     }
                     cout<<"Done filtered Room"<<endl;
 
-                    int type = sizeof(MessageType::T_RoomsInfo);
-                    sendAll(client.client_fd, &type, sizeof(type));
+                    MessageType typeToSend = MessageType::T_RoomsInfo;
+                    sendAll(client.client_fd, &typeToSend, sizeof(typeToSend));
                     int nbRooms = (int)filteredRooms.size();
                     sendAll(client.client_fd, &nbRooms, sizeof(nbRooms));
                     sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo));
