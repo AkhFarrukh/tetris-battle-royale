@@ -64,10 +64,30 @@ void affichageMessage(const std::string& sender, const std::string& message){
 }
 
 
+
+
 void* readServer(void* socket){
     int sock = *(int*)socket;
     while(!flag){
-    if(username == "")break;
+    if(username == "")continue;
+    int type;
+    int size;
+    if(!recvAll(sock, &type, sizeof(int))){
+        flag = true;
+        break;
+    }
+    if(!recvAll(sock, &size, sizeof(int))){
+        flag = true;
+        break;
+    }
+    if (type == MessageType::T_ForcedExit){
+        flag = true;
+        break;
+    }
+
+    else if(type == MessageType::T_Message){
+
+    }
     char buffer[1024] = {0};
     int bytesReceived = recv(sock, buffer, sizeof(buffer)-1, 0);
     if (bytesReceived <= 0) {
@@ -236,6 +256,7 @@ int main() {
     keypad(stdscr, false);
     curs_set(1);
     nodelay(stdscr, false);
+    system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
     close(sock); // Fermer le socket après utilisation
     return 0;
 }
