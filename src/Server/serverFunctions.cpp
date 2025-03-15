@@ -118,6 +118,9 @@ void* Server::threadRoutineClient(void* arg){
     server->lockThread = true;
     server->cv.notify_one();
 
+    /***********************************************************************************
+    *                               LOGIN HANDLING
+    ***********************************************************************************/
     bool flagConnexion = true;
     bool successfulLogin = false;
 
@@ -358,10 +361,11 @@ void* Server::threadRoutineClient(void* arg){
             else if (type == MessageType::T_Join) {
                 cout<<"Join received"<<endl;
                 int ownerFd;
-                if (!recvAll(client.client_fd, &ownerFd, sizeof(ownerFd))){userIsOnline = false;}
+                if (!recvAll(client.client_fd, &ownerFd, size)){userIsOnline = false;}
             
                 std::shared_ptr<Room> chosenRoom = nullptr;
                 for (auto &r : *server->roomsList) {
+                    cout<<"Listing rooms fd"<<r->getOwnerFd()<<endl;
                     if (r->getOwnerFd() == ownerFd) {
                         chosenRoom = r;
                         break;
@@ -370,7 +374,8 @@ void* Server::threadRoutineClient(void* arg){
             
                 if (!chosenRoom) {
                     std::cout << "No matching room or invalid ownerFd = " << ownerFd << "\n";
-                } else {
+                } 
+                else {
                     if (!chosenRoom->addPlayer(client.client_fd)) {
                         std::cout << "Failed to join room, maybe full or started\n";
                     } else {

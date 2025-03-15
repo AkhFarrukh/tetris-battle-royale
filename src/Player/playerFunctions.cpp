@@ -102,7 +102,7 @@ void* Player::threadRoutineView (void* arg){
                     int typeToSend = MessageType::T_Join;
                     int sizeToSend = sizeof(int);
                     int fd = roomsInfo[index].roomID;
-
+                    
                     if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {return nullptr;}
                     if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {return nullptr;}
                     if (!sendAll(sock, &fd, sizeof(int))) {return nullptr;}
