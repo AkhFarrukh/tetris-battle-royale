@@ -339,7 +339,22 @@ void* Server::threadRoutineClient(void* arg){
                 }  
                 
                 else if (menu.action == MenuActions::A_ForceStart) {
-                    server->myRoom->forceStart();
+                    auto room = server->myRoom;
+                    if (room->checkGameReady()){
+                        cout<<"Asking for gmaeptr"<<endl;
+                        std::shared_ptr<Game> gameShPtr =  room->launchGame();
+                        cout<<"Doing ptrwrapper"<<endl;
+                        auto* gamePtrWrapper = new shared_ptr<Game> (gameShPtr);
+                        cout <<"Creating game thread"<<endl;
+                        if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
+                            perror("Error on thread creation for game : ");
+                            server->udbm.removeSession(client.userId);
+                            close(client.client_fd);
+                            userIsOnline = false; // Stop the loop
+                            break;
+                        }
+                    cout <<"Successfully launched the game"<<endl;
+                    }
                 }
             }
             /************************************
@@ -398,21 +413,6 @@ void* Server::threadRoutineClient(void* arg){
                         if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
                         if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
                         if (!sendAll(client.client_fd, &info,        sizeof(RoomInfo))){userIsOnline = false;}
-                    }
-                    if (chosenRoom->checkGameReady()){
-                        cout<<"Asking for gmaeptr"<<endl;
-                        std::shared_ptr<Game> gameShPtr =  chosenRoom->launchGame();
-                        cout<<"Doing ptrwrapper"<<endl;
-                        auto* gamePtrWrapper = new shared_ptr<Game> (gameShPtr);
-                        cout <<"Creating game thread"<<endl;
-                        if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
-                            perror("Error on thread creation for game : ");
-                            server->udbm.removeSession(client.userId);
-                            close(client.client_fd);
-                            userIsOnline = false; // Stop the loop
-                            break;
-                        }
-                    cout <<"Successfully launched the game"<<endl;
                     }
                 }
             }

@@ -110,7 +110,7 @@ void* Player::threadRoutineView (void* arg){
                     if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {return nullptr;}
                     if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {return nullptr;}
                     if (!sendAll(sock, &fd, sizeof(int))) {return nullptr;}
-
+                    break;
                 }
                 if (index == -2) {
                     int type = MessageType::T_Menu;

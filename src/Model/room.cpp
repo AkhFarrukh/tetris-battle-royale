@@ -40,13 +40,6 @@ bool Room::addPlayer(int playerFd) {
     playerFds.push_back(playerFd);
     std::cout << "Player joined room: fd=" << playerFd 
               << " (now " << playerFds.size() << " players)" << std::endl;
-
-    /*if ((int)playerFds.size() >= maxPlayers) {
-        std::cout << "Room is full, automatically starting match..." << std::endl;
-        matchStarted = true;
-        launchGame();
-        cv.notify_all();
-    }*/
     cv.notify_all();
     return true;
 }
