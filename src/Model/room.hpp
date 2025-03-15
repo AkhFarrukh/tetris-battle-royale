@@ -54,6 +54,9 @@ public:
      */
     int getPlayerCount() const;
 
+    void broadcastGameStart();
+    // void deleteRoom();
+
 
     Modes getRoomMode(){
         return gameMode;

@@ -65,7 +65,7 @@ int RenderRooms::handleMyRoom(const RoomInfo room) {
             case 'Q':
                 return -1;
             case 'r':
-                return 2;
+                return -2;
             default:
                 break;
         }

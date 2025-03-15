@@ -69,7 +69,9 @@ enum MessageType {
     T_RoomInfo,
     T_RoomsInfo,
     T_Refresh,
-    T_Join
+    T_Join,
+    T_RoomDeleted,
+    T_GameStart
 };
 
 struct RoomInfo {

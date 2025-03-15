@@ -413,6 +413,8 @@ void* Server::threadRoutineClient(void* arg){
                         if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
                         if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
                         if (!sendAll(client.client_fd, &info,        sizeof(RoomInfo))){userIsOnline = false;}
+
+                        server->myRoom = chosenRoom;
                     }
                 }
             }
@@ -466,7 +468,7 @@ void* Server::threadRoutineClient(void* arg){
                 /* EXIT PROPREMENT DU SERV SI DECO */
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 close(client.client_fd);
-                kill(threadGamePID, SIGKILL);
+                pthread_cancel(threadGamePID);
                     while(server->udbm.isLoggedIn(client.username.c_str())){
                   	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
                     server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué

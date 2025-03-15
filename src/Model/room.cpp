@@ -57,6 +57,7 @@ void Room::forceStart() {
     std::unique_lock<std::mutex> lock(mtx);
     if (!matchStarted) {
         if (playerFds.size() >= (size_t)minPlayers) {
+            broadcastGameStart();
             matchStarted = true;
             launchGame();
             cv.notify_all();
@@ -79,3 +80,14 @@ std::shared_ptr<Game> Room::launchGame() {
     return gamePtr;
     cout<<"Created gamePtr"<<endl;
 }
+
+void Room::broadcastGameStart() {
+    int type = MessageType::T_GameStart;
+    int size = sizeof(int);
+    for (int fd : playerFds) {
+        sendAll(fd, &type,  sizeof(type));
+        sendAll(fd, &size,  sizeof(size));
+    }
+}
+
+// Room::void deleteRoom(){}

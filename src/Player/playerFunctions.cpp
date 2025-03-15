@@ -41,6 +41,7 @@ void* Player::threadRoutineView (void* arg){
             threadData->userInGame = false;
             threadData->mux.unlock();
         }
+
         else if (type == MessageType::T_RoomInfo) {
             RenderRooms renderR;
             RoomInfo info;
@@ -75,11 +76,24 @@ void* Player::threadRoutineView (void* arg){
                     if(!sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
                     if(!sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
                     if(!sendAll(sock, &useless, sizeof(int))){return nullptr;}
+                    break;
                 }
                 if (act == -1) {
                     //send un delete room
                     return 0;
                 }
+                int type;
+                int size;
+                //Sending info to server
+                /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
+                int bytesReceivedType = recvAll(sock, &type, sizeof(int));
+                int bytesReceivedSize = recvAll(sock, &size, sizeof(int));
+
+                if (type == MessageType::T_GameStart) {
+                    break;
+                }
+                //else if (type == MessageType::T_DeletedRoom){}
+
             }
 
 
@@ -132,6 +146,7 @@ void* Player::threadRoutineView (void* arg){
                         perror("Error sending menu info : ");
                         return 0;
                     }
+                    break;
                 }
                 if (index == -1) {
                     return 0;

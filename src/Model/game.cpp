@@ -351,6 +351,7 @@ void Game::checkGameOver() {
         }
     }
     if (aliveCount < 1) {
+        cout<< "THEY LOST AHAHAHHAHAA"<<endl;
         stop();
     }
 }
@@ -492,6 +493,7 @@ bool Game::broadcastGame() {
             if (!sendAll(sock, &gridSize, sizeof(gridSize))) {return false;}
             if (!sendAll(sock, player.grid.data(), gridSize * sizeof(Color))) {return false;}
         }
+        cout << "Sent netplayerdatda to " << sock << endl;
     }
     return true;
 }
