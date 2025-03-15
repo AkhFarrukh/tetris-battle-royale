@@ -2,9 +2,9 @@
 #include <algorithm>
 
 
-Server::Server(){
+/*Server::Server(){
     roomsList = make_shared<vector<shared_ptr<Room>>>();
-}
+}*/
 
 
 /**

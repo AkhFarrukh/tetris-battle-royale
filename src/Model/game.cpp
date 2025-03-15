@@ -417,27 +417,6 @@ Color Game::getBlockColor(Coordinates cell) {
 }
 */
 
-shared_ptr<Grid> Game::getGrid() {
-    return grid;
-}
-
-/**
- * @brief Sert d'interrupteur à la visibilité du joueur, c'est utilisé
- * dans la mode Royal Competition pour un malus.
- */
-void Game::switchGridVisibility() {
-    isGridHidden = !isGridHidden;
-}
-
-
-/**
- * @brief Sert d'interrupteur à la génération de Tetrimino shape cube 1X1.
- * (Bonus dans le mode Royal Compétition)
- */
-void Game::switchIsCube() {
-    figureGenerator.switchBonusCube();
-}
-
 
 
 bool Game::broadcastGame() {
