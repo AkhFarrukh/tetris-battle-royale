@@ -1,5 +1,6 @@
 #include "playerFunctions.hpp"
 #include "input.hpp"
+#include <fcntl.h>
 
 /**
  * @brief Routine capturing all the thing the server sends, and if it's a player state, show it
@@ -49,54 +50,63 @@ void* Player::threadRoutineView (void* arg){
                 perror("Error on receiving room");
                 break;
             }
+            
+            int flags = fcntl(sock, F_GETFL, 0);
+            fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+            
             int act = 0;
-            while (true){
+            while (true) {
                 threadData->displayMut.lock();
                 act = renderR.handleMyRoom(info);
                 threadData->displayMut.unlock();
+                
                 if (act == 1) {
-                    cout<<"act = 1"<<endl;
+                    cout << "act = 1" << endl;
                     int sendType = MessageType::T_Menu;
                     int sendSize = sizeof(Menu);
                     Menu menu;
                     menu.action = MenuActions::A_ForceStart;
-            
+                    
                     if(!sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
                     if(!sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
                     if(!sendAll(sock, &menu, sizeof(Menu))){return nullptr;}
                     break;
-                }
-
-                if (act == -2) {
-                    cout<<"act = 2"<<endl;
+                } else if (act == -2) {
+                    cout << "act = -2" << endl;
                     int sendType = MessageType::T_Refresh;
                     int sendSize = sizeof(int);
                     int useless = 0;
-
+                    
                     if(!sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
                     if(!sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
                     if(!sendAll(sock, &useless, sizeof(int))){return nullptr;}
                     break;
-                }
-                if (act == -1) {
-                    //send un delete room
+                } else if (act == -1) {
                     return 0;
                 }
-                int type;
-                int size;
-                //Sending info to server
-                /* PROBABLY NEED TO PUT A MUTEX ON SOCKET, SO WE DON'T READ AND WRITE AT THE SAME TIME */
-                int bytesReceivedType = recvAll(sock, &type, sizeof(int));
-                int bytesReceivedSize = recvAll(sock, &size, sizeof(int));
-
-                if (type == MessageType::T_GameStart) {
-                    cout<<"le foot"<<endl;
-                    break;
-                    cout<<"le foot"<<endl;
+                
+                int messageType;
+                int messageSize;
+                
+                int bytesReceivedType = recv(sock, &messageType, sizeof(int), MSG_DONTWAIT);
+                
+                if (bytesReceivedType > 0) {
+                    recv(sock, &messageSize, sizeof(int), 0);
+                    
+                    if (messageType == MessageType::T_GameStart) {
+                        cout << "le foot" << endl;
+                        break;
+                    }
+                } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
+                    perror("Socket error");
+                    return nullptr;
                 }
-                //else if (type == MessageType::T_DeletedRoom){}
+                
+                usleep(5000);
             }
-        }
+            
+            fcntl(sock, F_SETFL, flags);
+         }
 
         else if (type == MessageType::T_RoomsInfo){
             RenderRooms renderR;
@@ -114,6 +124,9 @@ void* Player::threadRoutineView (void* arg){
                 threadData->displayMut.lock();
                 index = renderR.handleListRooms(roomsInfo);
                 threadData->displayMut.unlock();
+                if (index == -3) {
+                    continue;
+                }
                 if ((index != -2) && (index != -1)) {
                     int chosenIndex = index; 
                     int typeToSend = MessageType::T_Join;

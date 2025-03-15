@@ -55,54 +55,50 @@ void RenderRooms::listRooms(const std::vector<RoomInfo>& roomsInfo, int highligh
     
 
 int RenderRooms::handleMyRoom(const RoomInfo room) {
-    while (true) {
-        myRoom(room);
-        int ch = getch();
-        switch (ch) {
-            case 'f':
-                return 1;
-            case 'q':
-            case 'Q':
-                return -1;
-            case 'r':
-                return -2;
-            default:
-                break;
-        }
+    myRoom(room);
+    int ch = getch();
+    switch (ch) {
+        case 'f':
+            return 1;
+        case 'q':
+        case 'Q':
+            return -1;
+        case 'r':
+            return -2;
+        default:
+            break;
     }
-    return -1;
+    return -3;
 }
 
 
 int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms) {
     int highlightIndex = 0;
 
-    while (true) {
+    listRooms(rooms, highlightIndex);
 
-        listRooms(rooms, highlightIndex);
-
-        int ch = getch();
-        switch (ch) {
-            case KEY_UP:
-                if (highlightIndex > 0) {
-                    highlightIndex--;
-                }
-                break;
-            case KEY_DOWN:
-                if (highlightIndex < (int)rooms.size() - 1) {
-                    highlightIndex++;
-                }
-                break;
-            case '\n':
-                return highlightIndex;
-            case 'q':
-            case 'Q':
-                return -1;
-            case 'r':
-                return -2;
-            default:
-                break;
-        }
+    int ch = getch();
+    switch (ch) {
+        case KEY_UP:
+            if (highlightIndex > 0) {
+                highlightIndex--;
+            }
+            break;
+        case KEY_DOWN:
+            if (highlightIndex < (int)rooms.size() - 1) {
+                highlightIndex++;
+            }
+            break;
+        case '\n':
+            return highlightIndex;
+        case 'q':
+        case 'Q':
+            return -1;
+        case 'r':
+            return -2;
+        default:
+            break;
     }
-    return -1;
+
+return -3;
 }
