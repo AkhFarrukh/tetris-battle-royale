@@ -109,6 +109,7 @@ void Game::run() {
         cout<<"Broadcasted"<<endl;
         checkGameOver();
         cout<<"CheckGameOver"<<endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
 }
@@ -130,12 +131,14 @@ void Game::updateGame() {
         if (players[p].isGameOver) continue;
         while (true) {
             auto evt = players[p].eventQueue->getEvent();
-            if (!evt) break; // no more events
-            //if event malus 
-                //handlemalus(event)
-            if (players[p].malusBonus != MalusBonus::BLOCKED){
-                handleMovementActionEvent(p, evt);
-           }
+            if (!evt) break;
+            if (std::dynamic_pointer_cast<MalusBonusEvent>(evt))
+                handleMalusBonusEvent(evt, p);
+            else {
+                if (players[p].malusBonus != MalusBonus::BLOCKED){
+                    handleMovementActionEvent(p, evt);
+               }
+            }
         }
     }
 }
@@ -345,13 +348,16 @@ void Game::checkInput() {
  */
 void Game::checkGameOver() {
     int aliveCount = 0;
-    for (auto &ps : players) {
-        if (!ps.isGameOver) {
-            aliveCount++;
-        }
+    for (const auto& ps : players) {
+        if (!ps.isGameOver) aliveCount++;
     }
-    if (aliveCount < 1) {
-        cout<< "THEY LOST AHAHAHHAHAA"<<endl;
+    if (gameMode == Modes::Duel_) {
+        if (aliveCount <= 1) {
+            std::cout << "Duel ended" << std::endl;
+            stop();
+        }
+    } else if (aliveCount < 1) {
+        std::cout << "Game over: All players lost" << std::endl;
         stop();
     }
 }

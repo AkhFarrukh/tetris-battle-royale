@@ -8,6 +8,7 @@ GameController::GameController(shared_ptr<EventQueue> eventQueue) : eventQueue(e
 
 
 void GameController::getAction(KeyboardAction in) {
+	std::cout << "Input received: " << static_cast<int>(in) << std::endl;
     bool controlsBlocked = areControlsBlocked();
     bool controlsInverted = areControlsInverted();
     Action action = Action::NONE;
@@ -69,7 +70,14 @@ void GameController::getAction(KeyboardAction in) {
        }
      }
     }
+	std::lock_guard<std::mutex> lock(queueMutex);
     eventQueue->addEvent(make_shared<MovementActionEvent>(action));
+	std::cout << "Event queued: " << static_cast<int>(action) << std::endl;
+}
+
+void GameController::applyMalusBonus(MalusBonus malBon, int target) {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    eventQueue->addEvent(std::make_shared<MalusBonusEvent>(malBon, target));
 }
 
 /*

@@ -50,63 +50,86 @@ void* Player::threadRoutineView (void* arg){
                 perror("Error on receiving room");
                 break;
             }
-            
+        
+            // Set socket to non-blocking mode
             int flags = fcntl(sock, F_GETFL, 0);
-            fcntl(sock, F_SETFL, flags | O_NONBLOCK);
-            
+            if (flags == -1) {
+                perror("fcntl F_GETFL failed");
+                break;
+            }
+            if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
+                perror("fcntl F_SETFL failed");
+                break;
+            }
+        
             int act = 0;
             while (true) {
                 threadData->displayMut.lock();
                 act = renderR.handleMyRoom(info);
                 threadData->displayMut.unlock();
-                
-                if (act == 1) {
+        
+                if (act == 1) { // Force start
                     cout << "act = 1" << endl;
                     int sendType = MessageType::T_Menu;
                     int sendSize = sizeof(Menu);
                     Menu menu;
                     menu.action = MenuActions::A_ForceStart;
-                    
-                    if(!sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
-                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
-                    if(!sendAll(sock, &menu, sizeof(Menu))){return nullptr;}
-                    break;
-                } else if (act == -2) {
+        
+                    if (!sendAll(sock, &sendType, sizeof(sendType)) ||
+                        !sendAll(sock, &sendSize, sizeof(sendSize)) ||
+                        !sendAll(sock, &menu, sizeof(Menu))) {
+                        perror("Error sending force start");
+                        break;
+                    }
+                }
+                else if (act == -2) { // Refresh
                     cout << "act = -2" << endl;
                     int sendType = MessageType::T_Refresh;
                     int sendSize = sizeof(int);
                     int useless = 0;
-                    
-                    if(!sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
-                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
-                    if(!sendAll(sock, &useless, sizeof(int))){return nullptr;}
-                    break;
-                } else if (act == -1) {
-                    return 0;
-                }
-                
-                int messageType;
-                int messageSize;
-                
-                int bytesReceivedType = recv(sock, &messageType, sizeof(int), MSG_DONTWAIT);
-                
-                if (bytesReceivedType > 0) {
-                    recv(sock, &messageSize, sizeof(int), 0);
-                    
-                    if (messageType == MessageType::T_GameStart) {
-                        cout << "le foot" << endl;
+        
+                    if (!sendAll(sock, &sendType, sizeof(sendType)) ||
+                        !sendAll(sock, &sendSize, sizeof(sendSize)) ||
+                        !sendAll(sock, &useless, sizeof(int))) {
+                        perror("Error sending refresh");
                         break;
                     }
-                } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
-                    perror("Socket error");
+                    break; // Exit after refresh
+                }
+                else if (act == -1) { // Exit
                     return nullptr;
                 }
-                
-                usleep(5000);
+        
+                // Check for incoming messages without blocking
+                int typeRecv;
+                int sizeRecv;
+                int bytesReceivedType = recv(sock, &typeRecv, sizeof(int), MSG_DONTWAIT);
+                if (bytesReceivedType > 0) {
+                    int bytesReceivedSize = recv(sock, &sizeRecv, sizeof(int), MSG_DONTWAIT);
+                    if (bytesReceivedSize > 0) {
+                        if (typeRecv == MessageType::T_GameStart) {
+                            cout << "Game started!" << endl;
+                            break; // Exit the loop when game starts
+                        }
+                    }
+                }
+                else if (bytesReceivedType == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                    // No data available, continue looping
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10)); // Prevent tight loop
+                }
+                else {
+                    // Error or disconnection
+                    perror("Error receiving message");
+                    break;
+                }
             }
-            
-            fcntl(sock, F_SETFL, flags);
-         }
+        
+            // Restore socket to blocking mode
+            if (fcntl(sock, F_SETFL, flags & ~O_NONBLOCK) == -1) {
+                perror("fcntl restore failed");
+                break;
+            }
+        }
 
         else if (type == MessageType::T_RoomsInfo){
             RenderRooms renderR;

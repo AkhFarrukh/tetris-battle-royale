@@ -23,45 +23,43 @@ void Input::stop() {
  *@return l'action du joueur.
  */
 KeyboardAction Input::getKeyboardInput() {
-    int ch = getch();  // Non-blocking key press
+    static std::chrono::steady_clock::time_point lastInputTime;
+    auto now = std::chrono::steady_clock::now();
+    if (now - lastInputTime < std::chrono::milliseconds(50)) {
+        return KeyboardAction::NO_ACTION;
+    }
+
+    int ch = getch();
     if (ch == ERR) {
         return KeyboardAction::NO_ACTION;
     }
-    while (getch() != ERR);
-
-    KeyboardAction currentAction = KeyboardAction::NO_ACTION;
+    lastInputTime = now;
 
     switch (ch) {
         case KEY_LEFT:
         case 'q':
-            currentAction = KeyboardAction::LEFT_DIRECTION_KEY;
-            break;
+            return  KeyboardAction::LEFT_DIRECTION_KEY;
         case KEY_RIGHT:
         case 'd':
-            currentAction = KeyboardAction::RIGHT_DIRECTION_KEY;
-            break;
+            return  KeyboardAction::RIGHT_DIRECTION_KEY;
         case KEY_UP:
         case 'z':
-            currentAction = KeyboardAction::LEFT_ROTATION_KEY;
+            return  KeyboardAction::LEFT_ROTATION_KEY;
             break;
         case 'r':
-            currentAction = KeyboardAction::RIGHT_ROTATION_KEY;
+            return KeyboardAction::RIGHT_ROTATION_KEY;
             break;
         case ' ': // The space bar is registered as 32
-            currentAction = KeyboardAction::HARD_DROP_KEY;
-            break;
+            return KeyboardAction::HARD_DROP_KEY;
         case KEY_DOWN:
         case 's':
-            currentAction = KeyboardAction::SOFT_DROP_KEY;
+            return KeyboardAction::SOFT_DROP_KEY;
             break;
         case 27:  // ESC key
         case KEY_CANCEL:
-            currentAction = KeyboardAction::EXIT_KEY;
-            break;
+            return KeyboardAction::EXIT_KEY;
         case '&':
         default:
-            currentAction = KeyboardAction::NO_ACTION;
-            break;
+            return KeyboardAction::NO_ACTION;
     }
-    return currentAction;
 }

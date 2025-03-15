@@ -26,11 +26,13 @@ private:
     Input input;
     shared_ptr<Game> game;
     shared_ptr<EventQueue> eventQueue;
+    std::mutex queueMutex;
 public:
     GameController(shared_ptr<EventQueue> eventQueue);
     void startGameInput() {input.start();}
     void stopGameInput() {input.stop();}
     void getAction(KeyboardAction in);
+    void applyMalusBonus(MalusBonus malBon, int target);
 
      // Getters
     bool areControlsBlocked() const { return controlsBlocked; }
