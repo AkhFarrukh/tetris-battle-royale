@@ -2,9 +2,9 @@
 #include <algorithm>
 
 
-Server::Server(){
+/*Server::Server(){
     roomsList = make_shared<vector<shared_ptr<Room>>>();
-}
+}*/
 
 
 /**
@@ -132,23 +132,7 @@ void* Server::threadRoutineClient(void* arg){
                 std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
                 return 0;
             }
-        }
-        else if(type == MessageType::T_ForcedExit || type == MessageType::T_Exit){
-            std::cout << "Client déconnecté : " << client.client_fd << std::endl;
-            close(client.client_fd);
-            auto it = std::find_if(server->clients.begin(), server->clients.end(),
-                                   [&client](const ClientSession& c) {
-                                   return c.client_fd == client.client_fd;
-                                   });
-            if (it != server->clients.end()) {
-                server->clients.erase(it);
-            }
-            return nullptr;
-        }
-        else{
-            std::cout << "Mauvais type de confidentials" << std::endl;
-            return 0;
-        }
+
 
         std::cout<< "Initialised and got the args" << std::endl;
         // Check if both username and password are correct or not.
@@ -181,6 +165,61 @@ void* Server::threadRoutineClient(void* arg){
             int bytesSentType = sendAll(client.client_fd, &typeConnexion, sizeof(int));
             int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
         }
+        }
+        else if(type == MessageType::T_Register && size == sizeof(struct Connexion)){
+            if(!recvAll(client.client_fd, &connexionData, size)){
+                std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
+                return 0;
+            }
+            bool registered = server->udbm.newAccountCreated(connexionData.username, connexionData.password);
+            if(registered){
+                int typeRegister = MessageType::T_AcceptConnexion;
+           	 	int size_ = sizeof(int);
+            	int bytesSentType = sendAll(client.client_fd, &typeRegister, sizeof(int));
+            	int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+                successfulLogin = server->udbm.isCorrectLogin(connexionData.username, connexionData.password);
+                if(successfulLogin){
+                	int typeLogin = MessageType::T_AcceptConnexion;
+           	 		int size_ = sizeof(int);
+            		int bytesSentType = sendAll(client.client_fd, &typeLogin, sizeof(int));
+            		int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+                	successfulLogin = server->udbm.isCorrectLogin(connexionData.username, connexionData.password);
+                    flagConnexion = false;
+           		}
+            	else{
+                	int typeLogin = MessageType::T_RefuseConnexion;
+           	    	int size_ = sizeof(int);
+            		int bytesSentType = sendAll(client.client_fd, &typeLogin, sizeof(int));
+            		int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+            	}
+            }
+            else{
+                int typeRegister = MessageType::T_RefuseConnexion;
+           	    int size_ = sizeof(int);
+            	int bytesSentType = sendAll(client.client_fd, &typeRegister, sizeof(int));
+            	int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+            }
+        }
+
+        else if(type == MessageType::T_ForcedExit || type == MessageType::T_Exit){
+            std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+            close(client.client_fd);
+            server->clientMutex.lock();
+            auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                                   [&client](const ClientSession& c) {
+                                   return c.client_fd == client.client_fd;
+                                   });
+            if (it != server->clients.end()) {
+                server->clients.erase(it);
+            }
+            server->clientMutex.unlock();
+            return nullptr;
+        }
+        else{
+            std::cout << "Mauvais type de confidentials" << std::endl;
+            return 0;
+        }
+
     }
     if (successfulLogin){
         // Get user ID and insert user into sessions table
@@ -209,7 +248,7 @@ void* Server::threadRoutineClient(void* arg){
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 server->udbm.removeSession(client.userId);
                 close(client.client_fd);
-                
+                server->clientMutex.lock();
                 auto it = std::find_if(server->clients.begin(), server->clients.end(),
                                        [&client](const ClientSession& c) { 
                                        return c.client_fd == client.client_fd; 
@@ -217,6 +256,7 @@ void* Server::threadRoutineClient(void* arg){
                 if (it != server->clients.end()) {
                     server->clients.erase(it);
                 }
+                server->clientMutex.unlock();
                 userIsOnline = false; // Stop the loop
             }
 
@@ -261,9 +301,8 @@ void* Server::threadRoutineClient(void* arg){
                 else if (menu.action == MenuActions::A_CreateRoom) {
                     std::cout<<"Received CreateRoom"<<std::endl;
                     auto r = std::make_shared<Room>(client.client_fd, menu.mode);
-                    auto allRoom = server->roomsList;
+                    server->roomsList->push_back(r);
                     server->myRoom = r;
-                    allRoom->push_back(r);
                     std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
                 
                     RoomInfo info;
@@ -413,6 +452,7 @@ void* Server::threadRoutineClient(void* arg){
                                                                                                          //comme telle
                   	while(server->udbm.isUserInSession(client.userId)){
                   		server->udbm.deleteSession(client.userId);}
+                server->clientMutex.lock();
                 auto it = std::find_if(server->clients.begin(), server->clients.end(),
                                        [&client](const ClientSession& c) {
                                        return c.client_fd == client.client_fd;
@@ -420,6 +460,7 @@ void* Server::threadRoutineClient(void* arg){
                 if (it != server->clients.end()) {
                     server->clients.erase(it);
                 }
+                server->clientMutex.unlock();
                 return nullptr;
             }
         }

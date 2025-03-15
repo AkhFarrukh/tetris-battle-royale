@@ -410,9 +410,13 @@ Color Game::getBlockColor(Coordinates cell) {
     if (blockColor == Color::nullcolor) {
         blockColor = grid->getBlockColor(cell.x, cell.y);
     }
+    if (isGridHidden) {
+        return Color::white; //Afin que le joueur soit aveuglé (malus du mode Royal Competition)
+    }
     return blockColor;
 }
 */
+
 
 
 bool Game::broadcastGame() {

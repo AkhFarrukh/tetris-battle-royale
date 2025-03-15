@@ -65,6 +65,8 @@ class UserDatabaseManager {
         void setNotInConversation(int user_id);
         bool isUserInSession(int user_id);
         void deleteSession(int user_id);
+        std::vector<int> getUserIdSession();
+        int getSockUser(int user_id);
 };
 
 #endif

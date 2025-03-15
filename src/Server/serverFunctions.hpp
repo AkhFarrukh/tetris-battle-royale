@@ -38,12 +38,12 @@ class Server{
 
         bool lockThread;
         std::mutex mtx;
+        std::mutex clientMutex;
         std::condition_variable cv;
         bool userIsInLobby = false;
 
 
     public:
-        Server();
         UserDatabaseManager udbm;
         int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen);
         void broadcastMessage(const std::string& message, int sender_fd);

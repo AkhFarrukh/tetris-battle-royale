@@ -16,18 +16,25 @@ const int protocol = 0;
 const int MAX_PENDING_CONNECTION = 10;
 
 Server server;
+int server_sock = -1;
 
 void handle_sigint(int sig) {
-    std::vector<ClientSession> clients = server.getClients();// = server.getClients(); NEED IMPLEMENTATION
-    for(const auto& client:clients){
-      printf("%d\n", client.userId);
-    while(server.udbm.isLoggedIn(client.username.c_str())){
-        server.udbm.logOut(client.userId);} //on marque la personne comme deconnecté
-    server.udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+    std::vector<int> clients = server.udbm.getUserIdSession();
+    for(const auto& clientId:clients){
+        printf("%d \n", clientId);
+        server.udbm.logOut(clientId);//on marque la personne comme deconnecté
+        server.udbm.setNotInConversation(clientId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
                                                                                     //comme telle
-    while(server.udbm.isUserInSession(client.userId)){
-        server.udbm.deleteSession(client.userId);}}
+        int sock_client = server.udbm.getSockUser(clientId);
+        int exitType = MessageType::T_ForcedExit;
+        int size_ = sizeof(int);
+        int bytesSentType = sendAll(sock_client, &exitType, sizeof(int));
+        int bytesSentSize = sendAll(sock_client, &size_, sizeof(int));
+    while(server.udbm.isUserInSession(clientId)){
+        server.udbm.deleteSession(clientId);}
+    }
     napms(1000);
+    if(server_sock != -1)close(server_sock);
     signal(SIGINT, SIG_DFL);
     raise(SIGINT);
 }
@@ -46,7 +53,7 @@ int main () {
         perror("Couldn't init socket : ");
         return 1;
     }
-
+    server_sock = server_fd;
     //Def sockaddr_in
     struct sockaddr_in address;
     address.sin_family = domain;
@@ -68,6 +75,8 @@ int main () {
     /**************************************************************
     *HANDLE THE CLIENT
     **************************************************************/
+
+    auto rooms = std::make_shared<std::vector<std::shared_ptr<Room>>>();
 
     if (server.handleClient(server_fd, address, addressLen) <= -1){
         perror("Error while handling client : ");

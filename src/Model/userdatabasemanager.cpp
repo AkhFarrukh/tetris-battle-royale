@@ -408,7 +408,7 @@ void UserDatabaseManager::removeSession(int userId){
 //     if (isInHighestScoreTable(userId)){
 //         // UPDATE ONLY IF highest score is greater than the current score in DB
 //         statement = "UDPATE HighestScore SET highest_score = ? WHERE user_id = ? \
-//                      AND highest_score < ?"; 
+//                      AND highest_score < ?";
 //         database.prepareStatement(statement);
 //         database.bindInt(highestScore, 3);
 //     }
@@ -420,7 +420,7 @@ void UserDatabaseManager::removeSession(int userId){
 //     // Bind the common values
 //     database.bindInt(highestScore, 1);
 //     database.bindInt(userId, 2);
-        
+
 //     // Execute then destruct the statement
 //     database.execute();
 //     database.destructStatement();
@@ -453,9 +453,9 @@ void UserDatabaseManager::updatePlayerStats(int userId, int newScore, bool won, 
 //  * @brief Return a ranking of users in DESCENDING order.
 //  * @param limit optional: the number of top users (e.g. limit = 10 means TOP 10 users only).
 //  * Else, return a ranking of ALL USERS.
-//  * @return A vector which contains tuple(s). Each tuple has a rank, username, and 
+//  * @return A vector which contains tuple(s). Each tuple has a rank, username, and
 //  * highest score respectively. If there is no result, an empty vector is returned.
-//  * 
+//  *
 //  */
 // std::vector<std::tuple<int, std::string, int>> UserDatabaseManager::getRanking(int limit){
     
@@ -471,12 +471,12 @@ void UserDatabaseManager::updatePlayerStats(int userId, int newScore, bool won, 
 //     if (limit > 0){
 //         query += " LIMIT ?";
 //         database.prepareStatement(query.c_str());
-//         database.bindInt(limit, 1);  
+//         database.bindInt(limit, 1);
 //     }
 //     else{
 //         database.prepareStatement(query.c_str());
 //     }
-    
+
 //     // Get a result
 //     database.execute();
 //     while(database.getReturnCode() == SQLITE_ROW){
@@ -499,7 +499,7 @@ void UserDatabaseManager::updatePlayerStats(int userId, int newScore, bool won, 
 std::vector<std::tuple<int, std::string, int, int, int, int>> UserDatabaseManager::getRanking(std::string mode, int limit){
     std::vector<std::tuple<int, std::string, int, int, int, int>> ranking;
     std::string query;
-    
+
     if (mode == "Endless") {
         query = "SELECT users.username, leaderboard.highest_score, \
                  leaderboard.games_played, leaderboard.wins, leaderboard.losses, 0 AS energy_used \
@@ -524,7 +524,7 @@ std::vector<std::tuple<int, std::string, int, int, int, int>> UserDatabaseManage
         database.prepareStatement(query.c_str());
         database.bindText(mode.c_str(), 1);
     }
-    
+
     database.execute();
     int rank = 1;
     while(database.getReturnCode() == SQLITE_ROW) {
@@ -535,14 +535,14 @@ std::vector<std::tuple<int, std::string, int, int, int, int>> UserDatabaseManage
         int wins = database.getIntValueFromColumn(3);
         int losses = database.getIntValueFromColumn(4);
         int energyUsed = database.getIntValueFromColumn(5);
-    
+
         ranking.push_back(std::make_tuple(rank++, stringUsername, highestScore, gamesPlayed, wins, energyUsed));
         database.execute();
     }
-    
+
     if (database.getReturnCode() != SQLITE_DONE) {
         std::cerr << "Error" << std::endl;
-    }    
+    }
 
     database.destructStatement();
     return ranking;
@@ -883,4 +883,41 @@ void UserDatabaseManager::deleteSession(int user_id){
     database.prepareStatement(commit);
     database.execute();
     database.destructStatement();
+}
+
+std::vector<int> UserDatabaseManager::getUserIdSession() {
+    std::vector<int> userIds;
+    const char* sql = "SELECT user_id FROM sessions";
+
+    database.prepareStatement(sql);
+    database.execute();
+
+
+    while (database.getReturnCode() == SQLITE_ROW) {
+        int userId = database.getIntValueFromColumn(0);
+        userIds.push_back(userId);
+        database.execute();
+    }
+
+    database.destructStatement();
+
+    return userIds;
+}
+
+int UserDatabaseManager::getSockUser(int user_id){
+    int sockUser;
+    const char* sql = "SELECT client_fd FROM sessions WHERE user_id = ?;";
+
+    database.prepareStatement(sql);
+    database.bindInt(user_id, 1);
+    database.execute();
+
+    // Vérifier s'il y a un résultat
+    if (database.getReturnCode() == SQLITE_ROW) {
+        sockUser = database.getIntValueFromColumn(0);
+    }
+
+    database.destructStatement();
+    return sockUser;
+
 }

@@ -19,6 +19,7 @@ using namespace std;
 
 std::string username = "";
 int socket_serveur = -1;
+atomic<bool> isInGame = false;
 
 void handle_sigint(int sig) {
    flag = true;
@@ -64,24 +65,45 @@ void affichageMessage(const std::string& sender, const std::string& message){
 }
 
 
+
+
 void* readServer(void* socket){
     int sock = *(int*)socket;
     while(!flag){
-    if(username == "")break;
-    char buffer[1024] = {0};
-    int bytesReceived = recv(sock, buffer, sizeof(buffer)-1, 0);
-    if (bytesReceived <= 0) {
-          flag = true;
-          return nullptr;
-    }
-    else{
-          buffer[bytesReceived] = '\0';
-          size_t friendNameLength = strlen(buffer);
-          std::string friendName(buffer);
-          std::string message(buffer+friendNameLength+1, bytesReceived - friendNameLength-1);
-          affichageMessage(friendName, message);
-         }
-    }
+        if(username == "" || isInGame){}
+        /*else{
+            int type;
+            int size;
+        if(!recvAll(sock, &type, sizeof(int))){
+            flag = true;
+            break;
+        }
+        if(!recvAll(sock, &size, sizeof(int))){
+            flag = true;
+            break;
+        }
+        if (type == MessageType::T_ForcedExit){
+            flag = true;
+            break;
+        }
+
+        else if(type == MessageType::T_Message){
+            char buffer[1024] = {0};
+            int bytesReceived = recv(sock, buffer, sizeof(buffer)-1, 0);
+            if (bytesReceived <= 0) {
+                flag = true;
+                return nullptr;
+            }
+            else{
+                buffer[bytesReceived] = '\0';
+                size_t friendNameLength = strlen(buffer);
+                std::string friendName(buffer);
+                std::string message(buffer+friendNameLength+1, bytesReceived - friendNameLength-1);
+                affichageMessage(friendName, message);
+           }
+        }
+    }*/
+ }
     return nullptr;
 }
 
@@ -208,7 +230,7 @@ int main() {
             std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
             threadData->userInGame = true;
 	        threadData->socket = sock;
-
+            isInGame = true;
             if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
                 perror("Error on thread creation : ");
                 playing = false;
@@ -220,6 +242,7 @@ int main() {
             Player::sendInput(threadData);
             napms(500);
             pthread_join(threadID, nullptr);
+            isInGame = false;
         }
     }
 
@@ -236,6 +259,7 @@ int main() {
     keypad(stdscr, false);
     curs_set(1);
     nodelay(stdscr, false);
+    system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
     close(sock); // Fermer le socket après utilisation
     return 0;
 }

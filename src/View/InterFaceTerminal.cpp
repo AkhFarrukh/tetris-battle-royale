@@ -260,11 +260,15 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         int socket = getSock();
         if(udm.isLoggedIn(friendName.c_str())){
           if(db.getInConversation(user_id, friend_id) == 1){ //si le destinataire est sur la conv
-        std::vector<char> message(friendName.size()+1+strlen(buffer)+1);
-    	memcpy(message.data(), friendName.c_str(), friendName.size()+1);
-        memcpy(message.data() + friendName.size()+1, buffer, strlen(buffer));
-        message[friendName.size() + 1 + strlen(buffer)] = '\0';
-        ssize_t bytesWritten = write(socket , message.data() , friendName.size()+1+strlen(buffer)+1);
+        int messageSent = MessageType::T_Message;
+        int size_ = sizeof(struct Message);
+        Message messageToSent;
+      //int bytesSentType = sendAll(socket, &messageSent, sizeof(int));
+      //int bytesSentSize = sendAll(socket, &size_, sizeof(int));
+       /*d::strncpy(messageToSent.expediteur, user, sizeof(message  e) - 1);
+       //essageToSent.destinataire =
+      //messageToSent.message =
+      //ssize_t bytesWritten = write(socket , message.data() , friendName.size()+1+strlen(buffer)+1);
         if (bytesWritten <= 0){
             if (errno == EPIPE){
                 perror("Serveur est déconnecté");}
@@ -274,7 +278,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
             return -1;
         }
         else{//memset(buffer, 0, sizeof(buffer));
-          }
+          }*/
     }
     else{ //si le correspondant n'est pas dans la conv
         db.addMessage(user_id, friend_id, buffer);
@@ -370,7 +374,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                    refresh();
                    napms(500);
                    return selectedMode;
-                } 
+                }
                 if (selectedMode == 1){
                     erase();
                     printw("Classic Mode selected!\n");
@@ -378,8 +382,8 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                     int act = 0;
                     while (true){
                         displayMultiplayerOption(act);
-                        int ch = getch();    
-                        switch (ch) {  
+                        int ch = getch();
+                        switch (ch) {
                             case KEY_UP:
                                 if (act > 0) act--;
                                 break;
@@ -403,7 +407,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                         }
                     }
 
-                } 
+                }
                 if (selectedMode == 2) {
                     erase();
                     printw("Duel Mode selected!\n");
@@ -412,7 +416,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                     while (true){
                         displayMultiplayerOption(act);
                         int ch = getch();
-                        switch (ch) {  
+                        switch (ch) {
                             case KEY_UP:
                                 if (act > 0) act--;
                                 break;
@@ -420,7 +424,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                                 if (act < 2) act++;
                                 break;
                             case '\n': {
-                                if (act == 0){
+                                if (act == 1){
                                     return 20;
                                 }
                                 else {
@@ -436,7 +440,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                         }
                     }
 
-                } 
+                }
                 if (selectedMode == 3) {
                     erase();
                     printw("Royal Competition Mode selected!\n");
@@ -444,8 +448,8 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                     int act = 0;
                     while (true){
                         displayMultiplayerOption(act);
-                        int ch = getch();    
-                        switch (ch) {  
+                        int ch = getch();
+                        switch (ch) {
                             case KEY_UP:
                                 if (act > 0) act--;
                                 break;
@@ -453,7 +457,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                                 if (act < 2) act++;
                                 break;
                             case '\n': {
-                                if (act == 0){
+                                if (act == 1){
                                     return 30;
                                 }
                                 else {
@@ -766,14 +770,30 @@ vector<std::string> InterfaceTerminal::handleLogin(){
             int bytesSentSize = sendAll(sock, &size, sizeof(int));
             sendAll(sock, &connexion, sizeof(Connexion));
             int type_;int size_;
-            recvAll(sock, &type_, sizeof(int));
-            recvAll(sock, &size_, sizeof(int));
+            if(!recvAll(sock, &type_, sizeof(int))){
+                flag = true;
+                break;
+            }
+            if(!recvAll(sock, &size_, sizeof(int))){
+                flag = true;
+                break;
+            }
+            if (type_ == MessageType::T_ForcedExit){
+                flag = true;
+                break;
+            }
             bool logResult = (type_ == MessageType::T_AcceptConnexion);
             //
             if(logResult){
                 int doubleSession;
-                recvAll(sock, &doubleSession, sizeof(int));
-                recvAll(sock, &size_, sizeof(int));
+                if(!recvAll(sock, &doubleSession, sizeof(int))){
+                    flag = true;
+                    break;
+                }
+                if(!recvAll(sock, &size_, sizeof(int))){
+                    flag = true;
+                    break;
+                }
                 bool doubleSessionResult = (doubleSession == MessageType::T_RefuseConnexion);
                 if(doubleSessionResult){printw("\nYou are already logged in another session ! \n"); move(5,22);}
                 else{
@@ -794,6 +814,7 @@ vector<std::string> InterfaceTerminal::handleLogin(){
 
 
 vector<std::string> InterfaceTerminal::handleRegister(){
+    int sock = getSock();
     vector<std::string> connexionData;
     curs_set(1);
     nodelay(stdscr, false);
@@ -811,9 +832,8 @@ vector<std::string> InterfaceTerminal::handleRegister(){
         if(strlen(namePlayer)==0) break;
         printw("\nEnter the password : ");
         while (!flag) {
-            move(5,21);
-            clrtobot();
             noecho();
+            move(5,22);
             char passwordPlayer[100];
             wgetnstr(stdscr,passwordPlayer,99);
             if(strlen(passwordPlayer)==0) break;
@@ -823,13 +843,45 @@ vector<std::string> InterfaceTerminal::handleRegister(){
                 else printw("\nRepeat the password : ");
                 move(7,22);
                 wgetnstr(stdscr,repetedPasswordPlayer,99);
-                if(strlen(repetedPasswordPlayer)==0){repetedPasswordHandle = false;memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); break;}
+                if(strlen(repetedPasswordPlayer)==0){clrtoeol(); repetedPasswordHandle = false;memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); break;}
                 repetedPasswordHandle = true;
             }
-            if(udm.newAccountCreated(namePlayer, passwordPlayer)){
+            int typeRegister = MessageType::T_Register;
+            int size = sizeof(struct Connexion);
+            //demande au serveur de verifier
+            Connexion connexion;
+            std::strncpy(connexion.username, namePlayer, sizeof(connexion.username) - 1);
+            std::strncpy(connexion.password, passwordPlayer, sizeof(connexion.password) - 1);
+            int bytesSentType = sendAll(sock, &typeRegister, sizeof(int));
+            int bytesSentSize = sendAll(sock, &size, sizeof(int));
+            sendAll(sock, &connexion, sizeof(Connexion));
+            int typeResult_; int size_;
+            if(!recvAll(sock, &typeResult_, sizeof(int))){
+                flag = true;
+                break;
+            }
+            if(!recvAll(sock, &size_, sizeof(int))){
+                flag = true;
+                break;
+            }
+            if (typeResult_ == MessageType::T_ForcedExit){
+                flag = true;
+                break;
+            }
+            bool registerResult = (typeResult_ == MessageType::T_AcceptConnexion);
+            if(registerResult){
                 napms(1000);
                 printw("\nRegistered !\n");
-                if(udm.isCorrectLogin(namePlayer, passwordPlayer)){
+                int typeLog_; int size;
+                if(!recvAll(sock, &typeLog_, sizeof(int))){
+                	flag = true;
+                	break;
+            	}
+            	if(!recvAll(sock, &size, sizeof(int))){
+                	flag = true;
+                	break;
+            	}
+                if(typeLog_ == MessageType::T_AcceptConnexion){
                     user = namePlayer;
                     connexionData.push_back(namePlayer);
                     connexionData.push_back(passwordPlayer);
@@ -842,7 +894,13 @@ vector<std::string> InterfaceTerminal::handleRegister(){
                 refresh();
                 napms(1000);
             }
-            else {repetedPasswordHandle = false; memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));}
+            else {repetedPasswordHandle = false; memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));
+              move(5,21);
+              clrtoeol();
+              move(9,0);
+              printw("username and/or password invalid !\n");
+
+            }
         }
     }
     return connexionData;
