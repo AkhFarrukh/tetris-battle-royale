@@ -81,14 +81,5 @@ std::shared_ptr<Game> Room::launchGame() {
     std::cout << "Launching game with " << playerFds.size() << " players\n";
     
     int numPlayers = (int)playerFds.size();
-    std::string mode = "Endless";
-    gamePtr = std::make_shared<Game>(std::vector<ThreadGameData>(playersThread), int(numPlayers), std::string(mode));
-
-    // gamePtr->setPlayerFDs(playerFds);
-    /*
-    std::thread gameThread([this] {
-        gamePtr->run();
-    });
-    gameThread.detach();
-    */
+    gamePtr = std::make_shared<Game>(std::vector<ThreadGameData>(playersThread), int(numPlayers), gameMode);
 }

@@ -10,26 +10,33 @@ const int GRID_WIDTH = 10;
 
 
 
-Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string gameMode)
+Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, Modes gameMode)
     :   isRunning(false),
         numPlayers_(numPlayers),
         gameMode(gameMode)
-
 {
     cout<< "Starting Game constructor"<<endl;
-    if (gameMode == "Endless") {
+    switch (gameMode)
+    {
+    case Modes::Endless_:
         mode = std::make_shared<Endless>();
-    } else if (gameMode == "Classic") {
+        break;
+    case Modes::Classic_:
         mode = std::make_shared<Classic>();
-    } else if (gameMode == "Duel") {
-        mode = std::make_shared<Duel>();
-    } else if (gameMode == "RoyalCompetition") {
+        break;
+    case Modes::Duel_:
+        mode = std::make_shared<Duel>();   
+        break;
+    case Modes::Royal_:
         mode = std::make_shared<RoyalCompetition>();
-    } else {
+        break;
+
+    default:
         throw std::invalid_argument("Unknown game mode: " + gameMode);
+        break;
     }
     for (int i = 0; i < numPlayers; i++) {
-        PlayerState ps(i);
+        PlayerState ps(i, gameMode);
 
         ps.grid = std::make_shared<Grid>();
         ps.eventQueue = playersData[i].eventQueue;
@@ -44,7 +51,7 @@ Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, string gameM
 
         ps.nextTetromino = std::make_shared<Figure>(figureGenerator.randomFigure(ps.isBonusCube));
 
-        ps.gameData = GameData(0, 0, false, "Endless mode");
+        ps.gameData = GameData(0, 0, false, gameMode);
 
         players.push_back(ps);
     }
@@ -338,12 +345,12 @@ void Game::checkGameOver() {
 
 
 void Game::handleMalus(int targetID, int playerID) {
-    if (gameMode == "Duel") {
-        auto selectedMode = std::dynamic_pointer_cast<Duel>(mode);
+    if (gameMode == Modes::Duel_) {
+        auto selectedMode = dynamic_pointer_cast<Duel>(mode);
         selectedMode->applyRules(players[playerID], players[targetID]);
     }
-    else if (gameMode == "Classic") {
-        auto selectedMode = std::dynamic_pointer_cast<Classic>(mode);
+    else if (gameMode == Modes::Classic_) {
+        auto selectedMode = dynamic_pointer_cast<Classic>(mode);
         selectedMode->applyRules(players[playerID], players[targetID]);
     }
     else {
@@ -384,7 +391,7 @@ void Game::handleLineCompletion(int p) {
             ps.gameData.updateLines(1);
             ps.completedLines +=1; //Duel et Classic
             ps.energy += 5; //RC mode
-            if (gameMode == "Duel" || gameMode == "Classic") { // S'occupe des malus automatiques
+            if (gameMode == Modes::Duel_ || gameMode == Modes::Classic_) { // S'occupe des malus automatiques
                 int target = findTarget(p, numPlayers_);
                 handleMalus(target, p);
 

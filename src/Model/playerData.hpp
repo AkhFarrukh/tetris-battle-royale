@@ -40,10 +40,10 @@ struct PlayerState {
     int                              energy = 0; //Energy pour acheter des malus/Bonus dans RC mode
     int                              completedLines = 0; //mode Classic et Duel
 
-    PlayerState(int pid)
+    PlayerState(int pid, Modes gameMode)
         : playerId(pid),
           movement(Action::NONE, nullptr),
-          gameData(0, 0, false, "Royal"){}  
+          gameData(0, 0, false, gameMode){}  
 };
 
 struct NetPlayerData {

@@ -275,7 +275,7 @@ void* Server::threadRoutineClient(void* arg){
                         std::vector<ThreadGameData> data;
                         data.push_back(threadGameData);
                         
-                        std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, "Endless");
+                        std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_);
                         auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
                         pthread_t threadGamePID;
                         if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {

@@ -34,7 +34,7 @@ class Mode;
 class Game {
 public:
 
-    Game(std::vector<ThreadGameData> playersData, int numPlayers, string gameMode);
+    Game(std::vector<ThreadGameData> playersData, int numPlayers, Modes gameMode);
     ~Game();
 
     void run();
@@ -47,12 +47,12 @@ public:
 
 private:
 
+    Modes gameMode;
     std::chrono::steady_clock::time_point lastDropTime;
     std::vector<PlayerState> players;
     FigureGenerator figureGenerator;
     bool isRunning;
     shared_ptr<GameController> gameController;
-    string gameMode;
     shared_ptr<Mode> mode;
     int numPlayers_;
 

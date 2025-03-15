@@ -1,7 +1,7 @@
 #include "game_data.hpp"
 
 
-GameData::GameData(int score, int numberLinesBroken, bool isGameOver, const std::string& gameMode) :
+GameData::GameData(int score, int numberLinesBroken, bool isGameOver, const Modes& gameMode) :
     score(score), numberBrokenLines(numberLinesBroken), isGameOver(isGameOver), gameMode(gameMode) {}
 
 int GameData::get_score() const{
@@ -16,7 +16,7 @@ bool GameData::get_isGameOver() const{
     return isGameOver;
 }
 
-std::string GameData::get_gameMode() const{
+Modes GameData::get_gameMode() const{
     return gameMode;
 }
 
@@ -32,7 +32,7 @@ void GameData::set_isGameOver(bool gameStatus){
     isGameOver = gameStatus;
 }
 
-void GameData::set_gameMode(const std::string& newGameMode){
+void GameData::set_gameMode(const Modes& newGameMode){
     gameMode = newGameMode;
 }
 
