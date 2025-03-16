@@ -25,7 +25,7 @@ void Input::stop() {
 KeyboardAction Input::getKeyboardInput() {
     static std::chrono::steady_clock::time_point lastInputTime;
     auto now = std::chrono::steady_clock::now();
-    if (now - lastInputTime < std::chrono::milliseconds(50)) {
+    if (now - lastInputTime < std::chrono::milliseconds(50)) { 
         return KeyboardAction::NO_ACTION;
     }
 

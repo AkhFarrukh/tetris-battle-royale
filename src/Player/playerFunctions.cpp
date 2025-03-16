@@ -106,7 +106,7 @@ void* Player::threadRoutineView (void* arg){
                         break; // Exit the loop when game starts
                     } else {
                         // Discard unexpected messages
-                        char buffer[1024];
+                        char buffer[1024] = {0};
                         if (sizeRecv > sizeof(buffer)) sizeRecv = sizeof(buffer); // Prevent buffer overflow
                         recvAll(sock, buffer, sizeRecv);
                     }
@@ -179,6 +179,13 @@ void* Player::threadRoutineView (void* arg){
                 threadData->displayMut.lock();
                 index = renderR.handleListRooms(roomsInfo);
                 threadData->displayMut.unlock();
+                if (roomsInfo.empty()) { // un solution pour le crache quand 0 rooms, mais j'ai pas testé 
+                    refresh();
+                    while (true) {
+                        int ch = getch();
+                        if (ch == 'q' || ch == 'Q') break;
+                    }
+                }
                 if (index == -3) {
                     continue;
                 }
@@ -197,7 +204,7 @@ void* Player::threadRoutineView (void* arg){
                     int type = MessageType::T_Menu;
                     int size = sizeof(Menu);
                     Menu menu;
-                    menu.mode = roomsInfo[0].mode;
+                    menu.mode = roomsInfo[0].mode; // quand 0 room existe cette ligne vas causer un crache 
                     menu.action = MenuActions::A_JoinRoom;
                     
 

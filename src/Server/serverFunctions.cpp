@@ -230,7 +230,7 @@ void* Server::threadRoutineClient(void* arg){
     /***********************************************************************************
     *                     SUCCESSFUL LOGIN, STARTING LISTENING LOOP
     ***********************************************************************************/
-    pthread_t threadGamePID;
+    pthread_t threadGamePID = 0;
     if (successfulLogin){
         // Get user ID and insert user into sessions table
         server->udbm.setLogin(client.userId);
@@ -284,7 +284,7 @@ void* Server::threadRoutineClient(void* arg){
                         
                         std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_);
                         auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
-                        pthread_t threadGamePID;
+                        pthread_t threadGamePID = 0;
                         if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
                             perror("Error on thread creation for game : ");
                             server->udbm.removeSession(client.userId);
@@ -475,7 +475,9 @@ void* Server::threadRoutineClient(void* arg){
                 /* EXIT PROPREMENT DU SERV SI DECO */
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 close(client.client_fd);
-                pthread_cancel(threadGamePID);
+                if (threadGamePID != 0){
+                    pthread_cancel(threadGamePID);
+                }
                     while(server->udbm.isLoggedIn(client.username.c_str())){
                   	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
                     server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
