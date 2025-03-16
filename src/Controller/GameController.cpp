@@ -4,10 +4,10 @@
 
 #include "GameController.hpp"
 
-GameController::GameController(shared_ptr<EventQueue> eventQueue) : eventQueue(eventQueue) {}
+GameController::GameController() {}
 
 
-void GameController::getAction(KeyboardAction in) {
+Action GameController::getAction(KeyboardAction in) {
 	std::cout << "Input received: " << static_cast<int>(in) << std::endl;
     bool controlsBlocked = areControlsBlocked();
     bool controlsInverted = areControlsInverted();
@@ -69,6 +69,7 @@ void GameController::getAction(KeyboardAction in) {
             	break;
        }
      }
+	 return action;
     }
 	std::lock_guard<std::mutex> lock(queueMutex);
     eventQueue->addEvent(make_shared<MovementActionEvent>(action));

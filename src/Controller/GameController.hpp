@@ -28,10 +28,10 @@ private:
     shared_ptr<EventQueue> eventQueue;
     std::mutex queueMutex;
 public:
-    GameController(shared_ptr<EventQueue> eventQueue);
+    GameController();
     void startGameInput() {input.start();}
     void stopGameInput() {input.stop();}
-    void getAction(KeyboardAction in);
+    Action getAction(KeyboardAction in);
     void applyMalusBonus(MalusBonus malBon, int target);
 
      // Getters

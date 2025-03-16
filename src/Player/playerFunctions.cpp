@@ -51,7 +51,7 @@ void* Player::threadRoutineView (void* arg){
                 break;
             }
         
-            // Set socket to non-blocking mode
+            // Set socket to non-blocking mode for user interaction
             int flags = fcntl(sock, F_GETFL, 0);
             if (flags == -1) {
                 perror("fcntl F_GETFL failed");
@@ -69,17 +69,51 @@ void* Player::threadRoutineView (void* arg){
                 threadData->displayMut.unlock();
         
                 if (act == 1) { // Force start
-                    cout << "act = 1" << endl;
                     int sendType = MessageType::T_Menu;
                     int sendSize = sizeof(Menu);
                     Menu menu;
                     menu.action = MenuActions::A_ForceStart;
         
+                    // Send the force-start request
                     if (!sendAll(sock, &sendType, sizeof(sendType)) ||
                         !sendAll(sock, &sendSize, sizeof(sendSize)) ||
                         !sendAll(sock, &menu, sizeof(Menu))) {
                         perror("Error sending force start");
                         break;
+                    }
+        
+                    // Restore socket to blocking mode to wait for T_GameStart
+                    if (fcntl(sock, F_SETFL, flags & ~O_NONBLOCK) == -1) {
+                        perror("fcntl restore blocking failed");
+                        break;
+                    }
+        
+                    // Wait for T_GameStart message
+                    int typeRecv;
+                    int sizeRecv;
+                    int bytesReceivedType = recvAll(sock, &typeRecv, sizeof(int));
+                    if (bytesReceivedType <= 0) {
+                        perror("Error receiving T_GameStart");
+                        break;
+                    }
+                    int bytesReceivedSize = recvAll(sock, &sizeRecv, sizeof(int));
+                    if (bytesReceivedSize <= 0) {
+                        perror("Error receiving T_GameStart size");
+                        break;
+                    }
+        
+                    if (typeRecv == MessageType::T_GameStart) {
+                        break; // Exit the loop when game starts
+                    } else {
+                        // Discard unexpected messages
+                        char buffer[1024];
+                        if (sizeRecv > sizeof(buffer)) sizeRecv = sizeof(buffer); // Prevent buffer overflow
+                        recvAll(sock, buffer, sizeRecv);
+                    }
+        
+                    // Set socket back to non-blocking mode if needed
+                    if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
+                        perror("fcntl set non-blocking failed");
                     }
                 }
                 else if (act == -2) { // Refresh
@@ -108,7 +142,6 @@ void* Player::threadRoutineView (void* arg){
                     int bytesReceivedSize = recv(sock, &sizeRecv, sizeof(int), MSG_DONTWAIT);
                     if (bytesReceivedSize > 0) {
                         if (typeRecv == MessageType::T_GameStart) {
-                            cout << "Game started!" << endl;
                             break; // Exit the loop when game starts
                         }
                     }
@@ -124,10 +157,9 @@ void* Player::threadRoutineView (void* arg){
                 }
             }
         
-            // Restore socket to blocking mode
+            // Restore socket to blocking mode after exiting the loop
             if (fcntl(sock, F_SETFL, flags & ~O_NONBLOCK) == -1) {
                 perror("fcntl restore failed");
-                break;
             }
         }
 
@@ -203,7 +235,7 @@ void* Player::threadRoutineView (void* arg){
            	    if (!recvAll(sock, &gridSize, sizeof(gridSize))){return nullptr;}
 
 		if (gridSize <= 0 || gridSize > 100000) {  // juste pour detecter quand gridSize devient trop grand
-    			//std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
+    			std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
     			break;
 		}
 
@@ -213,15 +245,18 @@ void* Player::threadRoutineView (void* arg){
             
                 playersData.push_back(player);
             }            
-            if (playersData.size() <= 1){
-                threadData->displayMut.lock();
-                render.renderGames(playersData);
-                threadData->displayMut.unlock();
-                //std::cout<<"Rendered games"<<std::endl;
+            
+            threadData->displayMut.lock();
+            render.renderGames(playersData);
+            threadData->displayMut.unlock();
+            //std::cout<<"Rendered games"<<std::endl;
+            
+            /*
             }
             else {
                 render.renderGames(playersData);
             }
+            */
 
             /* todo add when royal mode is implemented
             if (gamemode == Modes::Royal_){

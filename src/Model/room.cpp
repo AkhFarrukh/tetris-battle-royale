@@ -4,7 +4,7 @@
 
 Room::Room(){}
 
-Room::Room(int sockHoster, Modes mode)
+Room::Room(int sockHoster, Modes mode, std::shared_ptr<EventQueue> hostEventQueue)
     : sockHoster(sockHoster),
       gameMode(mode),
       matchStarted(false),
@@ -19,14 +19,14 @@ Room::Room(int sockHoster, Modes mode)
     ThreadGameData thread;
     eventQueue = std::make_shared<EventQueue>();
     thread.client_fd = sockHoster;
-    thread.eventQueue = eventQueue;
+    thread.eventQueue = hostEventQueue;
     playersThread.push_back(thread);
 }
 
 Room::~Room() {
 }
 
-bool Room::addPlayer(int playerFd) {
+bool Room::addPlayer(int playerFd, std::shared_ptr<EventQueue> eq) {
     std::unique_lock<std::mutex> lock(mtx);
 
     if (matchStarted || (int)playerFds.size() >= maxPlayers) {
@@ -35,7 +35,7 @@ bool Room::addPlayer(int playerFd) {
     ThreadGameData thread;
     eventQueue = std::make_shared<EventQueue>(); //event queue different pour chaque client?
     thread.client_fd = playerFd;
-    thread.eventQueue = eventQueue;
+    thread.eventQueue = eq;
     playersThread.push_back(thread);
     playerFds.push_back(playerFd);
     std::cout << "Player joined room: fd=" << playerFd 

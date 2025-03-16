@@ -28,7 +28,7 @@ public:
      * @param minPlayers Minimum number of players required to start (3).
      * @param maxPlayers Maximum number of players in the room (9).
      */
-    Room(int sockHoster, Modes mode);
+    Room(int sockHoster, Modes mode, std::shared_ptr<EventQueue> hostEventQueue);
     Room();
 
     ~Room();
@@ -40,7 +40,7 @@ public:
      * @brief Adds a new player (by FD or ID).
      * @returns true if successfully added, false if room is full.
      */
-    bool addPlayer(int playerFd);
+    bool addPlayer(int playerFd, std::shared_ptr<EventQueue> eq);
 
 
     /**

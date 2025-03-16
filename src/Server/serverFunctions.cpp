@@ -111,7 +111,7 @@ void* Server::threadRoutineClient(void* arg){
     delete static_cast<std::shared_ptr<ThreadData>*>(arg);
 
     ThreadGameData threadGameData;
-    GameController gameController(eventQueue);
+    GameController gameController;
     Server* server = threadData->serverInstance;
     ClientSession& client = threadData->client;
 
@@ -300,7 +300,7 @@ void* Server::threadRoutineClient(void* arg){
                 */
                 else if (menu.action == MenuActions::A_CreateRoom) {
                     std::cout<<"Received CreateRoom"<<std::endl;
-                    auto r = std::make_shared<Room>(client.client_fd, menu.mode);
+                    auto r = std::make_shared<Room>(client.client_fd, menu.mode, eventQueue);
                     auto allRoom = server->roomsList;
                     server->myRoom = r;
                     allRoom->push_back(r);
@@ -402,7 +402,7 @@ void* Server::threadRoutineClient(void* arg){
                     std::cout << "No matching room or invalid ownerFd = " << ownerFd << "\n";
                 } 
                 else {
-                    if (!chosenRoom->addPlayer(client.client_fd)) {
+                    if (!chosenRoom->addPlayer(client.client_fd, eventQueue)) {
                         std::cout << "Failed to join room, maybe full or started\n";
                     } 
                     else {
@@ -434,7 +434,7 @@ void* Server::threadRoutineClient(void* arg){
                 cout<<"Input received"<<endl;
                 KeyboardAction action;
                 if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))){userIsOnline = false;}
-                gameController.getAction(action);
+                eventQueue->addEvent(make_shared<MovementActionEvent>(gameController.getAction(action)));
             }
             /************************************
             *MALUS BONUS INFO 
