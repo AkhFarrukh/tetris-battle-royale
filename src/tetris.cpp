@@ -24,6 +24,15 @@ atomic<bool> isInGame = false;
 void handle_sigint(int sig) {
    flag = true;
    if(socket_serveur != -1){
+     if(isInGame){
+         int type = MessageType::T_Input;
+         int size = sizeof(InputMessage);
+         InputMessage inputMessage;
+         inputMessage.input = EXIT_KEY;
+         sendAll(socket_serveur, &type, sizeof(int));
+         sendAll(socket_serveur, &size, sizeof(int));
+         sendAll(socket_serveur, &inputMessage, sizeof(InputMessage));
+     }
     int exitType = MessageType::T_ForcedExit;
     int size_ = sizeof(int);
     int bytesSentType = sendAll(socket_serveur, &exitType, sizeof(int));

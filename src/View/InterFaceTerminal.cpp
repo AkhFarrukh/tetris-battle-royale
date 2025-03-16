@@ -151,10 +151,10 @@ int InterfaceTerminal::handleMessageBox() {
             case 'q':
             case 'Q':
                 endwin();
-            return 0;
+            return -1;
         }
     }
-    return 0;
+    return -1;
 }
 
 void InterfaceTerminal::displayMessageNoRead(const std::string& user, const string& friendName){
@@ -287,7 +287,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         }
     }
     db.conversationClose(user_id, friend_id);
-    return 0;
+    return -1;
 }
 
 /**
@@ -380,7 +380,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                     printw("Classic Mode selected!\n");
                     refresh();
                     int act = 0;
-                    while (true){
+                    while (!flag){
                         displayMultiplayerOption(act);
                         int ch = getch();
                         switch (ch) {
@@ -413,7 +413,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                     printw("Duel Mode selected!\n");
                     refresh();
                     int act = 0;
-                    while (true){
+                    while (!flag){
                         displayMultiplayerOption(act);
                         int ch = getch();
                         switch (ch) {
@@ -446,7 +446,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                     printw("Royal Competition Mode selected!\n");
                     refresh();
                     int act = 0;
-                    while (true){
+                    while (!flag){
                         displayMultiplayerOption(act);
                         int ch = getch();
                         switch (ch) {
@@ -481,7 +481,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
            case 'q':
            case 'Q':
                endwin();
-               return 0;
+               return -1;
        }
    }
    return 0;
@@ -645,10 +645,10 @@ int InterfaceTerminal::handleFriendRequests() {
             case 'q':
             case 'Q':
                 endwin();
-            return 0;
+            return -1;
         }
     }
-    return 0;
+    return -1;
 }
 
 
@@ -707,10 +707,10 @@ int InterfaceTerminal::handleFriends() {
             case 'q':
             case 'Q':
                 endwin();
-            return 0;
+            return -1;
         }
     }
-    return 0;
+    return -1;
 }
 
 
@@ -977,11 +977,10 @@ int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
             // Si l'utilisateur sélectionne "Play", on affiche le menu des modes de jeu.
            return handleGameModeSelection(selectedOption);
            break;
-       
-       // dans les trois 'case' suivants, le programme effectue la meme chose  (parce que les fonctionnalités pas encore dispo)
+
        case 1:
            // Si l'utilisateur sélectionne "Friends", on affiche les options possibles avec les amis.
-           if(handleFriends()<0)return -1;
+           handleFriends();
            break;
 
        case 2:
@@ -990,7 +989,7 @@ int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
        break;
 
    }
-   return 0;
+   return -1;
 }
 
 
@@ -1022,7 +1021,7 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
         case 'q':
         case 'Q':
                endwin();
-            return 0;
+            return -1;
         case '\n':
         switch (selectedOption) {
         case 0:
@@ -1032,7 +1031,7 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
             printw("Friend removed !\n");
             refresh();
             napms(700);
-            return 0;
+            return -1;
         break;
         case 1:
             // Si l'utilisateur sélectionne "Send message", on envoie un message à l'ami.
@@ -1041,7 +1040,7 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
     }
   }
   }
-  return 0;
+  return -1;
 }
 
 /**
