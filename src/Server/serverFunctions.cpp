@@ -230,13 +230,13 @@ void* Server::threadRoutineClient(void* arg){
     /***********************************************************************************
     *                     SUCCESSFUL LOGIN, STARTING LISTENING LOOP
     ***********************************************************************************/
-    pthread_t threadGamePID = 0;
+    pthread_t threadGamePID;
     if (successfulLogin){
         // Get user ID and insert user into sessions table
         server->udbm.setLogin(client.userId);
         server->udbm.addSession(client.userId, client.client_fd);
 
-        
+
         // Keep looking for any message sent by the user to the server
         // Using bool "UserIsOnline" for better readability of while loop
 
@@ -251,14 +251,14 @@ void* Server::threadRoutineClient(void* arg){
             //To have info on the data received
             int type = {0};
             int size = {0};
-            
+
 
             //Receiving info from client
             if (!recvAll(client.client_fd, &type, sizeof(int))){userIsOnline = false;}
             if (!recvAll(client.client_fd, &size, sizeof(int))){userIsOnline = false;}
 
             /************************************
-            *MENU INFO 
+            *MENU INFO
             */
             if(type == MessageType::T_Menu){
                 if (size != sizeof(Menu)) {
@@ -269,22 +269,22 @@ void* Server::threadRoutineClient(void* arg){
                 if (!recvAll(client.client_fd, &menu, sizeof(Menu))){userIsOnline = false;}
 
                 /************************************
-                *PLAY ENDLESS INFO 
+                *PLAY ENDLESS INFO
                 */
                 else if (menu.action == MenuActions::A_Play) {
                     cout<<"Play received"<<endl;
                     if (menu.mode == Modes::Endless_) {
-                        
+
                         std::cout << "Client wants Endless mode\n";
 
                         threadGameData.client_fd = client.client_fd;
                         threadGameData.eventQueue = eventQueue;
                         std::vector<ThreadGameData> data;
                         data.push_back(threadGameData);
-                        
+
                         std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_);
                         auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
-                        pthread_t threadGamePID = 0;
+                        pthread_t threadGamePID;
                         if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
                             perror("Error on thread creation for game : ");
                             server->udbm.removeSession(client.userId);
@@ -296,7 +296,7 @@ void* Server::threadRoutineClient(void* arg){
                     //autre mode
                 }
                 /************************************
-                *CREATE ROOM INFO 
+                *CREATE ROOM INFO
                 */
                 else if (menu.action == MenuActions::A_CreateRoom) {
                     std::cout<<"Received CreateRoom"<<std::endl;
@@ -305,12 +305,12 @@ void* Server::threadRoutineClient(void* arg){
                     server->myRoom = r;
                     allRoom->push_back(r);
                     std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
-                
+
                     RoomInfo info;
                     info.roomID = r->getRoomID();
                     info.currentPlayersCount = r->getPlayerCount();
                     info.isStarted = r->isStarted();
-                
+
                     int typeToSend = MessageType::T_RoomInfo;
                     int sizeToSend = sizeof(RoomInfo);
                     if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
@@ -318,7 +318,7 @@ void* Server::threadRoutineClient(void* arg){
                     if (!sendAll(client.client_fd, &info, sizeToSend)){userIsOnline = false;}
                 }
                 /************************************
-                *GET ROOM INFO 
+                *GET ROOM INFO
                 */
                 else if (menu.action == MenuActions::A_JoinRoom) {
                     cout<<"JoinRoom received"<<endl;
@@ -340,8 +340,8 @@ void* Server::threadRoutineClient(void* arg){
                     if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
                     if (!sendAll(client.client_fd, &nbRooms, sizeof(nbRooms))){userIsOnline = false;}
                     if (!sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo))){userIsOnline = false;}
-                }  
-                
+                }
+
                 else if (menu.action == MenuActions::A_ForceStart) {
                     auto room = server->myRoom;
                     if (room->checkGameReady()){
@@ -352,7 +352,7 @@ void* Server::threadRoutineClient(void* arg){
                         cout<<"Doing ptrwrapper"<<endl;
                         auto* gamePtrWrapper = new shared_ptr<Game> (gameShPtr);
                         cout <<"Creating game thread"<<endl;
-                        
+
                         if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
                             perror("Error on thread creation for game : ");
                             server->udbm.removeSession(client.userId);
@@ -365,7 +365,7 @@ void* Server::threadRoutineClient(void* arg){
                 }
             }
             /************************************
-            *REFRESH INFO 
+            *REFRESH INFO
             */
             else if (type == MessageType::T_Refresh){
                 cout<<"Refresh received"<<endl;
@@ -373,22 +373,22 @@ void* Server::threadRoutineClient(void* arg){
                 info.roomID = server->myRoom->getRoomID();
                 info.currentPlayersCount = server->myRoom->getPlayerCount();
                 info.isStarted = server->myRoom->isStarted();
-            
+
                 int typeToSend = MessageType::T_RoomInfo;
                 int sizeToSend = 1;
-            
+
                 if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
                 if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
                 if (!sendAll(client.client_fd, &info, sizeof(RoomInfo))){userIsOnline = false;}
             }
             /************************************
-            *JOIN ROOM 
+            *JOIN ROOM
             */
             else if (type == MessageType::T_Join) {
                 cout<<"Join received"<<endl;
                 int ownerFd;
                 if (!recvAll(client.client_fd, &ownerFd, size)){userIsOnline = false;}
-            
+
                 std::shared_ptr<Room> chosenRoom = nullptr;
                 for (auto &r : *server->roomsList) {
                     cout<<"Listing rooms fd"<<r->getOwnerFd()<<endl;
@@ -397,26 +397,26 @@ void* Server::threadRoutineClient(void* arg){
                         break;
                     }
                 }
-            
+
                 if (!chosenRoom) {
                     std::cout << "No matching room or invalid ownerFd = " << ownerFd << "\n";
-                } 
+                }
                 else {
                     if (!chosenRoom->addPlayer(client.client_fd, eventQueue)) {
                         std::cout << "Failed to join room, maybe full or started\n";
-                    } 
+                    }
                     else {
                         std::cout << "Client joined room with hostFd = " << chosenRoom->getOwnerFd() << std::endl;
-            
+
                         RoomInfo info;
                         info.roomID               = chosenRoom->getRoomID();
                         info.currentPlayersCount  = chosenRoom->getPlayerCount();
                         info.isStarted            = chosenRoom->isStarted();
                         info.mode                 = chosenRoom->getRoomMode();
-            
+
                         int typeToSend  = MessageType::T_RoomInfo;
                         int sizeToSend  = 1;
-            
+
                         if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
                         if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
                         if (!sendAll(client.client_fd, &info,        sizeof(RoomInfo))){userIsOnline = false;}
@@ -425,10 +425,10 @@ void* Server::threadRoutineClient(void* arg){
                     }
                 }
             }
-            
-                
+
+
             /************************************
-            *INPUT INFO 
+            *INPUT INFO
             */
             else if (type == MessageType::T_Input) {
                 cout<<"Input received"<<endl;
@@ -437,7 +437,7 @@ void* Server::threadRoutineClient(void* arg){
                 eventQueue->addEvent(make_shared<MovementActionEvent>(gameController.getAction(action)));
             }
             /************************************
-            *MALUS BONUS INFO 
+            *MALUS BONUS INFO
             */
             else if (type == MessageType::T_MalusBonus) {
                 cout<<"MalusBonus received"<<endl;
@@ -447,9 +447,9 @@ void* Server::threadRoutineClient(void* arg){
 
                 eventQueue->addEvent(make_shared<MalusBonusEvent>(malusBobo.malusB, malusBobo.target));
             }
-            
+
             /************************************
-            *FORCED EXIT INFO 
+            *FORCED EXIT INFO
             */
             else if (type == MessageType::T_ForcedExit){
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
@@ -475,9 +475,7 @@ void* Server::threadRoutineClient(void* arg){
                 /* EXIT PROPREMENT DU SERV SI DECO */
                 std::cout << "Client déconnecté : " << client.client_fd << std::endl;
                 close(client.client_fd);
-                if (threadGamePID != 0){
-                    pthread_cancel(threadGamePID);
-                }
+                pthread_cancel(threadGamePID);
                     while(server->udbm.isLoggedIn(client.username.c_str())){
                   	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
                     server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
