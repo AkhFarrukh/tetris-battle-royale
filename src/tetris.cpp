@@ -149,24 +149,28 @@ int main() {
     //std::cout << "Connecté au serveur !\n";
 
     //Game loop
-    bool playing = true;
+    bool playing = false;
+    InterfaceTerminal terminal;
+    socket_serveur = sock;
+    terminal.setSock(socket_serveur);
+    //Identification auprès de la db
+    vector<std::string> dataConnexion = terminal.handleConnexionOption();
+    if(dataConnexion.size()==2){
+        username = dataConnexion[0];
+        playing = true;
+    }
+    else{
+        std::cout << "Echec de la connexion au compte.\n";
+    }
     while(playing){
-        InterfaceTerminal terminal;
-        socket_serveur = sock;
-        terminal.setSock(socket_serveur);
-        //Identification auprès de la db
-        vector<std::string> dataConnexion = terminal.handleConnexionOption();
-        if(dataConnexion.size()==2){
-            username = dataConnexion[0];}
-        else{
-           std::cout << "Echec de la connexion au compte.\n";
-           playing = false;
-           break;
-        }
         //Getting the selected menu in terminal
         int selectedMode = terminal.start();
         if (selectedMode == -1){
             //Quit game
+            int exitType = MessageType::T_ForcedExit;
+            int size_ = sizeof(int);
+            int bytesSentType = sendAll(socket_serveur, &exitType, sizeof(int));
+            int bytesSentSize = sendAll(socket_serveur, &size_, sizeof(int));
             playing = false;
         }
         else{
