@@ -137,7 +137,6 @@ void* Player::threadRoutineView (void* arg){
                     if(!sendAll(sock, &menu, sizeof(Menu))){flag = true; break;}
 
                 } else if (act == -2) {
-                    cout << "act = -2" << endl;
                     int sendType = MessageType::T_Refresh;
                     int sendSize = sizeof(int);
 
@@ -167,6 +166,14 @@ void* Player::threadRoutineView (void* arg){
                         threadData->mux.lock();
                         threadData->userInGame = true;
                         threadData->mux.unlock();
+                        break;
+                    }
+                    else if(messageType == MessageType::T_ForcedExit){
+                        threadData->mux.lock();
+                        threadData->userInGame = false;
+                        threadData->userInLobby = false;
+                        threadData->mux.unlock();
+                        flag = true;
                         break;
                     }
                 } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
