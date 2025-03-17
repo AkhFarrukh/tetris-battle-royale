@@ -321,25 +321,7 @@ void* Server::threadRoutineClient(void* arg){
                 *GET ROOM INFO
                 */
                 else if (menu.action == MenuActions::A_JoinRoom) {
-                    cout<<"JoinRoom received"<<endl;
-                    std::vector<RoomInfo> filteredRooms;
-                    auto allRooms = server->roomsList;
-                    for (auto& r : *allRooms) {
-                        if (r->getRoomMode() == menu.mode) {
-                            RoomInfo info;
-                            info.roomID = r->getRoomID();
-                            info.currentPlayersCount = r->getPlayerCount();
-                            info.isStarted = r->isStarted();
-                            filteredRooms.push_back(info);
-                        }
-                    }
-                    cout<<"Done filtered Room"<<endl;
-
-                    MessageType typeToSend = MessageType::T_RoomsInfo;
-                    int nbRooms = (int)filteredRooms.size();
-                    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
-                    if (!sendAll(client.client_fd, &nbRooms, sizeof(nbRooms))){userIsOnline = false;}
-                    if (!sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo))){userIsOnline = false;}
+                    server->handleGetRoom(server, client, userIsOnline, menu);
                 }
 
                 else if (menu.action == MenuActions::A_ForceStart) {
@@ -518,6 +500,13 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
     }
 }
 
+/**
+ * @brief Send again all the info about the room of & to the client
+ * 
+ * @param server ptr to server
+ * @param client ClientSession struct
+ * @param userIsOnline bool handling the listening loop, true if connected to the serv 
+ */
 void Server::handleRefresh(Server* server, ClientSession& client, bool& userIsOnline){
     cout<<"Refresh received"<<endl;
     RoomInfo info;
@@ -548,4 +537,34 @@ void Server::handleForceStart(Server* server, ClientSession& client, bool& userI
             userIsOnline = false; // Stop the loop
         }
     }
+}
+
+/**
+ * @brief Will send to the client all the rooms available in the gameMode choosed
+ * 
+ * @param server ptr to server
+ * @param client ClientSession struct
+ * @param userIsOnline bool handling the listening loop, true if connected to the serv
+ * @param menu Menu struct containing the gameMode choosed  by the client
+ */
+void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu){
+    cout<<"JoinRoom received"<<endl;
+    std::vector<RoomInfo> filteredRooms;
+    auto allRooms = server->roomsList;
+    for (auto& r : *allRooms) {
+        if (r->getRoomMode() == menu.mode) {
+            RoomInfo info;
+            info.roomID = r->getRoomID();
+            info.currentPlayersCount = r->getPlayerCount();
+            info.isStarted = r->isStarted();
+            filteredRooms.push_back(info);
+        }
+    }
+    cout<<"Done filtered Room"<<endl;
+
+    MessageType typeToSend = MessageType::T_RoomsInfo;
+    int nbRooms = (int)filteredRooms.size();
+    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
+    if (!sendAll(client.client_fd, &nbRooms, sizeof(nbRooms))){userIsOnline = false;}
+    if (!sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo))){userIsOnline = false;}
 }

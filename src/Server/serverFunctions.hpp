@@ -47,6 +47,7 @@ class Server{
         void handleJoin(Server* server, ClientSession& client, bool& userIsOnline, int& size, shared_ptr<EventQueue> eventQueue);
         void handleRefresh(Server* server, ClientSession& client, bool& userIsOnline);
         void handleForceStart(Server* server, ClientSession& client, bool& userIsOnline, pthread_t& threadGamePID);
+        void handleGetRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu);
 
 
 
