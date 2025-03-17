@@ -38,12 +38,12 @@ void RenderRooms::listRooms(const std::vector<RoomInfo>& roomsInfo, int highligh
         
         if (i == highlightIndex) {
             attron(A_STANDOUT);
-            printw("-> RoomID = %d, players = %d, started = %s\n",
+            printw("-> RoomID=%d, players=%d, started=%s\n",
                    r.roomID, r.currentPlayersCount,
                    (r.isStarted ? "YES" : "NO"));
             attroff(A_STANDOUT);
         } else {
-            printw("   RoomID = %d, players = %d, started = %s\n",
+            printw("   RoomID=%d, players=%d, started=%s\n",
                    r.roomID, r.currentPlayersCount,
                    (r.isStarted ? "YES" : "NO"));
         }
@@ -52,10 +52,9 @@ void RenderRooms::listRooms(const std::vector<RoomInfo>& roomsInfo, int highligh
     printw("\nUse UP/DOWN to navigate, [ENTER] to select, [r] to refresh, [q] to cancel.\n");
     refresh();
 }
-    
+
 
 int RenderRooms::handleMyRoom(const RoomInfo room) {
-    while(!flag){
     myRoom(room);
     int ch = getch();
     switch (ch) {
@@ -68,14 +67,14 @@ int RenderRooms::handleMyRoom(const RoomInfo room) {
             return -2;
         default:
             break;
-    }}
+    }
     return -3;
 }
 
 
 int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms) {
     int highlightIndex = 0;
-    while(!flag){
+
     listRooms(rooms, highlightIndex);
 
     int ch = getch();
@@ -91,7 +90,7 @@ int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms) {
             }
             break;
         case '\n':
-            if((int)rooms.size() > 0)return highlightIndex;
+            return highlightIndex;
         case 'q':
         case 'Q':
             return -1;
@@ -100,6 +99,6 @@ int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms) {
         default:
             break;
     }
-}
+
 return -3;
 }
