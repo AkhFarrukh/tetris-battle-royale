@@ -35,7 +35,7 @@ void InterfaceTerminal::initNcurses() {
    curs_set(0);
    nodelay(stdscr, TRUE);
    start_color();
-   init_pair(7, COLOR_BLACK, COLOR_WHITE);  // Texte noir sur fond blanc
+   init_pair(8, COLOR_BLACK, COLOR_WHITE);  // Texte noir sur fond blanc
 
    if (has_colors() && can_change_color()) {
        use_default_colors();
@@ -46,6 +46,8 @@ void InterfaceTerminal::initNcurses() {
    init_pair(4, COLOR_BLUE, -1);
    init_pair(5, COLOR_MAGENTA, -1);
    init_pair(6, COLOR_CYAN, -1);
+   init_color(8, 500, 0, 500);
+   init_pair(7, 8, -1);
 }
 
 
@@ -72,9 +74,9 @@ void InterfaceTerminal::displayMenu(int selectedOption) const {
    
    for (int i = 0; i < numberPossibleOptions; ++i) {
        if (i == selectedOption) {
-           attron(COLOR_PAIR(7));    // activer couleur noir sur blanc pour option selected
+           attron(COLOR_PAIR(8));    // activer couleur noir sur blanc pour option selected
            printw("-> %d. %s\n", i + 1, menuOptions[i]);
-           attroff(COLOR_PAIR(7));
+           attroff(COLOR_PAIR(8));
        } else {
            printw("   %d. %s\n", i + 1, menuOptions[i]);
        }
@@ -305,9 +307,9 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
    
    for (int i = 0; i < numberModePossible; ++i) {
        if (i == selectedMode) {
-           attron(COLOR_PAIR(7));   // activer couleur noir sur blanc pour mode selectionné
+           attron(COLOR_PAIR(8));   // activer couleur noir sur blanc pour mode selectionné
            printw("-> %d. %s", i + 1, modeNames[i]);
-           attroff(COLOR_PAIR(7));
+           attroff(COLOR_PAIR(8));
        } else {
            printw("   %d. %s", i + 1, modeNames[i]);
        }
@@ -324,9 +326,9 @@ void InterfaceTerminal::displayMultiplayerOption(int selectedMode) const {
     const char* subActions[] = { "Create a room", "Join a room"};
     for (int j = 0; j < 2; ++j) {
         if (j == action) {
-            attron(COLOR_PAIR(7));
+            attron(COLOR_PAIR(8));
             printw("-> %s\n", subActions[j]);
-            attroff(COLOR_PAIR(7));
+            attroff(COLOR_PAIR(8));
         }
         else {
             printw("   %s\n", subActions[j]);
