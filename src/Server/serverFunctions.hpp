@@ -42,7 +42,7 @@ class Server{
         std::condition_variable cv;
         bool userIsInLobby = false;
 
-        /* Fonctions handling the different message received from the client */
+        /* Methods handling the different message received from the client */
         void handleDisconnect(Server* server, ClientSession& client, pthread_t& threadPID);
         void handleForcedExit(Server* server, ClientSession& client);
         void handleJoin(Server* server, ClientSession& client, bool& userIsOnline, int& size, shared_ptr<EventQueue> eventQueue);
@@ -60,11 +60,15 @@ class Server{
         Server();
         UserDatabaseManager udbm;
         int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen);
-        void broadcastMessage(const std::string& message, int sender_fd);
         void broadcastMessage(const char* buffer, const std::string& sender_username);
         static void* threadRoutineClient(void* arg);
         std::vector<ClientSession> getClients(){return clients;}
         static void* threadRoutineGame(void* arg);
+
+        /* Login Methods */
+        void notifySuccessfulLogin(Server* server, ClientSession& client, Connexion& connexion, string& username, 
+                        bool& successfulLogin, int& typeConnexion, int& doubleSession, bool& flagConnexion);
+
 };
 
 #endif  // SERVERFUNCTIONS_HPP

@@ -145,22 +145,7 @@ void* Server::threadRoutineClient(void* arg){
         int typeConnexion;
         int doubleSession;
         if(successfulLogin){
-            typeConnexion = MessageType::T_AcceptConnexion;
-            int user_id = server->udbm.getUserId(username.c_str());
-            bool doubleSession_ = server->udbm.isUserInSession(user_id);
-            if(doubleSession_){successfulLogin = false;doubleSession = MessageType::T_RefuseConnexion;}
-            else{
-                doubleSession = MessageType::T_AcceptConnexion;
-                client.userId = user_id;
-                client.username = connexionData.username;
-                client.password = connexionData.password;
-                flagConnexion = false;
-            }
-            int size_ = sizeof(int);
-            int bytesSentType = sendAll(client.client_fd, &typeConnexion, sizeof(int));
-            int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
-            bytesSentType = sendAll(client.client_fd, &doubleSession, sizeof(int));
-            bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+            server->notifySuccessfulLogin(server, client, connexionData, username, successfulLogin, typeConnexion, doubleSession, flagConnexion);
         }
         else{
             type = MessageType::T_RefuseConnexion;
@@ -208,18 +193,7 @@ void* Server::threadRoutineClient(void* arg){
         }
 
         else if(type == MessageType::T_ForcedExit || type == MessageType::T_Exit){
-            std::cout << "Client déconnecté : " << client.client_fd << std::endl;
-            close(client.client_fd);
-            server->clientMutex.lock();
-            auto it = std::find_if(server->clients.begin(), server->clients.end(),
-                                   [&client](const ClientSession& c) {
-                                   return c.client_fd == client.client_fd;
-                                   });
-            if (it != server->clients.end()) {
-                server->clients.erase(it);
-            }
-            server->clientMutex.unlock();
-            return nullptr;
+            server->handleForcedExit(server, client);
         }
         else{
             std::cout << "Mauvais type de confidentials" << std::endl;
@@ -333,6 +307,11 @@ void* Server::threadRoutineClient(void* arg){
     return nullptr;
 }
 
+
+
+/***********************************************************************************
+ *                  METHODS HANDLING MESSAGES FROM THE CLIENT
+ ***********************************************************************************/
 /**
  * @brief Routine avec Game() qui tourne
  * 
@@ -575,4 +554,25 @@ void Server::handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<E
     KeyboardAction action;
     if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))){userIsOnline = false;}
     eventQueue->addEvent(make_shared<MovementActionEvent>(gameController.getAction(action)));
+}
+
+
+void Server::notifySuccessfulLogin(Server* server, ClientSession& client, Connexion& connexionData, string& username, 
+                                        bool& successfulLogin, int& typeConnexion, int& doubleSession, bool& flagConnexion){
+    typeConnexion = MessageType::T_AcceptConnexion;
+    int user_id = server->udbm.getUserId(username.c_str());
+    bool doubleSession_ = server->udbm.isUserInSession(user_id);
+    if(doubleSession_){successfulLogin = false;doubleSession = MessageType::T_RefuseConnexion;}
+    else{
+        doubleSession = MessageType::T_AcceptConnexion;
+        client.userId = user_id;
+        client.username = connexionData.username;
+        client.password = connexionData.password;
+        flagConnexion = false;
+    }
+    int size_ = sizeof(int);
+    int bytesSentType = sendAll(client.client_fd, &typeConnexion, sizeof(int));
+    int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+    bytesSentType = sendAll(client.client_fd, &doubleSession, sizeof(int));
+    bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
 }
