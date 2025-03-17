@@ -9,19 +9,15 @@
  * @return void* 
  */
 void* Player::threadRoutineView (void* arg){
-
     //std::cout<<"Starting threadRoutineView"<<std::endl;
     Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
-
     int sock = threadData->socket;
-
-
-    //pr l'instant
     RenderEngineNcurses render;
-    //std::cout<<"Starting threadRoutineView loop"<<std::endl;
-    //clear();
-    //refresh();
-    while (threadData->userInGame && !flag) {
+    while (!flag) {
+        threadData->mux.lock();
+        bool inGame = threadData->userInGame;
+        threadData->mux.unlock();
+        if(inGame){
         //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
         //To have info on the data received
         int type;
@@ -36,6 +32,8 @@ void* Player::threadRoutineView (void* arg){
             threadData->mux.lock();
             threadData->userInGame = false; // Stop the loop
             threadData->mux.unlock();
+            flag = true;
+            break;
         }
         else if(type == MessageType::T_Exit){
             threadData->mux.lock();
@@ -273,6 +271,24 @@ void* Player::threadRoutineView (void* arg){
             */
         }
     }
+    else{ //joueur n'est pas en game
+        int type_;
+        int size_;
+        if(!recvAll(sock, &type_, sizeof(int))){
+            flag = true;
+            break;
+        }
+        if(!recvAll(sock, &size_, sizeof(int))){
+            flag = true;
+            break;
+        }
+        if (type_ == MessageType::T_ForcedExit){
+            flag = true;
+            break;
+        }
+    }
+    }
+
 return 0;
 }
 
