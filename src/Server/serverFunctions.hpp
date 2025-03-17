@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <csignal>
 
+class GameController;
 
 class Server{
     private:

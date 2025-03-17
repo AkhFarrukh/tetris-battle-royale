@@ -537,13 +537,13 @@ void Server::handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<E
 }
 
 /**
- * @brief 
+ * @brief Notify player if the login has been successful or not
  * 
- * @param server 
- * @param client 
- * @param connexionData 
- * @param username 
- * @param successfulLogin 
+ * @param server ptr to server
+ * @param client ClientSession struct
+ * @param connexionData Connexion struct, containing info bout connexion
+ * @param username string containing the username entered
+ * @param successfulLogin bool set to true or false depending on login issue
  * @param typeConnexion 
  * @param doubleSession 
  * @param flagConnexion 
@@ -553,7 +553,10 @@ void Server::notifySuccessfulLogin(Server* server, ClientSession& client, Connex
     typeConnexion = MessageType::T_AcceptConnexion;
     int user_id = server->udbm.getUserId(username.c_str());
     bool doubleSession_ = server->udbm.isUserInSession(user_id);
-    if(doubleSession_){successfulLogin = false;doubleSession = MessageType::T_RefuseConnexion;}
+    if(doubleSession_){
+        successfulLogin = false;
+        doubleSession = MessageType::T_RefuseConnexion;
+    }
     else{
         doubleSession = MessageType::T_AcceptConnexion;
         client.userId = user_id;
@@ -568,6 +571,16 @@ void Server::notifySuccessfulLogin(Server* server, ClientSession& client, Connex
     bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
 }
 
+/**
+ * @brief Will handle the login of a client
+ * 
+ * @param server ptr to server
+ * @param client ClientSession struct
+ * @param connexionData Connexion struct, containing info bout connexion
+ * @param size size of the struc to receive
+ * @param successfulLogin bool set to true or false depending on login issue
+ * @param flagConnexion 
+ */
 void Server::handleConnexion(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion){
     if(!recvAll(client.client_fd, &connexionData, size)){
         std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
@@ -588,6 +601,16 @@ void Server::handleConnexion(Server* server, ClientSession& client, Connexion& c
     }
 }
 
+/**
+ * @brief Will handle the registering of a client
+ * 
+ * @param server ptr to server
+ * @param client ClientSession struct
+ * @param connexionData Connexion struct, containing info bout connexion
+ * @param size size of the struc to receive
+ * @param successfulLogin bool set to true or false depending on login issue
+ * @param flagConnexion 
+ */
 void Server::handleRegister(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion){
     if(!recvAll(client.client_fd, &connexionData, size)){
         std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
@@ -621,9 +644,7 @@ void Server::handleRegister(Server* server, ClientSession& client, Connexion& co
 /**
  * @brief Will send to the client RefuseConnexion message
  * 
- * @param client 
- * @param type type of message
- * @param typeConnexion 
+ * @param client ClientSession struct
  */
 void Server::notifyRefusedLogin(ClientSession& client){
     int type_ = MessageType::T_RefuseConnexion;
@@ -632,7 +653,14 @@ void Server::notifyRefusedLogin(ClientSession& client){
     int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
 }
 
-
+/**
+ * @brief Will send to the client the AcceptConnexion message and update db
+ * 
+ * @param server ptr to server
+ * @param client ClientSession struct
+ * @param connexionData Connexion struct, containing info bout connexion
+ * @param successfulLogin bool set to true or false depending on login issue
+ */
 void Server::notifyAcceptConnexion(Server* server, ClientSession& client, Connexion& connexionData, bool& successfulLogin){
     int typeRegister = MessageType::T_AcceptConnexion;
     int size_ = sizeof(int);
