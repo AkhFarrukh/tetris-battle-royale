@@ -710,36 +710,112 @@ void InterfaceTerminal::displayFriendOptions(int selectedOption) {
  * - Informe si une demande a déjà été envoyée.
  * - Si le joueur avait déjà envoyé une demande, la demande d'ami est acceptée.
 */
-void InterfaceTerminal::enterName(){
-    erase();
-    printw("Press ENTER to research the player name\nPress 'ENTER' with an empty entry to quit\n");
-    printw("\nEnter the player name : \n");
+
+
+
+void InterfaceTerminal::enterName() {
+    erase();  // Nettoyer tout l'écran AVANT d'afficher le cadre
+
+    int width = COLS;
+    int height = LINES;
+    int menuWidth = 50;
+    int menuHeight = 5;
+    int startX = (width - menuWidth) / 2;
+    int startY = (height - menuHeight) / 2;
+
     refresh();
     echo();
     curs_set(1);
     nodelay(stdscr, false);
-    int returnValue;
 
     char namePlayer[100];
 
     while (!flag) {
-        wgetnstr(stdscr,namePlayer,99);
-        if(strlen(namePlayer)==0) return;
-        if(strcmp(namePlayer, user.c_str())==0) printw("\nPlease enter a name different from yours ! \n");
-        else {
-            printw("\nResearch player... \n");
+        //erase();  // Nettoyer tout l'affichage à chaque itération
+
+        // Affichage des instructions
+        attron(COLOR_PAIR(2) | A_BOLD);
+        mvprintw(startY - 4, startX, "Press ENTER to research the player name");
+        mvprintw(startY - 3, startX, "Press 'ENTER' with an empty entry to quit");
+        attroff(COLOR_PAIR(2) | A_BOLD);
+
+        // Création du cadre pour entrer le nom
+        WINDOW* nameWindow = newwin(menuHeight, menuWidth, startY, startX);
+        box(nameWindow, 0, 0);
+        wattron(nameWindow, COLOR_PAIR(2) | A_BOLD);
+        mvwprintw(nameWindow, 0, 2, " ENTER NAME ");
+        wattroff(nameWindow, COLOR_PAIR(2) | A_BOLD);
+        wrefresh(nameWindow);
+
+        // Saisie utilisateur
+        mvwgetnstr(nameWindow, 2, 2, namePlayer, 99);
+        delwin(nameWindow);
+        refresh();
+
+        // Si l'entrée est vide, quitter et réafficher le menu des amis
+        if (strlen(namePlayer) == 0) {
+            erase();  // Effacer proprement avant de retourner au menu
+            return;
+        }
+
+        // Effacer avant d'afficher le message suivant
+        erase();
+
+        // Vérifier si le nom est celui de l'utilisateur
+        if (strcmp(namePlayer, user.c_str()) == 0) {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "Please enter a name different from yours!");
+            attroff(COLOR_PAIR(1) | A_BOLD);
             refresh();
-            returnValue = db.verifyRequestFriend(user, namePlayer);
-            if(returnValue==0){if(db.requestFriend(user, namePlayer))printw("\nFriend request sent ! \n");
-                                                                                          refresh();napms(1000);}
-            else if(returnValue==2) printw("\n%s is already you friend \n", namePlayer);
-            else if(returnValue==3) printw("\nYou have already sent a friend request to %s \n", namePlayer);
-            else if(returnValue==4){db.deleteRequestFriend(user, namePlayer); db.addFriend(user, namePlayer);
-              printw("\n%s had already friend-requested you, so now you are friend !\n", namePlayer);
-                                                                                         refresh();napms(1500);}
-            else printw("\nInvalid username ! \n");}
+            napms(1500);
+            continue;
+        }
+
+        // Afficher la recherche en cours
+        attron(COLOR_PAIR(2) | A_BOLD);
+        mvprintw(startY + 6, startX, "Researching player...");
+        attroff(COLOR_PAIR(2) | A_BOLD);
+        refresh();
+        napms(1000);
+
+        // Vérifier si la demande d'ami est possible
+        int returnValue = db.verifyRequestFriend(user, namePlayer);
+        erase();  // Efface tout avant d'afficher le résultat
+
+        // Afficher le résultat de la recherche
+        if (returnValue == 0) {
+            if (db.requestFriend(user, namePlayer)) {
+                attron(COLOR_PAIR(2) | A_BOLD);
+                mvprintw(startY + 6, startX, "Friend request sent!");
+                attroff(COLOR_PAIR(2) | A_BOLD);
+            }
+        } else if (returnValue == 2) {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "%s is already your friend", namePlayer);
+            attroff(COLOR_PAIR(1) | A_BOLD);
+        } else if (returnValue == 3) {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "You have already sent a request to %s", namePlayer);
+            attroff(COLOR_PAIR(1) | A_BOLD);
+        } else if (returnValue == 4) {
+            db.deleteRequestFriend(user, namePlayer);
+            db.addFriend(user, namePlayer);
+            attron(COLOR_PAIR(2) | A_BOLD);
+            mvprintw(startY + 6, startX, "%s already requested you, now you're friends!", namePlayer);
+            attroff(COLOR_PAIR(2) | A_BOLD);
+        } else {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "Invalid username!");
+            attroff(COLOR_PAIR(1) | A_BOLD);
+        }
+
+        refresh();
+        napms(1500);
+        erase();
+    }
 }
-}
+
+
 
 
 /**
