@@ -343,43 +343,14 @@ void* Server::threadRoutineClient(void* arg){
                 }
 
                 else if (menu.action == MenuActions::A_ForceStart) {
-                    auto room = server->myRoom;
-                    if (room->checkGameReady()){
-                        cout<<"gonna send the strt messages"<<endl;
-                        room->broadcastGameStart();
-                        cout<<"Asking  gmaeptr"<<endl;
-                        std::shared_ptr<Game> gameShPtr =  room->launchGame();
-                        cout<<"Doing ptrwrapper"<<endl;
-                        auto* gamePtrWrapper = new shared_ptr<Game> (gameShPtr);
-                        cout <<"Creating game thread"<<endl;
-
-                        if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
-                            perror("Error on thread creation for game : ");
-                            server->udbm.removeSession(client.userId);
-                            close(client.client_fd);
-                            userIsOnline = false; // Stop the loop
-                            break;
-                        }
-                    cout <<"Successfully launched the game"<<endl;
-                    }
+                    server->handleForceStart(server, client, userIsOnline, threadGamePID);
                 }
             }
             /************************************
             *REFRESH INFO
             */
             else if (type == MessageType::T_Refresh){
-                cout<<"Refresh received"<<endl;
-                RoomInfo info;
-                info.roomID = server->myRoom->getRoomID();
-                info.currentPlayersCount = server->myRoom->getPlayerCount();
-                info.isStarted = server->myRoom->isStarted();
-
-                int typeToSend = MessageType::T_RoomInfo;
-                int sizeToSend = 1;
-
-                if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
-                if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
-                if (!sendAll(client.client_fd, &info, sizeof(RoomInfo))){userIsOnline = false;}
+                server->handleRefresh(server, client, userIsOnline);
             }
             /************************************
             *JOIN ROOM
@@ -387,8 +358,6 @@ void* Server::threadRoutineClient(void* arg){
             else if (type == MessageType::T_Join) {
                 server->handleJoin(server, client, userIsOnline, size, eventQueue);
             }
-
-
             /************************************
             *INPUT INFO
             */
@@ -545,6 +514,38 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
             if (!sendAll(client.client_fd, &info,        sizeof(RoomInfo))){userIsOnline = false;}
 
             server->myRoom = chosenRoom;
+        }
+    }
+}
+
+void Server::handleRefresh(Server* server, ClientSession& client, bool& userIsOnline){
+    cout<<"Refresh received"<<endl;
+    RoomInfo info;
+    info.roomID = server->myRoom->getRoomID();
+    info.currentPlayersCount = server->myRoom->getPlayerCount();
+    info.isStarted = server->myRoom->isStarted();
+
+    int typeToSend = MessageType::T_RoomInfo;
+    int sizeToSend = 1;
+
+    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
+    if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
+    if (!sendAll(client.client_fd, &info, sizeof(RoomInfo))){userIsOnline = false;}
+}
+
+void Server::handleForceStart(Server* server, ClientSession& client, bool& userIsOnline, pthread_t& threadGamePID){
+    auto room = server->myRoom;
+    if (room->checkGameReady()){
+    room->broadcastGameStart();
+    std::shared_ptr<Game> gameShPtr =  room->launchGame();
+    auto* gamePtrWrapper = new shared_ptr<Game> (gameShPtr);
+    cout <<"Creating game thread"<<endl;
+
+    if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
+            perror("Error on thread creation for game : ");
+            server->udbm.removeSession(client.userId);
+            close(client.client_fd);
+            userIsOnline = false; // Stop the loop
         }
     }
 }
