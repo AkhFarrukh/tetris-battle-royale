@@ -132,21 +132,23 @@ void* Player::threadRoutineView (void* arg){
                     Menu menu;
                     menu.action = MenuActions::A_ForceStart;
 
-                    if(!sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
-                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
-                    if(!sendAll(sock, &menu, sizeof(Menu))){return nullptr;}
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+                    if(!sendAll(sock, &menu, sizeof(Menu))){flag = true; break;}
 
                 } else if (act == -2) {
                     cout << "act = -2" << endl;
                     int sendType = MessageType::T_Refresh;
                     int sendSize = sizeof(int);
-                    int useless = 0;
 
-                    if(!sendAll(sock, &sendType, sizeof(sendType))){return nullptr;}
-                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){return nullptr;}
-                    if(!sendAll(sock, &useless, sizeof(int))){return nullptr;}
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
                     break;
                 } else if (act == -1) {
+                    int sendType = MessageType::T_RoomDeleted;
+                    int sendSize = sizeof(int);
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
                     threadData->mux.lock();
                     threadData->userInLobby = false;
                     threadData->mux.unlock();
