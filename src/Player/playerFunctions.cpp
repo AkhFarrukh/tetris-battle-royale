@@ -40,192 +40,6 @@ void* Player::threadRoutineView (void* arg){
             threadData->userInGame = false;
             threadData->mux.unlock();
         }
-
-        else if (type == MessageType::T_RoomInfo) {
-            RenderRooms renderR;
-            RoomInfo info;
-            if (!recvAll(sock, &info, size)) {
-                perror("Error on receiving room");
-                break;
-            }
-        
-            // Set socket to non-blocking mode for user interaction
-            int flags = fcntl(sock, F_GETFL, 0);
-            if (flags == -1) {
-                perror("fcntl F_GETFL failed");
-                break;
-            }
-            if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
-                perror("fcntl F_SETFL failed");
-                break;
-            }
-        
-            int act = 0;
-            while (!flag) {
-                threadData->displayMut.lock();
-                act = renderR.handleMyRoom(info);
-                threadData->displayMut.unlock();
-        
-                if (act == 1) { // Force start
-                    int sendType = MessageType::T_Menu;
-                    int sendSize = sizeof(Menu);
-                    Menu menu;
-                    menu.action = MenuActions::A_ForceStart;
-        
-                    // Send the force-start request
-                    if (!sendAll(sock, &sendType, sizeof(sendType)) ||
-                        !sendAll(sock, &sendSize, sizeof(sendSize)) ||
-                        !sendAll(sock, &menu, sizeof(Menu))) {
-                        perror("Error sending force start");
-                        break;
-                    }
-        
-                    // Restore socket to blocking mode to wait for T_GameStart
-                    if (fcntl(sock, F_SETFL, flags & ~O_NONBLOCK) == -1) {
-                        perror("fcntl restore blocking failed");
-                        break;
-                    }
-        
-                    // Wait for T_GameStart message
-                    int typeRecv;
-                    int sizeRecv;
-                    int bytesReceivedType = recvAll(sock, &typeRecv, sizeof(int));
-                    if (bytesReceivedType <= 0) {
-                        perror("Error receiving T_GameStart");
-                        break;
-                    }
-                    int bytesReceivedSize = recvAll(sock, &sizeRecv, sizeof(int));
-                    if (bytesReceivedSize <= 0) {
-                        perror("Error receiving T_GameStart size");
-                        break;
-                    }
-        
-                    if (typeRecv == MessageType::T_GameStart) {
-                        break; // Exit the loop when game starts
-                    } else {
-                        // Discard unexpected messages
-                        char buffer[1024] = {0};
-                        if (sizeRecv > sizeof(buffer)) sizeRecv = sizeof(buffer); // Prevent buffer overflow
-                        recvAll(sock, buffer, sizeRecv);
-                    }
-        
-                    // Set socket back to non-blocking mode if needed
-                    if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
-                        perror("fcntl set non-blocking failed");
-                    }
-                }
-                else if (act == -2) { // Refresh
-                    cout << "act = -2" << endl;
-                    int sendType = MessageType::T_Refresh;
-                    int sendSize = sizeof(int);
-                    int useless = 0;
-        
-                    if (!sendAll(sock, &sendType, sizeof(sendType)) ||
-                        !sendAll(sock, &sendSize, sizeof(sendSize)) ||
-                        !sendAll(sock, &useless, sizeof(int))) {
-                        perror("Error sending refresh");
-                        break;
-                    }
-                    break; // Exit after refresh
-                }
-                else if (act == -1) { // Exit
-                    return nullptr;
-                }
-        
-                // Check for incoming messages without blocking
-                int typeRecv;
-                int sizeRecv;
-                int bytesReceivedType = recv(sock, &typeRecv, sizeof(int), MSG_DONTWAIT);
-                if (bytesReceivedType > 0) {
-                    int bytesReceivedSize = recv(sock, &sizeRecv, sizeof(int), MSG_DONTWAIT);
-                    if (bytesReceivedSize > 0) {
-                        if (typeRecv == MessageType::T_GameStart) {
-                            break; // Exit the loop when game starts
-                        }
-                    }
-                }
-                else if (bytesReceivedType == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-                    // No data available, continue looping
-                    std::this_thread::sleep_for(std::chrono::milliseconds(10)); // Prevent tight loop
-                }
-                else {
-                    // Error or disconnection
-                    perror("Error receiving message");
-                    break;
-                }
-            }
-        
-            // Restore socket to blocking mode after exiting the loop
-            if (fcntl(sock, F_SETFL, flags & ~O_NONBLOCK) == -1) {
-                perror("fcntl restore failed");
-            }
-        }
-
-        else if (type == MessageType::T_RoomsInfo){
-            RenderRooms renderR;
-            std::vector<RoomInfo> roomsInfo;
-            roomsInfo.resize(size);
-            if (!recvAll(sock, roomsInfo.data(), size *sizeof(RoomInfo)))
-            {
-                break;
-            }
-            clear();
-            printw("Got it !");
-            refresh();
-            int index = -3;
-            while (true) {
-                threadData->displayMut.lock();
-                index = renderR.handleListRooms(roomsInfo);
-                threadData->displayMut.unlock();
-                if (roomsInfo.empty()) { // un solution pour le crache quand 0 rooms, mais j'ai pas testé 
-                    refresh();
-                    while (true) {
-                        int ch = getch();
-                        if (ch == 'q' || ch == 'Q') break;
-                    }
-                }
-                if (index == -3) {
-                    continue;
-                }
-                if ((index != -2) && (index != -1)) {
-                    int chosenIndex = index; 
-                    int typeToSend = MessageType::T_Join;
-                    int sizeToSend = sizeof(int);
-                    int fd = roomsInfo[index].roomID;
-
-                    if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {return nullptr;}
-                    if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {return nullptr;}
-                    if (!sendAll(sock, &fd, sizeof(int))) {return nullptr;}
-                    break;
-                }
-                if (index == -2) {
-                    int type = MessageType::T_Menu;
-                    int size = sizeof(Menu);
-                    Menu menu;
-                    menu.mode = roomsInfo[0].mode; // quand 0 room existe cette ligne vas causer un crache 
-                    menu.action = MenuActions::A_JoinRoom;
-                    
-
-                    if(sendAll(sock, &type, sizeof(int)) == false){
-                        perror("Error sending menu info : ");
-                        return 0;
-                    }
-                    if(sendAll(sock, &size, sizeof(int)) == false){
-                        perror("Error sending menu info : ");
-                        return 0;
-                    }
-                    if(sendAll(sock, &menu, sizeof(Menu)) == false){
-                        perror("Error sending menu info : ");
-                        return 0;
-                    }
-                    break;
-                }
-                if (index == -1) {
-                    return 0;
-                }
-            }
-            
-        }
         else if(type == MessageType::T_PlayerData){
             vector<NetPlayerData> playersData;
             for (int i = 0; i < size; ++i) {
@@ -286,6 +100,141 @@ void* Player::threadRoutineView (void* arg){
             flag = true;
             break;
         }
+        else if (type_ == MessageType::T_RoomInfo) {
+            RenderRooms renderR;
+            RoomInfo info;
+            if (!recvAll(sock, &info, size_)) {
+                flag = true;
+                perror("Error on receiving room");
+                break;
+            }
+            int act = renderR.handleMyRoom(info);
+
+            if (act == 1) { // Force start
+                int sendType = MessageType::T_Menu;
+                int sendSize = sizeof(Menu);
+                Menu menu;
+                menu.action = MenuActions::A_ForceStart;
+
+                // Send the force-start request
+                if (!sendAll(sock, &sendType, sizeof(sendType)) ||
+                    !sendAll(sock, &sendSize, sizeof(sendSize)) ||
+                    !sendAll(sock, &menu, sizeof(Menu))) {
+                    perror("Error sending force start");
+                    break;
+                }
+                // Wait for T_GameStart message
+                int typeRecv;
+                int sizeRecv;
+                int bytesReceivedType = recvAll(sock, &typeRecv, sizeof(int));
+                if (bytesReceivedType <= 0) {
+                    perror("Error receiving T_GameStart");
+                    break;
+                }
+                int bytesReceivedSize = recvAll(sock, &sizeRecv, sizeof(int));
+                if (bytesReceivedSize <= 0) {
+                    perror("Error receiving T_GameStart size");
+                    break;
+                }
+
+                if (typeRecv == MessageType::T_GameStart) {
+                    printf("\nGame launch...\n");
+                    threadData->mux.lock();
+                    threadData->userInGame = true;
+                    threadData->mux.unlock();
+
+                    break; // Exit the loop when game starts
+                } else {
+                    // Discard unexpected messages
+                    char buffer[1024] = {0};
+                    if (sizeRecv > sizeof(buffer)) sizeRecv = sizeof(buffer); // Prevent buffer overflow
+                    recvAll(sock, buffer, sizeRecv);
+                }
+            }
+            else if (act == -2) { // Refresh
+                int sendType = MessageType::T_Refresh;
+                int sendSize = sizeof(int);
+                int useless = 0;
+
+                if (!sendAll(sock, &sendType, sizeof(sendType)) ||
+                    !sendAll(sock, &sendSize, sizeof(sendSize)) ||
+                    !sendAll(sock, &useless, sizeof(int))) {
+                    perror("Error sending refresh");
+                    break;
+                }
+                break; // Exit after refresh
+            }
+            else if (act == -1) { // Exit
+               threadData->userInLobby = false;
+            }
+
+        }
+
+        else if (type_ == MessageType::T_RoomsInfo){
+            RenderRooms renderR;
+            std::vector<RoomInfo> roomsInfo;
+            roomsInfo.resize(size_);
+            if (!recvAll(sock, roomsInfo.data(), size_ *sizeof(RoomInfo)))
+            {
+                break;
+            }
+            clear();
+            printw("Got it !");
+            refresh();
+            int index = -3;
+            while (true) {
+                threadData->displayMut.lock();
+                index = renderR.handleListRooms(roomsInfo);
+                threadData->displayMut.unlock();
+                if (roomsInfo.empty()) { // un solution pour le crache quand 0 rooms, mais j'ai pas testé
+                    refresh();
+                    while (true) {
+                        int ch = getch();
+                        if (ch == 'q' || ch == 'Q') break;
+                    }
+                }
+                if (index == -3) {
+                    continue;
+                }
+                if ((index != -2) && (index != -1)) {
+                    int chosenIndex = index;
+                    int typeToSend = MessageType::T_Join;
+                    int sizeToSend = sizeof(int);
+                    int fd = roomsInfo[index].roomID;
+
+                    if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {/*return nullptr;*/}
+                    if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {/*return nullptr;*/}
+                    if (!sendAll(sock, &fd, sizeof(int))) {/*return nullptr;*/}
+                    break;
+                }
+                if (index == -2) {
+                    int type = MessageType::T_Menu;
+                    int size = sizeof(Menu);
+                    Menu menu;
+                    menu.mode = roomsInfo[0].mode; // quand 0 room existe cette ligne vas causer un crache
+                    menu.action = MenuActions::A_JoinRoom;
+
+
+                    if(sendAll(sock, &type, sizeof(int)) == false){
+                        perror("Error sending menu info : ");
+                        return 0;
+                    }
+                    if(sendAll(sock, &size, sizeof(int)) == false){
+                        perror("Error sending menu info : ");
+                        return 0;
+                    }
+                    if(sendAll(sock, &menu, sizeof(Menu)) == false){
+                        perror("Error sending menu info : ");
+                        return 0;
+                    }
+                    break;
+                }
+                if (index == -1) {
+                    return 0;
+                }
+            }
+
+        }
     }
     }
 
@@ -302,11 +251,18 @@ return 0;
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
-    while (!flag) {
+    threadData->mux.lock();
+    bool inLobby = threadData->userInLobby;
+    threadData->mux.unlock();
+    while (!flag && inLobby) {
+        threadData->mux.lock();
         bool keepRunning = threadData->userInGame;
-        if (!keepRunning) {
+        inLobby = threadData->userInLobby;
+        threadData->mux.unlock();
+        if (!keepRunning && !inLobby) {
             break;
         }
+        else if(inLobby)continue;
         threadData->displayMut.lock();
         KeyboardAction currentAction = Input::getKeyboardInput();
         threadData->displayMut.unlock();

@@ -171,6 +171,7 @@ int main() {
         playing = true;
         threadData->userInGame = false;
         threadData->socket = sock;
+        threadData->userInLobby = false;
         if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
             perror("Error on thread creation : ");
             close(sock); // Fermer le socket après utilisation
@@ -180,7 +181,7 @@ int main() {
     else{
         std::cout << "Echec de la connexion au compte.\n";
     }
-    while(playing){
+    while(playing && !flag){
         //Getting the selected menu in terminal
         int selectedMode = terminal.start();
         if (selectedMode == -1){
@@ -195,9 +196,6 @@ int main() {
             /*
             *SHOULD BE ELSE IF AND CHANGE DEPENDING ON MENU CLICKED
             */
-            threadData->mux.lock();
-            threadData->userInGame = true;
-            threadData->mux.unlock();
             //Ask to start a game
             int type = MessageType::T_Menu;
             int size = sizeof(Menu);
@@ -205,7 +203,10 @@ int main() {
             Menu menu;
             menu.action = MenuActions::A_Play;
             if(selectedMode == 0){
-                //menu.mode = InterfaceTerminal::modeNames[selectedMode];
+                threadData->mux.lock();
+                threadData->userInGame = true;
+                threadData->userInLobby = true;
+                threadData->mux.unlock();
                 menu.mode = Modes::Endless_;
                 napms(500);
             }
@@ -246,12 +247,13 @@ int main() {
                 perror("Error sending menu info : ");
                 return 1;
             }
-
+            threadData->mux.lock();
+            threadData->userInLobby = true;
+            threadData->mux.unlock();
             /*
             *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
             */
-
-
+            /////////////////
             /*
             *LOOP GETTING INPUTS AND SENDING IT TO SERV
             */
@@ -259,6 +261,7 @@ int main() {
             Player::sendInput(threadData);
             threadData->mux.lock();
             threadData->userInGame = false;
+            threadData->userInLobby = false;
             threadData->mux.unlock();
             napms(500);
         }
