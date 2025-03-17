@@ -373,7 +373,7 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
             info.mode                 = chosenRoom->getRoomMode();
 
             int typeToSend  = MessageType::T_RoomInfo;
-            int sizeToSend  = 1;
+            int sizeToSend  = sizeof(struct RoomInfo);
 
             if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
             if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
@@ -399,7 +399,7 @@ void Server::handleRefresh(Server* server, ClientSession& client, bool& userIsOn
     info.isStarted = server->myRoom->isStarted();
 
     int typeToSend = MessageType::T_RoomInfo;
-    int sizeToSend = 1;
+    int sizeToSend = sizeof(struct RoomInfo);
 
     if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
     if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
