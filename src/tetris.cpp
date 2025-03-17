@@ -250,13 +250,6 @@ int main() {
             threadData->mux.lock();
             threadData->userInLobby = true;
             threadData->mux.unlock();
-            /*
-            *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
-            */
-            /////////////////
-            /*
-            *LOOP GETTING INPUTS AND SENDING IT TO SERV
-            */
 
             Player::sendInput(threadData);
             threadData->mux.lock();
