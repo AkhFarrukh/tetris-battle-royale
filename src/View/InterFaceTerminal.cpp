@@ -90,9 +90,9 @@ void InterfaceTerminal::initNcurses() {
     for (int i = 0; i < numberPossibleOptions; ++i) {
         if (i == selectedOption) {
             // met en evidence l'option selectionnée
-            wattron(menuWindow, COLOR_PAIR(7));   // pour activer  mise en blanc de l'option
+            wattron(menuWindow, COLOR_PAIR(8));   // pour activer  mise en blanc de l'option
             mvwprintw(menuWindow, 3 + i * 2, 2, "-> %d. %s ", i + 1, menuOptions[i]);    // ' * 2 '  pour un avoir espacer un peu plus entre options
-            wattroff(menuWindow, COLOR_PAIR(7)); 
+            wattroff(menuWindow, COLOR_PAIR(8)); 
         } else {
             mvwprintw(menuWindow, 3 + i*2 , 2, "   %d. %s ", i + 1, menuOptions[i]);
         }
@@ -936,9 +936,9 @@ int InterfaceTerminal::handleFriends() {
     for (int i = 0; i < std::size(connexionOptions); ++i) {
         
         if (i == selectedOption) {
-            wattron(connexionOptions_window, COLOR_PAIR(7));
+            wattron(connexionOptions_window, COLOR_PAIR(8));
             mvwprintw(connexionOptions_window, 5 + i*3, 2 , "-> %s",  connexionOptions[i]);
-            wattroff(connexionOptions_window, COLOR_PAIR(7));
+            wattroff(connexionOptions_window, COLOR_PAIR(8));
         } else {
             mvwprintw(connexionOptions_window, 5 + i * 3, 2, "   %s",  connexionOptions[i]);
         }
@@ -961,28 +961,6 @@ int InterfaceTerminal::handleFriends() {
 
 
 
-
-/** 
-void InterfaceTerminal::displayConnexionOption(int selectedOption) {
-    erase();
-    const char* connexionOptions[] = {
-        "Log in",
-        "Register",
-        };
-    for (int i = 0; i < std::size(connexionOptions); ++i) {
-        if(i==0) printw("If you have already an account, log in here :\n");
-        if(i==1) printw("If you don't have an account an account yet, register here :\n");
-        if (i == selectedOption) {
-            printw("-> %s",  connexionOptions[i]);
-        } else {
-            printw("   %s",  connexionOptions[i]);
-        }
-        printw("\n");
-    }
-    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    refresh();
-}
-*/
 
 
 /**
