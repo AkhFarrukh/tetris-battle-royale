@@ -35,7 +35,7 @@ void InterfaceTerminal::initNcurses() {
    curs_set(0);
    nodelay(stdscr, TRUE);
    start_color();
-   init_pair(7, COLOR_BLACK, COLOR_WHITE);  // Texte noir sur fond blanc
+   init_pair(8, COLOR_BLACK, COLOR_WHITE);  // Texte noir sur fond blanc
 
    if (has_colors() && can_change_color()) {
        use_default_colors();
@@ -46,6 +46,8 @@ void InterfaceTerminal::initNcurses() {
    init_pair(4, COLOR_BLUE, -1);
    init_pair(5, COLOR_MAGENTA, -1);
    init_pair(6, COLOR_CYAN, -1);
+   init_color(8, 500, 0, 500);
+   init_pair(7, 8, -1);
 }
 
 
@@ -72,9 +74,9 @@ void InterfaceTerminal::displayMenu(int selectedOption) const {
    
    for (int i = 0; i < numberPossibleOptions; ++i) {
        if (i == selectedOption) {
-           attron(COLOR_PAIR(7));    // activer couleur noir sur blanc pour option selected
+           attron(COLOR_PAIR(8));    // activer couleur noir sur blanc pour option selected
            printw("-> %d. %s\n", i + 1, menuOptions[i]);
-           attroff(COLOR_PAIR(7));
+           attroff(COLOR_PAIR(8));
        } else {
            printw("   %d. %s\n", i + 1, menuOptions[i]);
        }
@@ -151,10 +153,10 @@ int InterfaceTerminal::handleMessageBox() {
             case 'q':
             case 'Q':
                 endwin();
-            return 0;
+            return -1;
         }
     }
-    return 0;
+    return -1;
 }
 
 void InterfaceTerminal::displayMessageNoRead(const std::string& user, const string& friendName){
@@ -287,7 +289,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         }
     }
     db.conversationClose(user_id, friend_id);
-    return 0;
+    return -1;
 }
 
 /**
@@ -305,9 +307,9 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
    
    for (int i = 0; i < numberModePossible; ++i) {
        if (i == selectedMode) {
-           attron(COLOR_PAIR(7));   // activer couleur noir sur blanc pour mode selectionné
+           attron(COLOR_PAIR(8));   // activer couleur noir sur blanc pour mode selectionné
            printw("-> %d. %s", i + 1, modeNames[i]);
-           attroff(COLOR_PAIR(7));
+           attroff(COLOR_PAIR(8));
        } else {
            printw("   %d. %s", i + 1, modeNames[i]);
        }
@@ -324,9 +326,9 @@ void InterfaceTerminal::displayMultiplayerOption(int selectedMode) const {
     const char* subActions[] = { "Create a room", "Join a room"};
     for (int j = 0; j < 2; ++j) {
         if (j == action) {
-            attron(COLOR_PAIR(7));
+            attron(COLOR_PAIR(8));
             printw("-> %s\n", subActions[j]);
-            attroff(COLOR_PAIR(7));
+            attroff(COLOR_PAIR(8));
         }
         else {
             printw("   %s\n", subActions[j]);
@@ -380,7 +382,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                     printw("Classic Mode selected!\n");
                     refresh();
                     int act = 0;
-                    while (true){
+                    while (!flag){
                         displayMultiplayerOption(act);
                         int ch = getch();
                         switch (ch) {
@@ -413,7 +415,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                     printw("Duel Mode selected!\n");
                     refresh();
                     int act = 0;
-                    while (true){
+                    while (!flag){
                         displayMultiplayerOption(act);
                         int ch = getch();
                         switch (ch) {
@@ -446,7 +448,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
                     printw("Royal Competition Mode selected!\n");
                     refresh();
                     int act = 0;
-                    while (true){
+                    while (!flag){
                         displayMultiplayerOption(act);
                         int ch = getch();
                         switch (ch) {
@@ -481,7 +483,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
            case 'q':
            case 'Q':
                endwin();
-               return 0;
+               return -1;
        }
    }
    return 0;
@@ -645,10 +647,10 @@ int InterfaceTerminal::handleFriendRequests() {
             case 'q':
             case 'Q':
                 endwin();
-            return 0;
+            return -1;
         }
     }
-    return 0;
+    return -1;
 }
 
 
@@ -707,10 +709,10 @@ int InterfaceTerminal::handleFriends() {
             case 'q':
             case 'Q':
                 endwin();
-            return 0;
+            return -1;
         }
     }
-    return 0;
+    return -1;
 }
 
 
@@ -977,11 +979,10 @@ int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
             // Si l'utilisateur sélectionne "Play", on affiche le menu des modes de jeu.
            return handleGameModeSelection(selectedOption);
            break;
-       
-       // dans les trois 'case' suivants, le programme effectue la meme chose  (parce que les fonctionnalités pas encore dispo)
+
        case 1:
            // Si l'utilisateur sélectionne "Friends", on affiche les options possibles avec les amis.
-           if(handleFriends()<0)return -1;
+           handleFriends();
            break;
 
        case 2:
@@ -990,7 +991,7 @@ int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
        break;
 
    }
-   return 0;
+   return -1;
 }
 
 
@@ -1022,7 +1023,7 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
         case 'q':
         case 'Q':
                endwin();
-            return 0;
+            return -1;
         case '\n':
         switch (selectedOption) {
         case 0:
@@ -1032,7 +1033,7 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
             printw("Friend removed !\n");
             refresh();
             napms(700);
-            return 0;
+            return -1;
         break;
         case 1:
             // Si l'utilisateur sélectionne "Send message", on envoie un message à l'ami.
@@ -1041,7 +1042,7 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
     }
   }
   }
-  return 0;
+  return -1;
 }
 
 /**

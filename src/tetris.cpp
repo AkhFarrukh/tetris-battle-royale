@@ -24,6 +24,15 @@ atomic<bool> isInGame = false;
 void handle_sigint(int sig) {
    flag = true;
    if(socket_serveur != -1){
+     if(isInGame){
+         int type = MessageType::T_Input;
+         int size = sizeof(InputMessage);
+         InputMessage inputMessage;
+         inputMessage.input = EXIT_KEY;
+         sendAll(socket_serveur, &type, sizeof(int));
+         sendAll(socket_serveur, &size, sizeof(int));
+         sendAll(socket_serveur, &inputMessage, sizeof(InputMessage));
+     }
     int exitType = MessageType::T_ForcedExit;
     int size_ = sizeof(int);
     int bytesSentType = sendAll(socket_serveur, &exitType, sizeof(int));
@@ -140,33 +149,47 @@ int main() {
         close(sock);
         return 1;
     }
-    pthread_t threadLecture;
+    /*pthread_t threadLecture;
     if (pthread_create(&threadLecture, nullptr, readServer, &sock)!=0) {
             perror("error creation thread");
             return -1;
-        }
+        }*/
 
     //std::cout << "Connecté au serveur !\n";
 
+    pthread_t threadID;
+    std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
     //Game loop
-    bool playing = true;
-    while(playing){
-        InterfaceTerminal terminal;
-        socket_serveur = sock;
-        terminal.setSock(socket_serveur);
-        //Identification auprès de la db
-        vector<std::string> dataConnexion = terminal.handleConnexionOption();
-        if(dataConnexion.size()==2){
-            username = dataConnexion[0];}
-        else{
-           std::cout << "Echec de la connexion au compte.\n";
-           playing = false;
-           break;
+    bool playing = false;
+    InterfaceTerminal terminal;
+    socket_serveur = sock;
+    terminal.setSock(socket_serveur);
+    //Identification auprès de la db
+    vector<std::string> dataConnexion = terminal.handleConnexionOption();
+    if(dataConnexion.size()==2){
+        username = dataConnexion[0];
+        playing = true;
+        threadData->userInGame = false;
+        threadData->socket = sock;
+        threadData->userInLobby = false;
+        if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
+            perror("Error on thread creation : ");
+            close(sock); // Fermer le socket après utilisation
+            return 0;
         }
+    }
+    else{
+        std::cout << "Echec de la connexion au compte.\n";
+    }
+    while(playing && !flag){
         //Getting the selected menu in terminal
         int selectedMode = terminal.start();
         if (selectedMode == -1){
             //Quit game
+            int exitType = MessageType::T_ForcedExit;
+            int size_ = sizeof(int);
+            int bytesSentType = sendAll(socket_serveur, &exitType, sizeof(int));
+            int bytesSentSize = sendAll(socket_serveur, &size_, sizeof(int));
             playing = false;
         }
         else{
@@ -180,10 +203,12 @@ int main() {
             Menu menu;
             menu.action = MenuActions::A_Play;
             if(selectedMode == 0){
-                //menu.mode = InterfaceTerminal::modeNames[selectedMode];
+                threadData->mux.lock();
+                threadData->userInGame = true;
+                threadData->userInLobby = true;
+                threadData->mux.unlock();
                 menu.mode = Modes::Endless_;
                 napms(500);
-
             }
             else if(selectedMode == 10){
                 menu.mode = Modes::Classic_;
@@ -222,33 +247,22 @@ int main() {
                 perror("Error sending menu info : ");
                 return 1;
             }
+            threadData->mux.lock();
+            threadData->userInLobby = true;
+            threadData->mux.unlock();
 
-            /*
-            *LOOP RECEIVING GRID AND SHOWING IT, ON ANOTHER THREAD
-            */
-            pthread_t threadID;
-            std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
-            threadData->userInGame = true;
-	        threadData->socket = sock;
-            isInGame = true;
-            if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
-                perror("Error on thread creation : ");
-                playing = false;
-            }
-
-            /*
-            *LOOP GETTING INPUTS AND SENDING IT TO SERV
-            */
             Player::sendInput(threadData);
+            threadData->mux.lock();
+            threadData->userInGame = false;
+            threadData->userInLobby = false;
+            threadData->mux.unlock();
             napms(500);
-            pthread_join(threadID, nullptr);
-            isInGame = false;
         }
     }
 
     flag = true;//thread principal a terminé et va demander à threadLecture de se terminer.
     shutdown(sock, SHUT_RD);
-    pthread_join(threadLecture, nullptr);
+    pthread_join(threadID, nullptr);
 
     ///**********************************************************************************
     // * START GAME

@@ -52,7 +52,7 @@ void RenderRooms::listRooms(const std::vector<RoomInfo>& roomsInfo, int highligh
     printw("\nUse UP/DOWN to navigate, [ENTER] to select, [r] to refresh, [q] to cancel.\n");
     refresh();
 }
-    
+
 
 int RenderRooms::handleMyRoom(const RoomInfo room) {
     myRoom(room);

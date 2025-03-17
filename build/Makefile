@@ -1,4 +1,4 @@
-# Nom des l'exécutables finaux
+# Nom des exécutables finaux
 SERVER_TARGET := ../server.exe
 CLIENT_TARGET := ../tetris.exe
 
@@ -8,15 +8,31 @@ BUILD_DIR = ../build
 LIB_DIR = ../lib
 NCURSES_DIR = $(LIB_DIR)/ncurses-install
 SQLITE_DIR = $(LIB_DIR)/sqlite-install
-# Environment variables for compilation and linking
-export LD_LIBRARY_PATH := $(LIB_DIR):$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LD_LIBRARY_PATH)
+
+# Détection automatique de l'OS (MacOS/Linux)
+UNAME_S := $(shell uname -s)
+
+# Chemins par défaut
 LDFLAGS = -L$(NCURSES_DIR)/lib -L$(SQLITE_DIR)/lib -L$(LIB_DIR)
 INCLUDE_FLAGS = -I$(NCURSES_DIR)/include -I$(SQLITE_DIR)/include -I$(LIB_DIR)/include
+LIBS = -lncursesw -lsqlite3
+
+# Ajout spécifique pour macOS uniquement
+ifeq ($(UNAME_S),Darwin)
+	NCURSES_HOMEBREW := $(shell brew --prefix ncurses)
+	SQLITE_HOMEBREW := $(shell brew --prefix sqlite)
+
+	LDFLAGS += -L$(NCURSES_HOMEBREW)/lib -L$(SQLITE_HOMEBREW)/lib
+	INCLUDE_FLAGS += -I$(NCURSES_HOMEBREW)/include -I$(SQLITE_HOMEBREW)/include
+	export LD_LIBRARY_PATH := $(NCURSES_HOMEBREW)/lib:$(SQLITE_HOMEBREW)/lib:$(LD_LIBRARY_PATH)
+endif
+
+# Variables d'environnement
+export LD_LIBRARY_PATH := $(LIB_DIR):$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LD_LIBRARY_PATH)
 
 # Compilateur et options
 CXX = g++
 CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Player -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(SRC_DIR)/Database -I$(SRC_DIR)/Server $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
-#-fsanitize=address,undefined
 
 # Liste des fichiers source
 SERVER_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -name "tetris.cpp")
@@ -31,11 +47,11 @@ all: $(SERVER_TARGET) $(CLIENT_TARGET)
 
 # Compilation de l'exécutable server
 $(SERVER_TARGET): $(SERVER_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ -lncursesw -lsqlite3
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 # Compilation de l'exécutable client
 $(CLIENT_TARGET): $(CLIENT_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ -lncursesw -lsqlite3
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 # Compilation des fichiers objets
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp

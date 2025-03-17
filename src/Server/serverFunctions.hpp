@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <csignal>
 
+class GameController;
 
 class Server{
     private:
@@ -42,16 +43,37 @@ class Server{
         std::condition_variable cv;
         bool userIsInLobby = false;
 
+        /* Methods handling the different message received from the client */
+        void handleDisconnect(Server* server, ClientSession& client, pthread_t& threadPID);
+        void handleForcedExit(Server* server, ClientSession& client);
+        void handleJoin(Server* server, ClientSession& client, bool& userIsOnline, int& size, shared_ptr<EventQueue> eventQueue);
+        void handleRefresh(Server* server, ClientSession& client, bool& userIsOnline);
+        void handleForceStart(Server* server, ClientSession& client, bool& userIsOnline, pthread_t& threadGamePID);
+        void handleGetRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu);
+        void handleCreateRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu, shared_ptr<EventQueue> eventQueue);
+        void handlePlay(Server* server, ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, ThreadGameData& threadGameData);
+        void handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue);
+        void handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, GameController& gameController);
+        void handleConnexion(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion);
+        void handleRegister(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion);
+
+
 
     public:
         Server();
         UserDatabaseManager udbm;
         int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen);
-        void broadcastMessage(const std::string& message, int sender_fd);
         void broadcastMessage(const char* buffer, const std::string& sender_username);
         static void* threadRoutineClient(void* arg);
         std::vector<ClientSession> getClients(){return clients;}
         static void* threadRoutineGame(void* arg);
+
+        /* Login Methods */
+        void notifySuccessfulLogin(Server* server, ClientSession& client, Connexion& connexion, string& username, 
+                        bool& successfulLogin, int& typeConnexion, int& doubleSession, bool& flagConnexion);
+        void notifyRefusedLogin(ClientSession& client);
+        void notifyAcceptConnexion(Server* server, ClientSession& client, Connexion& connexionData, bool& successfulLogin); 
+        
 };
 
 #endif  // SERVERFUNCTIONS_HPP
