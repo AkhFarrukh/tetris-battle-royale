@@ -215,6 +215,9 @@ void* Server::threadRoutineClient(void* arg){
             else if (type == MessageType::T_Refresh){
                 server->handleRefresh(server, client, userIsOnline);
             }
+            else if (type == MessageType::T_RoomDeleted){
+                server->handleDeleteRoom(server, client);
+            }
             /************************************
             *JOIN ROOM
             */
@@ -476,6 +479,21 @@ void Server::handleCreateRoom(Server* server, ClientSession& client, bool& userI
     if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
     if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
     if (!sendAll(client.client_fd, &info, sizeToSend)){userIsOnline = false;}
+}
+
+void Server::handleDeleteRoom(Server* server, ClientSession& client) {
+    std::cout << "Received DeleteRoom" << std::endl;
+    auto allRooms = server->roomsList;
+    if (server->myRoom) {
+        allRooms->erase(
+            std::remove_if(allRooms->begin(), allRooms->end(),
+                [&](const std::shared_ptr<Room>& r) {
+                    return r == server->myRoom;
+                }),
+            allRooms->end()
+        );
+        server->myRoom.reset();
+    }
 }
 
 /**
