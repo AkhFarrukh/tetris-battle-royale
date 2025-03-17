@@ -86,6 +86,16 @@ void InterfaceTerminal::displayMenu(int selectedOption) const {
 }
 
 
+/**
+ * @brief Affiche la boîte de messagerie.
+ * 
+ * Méthode affiche la liste des amis de l'utilisateur et indique le nombre de messages non lus pour chacun.
+ * L'utilisateur peut naviguer dans la liste et sélectionner un ami pour ouvrir une conversation.
+ * 
+ * @param selectedOption L'option actuellement sélectionnée par l'utilisateur.
+ * @param friends Liste des amis de l'utilisateur.
+ */
+
 void InterfaceTerminal::displayMessageBox(int selectedOption, vector<string> friends) {
     erase();
     printw("Message box : \n\n");
@@ -109,6 +119,16 @@ void InterfaceTerminal::displayMessageBox(int selectedOption, vector<string> fri
 }
 
 
+
+/**
+ * @brief Gère la boîte de messagerie de l'utilisateur.
+ * 
+ * Cette fonction affiche la liste des amis de l'utilisateur et lui permet de sélectionner 
+ * un contact pour discuter via une interface ncurses. L'utilisateur peut naviguer dans la liste, 
+ * ouvrir une conversation ou quitter l'interface.
+ * 
+ * @return 0 si l'utilisateur quitte normalement, -1 en cas d'erreur lors du chat.
+ */
 
 int InterfaceTerminal::handleMessageBox() {
     int selectedOption = 0;
@@ -159,6 +179,16 @@ int InterfaceTerminal::handleMessageBox() {
     return -1;
 }
 
+
+/**
+ * @brief Affiche les messages non lus.
+ *
+ * Affiche tous les messages non lus envoyés par l'ami `friendName` à l'utilisateur `user`.
+ * Si l'affichage dépasse la taille de la fenêtre, un défilement automatique est appliqué.
+ * 
+ * @param user Nom de l'utilisateur actuel.
+ * @param friendName Nom de l'ami dont on affiche les messages non lus.
+ */
 void InterfaceTerminal::displayMessageNoRead(const std::string& user, const string& friendName){
     int user_id = db.getUserId(user.c_str());
     int friend_id = db.getUserId(friendName.c_str());
@@ -192,6 +222,19 @@ void InterfaceTerminal::displayMessageNoRead(const std::string& user, const stri
     curs_set(1);}
 }
 
+
+
+/**
+ * @brief Permet à l'utilisateur de discuter avec un ami via une interface terminal.
+ * 
+ * Cette fonction affiche la conversation avec un ami et permet d'envoyer des messages.
+ * Les messages sont envoyés immédiatement si l'ami est en ligne et dans la conversation,
+ * sinon, ils sont stockés, et on peut y avoir acces par apres.
+ * 
+ * @param user Nom de l'utilisateur.
+ * @param friendName Nom de l'ami avec qui discuter.
+ * @return 0 en cas de succès, -1 en cas d'erreur de connexion.
+ */
 
 int InterfaceTerminal::chatWith(const std::string& user, const string& friendName){
     int user_id = db.getUserId(user.c_str());
@@ -490,6 +533,18 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
 }
 
 
+
+/**
+ * @brief Gère l'affichage et l'interaction avec les demandes d'amis.
+ * 
+ * Cette fonction affiche les demandes d'amis reçues et envoyées, et permet à l'utilisateur 
+ * de naviguer dans la liste avec les flèches haut/bas. Il peut accepter, refuser ou annuler 
+ * une demande via les touches correspondantes. L'utilisateur peut également ouvrir la boîte 
+ * de messagerie ou quitter l'interface.
+ * 
+ * @return Retourne 0 si l'utilisateur quitte normalement, ou -1 en cas d'erreur lors de l'ouverture.
+ */
+
 void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> friends) {
     erase();
     printw("Friends list : \n\n");
@@ -535,6 +590,17 @@ void InterfaceTerminal::displayFriendOptions(int selectedOption) {
     //refresh();
 }
 
+
+/**
+ * @brief Permet à l'utilisateur de rechercher un autre utilisateur en en entrant le username de celui -ci.
+ *
+ * L'utilisateur entre un nom de joueur. Si le champ est vide, la fonction se termine.
+ * Sinon, elle vérifie si l'utilisateur peut envoyer une demande d'ami :
+ * - Envoie la demande si possible.
+ * - Informe si le joueur est déjà ami.
+ * - Informe si une demande a déjà été envoyée.
+ * - Si le joueur avait déjà envoyé une demande, la demande d'ami est acceptée.
+*/
 void InterfaceTerminal::enterName(){
     erase();
     printw("Press ENTER to research the player name\nPress 'ENTER' with an empty entry to quit\n");
@@ -566,6 +632,18 @@ void InterfaceTerminal::enterName(){
 }
 }
 
+
+/**
+ * @brief Affiche les demandes d'amis reçues et envoyées.
+ * 
+ * affiche les demandes d'amis en attente et permet à l'utilisateur 
+ * de naviguer dans la liste avec les flèches haut/bas. Le user peut accepter, 
+ * refuser ou annuler une demande via certaines touches.
+ * 
+ * @param selectedOption Indice de la demande actuellement sélectionnée.
+ * @param requestsReceived Vecteur contenant les noms des utilisateurs qui ont envoyé demande d'ami.
+ * @param requestsSent Vecteur contenant noms des utilisateurs à qui une demande d'ami a été envoyée.
+ */
 void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent) {
     erase();
     printw("Requests received :\n\n");
@@ -595,6 +673,17 @@ void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string>
     refresh();
 }
 
+
+/**
+ * @brief Gère l'affichage et l'interaction avec les demandes d'amis.
+ * 
+ * Cette fonction affiche les demandes d'amis reçues et envoyées, et permet à l'utilisateur 
+ * de naviguer dans la liste avec les flèches haut/bas. Il peut accepter, refuser ou annuler 
+ * une demande via les touches correspondantes. L'utilisateur peut également ouvrir la boîte 
+ * de messagerie ou quitter l'interface.
+ * 
+ * @return Retourne 0 si l'utilisateur quitte normalement, ou -1 en cas d'erreur lors de l'ouverture.
+ */
 int InterfaceTerminal::handleFriendRequests() {
     int selectedOption = 0;
 
@@ -654,6 +743,15 @@ int InterfaceTerminal::handleFriendRequests() {
 }
 
 
+/**
+ * @brief Gère l'interface des amis de l'utilisateur.
+ * 
+ * Affiche la liste des amis de l'utilisateur et lui permet d'interagir avec eux.
+ * L'utilisateur peut naviguer dans la liste, sélectionner un ami pour interagir, ajouter un nouvel ami
+ * ou consulter ses demandes d'amis reçues.
+ * 
+ * @return 0 si l'utilisateur quitte normalement, -1 si erreur.
+ */
 int InterfaceTerminal::handleFriends() {
     int selectedOption = 0;
     while(user==""){
@@ -715,7 +813,14 @@ int InterfaceTerminal::handleFriends() {
     return -1;
 }
 
-
+/**
+ * @brief Affiche à l'écran les  options de connexion d'utilisateur via le terminal.
+ * 
+ * Affiche une interface  permettant à un utilisateur 
+ * d'entrer un username et un mot de passe pour se connecter au serveur.
+ * 
+ * @param selectedOption indice de l'option choisie.
+ */
 void InterfaceTerminal::displayConnexionOption(int selectedOption) {
     erase();
     const char* connexionOptions[] = {
@@ -737,6 +842,15 @@ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
 }
 
 
+/**
+ * @brief Gère la connexion d'un utilisateur via le terminal.
+ * 
+ * Affiche une interface  permettant à un utilisateur 
+ * d'entrer un username et un mot de passe pour se connecter au serveur.
+ * Elle envoie les informations au serveur et attend une réponse pour valider la connexion.
+ * 
+ * @return Un vecteur contenant le nom d'utilisateur et le mot de passe si la connexion est réussie, sinon un vecteur vide.
+ */
 vector<std::string> InterfaceTerminal::handleLogin(){
     int sock = getSock();
     vector<std::string> connexionData;
@@ -815,6 +929,16 @@ vector<std::string> InterfaceTerminal::handleLogin(){
 }
 
 
+
+/**
+ * @brief Gère la connexion d'un utilisateur via le terminal.
+ * 
+ * Affiche une interface  permettant à un utilisateur 
+ * d'entrer un username et un mot de passe pour se connecter au serveur.
+ * Elle envoie les informations au serveur et attend une réponse pour valider la connexion.
+ * 
+ * @return Un vecteur contenant le nom d'utilisateur et le mot de passe si la connexion est réussie, sinon un vecteur vide.
+ */
 vector<std::string> InterfaceTerminal::handleRegister(){
     int sock = getSock();
     vector<std::string> connexionData;
@@ -908,6 +1032,20 @@ vector<std::string> InterfaceTerminal::handleRegister(){
     return connexionData;
 }
 
+
+
+/**
+ * @brief Gère l'interface de connexion et l'inscription de l'utilisateur/joueur.
+ *
+ * Cette méthode affiche un menu permettant à l'utilisateur de choisir entre 
+ * la connexion et l'inscription. Elle capture l'entrée de l'utilisateur et 
+ * exécute l'action correspondante. Si l'utilisateur réussit à se connecter 
+ * ou à s'inscrire, la méthode retourne un vecteur contenant les informations 
+ * de connexion (nom d'utilisateur et mot de passe). 
+ * 
+ * @return Un vecteur (de string) contenant les informations de connexion 
+ *         (nom d'utilisateur et mot de passe) en cas de succès, ou un vecteur vide sinon.
+ */
 vector<std::string> InterfaceTerminal::handleConnexionOption() {
     //initNcurses();
     vector<std::string> dataConnexion;
@@ -965,12 +1103,6 @@ vector<std::string> InterfaceTerminal::handleConnexionOption() {
 /**
  *@brief Gère la sélection des options dans le menu principal.                                            
  *
- *Seulement la premiere ioption est fonctionnelle pour l'instant: 'Play' (case 0)
- *Non-Fonctionnels:
- *  - (case 1): 'add a friend'
- *  - (case 2): 'delete a friend'
- *  - (case 3): 'show my friend's list'
- *
  *@param selectedOption Indice de l'action sélectionnée.
  */
 int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
@@ -995,6 +1127,17 @@ int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
 }
 
 
+/**
+ * @brief Gère la sélection des options lié aux "amis" dans la liste d'amis.
+ *
+ * Cette méthode affiche un menu avec différentes options pour interagir avec un ami,
+ * comme le supprimer de la liste d'amis ou lui envoyer un message.
+ * Le user parcourt à l'aide des touches directionnelles et valide son choix 
+ * avec la touche Entrée.
+ *
+ * @param friendName Le nom de l'ami sélectionné.
+ * @return Retourne 0 si l'opération s'est bien déroulée, ou -1 si erreur
+ */
 int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
     int selectedOption = 0;
 
