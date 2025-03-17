@@ -53,6 +53,8 @@ class Server{
         void handlePlay(Server* server, ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, ThreadGameData& threadGameData);
         void handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue);
         void handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, GameController& gameController);
+        void handleConnexion(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion);
+        void handleRegister(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion);
 
 
 
@@ -68,7 +70,9 @@ class Server{
         /* Login Methods */
         void notifySuccessfulLogin(Server* server, ClientSession& client, Connexion& connexion, string& username, 
                         bool& successfulLogin, int& typeConnexion, int& doubleSession, bool& flagConnexion);
-
+        void notifyRefusedLogin(ClientSession& client);
+        void notifyAcceptConnexion(Server* server, ClientSession& client, Connexion& connexionData, bool& successfulLogin); 
+        
 };
 
 #endif  // SERVERFUNCTIONS_HPP

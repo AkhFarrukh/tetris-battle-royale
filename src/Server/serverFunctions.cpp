@@ -131,65 +131,10 @@ void* Server::threadRoutineClient(void* arg){
         int bytesReceivedSize = recvAll(client.client_fd, &size, sizeof(int));
         Connexion connexionData;
         if(type == MessageType::T_Connexion && size == sizeof(struct Connexion)){
-            if(!recvAll(client.client_fd, &connexionData, size)){
-                std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
-                return 0;
-            }
-
-
-        std::cout<< "Initialised and got the args" << std::endl;
-        // Check if both username and password are correct or not.
-        std::string username = connexionData.username;
-        std::string password = connexionData.password;
-        successfulLogin = server->udbm.isCorrectLogin(username.c_str(), password.c_str());
-        int typeConnexion;
-        int doubleSession;
-        if(successfulLogin){
-            server->notifySuccessfulLogin(server, client, connexionData, username, successfulLogin, typeConnexion, doubleSession, flagConnexion);
-        }
-        else{
-            type = MessageType::T_RefuseConnexion;
-            int size_ = sizeof(int);
-            int bytesSentType = sendAll(client.client_fd, &typeConnexion, sizeof(int));
-            int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
-        }
+            server->handleConnexion(server, client, connexionData, size, successfulLogin, flagConnexion);
         }
         else if(type == MessageType::T_Register && size == sizeof(struct Connexion)){
-            if(!recvAll(client.client_fd, &connexionData, size)){
-                std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
-                return 0;
-            }
-            bool registered = server->udbm.newAccountCreated(connexionData.username, connexionData.password);
-            if(registered){
-                int typeRegister = MessageType::T_AcceptConnexion;
-           	 	int size_ = sizeof(int);
-            	int bytesSentType = sendAll(client.client_fd, &typeRegister, sizeof(int));
-            	int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
-                successfulLogin = server->udbm.isCorrectLogin(connexionData.username, connexionData.password);
-                if(successfulLogin){
-                	int typeLogin = MessageType::T_AcceptConnexion;
-           	 		int size_ = sizeof(int);
-            		int bytesSentType = sendAll(client.client_fd, &typeLogin, sizeof(int));
-            		int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
-                	successfulLogin = server->udbm.isCorrectLogin(connexionData.username, connexionData.password);
-                    client.userId = server->udbm.getUserId(connexionData.username);
-                    client.username = connexionData.username;
-                    client.password = connexionData.password;
-                    flagConnexion = false;
-           		}
-            	else{
-                	int typeLogin = MessageType::T_RefuseConnexion;
-           	    	int size_ = sizeof(int);
-            		int bytesSentType = sendAll(client.client_fd, &typeLogin, sizeof(int));
-            		int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
-            	}
-            }
-            else{
-                int typeRegister = MessageType::T_RefuseConnexion;
-           	    int size_ = sizeof(int);
-            	int bytesSentType = sendAll(client.client_fd, &typeRegister, sizeof(int));
-            	int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
-            }
+            server->handleRegister(server, client, connexionData, size, successfulLogin, flagConnexion);
         }
 
         else if(type == MessageType::T_ForcedExit || type == MessageType::T_Exit){
@@ -309,9 +254,12 @@ void* Server::threadRoutineClient(void* arg){
 
 
 
-/***********************************************************************************
- *                  METHODS HANDLING MESSAGES FROM THE CLIENT
+/************************************************************************************
+ *                                                                                  *
+ *                  METHODS HANDLING MESSAGES FROM THE CLIENT                       *
+ *                                                                                  *
  ***********************************************************************************/
+
 /**
  * @brief Routine avec Game() qui tourne
  * 
@@ -502,6 +450,15 @@ void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOn
     if (!sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo))){userIsOnline = false;}
 }
 
+/**
+ * @brief Will create a room and send it back to the client
+ * 
+ * @param server ptr to server
+ * @param client ClientSession struct
+ * @param userIsOnline bool handling the listening loop, true if connected to the serv
+ * @param menu Menu struct containing the gameMode choosed  by the client
+ * @param eventQueue ptr for the player's eventQueue in Game
+ */
 void Server::handleCreateRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu, shared_ptr<EventQueue> eventQueue){
     std::cout<<"Received CreateRoom"<<std::endl;
     auto r = std::make_shared<Room>(client.client_fd, menu.mode, eventQueue);
@@ -521,6 +478,15 @@ void Server::handleCreateRoom(Server* server, ClientSession& client, bool& userI
     if (!sendAll(client.client_fd, &info, sizeToSend)){userIsOnline = false;}
 }
 
+/**
+ * @brief Will start a game of endless mode
+ * 
+ * @param server ptr to server
+ * @param client ClientSession struct
+ * @param userIsOnline bool handling the listening loop, true if connected to the serv
+ * @param eventQueue ptr for the player's eventQueue in Game
+ * @param threadGameData data that willbe passed to the game's thread, containing all player & game infos
+ */
 void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, ThreadGameData& threadGameData){
     std::cout << "Client wants Endless mode\n";
 
@@ -540,6 +506,13 @@ void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnlin
     }
 }
 
+/**
+ * @brief Will handle the reeiving of a malus bonus message and send it to the game
+ * 
+ * @param client ClientSession struct
+ * @param userIsOnline bool handling the listening loop, true if connected to the serv
+ * @param eventQueue ptr for the player's eventQueue in Game
+ */
 void Server::handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue){
     cout<<"MalusBonus received"<<endl;
     MalBonus malusBobo;
@@ -549,6 +522,13 @@ void Server::handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_
     eventQueue->addEvent(make_shared<MalusBonusEvent>(malusBobo.malusB, malusBobo.target));
 }
 
+/**
+ * @brief Will handle the receiving of an input message, and add it to the game's eventQueue
+ * @param client ClientSession struct
+ * @param userIsOnline bool handling the listening loop, true if connected to the serv
+ * @param eventQueue ptr for the player's eventQueue in Game
+ * @param gameController 
+ */
 void Server::handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, GameController& gameController){
     cout<<"Input received"<<endl;
     KeyboardAction action;
@@ -556,7 +536,18 @@ void Server::handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<E
     eventQueue->addEvent(make_shared<MovementActionEvent>(gameController.getAction(action)));
 }
 
-
+/**
+ * @brief 
+ * 
+ * @param server 
+ * @param client 
+ * @param connexionData 
+ * @param username 
+ * @param successfulLogin 
+ * @param typeConnexion 
+ * @param doubleSession 
+ * @param flagConnexion 
+ */
 void Server::notifySuccessfulLogin(Server* server, ClientSession& client, Connexion& connexionData, string& username, 
                                         bool& successfulLogin, int& typeConnexion, int& doubleSession, bool& flagConnexion){
     typeConnexion = MessageType::T_AcceptConnexion;
@@ -576,3 +567,77 @@ void Server::notifySuccessfulLogin(Server* server, ClientSession& client, Connex
     bytesSentType = sendAll(client.client_fd, &doubleSession, sizeof(int));
     bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
 }
+
+void Server::handleConnexion(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion){
+    if(!recvAll(client.client_fd, &connexionData, size)){
+        std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
+        return;
+    }
+    std::cout<< "Initialised and got the args" << std::endl;
+    // Check if both username and password are correct or not.
+    std::string username = connexionData.username;
+    std::string password = connexionData.password;
+    successfulLogin = server->udbm.isCorrectLogin(username.c_str(), password.c_str());
+    int typeConnexion;
+    int doubleSession;
+    if(successfulLogin){
+        server->notifySuccessfulLogin(server, client, connexionData, username, successfulLogin, typeConnexion, doubleSession, flagConnexion);
+    }
+    else{
+        server->notifyRefusedLogin(client);
+    }
+}
+
+void Server::handleRegister(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion){
+    if(!recvAll(client.client_fd, &connexionData, size)){
+        std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
+        return;
+    }
+    bool registered = server->udbm.newAccountCreated(connexionData.username, connexionData.password);
+    if(registered){
+        server->notifyAcceptConnexion(server, client, connexionData, successfulLogin);
+        if(successfulLogin){
+            server->notifyAcceptConnexion(server, client, connexionData, successfulLogin);
+            client.userId = server->udbm.getUserId(connexionData.username);
+            client.username = connexionData.username;
+            client.password = connexionData.password;
+            flagConnexion = false;
+           }
+        else{
+            server->notifyRefusedLogin(client);
+        }
+    }
+    else{
+        server->notifyRefusedLogin(client);
+    }
+}
+
+/************************************************************************************
+ *                                                                                  *
+ *                  METHODS HANDLING LOGIN OF THE CLIENT                            *
+ *                                                                                  *
+ ***********************************************************************************/
+
+/**
+ * @brief Will send to the client RefuseConnexion message
+ * 
+ * @param client 
+ * @param type type of message
+ * @param typeConnexion 
+ */
+void Server::notifyRefusedLogin(ClientSession& client){
+    int type_ = MessageType::T_RefuseConnexion;
+    int size_ = sizeof(int);
+    int bytesSentType = sendAll(client.client_fd, &type_, sizeof(int));
+    int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+}
+
+
+void Server::notifyAcceptConnexion(Server* server, ClientSession& client, Connexion& connexionData, bool& successfulLogin){
+    int typeRegister = MessageType::T_AcceptConnexion;
+    int size_ = sizeof(int);
+    int bytesSentType = sendAll(client.client_fd, &typeRegister, sizeof(int));
+    int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+    successfulLogin = server->udbm.isCorrectLogin(connexionData.username, connexionData.password);
+}
+
