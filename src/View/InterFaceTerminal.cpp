@@ -679,32 +679,6 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
 }
 
 
- /** 
-void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> friends) {
-    erase();
-    printw("Friends list : \n\n");
-    int numberFriends = std::size(friends);   // taille du tableau contenant les amis
-    if(numberFriends == 0) {printw("Empty friends list \n");}
-    else{
-    for (int i = 0; i < numberFriends; ++i) {
-        if (i == selectedOption) {
-            printw("-> %d. %s", i + 1, friends[i].c_str());
-        } else {
-            printw("   %d. %s", i + 1, friends[i].c_str());
-        }
-        printw("\n");
-    }
-    }
-    if (selectedOption == numberFriends) printw("\n-> %s\n", "Add new friend");
-    else printw("\n   %s\n", "Add new friend");
-    if (selectedOption == numberFriends+1) printw("-> Friend requests(%d)\n", db.getNumberFriendRequestsReceived(user));
-    else printw("   Friend requests(%d)\n", db.getNumberFriendRequestsReceived(user));
-
-    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    if(!(user==""))printw("Press 't' to open the message box\n");
-    refresh();
-}
-*/
 
 void InterfaceTerminal::displayFriendOptions(int selectedOption) {
     /* LA METHODE EST DEFAILLANTE */
@@ -779,34 +753,77 @@ void InterfaceTerminal::enterName(){
  * @param requestsReceived Vecteur contenant les noms des utilisateurs qui ont envoyé demande d'ami.
  * @param requestsSent Vecteur contenant noms des utilisateurs à qui une demande d'ami a été envoyée.
  */
-void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent) {
-    erase();
-    printw("Requests received :\n\n");
-    int numberRequestsReceived = std::size(requestsReceived);   //taille du tableau contenant les demandes d'amis recues
-    int numberRequestsSent = std::size(requestsSent);   // taille du tableau contenant les demandes d'amis envoyées
-    if(numberRequestsReceived==0) printw("No request received\n");
-    for (int i = 0; i < numberRequestsReceived; ++i) {
-        if (i == selectedOption) {
-            printw("-> %s wants to be your friend !",  requestsReceived[i].c_str());
-        } else {
-            printw("   %s wants to be your friend !",  requestsReceived[i].c_str());
+ void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent) {
+    //erase();
+    int width = 80;
+    int height = 20;
+    int startX = (COLS - width)/ 2;
+    int startY = (LINES - height - 10) / 2;
+
+    // Créer une fenêtre avec un grand cadre
+    WINDOW* requestWindow = newwin(height, width, startY, startX);
+    box(requestWindow, 0, 0);
+
+    // Titre "Requests received" en vert
+    wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
+    mvwprintw(requestWindow, 1, 2, "Requests received:");
+    wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
+
+    int numberRequestsReceived = requestsReceived.size();
+    int numberRequestsSent = requestsSent.size();
+    
+    if (numberRequestsReceived == 0) {
+        mvwprintw(requestWindow, 3, 4, "No request received");
+    } else {
+        for (int i = 0; i < numberRequestsReceived; ++i) {
+            if (i == selectedOption) {
+                wattron(requestWindow, A_REVERSE);
+                mvwprintw(requestWindow, 3 + i, 4, "-> %s wants to be your friend!", requestsReceived[i].c_str());
+                wattroff(requestWindow, A_REVERSE);
+            } else {
+                mvwprintw(requestWindow, 3 + i, 4, "   %s wants to be your friend!", requestsReceived[i].c_str());
+            }
         }
-        printw("\n");
     }
-    printw("\nRequests sent :\n\n");
-    if(numberRequestsSent==0) printw("No request sent\n");
-    for (int i = 0; i < numberRequestsSent; ++i) {
-        if (i+numberRequestsReceived == selectedOption) {
-            printw("-> friend request sent to %s ", requestsSent[i].c_str());
-        } else {
-            printw("   friend request sent to %s", requestsSent[i].c_str());
+
+    // Titre "Requests sent" en vert
+    wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
+    mvwprintw(requestWindow, 10, 2, "Requests sent:");
+    wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
+
+    if (numberRequestsSent == 0) {
+        mvwprintw(requestWindow, 12, 4, "No request sent");
+    } else {
+        for (int i = 0; i < numberRequestsSent; ++i) {
+            if (i + numberRequestsReceived == selectedOption) {
+                wattron(requestWindow, A_REVERSE);
+                mvwprintw(requestWindow, 12 + i, 4, "-> Friend request sent to %s", requestsSent[i].c_str());
+                wattroff(requestWindow, A_REVERSE);
+            } else {
+                mvwprintw(requestWindow, 12 + i, 4, "   Friend request sent to %s", requestsSent[i].c_str());
+            }
         }
-        printw("\n");
     }
-    printw("\nUse UP and DOWN arrow keys to navigate\nPress 'A' to accept the request\nPress 'R' to refuse\nPress 'C' to cancel a sent friend request\nPress 'q' to quit\n");
-    if(!(user==""))printw("Press 't' to open the message box\n");
+
+    wrefresh(requestWindow);
+    
+    //Instructions sous le cadre
+    mvprintw(startY + height + 2, (COLS - 50) / 2, "Use UP and DOWN arrow keys to navigate");
+    mvprintw(startY + height + 3, (COLS - 50) / 2, "Press 'A' to accept the request");
+    mvprintw(startY + height + 4, (COLS - 50) / 2, "Press 'R' to refuse");
+    mvprintw(startY + height + 5, (COLS - 50) / 2, "Press 'C' to cancel a sent friend request");
+    mvprintw(startY + height + 6, (COLS - 50) / 2, "Press 'q' to quit");
+    if (!(user == ""))
+        mvprintw(startY + height + 7, (COLS - 50) / 2, "Press 't' to open the message box");
+    
+
     refresh();
+    delwin(requestWindow);
+    //erase();
+
+    
 }
+
 
 
 /**
@@ -931,8 +948,14 @@ int InterfaceTerminal::handleFriends() {
                     nodelay(stdscr, true);
                 }
                 else { //Demande d'amis recus
-                    erase();
+                    erase();     
+                    refresh(); 
+                    
                     handleFriendRequests();
+                    
+                    // rajouté erase et refresh car l'ecran des requests ne voulait pas se supprimer
+                    erase();      
+                    refresh();
                 }
             break;
             case 't':
