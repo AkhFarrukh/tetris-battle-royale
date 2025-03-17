@@ -261,9 +261,6 @@ void* Server::threadRoutineClient(void* arg){
             *MENU INFO
             */
             if(type == MessageType::T_Menu){
-                if (size != sizeof(Menu)) {
-                    std::cout << "fdp ma lumiere : " << client.client_fd << std::endl;
-                }
                 std::cout << "Menu" << std::endl;
                 Menu menu;
                 if (!recvAll(client.client_fd, &menu, sizeof(Menu))){userIsOnline = false;}
@@ -272,50 +269,15 @@ void* Server::threadRoutineClient(void* arg){
                 *PLAY ENDLESS INFO
                 */
                 else if (menu.action == MenuActions::A_Play) {
-                    cout<<"Play received"<<endl;
-                    if (menu.mode == Modes::Endless_) {
-
-                        std::cout << "Client wants Endless mode\n";
-
-                        threadGameData.client_fd = client.client_fd;
-                        threadGameData.eventQueue = eventQueue;
-                        std::vector<ThreadGameData> data;
-                        data.push_back(threadGameData);
-
-                        std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_);
-                        auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
-                        pthread_t threadGamePID;
-                        if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
-                            perror("Error on thread creation for game : ");
-                            server->udbm.removeSession(client.userId);
-                            close(client.client_fd);
-                            userIsOnline = false; // Stop the loop
-                            break;
-                        }
-                    }
-                    //autre mode
+                    if (menu.mode == Modes::Endless_){
+                        server->handlePlay(server, client, userIsOnline, eventQueue, threadGameData);
+                    }   
                 }
                 /************************************
                 *CREATE ROOM INFO
                 */
                 else if (menu.action == MenuActions::A_CreateRoom) {
-                    std::cout<<"Received CreateRoom"<<std::endl;
-                    auto r = std::make_shared<Room>(client.client_fd, menu.mode, eventQueue);
-                    auto allRoom = server->roomsList;
-                    server->myRoom = r;
-                    allRoom->push_back(r);
-                    std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
-
-                    RoomInfo info;
-                    info.roomID = r->getRoomID();
-                    info.currentPlayersCount = r->getPlayerCount();
-                    info.isStarted = r->isStarted();
-
-                    int typeToSend = MessageType::T_RoomInfo;
-                    int sizeToSend = sizeof(RoomInfo);
-                    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
-                    if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
-                    if (!sendAll(client.client_fd, &info, sizeToSend)){userIsOnline = false;}
+                    server->handleCreateRoom(server, client, userIsOnline, menu, eventQueue);
                 }
                 /************************************
                 *GET ROOM INFO
@@ -344,21 +306,13 @@ void* Server::threadRoutineClient(void* arg){
             *INPUT INFO
             */
             else if (type == MessageType::T_Input) {
-                cout<<"Input received"<<endl;
-                KeyboardAction action;
-                if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))){userIsOnline = false;}
-                eventQueue->addEvent(make_shared<MovementActionEvent>(gameController.getAction(action)));
+                server->handleInput(client, userIsOnline, eventQueue, gameController);
             }
             /************************************
             *MALUS BONUS INFO
             */
             else if (type == MessageType::T_MalusBonus) {
-                cout<<"MalusBonus received"<<endl;
-                MalBonus malusBobo;
-
-                if (!recvAll(client.client_fd, &malusBobo, sizeof(MalBonus))){userIsOnline = false;}
-
-                eventQueue->addEvent(make_shared<MalusBonusEvent>(malusBobo.malusB, malusBobo.target));
+                server->handleMalusBonus(client, userIsOnline, eventQueue);
             }
 
             /************************************
@@ -567,4 +521,58 @@ void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOn
     if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
     if (!sendAll(client.client_fd, &nbRooms, sizeof(nbRooms))){userIsOnline = false;}
     if (!sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo))){userIsOnline = false;}
+}
+
+void Server::handleCreateRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu, shared_ptr<EventQueue> eventQueue){
+    std::cout<<"Received CreateRoom"<<std::endl;
+    auto r = std::make_shared<Room>(client.client_fd, menu.mode, eventQueue);
+    auto allRoom = server->roomsList;
+    server->myRoom = r;
+    allRoom->push_back(r);
+    std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
+    RoomInfo info;
+    info.roomID = r->getRoomID();
+    info.currentPlayersCount = r->getPlayerCount();
+    info.isStarted = r->isStarted();
+
+    int typeToSend = MessageType::T_RoomInfo;
+    int sizeToSend = sizeof(RoomInfo);
+    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
+    if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
+    if (!sendAll(client.client_fd, &info, sizeToSend)){userIsOnline = false;}
+}
+
+void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, ThreadGameData& threadGameData){
+    std::cout << "Client wants Endless mode\n";
+
+    threadGameData.client_fd = client.client_fd;
+    threadGameData.eventQueue = eventQueue;
+    std::vector<ThreadGameData> data;
+    data.push_back(threadGameData);
+
+    std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_);
+    auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
+    pthread_t threadGamePID;
+    if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
+        perror("Error on thread creation for game : ");
+        server->udbm.removeSession(client.userId);
+        close(client.client_fd);
+        userIsOnline = false; // Stop the loop
+    }
+}
+
+void Server::handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue){
+    cout<<"MalusBonus received"<<endl;
+    MalBonus malusBobo;
+
+    if (!recvAll(client.client_fd, &malusBobo, sizeof(MalBonus))){userIsOnline = false;}
+
+    eventQueue->addEvent(make_shared<MalusBonusEvent>(malusBobo.malusB, malusBobo.target));
+}
+
+void Server::handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, GameController& gameController){
+    cout<<"Input received"<<endl;
+    KeyboardAction action;
+    if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))){userIsOnline = false;}
+    eventQueue->addEvent(make_shared<MovementActionEvent>(gameController.getAction(action)));
 }
