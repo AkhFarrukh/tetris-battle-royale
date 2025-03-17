@@ -33,7 +33,7 @@ void handle_sigint(int sig) {
     while(server.udbm.isUserInSession(clientId)){
         server.udbm.deleteSession(clientId);}
     }
-    napms(1000);
+    napms(100);
     if(server_sock != -1)close(server_sock);
     signal(SIGINT, SIG_DFL);
     raise(SIGINT);
