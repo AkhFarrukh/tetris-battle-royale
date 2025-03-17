@@ -90,9 +90,9 @@ void InterfaceTerminal::initNcurses() {
     for (int i = 0; i < numberPossibleOptions; ++i) {
         if (i == selectedOption) {
             // met en evidence l'option selectionnée
-            wattron(menuWindow, COLOR_PAIR(8));   // pour activer  mise en blanc de l'option
+            wattron(menuWindow, COLOR_PAIR(7));   // pour activer  mise en blanc de l'option
             mvwprintw(menuWindow, 3 + i * 2, 2, "-> %d. %s ", i + 1, menuOptions[i]);    // ' * 2 '  pour un avoir espacer un peu plus entre options
-            wattroff(menuWindow, COLOR_PAIR(8)); 
+            wattroff(menuWindow, COLOR_PAIR(7)); 
         } else {
             mvwprintw(menuWindow, 3 + i*2 , 2, "   %d. %s ", i + 1, menuOptions[i]);
         }
@@ -109,33 +109,6 @@ void InterfaceTerminal::initNcurses() {
 }
 
 
-
-/** 
-void InterfaceTerminal::displayMenu(int selectedOption) const {
-   erase();
-   printw("Welcome to Tetris Royale (Terminal Edition)!\n");
-   printw("Choose an action: \n\n");
-   const char* menuOptions[] = {
-                                "Play",
-                                "Handle friends",
-                                "Account (currently being updated)"
-                                };
-   
-   int numberPossibleOptions = std::size(menuOptions); // taille du tableau contenant options du menu principal
-   
-   for (int i = 0; i < numberPossibleOptions; ++i) {
-       if (i == selectedOption) {
-           attron(COLOR_PAIR(8));    // activer couleur noir sur blanc pour option selected
-           printw("-> %d. %s\n", i + 1, menuOptions[i]);
-           attroff(COLOR_PAIR(8));
-       } else {
-           printw("   %d. %s\n", i + 1, menuOptions[i]);
-       }
-   }
-   printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an action\nPress 'q' to quit\n");
-   refresh();
-}
-*/
 
 
 /**
