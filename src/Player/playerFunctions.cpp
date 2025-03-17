@@ -121,7 +121,7 @@ void* Player::threadRoutineView (void* arg){
             fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 
             int act = 0;
-            while (true) {
+            while (!flag) {
                 threadData->displayMut.lock();
                 act = renderR.handleMyRoom(info);
                 threadData->displayMut.unlock();
@@ -147,7 +147,10 @@ void* Player::threadRoutineView (void* arg){
                     if(!sendAll(sock, &useless, sizeof(int))){return nullptr;}
                     break;
                 } else if (act == -1) {
-                    return 0;
+                    threadData->mux.lock();
+                    threadData->userInLobby = false;
+                    threadData->mux.unlock();
+                    break;
                 }
 
                 int messageType;
