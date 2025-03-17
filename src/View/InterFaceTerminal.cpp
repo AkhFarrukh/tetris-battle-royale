@@ -35,7 +35,7 @@ void InterfaceTerminal::initNcurses() {
    curs_set(0);
    nodelay(stdscr, TRUE);
    start_color();
-   init_pair(8, COLOR_BLACK, COLOR_WHITE);  // Texte noir sur fond blanc
+   init_pair(9, COLOR_BLACK, COLOR_WHITE);  // Texte noir sur fond blanc
 
    if (has_colors() && can_change_color()) {
        use_default_colors();
@@ -90,9 +90,9 @@ void InterfaceTerminal::initNcurses() {
     for (int i = 0; i < numberPossibleOptions; ++i) {
         if (i == selectedOption) {
             // met en evidence l'option selectionnée
-            wattron(menuWindow, COLOR_PAIR(8));   // pour activer  mise en blanc de l'option
+            wattron(menuWindow, COLOR_PAIR(9));   // pour activer  mise en blanc de l'option
             mvwprintw(menuWindow, 3 + i * 2, 2, "-> %d. %s ", i + 1, menuOptions[i]);    // ' * 2 '  pour un avoir espacer un peu plus entre options
-            wattroff(menuWindow, COLOR_PAIR(8)); 
+            wattroff(menuWindow, COLOR_PAIR(9)); 
         } else {
             mvwprintw(menuWindow, 3 + i*2 , 2, "   %d. %s ", i + 1, menuOptions[i]);
         }
@@ -394,9 +394,9 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
 
     for (int i = 0; i < numberModePossible; ++i) {
         if (i == selectedMode) {
-            wattron(gameModeWindow, COLOR_PAIR(8));
+            wattron(gameModeWindow, COLOR_PAIR(9));
             mvwprintw(gameModeWindow, 3 + i * 3, 2,"-> %d. %s", i + 1, modeNames[i] ) ;
-            wattroff( gameModeWindow, (COLOR_PAIR(8)) );
+            wattroff( gameModeWindow, (COLOR_PAIR(9)) );
         } else {
             //printw("   %d. %s", i + 1, modeNames[i]);
             mvwprintw(gameModeWindow, 3 + i * 3, 2, "   %d. %s", i + 1, modeNames[i]);
@@ -432,9 +432,9 @@ void InterfaceTerminal::displayMultiplayerOption(int selectedMode) const {
     const char* subActions[] = { "Create a room", "Join a room"};
     for (int j = 0; j < 2; ++j) {
         if (j == action) {
-            attron(COLOR_PAIR(8));
+            attron(COLOR_PAIR(9));
             printw("-> %s\n", subActions[j]);
-            attroff(COLOR_PAIR(8));
+            attroff(COLOR_PAIR(9));
         }
         else {
             printw("   %s\n", subActions[j]);
@@ -607,7 +607,79 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
  * 
  * @return Retourne 0 si l'utilisateur quitte normalement, ou -1 en cas d'erreur lors de l'ouverture.
  */
+ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> friends) {
+    //erase();
+    
+    int width = COLS;   // Largeur et hauteur de la fenêtre (via ncurses)
+    int height = LINES;
+    int menuWidth = 50;  // Largeur du menu des amis
+    int menuHeight = 25; // Hauteur du menu
 
+    // Position pour centrer le cadre
+    int startX = (width - menuWidth) / 2;
+    int startY = (height - menuHeight - 3) / 2 ;
+
+    const char* title = "Friends list:";
+    attron(COLOR_PAIR(2) | A_BOLD);
+    mvprintw(startY - 2, startX, "%s", title);  // Titre aligné avec le cadre
+    attroff(COLOR_PAIR(2) | A_BOLD);
+
+    // fenêtre pour le menu des amis
+    WINDOW* friendsWindow = newwin(menuHeight, menuWidth, startY, startX);
+    box(friendsWindow, 0, 0);  // Dessiner le cadre
+
+    int numberFriends = friends.size();  // Nombre d'amis
+
+    // pour afficher les amis
+    if (numberFriends == 0) {
+        mvwprintw(friendsWindow, 2, 2, "Empty friends list");
+    } else {
+        for (int i = 0; i < numberFriends; ++i) {
+            if (i == selectedOption) {
+                wattron(friendsWindow, COLOR_PAIR(8));
+                mvwprintw(friendsWindow, 2 + i, 2, "-> %d. %s", i + 1, friends[i].c_str());
+                wattroff(friendsWindow, COLOR_PAIR(8));
+            } else {
+                mvwprintw(friendsWindow, 2 + i, 2, "   %d. %s", i + 1, friends[i].c_str());
+            }
+        }
+    }
+
+    // pour ajouter des options en bas du cadre  (car si il y a trop d'amis --> cadre trop petit)
+    int bottomY = menuHeight - 4;
+    if (selectedOption == numberFriends) {
+        wattron(friendsWindow, COLOR_PAIR(9));
+        mvwprintw(friendsWindow, bottomY, 2, "-> Add new friend");
+        wattroff(friendsWindow, COLOR_PAIR(9));
+    }
+    else {
+        mvwprintw(friendsWindow, bottomY, 2, "   Add new friend");
+    }
+
+    if (selectedOption == numberFriends + 1) {
+        wattron(friendsWindow, COLOR_PAIR(9));
+        mvwprintw(friendsWindow, bottomY + 2, 2, "-> Friend requests (%d)", db.getNumberFriendRequestsReceived(user));
+        wattroff(friendsWindow, COLOR_PAIR(9));
+    }
+    else {
+        mvwprintw(friendsWindow, bottomY + 2, 2, "   Friend requests (%d)", db.getNumberFriendRequestsReceived(user));
+    }
+    wrefresh(friendsWindow);
+
+    // Instructions sous le cadre
+    mvprintw(startY + menuHeight + 2, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");
+    mvprintw(startY + menuHeight + 3, (width - 45) / 2, "Press ENTER to select an option");
+    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press 'q' to quit");
+
+    if (!(user == "")) 
+        mvprintw(startY + menuHeight + 6, (width - 45) / 2, "Press 't' to open the message box");         
+
+    refresh();
+    delwin(friendsWindow);
+}
+
+
+ /** 
 void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> friends) {
     erase();
     printw("Friends list : \n\n");
@@ -632,7 +704,7 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
     if(!(user==""))printw("Press 't' to open the message box\n");
     refresh();
 }
-
+*/
 
 void InterfaceTerminal::displayFriendOptions(int selectedOption) {
     /* LA METHODE EST DEFAILLANTE */
@@ -914,9 +986,9 @@ int InterfaceTerminal::handleFriends() {
     for (int i = 0; i < std::size(connexionOptions); ++i) {
         
         if (i == selectedOption) {
-            wattron(connexionOptions_window, COLOR_PAIR(8));
+            wattron(connexionOptions_window, COLOR_PAIR(9));
             mvwprintw(connexionOptions_window, 5 + i*3, 2 , "-> %s",  connexionOptions[i]);
-            wattroff(connexionOptions_window, COLOR_PAIR(8));
+            wattroff(connexionOptions_window, COLOR_PAIR(9));
         } else {
             mvwprintw(connexionOptions_window, 5 + i * 3, 2, "   %s",  connexionOptions[i]);
         }
