@@ -368,7 +368,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
  *
  *@param selectedMode Indice du mode de jeu actuellement sélectionné.
  */
- /** 
+ 
  void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
     //erase();
     int width = COLS;   // largeur et hauteur de la windows (via ncurses)
@@ -394,9 +394,9 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
 
     for (int i = 0; i < numberModePossible; ++i) {
         if (i == selectedMode) {
-            wattron(gameModeWindow, COLOR_PAIR(7));
+            wattron(gameModeWindow, COLOR_PAIR(8));
             mvwprintw(gameModeWindow, 3 + i * 3, 2,"-> %d. %s", i + 1, modeNames[i] ) ;
-            wattroff( gameModeWindow, (COLOR_PAIR(7)) );
+            wattroff( gameModeWindow, (COLOR_PAIR(8)) );
         } else {
             //printw("   %d. %s", i + 1, modeNames[i]);
             mvwprintw(gameModeWindow, 3 + i * 3, 2, "   %d. %s", i + 1, modeNames[i]);
@@ -418,28 +418,6 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
     refresh();
     delwin(gameModeWindow);
 
-}
-*/
-
-
-
-void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
-   erase();
-   printw("Select a game mode then press Enter to start:\n\n");
-   int numberModePossible = std::size(modeNames);   // taille du tableau contenant les modes de jeu
-   
-   for (int i = 0; i < numberModePossible; ++i) {
-       if (i == selectedMode) {
-           attron(COLOR_PAIR(8));   // activer couleur noir sur blanc pour mode selectionné
-           printw("-> %d. %s", i + 1, modeNames[i]);
-           attroff(COLOR_PAIR(8));
-       } else {
-           printw("   %d. %s", i + 1, modeNames[i]);
-       }
-       printw("\n");
-   }
-   printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select a mode\nPress 'q' to quit\n");
-   refresh();
 }
 
 
@@ -972,6 +950,7 @@ int InterfaceTerminal::handleFriends() {
  * 
  * @return Un vecteur contenant le nom d'utilisateur et le mot de passe si la connexion est réussie, sinon un vecteur vide.
  */
+ 
  /** 
  vector<std::string> InterfaceTerminal::handleLogin() {
     vector<std::string> connexionData;
@@ -1090,7 +1069,6 @@ int InterfaceTerminal::handleFriends() {
 }
 */
  
-
 
 vector<std::string> InterfaceTerminal::handleLogin(){
     int sock = getSock();
@@ -1275,7 +1253,6 @@ vector<std::string> InterfaceTerminal::handleRegister(){
 }
 
 
-
 /**
  * @brief Gère l'interface de connexion et l'inscription de l'utilisateur/joueur.
  *
@@ -1457,7 +1434,12 @@ int InterfaceTerminal::start() {
                }
                break;
            case '\n':   // touche 'entrée'
+               erase();
+               refresh();
                 returnValue = handleOptionSelection(selectedOption);
+
+                erase();
+                refresh();
                if(returnValue!=-1)return returnValue;
                break;
            case 't':
