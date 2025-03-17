@@ -60,6 +60,57 @@ void InterfaceTerminal::initNcurses() {
  *
  *@param selectedOption Indice de l'option actuellement sélectionnée.
  */
+ 
+ void InterfaceTerminal::displayMenu(int selectedOption) const {
+    
+    const char* menuOptions[] = { "Play", "Handle friends", "Leaderboard (Endless Mode)" };
+    int numberPossibleOptions = std::size(menuOptions);  //  nombre d'options du menu
+    
+    int width = COLS;   // largeur et hauteur de la windows (via ncurses)
+    int height = LINES;
+    int menuWidth = 40;  // largeur menu principal
+    int menuHeight = 10; // hauteur menu
+
+    // position de depart du menu pour un bon cadrage
+    int startX = (width - menuWidth) / 2;
+    int startY = (height - menuHeight) / 2;
+
+    const char* title = "Welcome to Tetris Royale (Terminal Edition)";
+    int titleLength = strlen(title);
+
+    attron(A_BOLD); // mettre en gras (via ncurses)
+    mvprintw(startY - 8, (width - titleLength) / 2, "%s", title);  // titre Afficher au-dessus du cadre
+    attroff(A_BOLD);
+
+    // creation d'une fenetre pour le menu ( avec un cadre/bordure)
+    WINDOW* menuWindow = newwin(menuHeight, menuWidth, startY, startX);
+    box(menuWindow, 0, 0);  // dessine le cadre
+
+    // Display menu options
+    for (int i = 0; i < numberPossibleOptions; ++i) {
+        if (i == selectedOption) {
+            // met en evidence l'option selectionnée
+            wattron(menuWindow, COLOR_PAIR(8));   // pour activer  mise en blanc de l'option
+            mvwprintw(menuWindow, 3 + i * 2, 2, "-> %d. %s ", i + 1, menuOptions[i]);    // ' * 2 '  pour un avoir espacer un peu plus entre options
+            wattroff(menuWindow, COLOR_PAIR(8)); 
+        } else {
+            mvwprintw(menuWindow, 3 + i*2 , 2, "   %d. %s ", i + 1, menuOptions[i]);
+        }
+    }
+    wrefresh(menuWindow); // Refresh la window
+
+    mvprintw(startY + menuHeight+ 3, (width - 35) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
+    mvprintw(startY + menuHeight + 4, (width - 35) / 2, "Press ENTER to select an action");
+    mvprintw(startY + menuHeight + 5, (width - 35) / 2, "Press 'q' to quit");
+    
+    refresh();
+    // Free memory for the menu window after the loop
+    //delwin(menuWindow);
+}
+
+
+
+/** 
 void InterfaceTerminal::displayMenu(int selectedOption) const {
    erase();
    printw("Welcome to Tetris Royale (Terminal Edition)!\n");
@@ -84,6 +135,7 @@ void InterfaceTerminal::displayMenu(int selectedOption) const {
    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an action\nPress 'q' to quit\n");
    refresh();
 }
+*/
 
 
 /**
@@ -343,6 +395,61 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
  *
  *@param selectedMode Indice du mode de jeu actuellement sélectionné.
  */
+ /** 
+ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
+    //erase();
+    int width = COLS;   // largeur et hauteur de la windows (via ncurses)
+    int height = LINES;
+    int menuWidth = 50;  // largeur menu principal
+    int menuHeight = 18; // hauteur menu
+
+    // position de depart du menu pour un bon cadrage
+    int startX = (width - menuWidth) / 2;
+    int startY = (height - menuHeight) / 2;
+
+    const char* instruction = "Select a Game Mode:";
+    int instructionLength = strlen(instruction);
+
+    attron(COLOR_PAIR(2) | A_BOLD); //  mettre en vert +  gras (via ncurses) 
+    mvprintw(startY - 5, startX , "%s", instruction);  // titre Afficher au-dessus du cadre
+    attroff(COLOR_PAIR(2) | A_BOLD);
+
+    WINDOW* gameModeWindow = newwin(menuHeight, menuWidth, startY, startX); // fenetre pour afficher les modes de jeu
+    box(gameModeWindow, 0, 0);  // dessine le cadre
+
+    int numberModePossible = std::size(modeNames);   // taille du tableau contenant les modes de jeu
+
+    for (int i = 0; i < numberModePossible; ++i) {
+        if (i == selectedMode) {
+            wattron(gameModeWindow, COLOR_PAIR(7));
+            mvwprintw(gameModeWindow, 3 + i * 3, 2,"-> %d. %s", i + 1, modeNames[i] ) ;
+            wattroff( gameModeWindow, (COLOR_PAIR(7)) );
+        } else {
+            //printw("   %d. %s", i + 1, modeNames[i]);
+            mvwprintw(gameModeWindow, 3 + i * 3, 2, "   %d. %s", i + 1, modeNames[i]);
+        }
+        if (i != 0) {
+            mvwprintw(gameModeWindow, 3 + i * 3, menuWidth - 16, "(Unreleased)");   // TODO -- à effacer quand les modes de jeu seront faits
+        }
+    }
+    wrefresh(gameModeWindow);
+    
+    //printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select a mode\nPress 'q' to quit\n");
+    mvprintw(startY + menuHeight+ 3, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
+    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press ENTER to select an action");
+    mvprintw(startY + menuHeight + 5, (width - 45) / 2, "Press 'q' to quit");
+    
+    if (!(user == "")) mvprintw(startY + menuHeight + 7, (width - 45) / 2, "Press 't' to open the message box");
+    //if(!(user==""))printw("Press 't' to open the message box\n");
+    
+    refresh();
+    delwin(gameModeWindow);
+
+}
+*/
+
+
+
 void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
    erase();
    printw("Select a game mode then press Enter to start:\n\n");
@@ -361,6 +468,11 @@ void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select a mode\nPress 'q' to quit\n");
    refresh();
 }
+
+
+
+
+
 
 void InterfaceTerminal::displayMultiplayerOption(int selectedMode) const {
     int action = selectedMode;
@@ -821,6 +933,63 @@ int InterfaceTerminal::handleFriends() {
  * 
  * @param selectedOption indice de l'option choisie.
  */
+ 
+ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
+    //erase();
+    int width = COLS;   // largeur et hauteur de la windows (via ncurses)
+    int height = LINES;
+    int menuWidth = 60;  // largeur menu principal
+    int menuHeight = 12; // hauteur menu
+
+    // position de depart du menu pour un bon cadrage
+    int startX = (width - menuWidth) / 2;
+    int startY = (height - menuHeight) / 2;
+
+    WINDOW* connexionOptions_window = newwin(menuHeight, menuWidth, startY, startX);
+    box(connexionOptions_window, 0, 0);  // Dessiner le cadre
+
+    // Affichage du titre "TETRIS ROYAL" centré au-dessus du menu
+    const char* title = "----- TETRIS ROYAL -----";
+    int title_Xpos = (width - strlen(title) - 1) / 2;  // Calculer la position pour centrer le titre
+    int title_Ypos = startY - 10;
+    attron(COLOR_PAIR(2) | A_BOLD);
+    mvprintw(title_Ypos, title_Xpos, title);  // Afficher le titre à la position calculée
+    attroff(COLOR_PAIR(2) | A_BOLD);
+    
+    const char* connexionOptions[] = {"Log in", "Register",};
+    
+    mvwprintw(connexionOptions_window, 1, 2, "Log in or Register here:");
+    
+    for (int i = 0; i < std::size(connexionOptions); ++i) {
+        
+        if (i == selectedOption) {
+            wattron(connexionOptions_window, COLOR_PAIR(7));
+            mvwprintw(connexionOptions_window, 5 + i*3, 2 , "-> %s",  connexionOptions[i]);
+            wattroff(connexionOptions_window, COLOR_PAIR(7));
+        } else {
+            mvwprintw(connexionOptions_window, 5 + i * 3, 2, "   %s",  connexionOptions[i]);
+        }
+    }
+
+    wrefresh(connexionOptions_window);
+    //printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
+    //if(!(user==""))printw("Press 't' to open the message box\n");
+
+    mvprintw(startY + menuHeight+ 3, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
+    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press ENTER to select an action");
+    mvprintw(startY + menuHeight + 5, (width - 45) / 2, "Press 'q' to quit");
+
+
+    if (!(user == "")) mvprintw(startY + menuHeight + 7, (width - 35) / 2, "Press 't' to open the message box");
+    refresh();
+
+    delwin(connexionOptions_window);
+}
+
+
+
+
+/** 
 void InterfaceTerminal::displayConnexionOption(int selectedOption) {
     erase();
     const char* connexionOptions[] = {
@@ -840,6 +1009,7 @@ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
     printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
     refresh();
 }
+*/
 
 
 /**
@@ -851,6 +1021,126 @@ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
  * 
  * @return Un vecteur contenant le nom d'utilisateur et le mot de passe si la connexion est réussie, sinon un vecteur vide.
  */
+ /** 
+ vector<std::string> InterfaceTerminal::handleLogin() {
+    vector<std::string> connexionData;
+    curs_set(1);  // Affiche le curseur
+    nodelay(stdscr, false);  // Ne pas utiliser nodelay
+    bool firstTry = true;
+
+    while (!flag) {
+        erase();  // Efface l'écran à chaque itération pour éviter la superposition des éléments
+        echo();
+        clrtobot();
+
+        printw("Press ENTER to validate an entry\nPress ENTER with an empty entry to go back\n");
+        refresh();
+
+        // Cadre pour "Enter your username"
+        int startX = (COLS - 40) / 2;
+        int startY = (LINES - 12) / 2 - 5; // Centrer verticalement et ajuster un peu pour l'alignement
+
+        // Fenêtre pour le nom d'utilisateur
+        WINDOW* usernameWindow = newwin(5, 40, startY, startX);
+        box(usernameWindow, 0, 0);  // Créer un cadre
+        wattron(usernameWindow, COLOR_PAIR(2) | A_BOLD);
+        mvwprintw(usernameWindow, 1, 2, "Username: ");
+        wattroff(usernameWindow, COLOR_PAIR(2) | A_BOLD);
+        wrefresh(usernameWindow);
+
+        move(startY + 1, startX + 11);  // Placer le curseur après le texte "Username:"
+        char namePlayer[100];
+        wgetnstr(stdscr, namePlayer, 99);  // Saisir le nom de l'utilisateur
+        if (strlen(namePlayer) == 0) {
+            delwin(usernameWindow);  // Si rien n'est saisi, fermer la fenêtre et retourner
+            return connexionData;
+        }
+        delwin(usernameWindow);  // Fermer la fenêtre du nom d'utilisateur
+
+        while (!flag) {
+            // Cadre pour "Enter your password"
+            WINDOW* passwordWindow = newwin(5, 40, startY + 8, startX);
+            box(passwordWindow, 0, 0);  // Créer un cadre
+            wattron(passwordWindow, COLOR_PAIR(2) | A_BOLD);
+            mvwprintw(passwordWindow, 1, 2, "Password: ");
+            wattroff(passwordWindow, COLOR_PAIR(2) | A_BOLD);
+            wrefresh(passwordWindow);
+
+            wmove(passwordWindow, 1, 11);  // Placer le curseur après "Password:"
+            noecho();  // Masquer le mot de passe
+            char passwordPlayer[100];
+            wgetnstr(passwordWindow, passwordPlayer, 99);  // Saisir le mot de passe
+
+            if (strlen(passwordPlayer) == 0) {
+                firstTry = true;
+                delwin(passwordWindow);  // Si rien n'est saisi, fermer la fenêtre et revenir à l'étape précédente
+                break;  // Retour à la saisie du nom d'utilisateur
+            }
+            firstTry = false;
+
+            // Vérification de la connexion
+            if (udm.isCorrectLogin(namePlayer, passwordPlayer)) {
+                int user_id = db.getUserId(namePlayer);
+                if (db.isUserInSession(user_id)) {
+                    // Message si l'utilisateur est déjà connecté dans une autre session
+                    printw("\nYou are already logged in another session! \n");
+                    move(5, 22);  // Positionner le message
+                } else {
+                    napms(1000);  // Attendre avant d'afficher "Connected!"
+                    connexionData.push_back(namePlayer);
+                    connexionData.push_back(passwordPlayer);
+                    user = namePlayer;
+
+                    // Déplacer le message "Connected!" sous le cadre du mot de passe
+                    move(startY + 15, startX + 2);  // Positionner le message plus bas
+                    attron(COLOR_PAIR(2) | A_BOLD);  // Rouge pour l'affichage
+                    printw("Connected!");
+                    attroff(COLOR_PAIR(2) | A_BOLD);  // Retirer la couleur
+
+                    wrefresh(passwordWindow);
+                    refresh();
+                    napms(1000);  // Attendre un peu avant de retourner les données
+
+                    // Effacer la page de connexion avant de passer au menu
+                    erase();
+                    displayMenu(0);  // Afficher le menu avec la première option sélectionnée
+                    delwin(passwordWindow);  // Fermer la fenêtre du mot de passe
+                    return connexionData;  // Retourner les informations de connexion
+                }
+            } else {
+                // Si la connexion échoue
+                move(startY + 7, startX);  // Effacer l'ancienne erreur
+                clrtoeol();
+
+                // Afficher un message d'erreur sous le champ du mot de passe
+                curs_set(0);  // Cacher le curseur pendant le message
+                attron(COLOR_PAIR(1) | A_BOLD);  // Couleur rouge pour l'erreur
+                mvprintw(startY + 15, startX + 2, "Incorrect username or password.");
+                attroff(COLOR_PAIR(1) | A_BOLD);  // Retirer la couleur rouge
+                refresh();
+                napms(1500);  // Afficher l'erreur pendant un moment
+
+                // Effacer le message après un délai
+                move(startY + 15, startX);
+                clrtoeol();
+                refresh();
+
+                curs_set(1);  // Afficher à nouveau le curseur
+                wmove(passwordWindow, 1, 11);  // Repositionner le curseur dans la fenêtre du mot de passe
+                wrefresh(passwordWindow);
+            }
+
+            delwin(passwordWindow);  // Fermer la fenêtre du mot de passe après chaque tentative
+        }
+    }
+
+    // Retourner les données de connexion après toute tentative
+    return connexionData;
+}
+*/
+ 
+
+
 vector<std::string> InterfaceTerminal::handleLogin(){
     int sock = getSock();
     vector<std::string> connexionData;
@@ -927,6 +1217,7 @@ vector<std::string> InterfaceTerminal::handleLogin(){
     }
     return connexionData;
 }
+
 
 
 
