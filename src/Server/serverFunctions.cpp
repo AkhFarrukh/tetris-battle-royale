@@ -385,45 +385,7 @@ void* Server::threadRoutineClient(void* arg){
             *JOIN ROOM
             */
             else if (type == MessageType::T_Join) {
-                cout<<"Join received"<<endl;
-                int ownerFd;
-                if (!recvAll(client.client_fd, &ownerFd, size)){userIsOnline = false;}
-
-                std::shared_ptr<Room> chosenRoom = nullptr;
-                for (auto &r : *server->roomsList) {
-                    cout<<"Listing rooms fd"<<r->getOwnerFd()<<endl;
-                    if (r->getOwnerFd() == ownerFd) {
-                        chosenRoom = r;
-                        break;
-                    }
-                }
-
-                if (!chosenRoom) {
-                    std::cout << "No matching room or invalid ownerFd = " << ownerFd << "\n";
-                }
-                else {
-                    if (!chosenRoom->addPlayer(client.client_fd, eventQueue)) {
-                        std::cout << "Failed to join room, maybe full or started\n";
-                    }
-                    else {
-                        std::cout << "Client joined room with hostFd = " << chosenRoom->getOwnerFd() << std::endl;
-
-                        RoomInfo info;
-                        info.roomID               = chosenRoom->getRoomID();
-                        info.currentPlayersCount  = chosenRoom->getPlayerCount();
-                        info.isStarted            = chosenRoom->isStarted();
-                        info.mode                 = chosenRoom->getRoomMode();
-
-                        int typeToSend  = MessageType::T_RoomInfo;
-                        int sizeToSend  = 1;
-
-                        if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
-                        if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
-                        if (!sendAll(client.client_fd, &info,        sizeof(RoomInfo))){userIsOnline = false;}
-
-                        server->myRoom = chosenRoom;
-                    }
-                }
+                server->handleJoin(server, client, userIsOnline, size, eventQueue);
             }
 
 
@@ -452,24 +414,7 @@ void* Server::threadRoutineClient(void* arg){
             *FORCED EXIT INFO
             */
             else if (type == MessageType::T_ForcedExit){
-                std::cout << "Client déconnecté : " << client.client_fd << std::endl;
-                close(client.client_fd);
-                    while(server->udbm.isLoggedIn(client.username.c_str())){
-                  	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
-                    server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
-                                                                                                         //comme telle
-                  	while(server->udbm.isUserInSession(client.userId)){
-                  		server->udbm.deleteSession(client.userId);}
-                server->clientMutex.lock();
-                auto it = std::find_if(server->clients.begin(), server->clients.end(),
-                                       [&client](const ClientSession& c) {
-                                       return c.client_fd == client.client_fd;
-                                       });
-                if (it != server->clients.end()) {
-                    server->clients.erase(it);
-                }
-                server->clientMutex.unlock();
-                return nullptr;
+                server->handleForcedExit(server, client);
             }
             if (!userIsOnline){
                 /* EXIT PROPREMENT DU SERV SI DECO */
@@ -502,7 +447,7 @@ void* Server::threadRoutineGame(void* arg){
 /**
  * @brief Will properly disconnect the player from the server and notifies it on the db
  * 
- * @param server 
+ * @param server ptr to server
  * @param client ClientSession containing all the client infos
  * @param threadGamePID PID of the thread containing the game of the player, if he hasn't ended yet
  */
@@ -525,4 +470,81 @@ void Server::handleDisconnect(Server* server, ClientSession& client, pthread_t& 
         server->clients.erase(it);
     }
     server->clientMutex.unlock();
+}
+
+/**
+ * @brief Will close the client session
+ * 
+ * @param server ptr to server
+ * @param client ClientSession struct
+ */
+void Server::handleForcedExit(Server* server, ClientSession& client){
+    std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+    close(client.client_fd);
+        while(server->udbm.isLoggedIn(client.username.c_str())){
+      	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
+        server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+                                                                                             //comme telle
+      	while(server->udbm.isUserInSession(client.userId)){
+      		server->udbm.deleteSession(client.userId);}
+    server->clientMutex.lock();
+    auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                           [&client](const ClientSession& c) {
+                           return c.client_fd == client.client_fd;
+                           });
+    if (it != server->clients.end()) {
+        server->clients.erase(it);
+    }
+    server->clientMutex.unlock();
+}
+
+/**
+ * @brief Will handle the message that the player wants to join a room
+ * 
+ * @param server ptr to server
+ * @param client ClientSession struct
+ * @param userIsOnline bool handling the listening loop, true if connected to the serv 
+ * @param size size of the message to receive
+ * @param eventQueue ptr for the player's eventQueue in Game
+ */
+void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnline, int& size, shared_ptr<EventQueue> eventQueue){
+    cout<<"Join received"<<endl;
+    int ownerFd;
+    if (!recvAll(client.client_fd, &ownerFd, size)){userIsOnline = false;}
+
+    std::shared_ptr<Room> chosenRoom = nullptr;
+    for (auto &r : *server->roomsList) {
+        cout<<"Listing rooms fd"<<r->getOwnerFd()<<endl;
+        if (r->getOwnerFd() == ownerFd) {
+            chosenRoom = r;
+            break;
+        }
+    }
+
+    if (!chosenRoom) {
+        std::cout << "No matching room or invalid ownerFd = " << ownerFd << "\n";
+    }
+    else {
+        if (!chosenRoom->addPlayer(client.client_fd, eventQueue)) {
+            std::cout << "Failed to join room, maybe full or started\n";
+        }
+        else {
+            std::cout << "Client joined room with hostFd = " << chosenRoom->getOwnerFd() << std::endl;
+
+            RoomInfo info;
+            info.roomID               = chosenRoom->getRoomID();
+            info.currentPlayersCount  = chosenRoom->getPlayerCount();
+            info.isStarted            = chosenRoom->isStarted();
+            info.mode                 = chosenRoom->getRoomMode();
+
+            int typeToSend  = MessageType::T_RoomInfo;
+            int sizeToSend  = 1;
+
+            if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
+            if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
+            if (!sendAll(client.client_fd, &info,        sizeof(RoomInfo))){userIsOnline = false;}
+
+            server->myRoom = chosenRoom;
+        }
+    }
 }
