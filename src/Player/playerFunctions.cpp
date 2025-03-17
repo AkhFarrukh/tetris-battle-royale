@@ -61,7 +61,7 @@ void* Player::threadRoutineView (void* arg){
             }
         
             int act = 0;
-            while (true) {
+            while (!flag) {
                 threadData->displayMut.lock();
                 act = renderR.handleMyRoom(info);
                 threadData->displayMut.unlock();

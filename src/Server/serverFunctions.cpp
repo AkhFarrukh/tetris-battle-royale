@@ -433,9 +433,7 @@ void* Server::threadRoutineClient(void* arg){
             else if (type == MessageType::T_Input) {
                 cout<<"Input received"<<endl;
                 KeyboardAction action;
-                printf("nyamaaaa C\n");
                 if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))){userIsOnline = false;}
-                if(action == EXIT_KEY)printf("CTRRRRRRL C\n");
                 eventQueue->addEvent(make_shared<MovementActionEvent>(gameController.getAction(action)));
             }
             /************************************
