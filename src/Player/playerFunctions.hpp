@@ -38,11 +38,15 @@ class Player {
 
         //for the Royal competition mode to track the state of menu that sends maluses
         atomic<bool> targetPlayerMenu = false; //false if player is on malus menu, true if player is on target player menu
+
+        atomic<Modes> gameMode; // to know if player is playing royal competition to use special display function
         };
 
         static void* threadRoutineView (void* arg); //Routine qui recoit la grid et l'affiche
         static int sendInput (std::shared_ptr<Player::ThreadData> threadData); //Envoie les inputs au server
         static int keyboardActionToInt(KeyboardAction action);
+
+        static MalusBonus intToMalusBonus(int malus);
 };
      
 #endif
