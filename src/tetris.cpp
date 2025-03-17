@@ -203,10 +203,6 @@ int main() {
             Menu menu;
             menu.action = MenuActions::A_Play;
             if(selectedMode == 0){
-                threadData->mux.lock();
-                threadData->userInGame = true;
-                threadData->userInLobby = true;
-                threadData->mux.unlock();
                 menu.mode = Modes::Endless_;
                 napms(500);
             }

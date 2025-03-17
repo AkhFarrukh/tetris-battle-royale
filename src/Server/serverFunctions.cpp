@@ -495,6 +495,11 @@ void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnlin
     std::vector<ThreadGameData> data;
     data.push_back(threadGameData);
 
+    int type = MessageType::T_GameStart;
+    int size = sizeof(int);
+    sendAll(threadGameData.client_fd, &type,  sizeof(type));
+    sendAll(threadGameData.client_fd, &size,  sizeof(size));
+
     std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_);
     auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
     pthread_t threadGamePID;

@@ -38,7 +38,9 @@ void* Player::threadRoutineView (void* arg){
         else if(type == MessageType::T_Exit){
             threadData->mux.lock();
             threadData->userInGame = false;
+            threadData->userInLobby = false;
             threadData->mux.unlock();
+            continue;
         }
         else if(type == MessageType::T_PlayerData){
             vector<NetPlayerData> playersData;
@@ -100,6 +102,13 @@ void* Player::threadRoutineView (void* arg){
             flag = true;
             break;
         }
+        else if (type == MessageType::T_GameStart) {
+            threadData->mux.lock();
+            threadData->userInGame = true;
+            threadData->userInLobby = true;
+            threadData->mux.unlock();
+            continue;
+        }
         else if (type == MessageType::T_RoomInfo) {
             RenderRooms renderR;
             RoomInfo info;
@@ -150,7 +159,6 @@ void* Player::threadRoutineView (void* arg){
                     recv(sock, &messageSize, sizeof(int), 0);
 
                     if (messageType == MessageType::T_GameStart) {
-                        cout << "le foot" << endl;
                         threadData->mux.lock();
                         threadData->userInGame = true;
                         threadData->mux.unlock();
