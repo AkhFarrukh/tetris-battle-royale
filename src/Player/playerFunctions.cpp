@@ -209,16 +209,16 @@ void* Player::threadRoutineView (void* arg){
                     int sizeToSend = sizeof(int);
                     int fd = roomsInfo[index].roomID;
 
-                    if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {return nullptr;}
-                    if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {return nullptr;}
-                    if (!sendAll(sock, &fd, sizeof(int))) {return nullptr;}
+                    if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {flag = true; break;}
+                    if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {flag = true; break;}
+                    if (!sendAll(sock, &fd, sizeof(int))) {flag = true; break;}
                     break;
                 }
                 if (index == -2) {
                     int type = MessageType::T_Menu;
                     int size = sizeof(Menu);
                     Menu menu;
-                    menu.mode = roomsInfo[0].mode;
+                    menu.mode = roomsInfo[0].mode; ///
                     menu.action = MenuActions::A_JoinRoom;
 
 
@@ -237,7 +237,14 @@ void* Player::threadRoutineView (void* arg){
                     break;
                 }
                 if (index == -1) {
-                    return 0;
+                    int sendType = MessageType::T_LeftRoom;
+                    int sendSize = sizeof(int);
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+                    threadData->mux.lock();
+                    threadData->userInLobby = false;
+                    threadData->mux.unlock();
+                    break;
                 }
             }
 

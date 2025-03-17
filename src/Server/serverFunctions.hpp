@@ -47,6 +47,7 @@ class Server{
         void handleDisconnect(Server* server, ClientSession& client, pthread_t& threadPID);
         void handleForcedExit(Server* server, ClientSession& client);
         void handleJoin(Server* server, ClientSession& client, bool& userIsOnline, int& size, shared_ptr<EventQueue> eventQueue);
+        void handleLeftRoom(Server* server, ClientSession& client);
         void handleRefresh(Server* server, ClientSession& client, bool& userIsOnline);
         void handleForceStart(Server* server, ClientSession& client, bool& userIsOnline, pthread_t& threadGamePID);
         void handleGetRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu);

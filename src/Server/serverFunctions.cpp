@@ -215,6 +215,9 @@ void* Server::threadRoutineClient(void* arg){
             else if (type == MessageType::T_Refresh){
                 server->handleRefresh(server, client, userIsOnline);
             }
+            else if (type == MessageType::T_LeftRoom){
+                server->handleLeftRoom(server, client);
+            }
             else if (type == MessageType::T_RoomDeleted){
                 server->handleDeleteRoom(server, client);
             }
@@ -382,6 +385,16 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
             server->myRoom = chosenRoom;
         }
     }
+}
+
+void Server::handleLeftRoom(Server* server, ClientSession& client) {
+    auto room = server->myRoom;
+
+    clients.erase(
+        std::remove_if(clients.begin(), clients.end(),
+            [&](const ClientSession& c) { return c.client_fd == client.client_fd; }),
+        clients.end()
+    );
 }
 
 /**
