@@ -178,10 +178,10 @@ void* Player::threadRoutineView (void* arg){
                     }
                 } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
                     perror("Socket error");
-                    return nullptr;
+                    flag = true; break;
                 }
-
-                usleep(5000);
+                else if((errno == EAGAIN && errno == EWOULDBLOCK) && act == 1){printw("Not enough players !\n"); refresh(); napms(500);}
+                usleep(500);
             }
 
             fcntl(sock, F_SETFL, flags);
