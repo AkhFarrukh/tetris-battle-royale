@@ -473,24 +473,7 @@ void* Server::threadRoutineClient(void* arg){
             }
             if (!userIsOnline){
                 /* EXIT PROPREMENT DU SERV SI DECO */
-                std::cout << "Client déconnecté : " << client.client_fd << std::endl;
-                close(client.client_fd);
-                pthread_cancel(threadGamePID);
-                    while(server->udbm.isLoggedIn(client.username.c_str())){
-                  	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
-                    server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
-                                                                                                         //comme telle
-                  	while(server->udbm.isUserInSession(client.userId)){
-                  		server->udbm.deleteSession(client.userId);}
-                server->clientMutex.lock();
-                auto it = std::find_if(server->clients.begin(), server->clients.end(),
-                                       [&client](const ClientSession& c) {
-                                       return c.client_fd == client.client_fd;
-                                       });
-                if (it != server->clients.end()) {
-                    server->clients.erase(it);
-                }
-                server->clientMutex.unlock();
+                server->handleDisconnect(server, client, threadGamePID);
             }
         }
     }
@@ -514,4 +497,32 @@ void* Server::threadRoutineGame(void* arg){
     cout<<"Going to run game"<<endl;
     game->run();
     return nullptr;
+}
+
+/**
+ * @brief Will properly disconnect the player from the server and notifies it on the db
+ * 
+ * @param server 
+ * @param client ClientSession containing all the client infos
+ * @param threadGamePID PID of the thread containing the game of the player, if he hasn't ended yet
+ */
+void Server::handleDisconnect(Server* server, ClientSession& client, pthread_t& threadGamePID){
+    std::cout << "Client déconnecté : " << client.client_fd << std::endl;
+    close(client.client_fd);
+    pthread_cancel(threadGamePID);
+        while(server->udbm.isLoggedIn(client.username.c_str())){
+      	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
+        server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+                                                                                             //comme telle
+      	while(server->udbm.isUserInSession(client.userId)){
+      		server->udbm.deleteSession(client.userId);}
+    server->clientMutex.lock();
+    auto it = std::find_if(server->clients.begin(), server->clients.end(),
+                           [&client](const ClientSession& c) {
+                           return c.client_fd == client.client_fd;
+                           });
+    if (it != server->clients.end()) {
+        server->clients.erase(it);
+    }
+    server->clientMutex.unlock();
 }

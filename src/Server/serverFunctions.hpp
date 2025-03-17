@@ -42,6 +42,8 @@ class Server{
         std::condition_variable cv;
         bool userIsInLobby = false;
 
+        void handleDisconnect(Server* server, ClientSession& client, pthread_t& threadPID);
+
 
     public:
         Server();
