@@ -192,14 +192,11 @@ void* Player::threadRoutineView (void* arg){
             std::vector<RoomInfo> roomsInfo;
             roomsInfo.resize(size);
             if (!recvAll(sock, roomsInfo.data(), size *sizeof(RoomInfo)))
-            {
-                break;
-            }
+            {flag = true; break;}
             clear();
-            printw("Got it !");
             refresh();
             int index = -3;
-            while (true) {
+            while (!flag) {
                 threadData->displayMut.lock();
                 index = renderR.handleListRooms(roomsInfo);
                 threadData->displayMut.unlock();
