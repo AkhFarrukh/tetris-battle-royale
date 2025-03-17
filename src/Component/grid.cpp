@@ -165,29 +165,30 @@ Color Grid::getBlockColor(int x, int y) {
  */
 void Grid::malusLines(int numLines) {
     int line = 0; //Tout en haut
-    while (!isLineBusy(line) && line < GRID_HEIGHT) {
+    while (line < GRID_HEIGHT && !isLineBusy(line)) {
         ++line;
     }
-    if (line < GRID_HEIGHT - 1) { //Si aucune line n'est vide (ce qui aurait deja fait finir la game donc jsp
+    if (line > GRID_HEIGHT - 1) { //Si aucune line n'est vide (ce qui aurait deja fait finir la game donc jsp
         --line; //ligne vide au-dessus d'une ligne partiellement rempli
     }
-    else {
-        int heightAfterAddingLines = line - numLines;
-        if (heightAfterAddingLines < 0) {  //Si le nombre de ligne à ajouter sort de la grid et va donc faire perdre le joueur
-            //todo "Perdu"
-        }
-        for (line; line > heightAfterAddingLines; --line) {
-            srand(static_cast<uint>(time(nullptr)));  // Initialisation avec l'heure actuelle
-            int indiceCaseVide = rand() % GRID_WIDTH;   //Selection au hasard de la case qui sera vide
-            for (int row=0; row < GRID_WIDTH; row++){
-                if (row != indiceCaseVide) {
-                    Block block = Block(Color::grey, 1, Coordinates(row, line));
+
+    int heightAfterAddingLines = line - numLines;
+    if (heightAfterAddingLines < 0) {  //Si le nombre de ligne à ajouter sort de la grid et va donc faire perdre le joueur
+        //todo "Perdu"
+    }
+    for (line; line > heightAfterAddingLines; --line) {
+        srand(static_cast<uint>(time(nullptr)));  // Initialisation avec l'heure actuelle
+        int indiceCaseVide = rand() % GRID_WIDTH;   //Selection au hasard de la case qui sera vide
+        for (int row=0; row < GRID_WIDTH; row++){
+            if (row != indiceCaseVide) {
+                Block block = Block(Color::purple, 1, Coordinates(row, line));
+                if (line >= 0 && line < GRID_HEIGHT) {
                     setBlock(block);
                 }
             }
         }
-
     }
+
 }
 
 /**

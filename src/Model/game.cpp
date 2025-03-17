@@ -76,10 +76,10 @@ void Game::run() {
     auto chronoDropEvent = std::chrono::steady_clock::now();
 
     while (isRunning) {
-        //cout<<"Starting game loop"<<endl;
+        cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
-        int time = 500;
+        int time = 5000;  //todo 2 sec
         cout<<"Checking timing for players"<<endl;
         for (int p = 0; p < (int)players.size(); p++) {
             if(players[p].sped_up){time = 250;}
@@ -499,7 +499,7 @@ bool Game::broadcastGame() {
             if (!sendAll(sock, &gridSize, sizeof(gridSize))) {return false;}
             if (!sendAll(sock, player.grid.data(), gridSize * sizeof(Color))) {return false;}
         }
-        cout << "Sent netplayerdatda to " << sock << endl;
+        //cout << "Sent netplayerdatda to " << sock << endl;
     }
     return true;
 }
