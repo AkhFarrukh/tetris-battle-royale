@@ -391,11 +391,7 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
 void Server::handleLeftRoom(Server* server, ClientSession& client) {
     auto room = server->myRoom;
 
-    clients.erase(
-        std::remove_if(clients.begin(), clients.end(),
-            [&](const ClientSession& c) { return c.client_fd == client.client_fd; }),
-        clients.end()
-    );
+    room->removePlayer(client.client_fd);
 }
 
 /**

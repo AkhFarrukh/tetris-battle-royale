@@ -44,6 +44,22 @@ bool Room::addPlayer(int playerFd, std::shared_ptr<EventQueue> eq) {
     return true;
 }
 
+void Room::removePlayer(int playerFd) {
+    std::unique_lock<std::mutex> lock(mtx);
+
+    playerFds.erase(
+        std::remove(playerFds.begin(), playerFds.end(), playerFd),
+        playerFds.end()
+    );
+
+    playersThread.erase(
+        std::remove_if(playersThread.begin(), playersThread.end(),
+            [&](const ThreadGameData& t) { return t.client_fd == playerFd; }),
+        playersThread.end()
+    );
+    cv.notify_all();
+}
+
 int Room::getPlayerCount() const {
     std::lock_guard<std::mutex> lock(mtx);
     return (int)playerFds.size();

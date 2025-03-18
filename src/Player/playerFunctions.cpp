@@ -201,7 +201,7 @@ void* Player::threadRoutineView (void* arg){
                     perror("Socket error");
                     flag = true; break;
                 }
-                else if((errno == EAGAIN && errno == EWOULDBLOCK) && act == 1){printw("Not enough players !\n"); refresh(); napms(500);}
+                else if(type == MessageType::T_RoomInfo && errno == EAGAIN && errno == EWOULDBLOCK && act == 1){printw("Not enough players !\n"); refresh(); napms(500);}
                 usleep(500);
             }
 

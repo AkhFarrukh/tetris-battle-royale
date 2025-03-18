@@ -41,7 +41,7 @@ public:
      * @returns true if successfully added, false if room is full.
      */
     bool addPlayer(int playerFd, std::shared_ptr<EventQueue> eq);
-
+    void removePlayer(int playerFd);
 
     /**
      * @brief Force start if we have at least minPlayers. 
