@@ -281,6 +281,7 @@ void* Server::threadRoutineGame(void* arg){
     delete gamePtrWrapper;
     cout<<"Going to run game"<<endl;
     game->run();
+
     return nullptr;
 }
 
@@ -441,7 +442,7 @@ void Server::handleForceStart(Server* server, ClientSession& client, bool& userI
             break;
         }
      }
-     if(!room)userIsOnline = false;
+    if(!room)userIsOnline = false;
     if (room->checkGameReady()){
     room->broadcastGameStart();
     std::shared_ptr<Game> gameShPtr =  room->launchGame();
