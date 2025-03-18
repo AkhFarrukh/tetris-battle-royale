@@ -116,7 +116,6 @@ void* Player::threadRoutineView (void* arg){
                 perror("Error on receiving room");
                 break;
             }
-
             int flags = fcntl(sock, F_GETFL, 0);
             fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 
@@ -193,6 +192,10 @@ void* Player::threadRoutineView (void* arg){
             roomsInfo.resize(size);
             if (!recvAll(sock, roomsInfo.data(), size *sizeof(RoomInfo)))
             {flag = true; break;}
+            Modes mode;
+            int size;
+            if(!recvAll(sock, &mode, sizeof(int))){flag = true; break;}
+            if(!recvAll(sock, &size, sizeof(int))){flag = true;break;}
             clear();
             refresh();
             int index = -3;
@@ -218,21 +221,21 @@ void* Player::threadRoutineView (void* arg){
                     int type = MessageType::T_Menu;
                     int size = sizeof(Menu);
                     Menu menu;
-                    menu.mode = roomsInfo[0].mode; ///
+                    menu.mode = mode;
                     menu.action = MenuActions::A_JoinRoom;
 
 
                     if(sendAll(sock, &type, sizeof(int)) == false){
                         perror("Error sending menu info : ");
-                        return 0;
+                        flag = true; break;
                     }
                     if(sendAll(sock, &size, sizeof(int)) == false){
                         perror("Error sending menu info : ");
-                        return 0;
+                        flag = true; break;
                     }
                     if(sendAll(sock, &menu, sizeof(Menu)) == false){
                         perror("Error sending menu info : ");
-                        return 0;
+                        flag = true; break;
                     }
                     break;
                 }
