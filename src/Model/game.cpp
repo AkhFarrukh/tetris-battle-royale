@@ -144,7 +144,7 @@ void Game::updateGame() {
                 handleMalusBonusEvent(evt, p);
             }
             else {
-                if (players[p].malusBonus != MalusBonus::BLOCKED){
+                if (players[p].malusBonus != MalusBonus::MalusFreezeControls){
                     handleMovementActionEvent(evt, p);
                }
             }
