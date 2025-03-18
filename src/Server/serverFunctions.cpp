@@ -464,6 +464,10 @@ void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOn
     if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
     if (!sendAll(client.client_fd, &nbRooms, sizeof(nbRooms))){userIsOnline = false;}
     if (!sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo))){userIsOnline = false;}
+    int type = menu.mode;
+    int size = sizeof(int);
+    sendAll(client.client_fd, &type,  sizeof(type));
+    sendAll(client.client_fd, &size,  sizeof(size));
 }
 
 /**
