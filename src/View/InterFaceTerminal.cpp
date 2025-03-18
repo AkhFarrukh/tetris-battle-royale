@@ -16,7 +16,7 @@ const char* InterfaceTerminal::modeNames[] = {
                                             "Endless Mode",  
                                             "Classic Mode",  
                                             "Duel Mode",  
-                                            "Royal Competition Mode (Unreleased)"  
+                                            "Royal Competition Mode "  
                                             };    
 
 InterfaceTerminal::InterfaceTerminal() {initNcurses();}
@@ -35,7 +35,7 @@ void InterfaceTerminal::initNcurses() {
    curs_set(0);
    nodelay(stdscr, TRUE);
    start_color();
-   init_pair(8, COLOR_BLACK, COLOR_WHITE);  // Texte noir sur fond blanc
+   init_pair(9, COLOR_BLACK, COLOR_WHITE);  // Texte noir sur fond blanc
 
    if (has_colors() && can_change_color()) {
        use_default_colors();
@@ -90,9 +90,9 @@ void InterfaceTerminal::initNcurses() {
     for (int i = 0; i < numberPossibleOptions; ++i) {
         if (i == selectedOption) {
             // met en evidence l'option selectionnée
-            wattron(menuWindow, COLOR_PAIR(8));   // pour activer  mise en blanc de l'option
+            wattron(menuWindow, COLOR_PAIR(9));   // pour activer  mise en blanc de l'option
             mvwprintw(menuWindow, 3 + i * 2, 2, "-> %d. %s ", i + 1, menuOptions[i]);    // ' * 2 '  pour un avoir espacer un peu plus entre options
-            wattroff(menuWindow, COLOR_PAIR(8)); 
+            wattroff(menuWindow, COLOR_PAIR(9)); 
         } else {
             mvwprintw(menuWindow, 3 + i*2 , 2, "   %d. %s ", i + 1, menuOptions[i]);
         }
@@ -109,33 +109,6 @@ void InterfaceTerminal::initNcurses() {
 }
 
 
-
-/** 
-void InterfaceTerminal::displayMenu(int selectedOption) const {
-   erase();
-   printw("Welcome to Tetris Royale (Terminal Edition)!\n");
-   printw("Choose an action: \n\n");
-   const char* menuOptions[] = {
-                                "Play",
-                                "Handle friends",
-                                "Account (currently being updated)"
-                                };
-   
-   int numberPossibleOptions = std::size(menuOptions); // taille du tableau contenant options du menu principal
-   
-   for (int i = 0; i < numberPossibleOptions; ++i) {
-       if (i == selectedOption) {
-           attron(COLOR_PAIR(8));    // activer couleur noir sur blanc pour option selected
-           printw("-> %d. %s\n", i + 1, menuOptions[i]);
-           attroff(COLOR_PAIR(8));
-       } else {
-           printw("   %d. %s\n", i + 1, menuOptions[i]);
-       }
-   }
-   printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an action\nPress 'q' to quit\n");
-   refresh();
-}
-*/
 
 
 /**
@@ -395,7 +368,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
  *
  *@param selectedMode Indice du mode de jeu actuellement sélectionné.
  */
- /** 
+ 
  void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
     //erase();
     int width = COLS;   // largeur et hauteur de la windows (via ncurses)
@@ -421,9 +394,9 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
 
     for (int i = 0; i < numberModePossible; ++i) {
         if (i == selectedMode) {
-            wattron(gameModeWindow, COLOR_PAIR(7));
+            wattron(gameModeWindow, COLOR_PAIR(9));
             mvwprintw(gameModeWindow, 3 + i * 3, 2,"-> %d. %s", i + 1, modeNames[i] ) ;
-            wattroff( gameModeWindow, (COLOR_PAIR(7)) );
+            wattroff( gameModeWindow, (COLOR_PAIR(9)) );
         } else {
             //printw("   %d. %s", i + 1, modeNames[i]);
             mvwprintw(gameModeWindow, 3 + i * 3, 2, "   %d. %s", i + 1, modeNames[i]);
@@ -446,28 +419,6 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
     delwin(gameModeWindow);
 
 }
-*/
-
-
-
-void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
-   erase();
-   printw("Select a game mode then press Enter to start:\n\n");
-   int numberModePossible = std::size(modeNames);   // taille du tableau contenant les modes de jeu
-   
-   for (int i = 0; i < numberModePossible; ++i) {
-       if (i == selectedMode) {
-           attron(COLOR_PAIR(8));   // activer couleur noir sur blanc pour mode selectionné
-           printw("-> %d. %s", i + 1, modeNames[i]);
-           attroff(COLOR_PAIR(8));
-       } else {
-           printw("   %d. %s", i + 1, modeNames[i]);
-       }
-       printw("\n");
-   }
-   printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select a mode\nPress 'q' to quit\n");
-   refresh();
-}
 
 
 
@@ -481,9 +432,9 @@ void InterfaceTerminal::displayMultiplayerOption(int selectedMode) const {
     const char* subActions[] = { "Create a room", "Join a room"};
     for (int j = 0; j < 2; ++j) {
         if (j == action) {
-            attron(COLOR_PAIR(8));
+            attron(COLOR_PAIR(9));
             printw("-> %s\n", subActions[j]);
-            attroff(COLOR_PAIR(8));
+            attroff(COLOR_PAIR(9));
         }
         else {
             printw("   %s\n", subActions[j]);
@@ -656,31 +607,77 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
  * 
  * @return Retourne 0 si l'utilisateur quitte normalement, ou -1 en cas d'erreur lors de l'ouverture.
  */
+ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> friends) {
+    //erase();
+    
+    int width = COLS;   // Largeur et hauteur de la fenêtre (via ncurses)
+    int height = LINES;
+    int menuWidth = 50;  // Largeur du menu des amis
+    int menuHeight = 25; // Hauteur du menu
 
-void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> friends) {
-    erase();
-    printw("Friends list : \n\n");
-    int numberFriends = std::size(friends);   // taille du tableau contenant les amis
-    if(numberFriends == 0) {printw("Empty friends list \n");}
-    else{
-    for (int i = 0; i < numberFriends; ++i) {
-        if (i == selectedOption) {
-            printw("-> %d. %s", i + 1, friends[i].c_str());
-        } else {
-            printw("   %d. %s", i + 1, friends[i].c_str());
+    // Position pour centrer le cadre
+    int startX = (width - menuWidth) / 2;
+    int startY = (height - menuHeight - 3) / 2 ;
+
+    const char* title = "Friends list:";
+    attron(COLOR_PAIR(2) | A_BOLD);
+    mvprintw(startY - 2, startX, "%s", title);  // Titre aligné avec le cadre
+    attroff(COLOR_PAIR(2) | A_BOLD);
+
+    // fenêtre pour le menu des amis
+    WINDOW* friendsWindow = newwin(menuHeight, menuWidth, startY, startX);
+    box(friendsWindow, 0, 0);  // Dessiner le cadre
+
+    int numberFriends = friends.size();  // Nombre d'amis
+
+    // pour afficher les amis
+    if (numberFriends == 0) {
+        mvwprintw(friendsWindow, 2, 2, "Empty friends list");
+    } else {
+        for (int i = 0; i < numberFriends; ++i) {
+            if (i == selectedOption) {
+                wattron(friendsWindow, COLOR_PAIR(8));
+                mvwprintw(friendsWindow, 2 + i, 2, "-> %d. %s", i + 1, friends[i].c_str());
+                wattroff(friendsWindow, COLOR_PAIR(8));
+            } else {
+                mvwprintw(friendsWindow, 2 + i, 2, "   %d. %s", i + 1, friends[i].c_str());
+            }
         }
-        printw("\n");
     }
-    }
-    if (selectedOption == numberFriends) printw("\n-> %s\n", "Add new friend");
-    else printw("\n   %s\n", "Add new friend");
-    if (selectedOption == numberFriends+1) printw("-> Friend requests(%d)\n", db.getNumberFriendRequestsReceived(user));
-    else printw("   Friend requests(%d)\n", db.getNumberFriendRequestsReceived(user));
 
-    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    if(!(user==""))printw("Press 't' to open the message box\n");
+    // pour ajouter des options en bas du cadre  (car si il y a trop d'amis --> cadre trop petit)
+    int bottomY = menuHeight - 4;
+    if (selectedOption == numberFriends) {
+        wattron(friendsWindow, COLOR_PAIR(9));
+        mvwprintw(friendsWindow, bottomY, 2, "-> Add new friend");
+        wattroff(friendsWindow, COLOR_PAIR(9));
+    }
+    else {
+        mvwprintw(friendsWindow, bottomY, 2, "   Add new friend");
+    }
+
+    if (selectedOption == numberFriends + 1) {
+        wattron(friendsWindow, COLOR_PAIR(9));
+        mvwprintw(friendsWindow, bottomY + 2, 2, "-> Friend requests (%d)", db.getNumberFriendRequestsReceived(user));
+        wattroff(friendsWindow, COLOR_PAIR(9));
+    }
+    else {
+        mvwprintw(friendsWindow, bottomY + 2, 2, "   Friend requests (%d)", db.getNumberFriendRequestsReceived(user));
+    }
+    wrefresh(friendsWindow);
+
+    // Instructions sous le cadre
+    mvprintw(startY + menuHeight + 2, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");
+    mvprintw(startY + menuHeight + 3, (width - 45) / 2, "Press ENTER to select an option");
+    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press 'q' to quit");
+
+    if (!(user == "")) 
+        mvprintw(startY + menuHeight + 6, (width - 45) / 2, "Press 't' to open the message box");         
+
     refresh();
+    delwin(friendsWindow);
 }
+
 
 
 void InterfaceTerminal::displayFriendOptions(int selectedOption) {
@@ -713,36 +710,112 @@ void InterfaceTerminal::displayFriendOptions(int selectedOption) {
  * - Informe si une demande a déjà été envoyée.
  * - Si le joueur avait déjà envoyé une demande, la demande d'ami est acceptée.
 */
-void InterfaceTerminal::enterName(){
-    erase();
-    printw("Press ENTER to research the player name\nPress 'ENTER' with an empty entry to quit\n");
-    printw("\nEnter the player name : \n");
+
+
+
+void InterfaceTerminal::enterName() {
+    erase();  // Nettoyer tout l'écran AVANT d'afficher le cadre
+
+    int width = COLS;
+    int height = LINES;
+    int menuWidth = 50;
+    int menuHeight = 5;
+    int startX = (width - menuWidth) / 2;
+    int startY = (height - menuHeight) / 2;
+
     refresh();
     echo();
     curs_set(1);
     nodelay(stdscr, false);
-    int returnValue;
 
     char namePlayer[100];
 
     while (!flag) {
-        wgetnstr(stdscr,namePlayer,99);
-        if(strlen(namePlayer)==0) return;
-        if(strcmp(namePlayer, user.c_str())==0) printw("\nPlease enter a name different from yours ! \n");
-        else {
-            printw("\nResearch player... \n");
+        //erase();  // Nettoyer tout l'affichage à chaque itération
+
+        // Affichage des instructions
+        attron(COLOR_PAIR(2) | A_BOLD);
+        mvprintw(startY - 4, startX, "Press ENTER to research the player name");
+        mvprintw(startY - 3, startX, "Press 'ENTER' with an empty entry to quit");
+        attroff(COLOR_PAIR(2) | A_BOLD);
+
+        // Création du cadre pour entrer le nom
+        WINDOW* nameWindow = newwin(menuHeight, menuWidth, startY, startX);
+        box(nameWindow, 0, 0);
+        wattron(nameWindow, COLOR_PAIR(2) | A_BOLD);
+        mvwprintw(nameWindow, 0, 2, " ENTER NAME ");
+        wattroff(nameWindow, COLOR_PAIR(2) | A_BOLD);
+        wrefresh(nameWindow);
+
+        // Saisie utilisateur
+        mvwgetnstr(nameWindow, 2, 2, namePlayer, 99);
+        delwin(nameWindow);
+        refresh();
+
+        // Si l'entrée est vide, quitter et réafficher le menu des amis
+        if (strlen(namePlayer) == 0) {
+            erase();  // Effacer proprement avant de retourner au menu
+            return;
+        }
+
+        // Effacer avant d'afficher le message suivant
+        erase();
+
+        // Vérifier si le nom est celui de l'utilisateur
+        if (strcmp(namePlayer, user.c_str()) == 0) {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "Please enter a name different from yours!");
+            attroff(COLOR_PAIR(1) | A_BOLD);
             refresh();
-            returnValue = db.verifyRequestFriend(user, namePlayer);
-            if(returnValue==0){if(db.requestFriend(user, namePlayer))printw("\nFriend request sent ! \n");
-                                                                                          refresh();napms(1000);}
-            else if(returnValue==2) printw("\n%s is already you friend \n", namePlayer);
-            else if(returnValue==3) printw("\nYou have already sent a friend request to %s \n", namePlayer);
-            else if(returnValue==4){db.deleteRequestFriend(user, namePlayer); db.addFriend(user, namePlayer);
-              printw("\n%s had already friend-requested you, so now you are friend !\n", namePlayer);
-                                                                                         refresh();napms(1500);}
-            else printw("\nInvalid username ! \n");}
+            napms(1500);
+            continue;
+        }
+
+        // Afficher la recherche en cours
+        attron(COLOR_PAIR(2) | A_BOLD);
+        mvprintw(startY + 6, startX, "Researching player...");
+        attroff(COLOR_PAIR(2) | A_BOLD);
+        refresh();
+        napms(1000);
+
+        // Vérifier si la demande d'ami est possible
+        int returnValue = db.verifyRequestFriend(user, namePlayer);
+        erase();  // Efface tout avant d'afficher le résultat
+
+        // Afficher le résultat de la recherche
+        if (returnValue == 0) {
+            if (db.requestFriend(user, namePlayer)) {
+                attron(COLOR_PAIR(2) | A_BOLD);
+                mvprintw(startY + 6, startX, "Friend request sent!");
+                attroff(COLOR_PAIR(2) | A_BOLD);
+            }
+        } else if (returnValue == 2) {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "%s is already your friend", namePlayer);
+            attroff(COLOR_PAIR(1) | A_BOLD);
+        } else if (returnValue == 3) {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "You have already sent a request to %s", namePlayer);
+            attroff(COLOR_PAIR(1) | A_BOLD);
+        } else if (returnValue == 4) {
+            db.deleteRequestFriend(user, namePlayer);
+            db.addFriend(user, namePlayer);
+            attron(COLOR_PAIR(2) | A_BOLD);
+            mvprintw(startY + 6, startX, "%s already requested you, now you're friends!", namePlayer);
+            attroff(COLOR_PAIR(2) | A_BOLD);
+        } else {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "Invalid username!");
+            attroff(COLOR_PAIR(1) | A_BOLD);
+        }
+
+        refresh();
+        napms(1500);
+        erase();
+    }
 }
-}
+
+
 
 
 /**
@@ -756,34 +829,77 @@ void InterfaceTerminal::enterName(){
  * @param requestsReceived Vecteur contenant les noms des utilisateurs qui ont envoyé demande d'ami.
  * @param requestsSent Vecteur contenant noms des utilisateurs à qui une demande d'ami a été envoyée.
  */
-void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent) {
-    erase();
-    printw("Requests received :\n\n");
-    int numberRequestsReceived = std::size(requestsReceived);   //taille du tableau contenant les demandes d'amis recues
-    int numberRequestsSent = std::size(requestsSent);   // taille du tableau contenant les demandes d'amis envoyées
-    if(numberRequestsReceived==0) printw("No request received\n");
-    for (int i = 0; i < numberRequestsReceived; ++i) {
-        if (i == selectedOption) {
-            printw("-> %s wants to be your friend !",  requestsReceived[i].c_str());
-        } else {
-            printw("   %s wants to be your friend !",  requestsReceived[i].c_str());
+ void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent) {
+    //erase();
+    int width = 80;
+    int height = 20;
+    int startX = (COLS - width)/ 2;
+    int startY = (LINES - height - 10) / 2;
+
+    // Créer une fenêtre avec un grand cadre
+    WINDOW* requestWindow = newwin(height, width, startY, startX);
+    box(requestWindow, 0, 0);
+
+    // Titre "Requests received" en vert
+    wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
+    mvwprintw(requestWindow, 1, 2, "Requests received:");
+    wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
+
+    int numberRequestsReceived = requestsReceived.size();
+    int numberRequestsSent = requestsSent.size();
+    
+    if (numberRequestsReceived == 0) {
+        mvwprintw(requestWindow, 3, 4, "No request received");
+    } else {
+        for (int i = 0; i < numberRequestsReceived; ++i) {
+            if (i == selectedOption) {
+                wattron(requestWindow, A_REVERSE);
+                mvwprintw(requestWindow, 3 + i, 4, "-> %s wants to be your friend!", requestsReceived[i].c_str());
+                wattroff(requestWindow, A_REVERSE);
+            } else {
+                mvwprintw(requestWindow, 3 + i, 4, "   %s wants to be your friend!", requestsReceived[i].c_str());
+            }
         }
-        printw("\n");
     }
-    printw("\nRequests sent :\n\n");
-    if(numberRequestsSent==0) printw("No request sent\n");
-    for (int i = 0; i < numberRequestsSent; ++i) {
-        if (i+numberRequestsReceived == selectedOption) {
-            printw("-> friend request sent to %s ", requestsSent[i].c_str());
-        } else {
-            printw("   friend request sent to %s", requestsSent[i].c_str());
+
+    // Titre "Requests sent" en vert
+    wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
+    mvwprintw(requestWindow, 10, 2, "Requests sent:");
+    wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
+
+    if (numberRequestsSent == 0) {
+        mvwprintw(requestWindow, 12, 4, "No request sent");
+    } else {
+        for (int i = 0; i < numberRequestsSent; ++i) {
+            if (i + numberRequestsReceived == selectedOption) {
+                wattron(requestWindow, A_REVERSE);
+                mvwprintw(requestWindow, 12 + i, 4, "-> Friend request sent to %s", requestsSent[i].c_str());
+                wattroff(requestWindow, A_REVERSE);
+            } else {
+                mvwprintw(requestWindow, 12 + i, 4, "   Friend request sent to %s", requestsSent[i].c_str());
+            }
         }
-        printw("\n");
     }
-    printw("\nUse UP and DOWN arrow keys to navigate\nPress 'A' to accept the request\nPress 'R' to refuse\nPress 'C' to cancel a sent friend request\nPress 'q' to quit\n");
-    if(!(user==""))printw("Press 't' to open the message box\n");
+
+    wrefresh(requestWindow);
+    
+    //Instructions sous le cadre
+    mvprintw(startY + height + 2, (COLS - 50) / 2, "Use UP and DOWN arrow keys to navigate");
+    mvprintw(startY + height + 3, (COLS - 50) / 2, "Press 'A' to accept the request");
+    mvprintw(startY + height + 4, (COLS - 50) / 2, "Press 'R' to refuse");
+    mvprintw(startY + height + 5, (COLS - 50) / 2, "Press 'C' to cancel a sent friend request");
+    mvprintw(startY + height + 6, (COLS - 50) / 2, "Press 'q' to quit");
+    if (!(user == ""))
+        mvprintw(startY + height + 7, (COLS - 50) / 2, "Press 't' to open the message box");
+    
+
     refresh();
+    delwin(requestWindow);
+    //erase();
+
+    
 }
+
 
 
 /**
@@ -908,8 +1024,14 @@ int InterfaceTerminal::handleFriends() {
                     nodelay(stdscr, true);
                 }
                 else { //Demande d'amis recus
-                    erase();
+                    erase();     
+                    refresh(); 
+                    
                     handleFriendRequests();
+                    
+                    // rajouté erase et refresh car l'ecran des requests ne voulait pas se supprimer
+                    erase();      
+                    refresh();
                 }
             break;
             case 't':
@@ -963,9 +1085,9 @@ int InterfaceTerminal::handleFriends() {
     for (int i = 0; i < std::size(connexionOptions); ++i) {
         
         if (i == selectedOption) {
-            wattron(connexionOptions_window, COLOR_PAIR(7));
+            wattron(connexionOptions_window, COLOR_PAIR(9));
             mvwprintw(connexionOptions_window, 5 + i*3, 2 , "-> %s",  connexionOptions[i]);
-            wattroff(connexionOptions_window, COLOR_PAIR(7));
+            wattroff(connexionOptions_window, COLOR_PAIR(9));
         } else {
             mvwprintw(connexionOptions_window, 5 + i * 3, 2, "   %s",  connexionOptions[i]);
         }
@@ -989,28 +1111,6 @@ int InterfaceTerminal::handleFriends() {
 
 
 
-/** 
-void InterfaceTerminal::displayConnexionOption(int selectedOption) {
-    erase();
-    const char* connexionOptions[] = {
-        "Log in",
-        "Register",
-        };
-    for (int i = 0; i < std::size(connexionOptions); ++i) {
-        if(i==0) printw("If you have already an account, log in here :\n");
-        if(i==1) printw("If you don't have an account an account yet, register here :\n");
-        if (i == selectedOption) {
-            printw("-> %s",  connexionOptions[i]);
-        } else {
-            printw("   %s",  connexionOptions[i]);
-        }
-        printw("\n");
-    }
-    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    refresh();
-}
-*/
-
 
 /**
  * @brief Gère la connexion d'un utilisateur via le terminal.
@@ -1021,204 +1121,138 @@ void InterfaceTerminal::displayConnexionOption(int selectedOption) {
  * 
  * @return Un vecteur contenant le nom d'utilisateur et le mot de passe si la connexion est réussie, sinon un vecteur vide.
  */
- /** 
  vector<std::string> InterfaceTerminal::handleLogin() {
+    int sock = getSock();  // Récupérer le socket de communication avec le serveur
     vector<std::string> connexionData;
-    curs_set(1);  // Affiche le curseur
-    nodelay(stdscr, false);  // Ne pas utiliser nodelay
+    curs_set(1);  // Afficher le curseur
+    nodelay(stdscr, false);  // Désactiver le mode non-bloquant
     bool firstTry = true;
 
     while (!flag) {
-        erase();  // Efface l'écran à chaque itération pour éviter la superposition des éléments
+        erase();  
         echo();
         clrtobot();
 
         printw("Press ENTER to validate an entry\nPress ENTER with an empty entry to go back\n");
         refresh();
 
-        // Cadre pour "Enter your username"
         int startX = (COLS - 40) / 2;
-        int startY = (LINES - 12) / 2 - 5; // Centrer verticalement et ajuster un peu pour l'alignement
+        int startY = (LINES - 12) / 2 - 5;
 
         // Fenêtre pour le nom d'utilisateur
         WINDOW* usernameWindow = newwin(5, 40, startY, startX);
-        box(usernameWindow, 0, 0);  // Créer un cadre
+        box(usernameWindow, 0, 0);
         wattron(usernameWindow, COLOR_PAIR(2) | A_BOLD);
         mvwprintw(usernameWindow, 1, 2, "Username: ");
         wattroff(usernameWindow, COLOR_PAIR(2) | A_BOLD);
         wrefresh(usernameWindow);
 
-        move(startY + 1, startX + 11);  // Placer le curseur après le texte "Username:"
+        move(startY + 1, startX + 11);
         char namePlayer[100];
-        wgetnstr(stdscr, namePlayer, 99);  // Saisir le nom de l'utilisateur
+        wgetnstr(usernameWindow, namePlayer, 99);
+
         if (strlen(namePlayer) == 0) {
-            delwin(usernameWindow);  // Si rien n'est saisi, fermer la fenêtre et retourner
+            delwin(usernameWindow);
             return connexionData;
         }
-        delwin(usernameWindow);  // Fermer la fenêtre du nom d'utilisateur
+        delwin(usernameWindow);
 
         while (!flag) {
-            // Cadre pour "Enter your password"
+            // Fenêtre pour le mot de passe
             WINDOW* passwordWindow = newwin(5, 40, startY + 8, startX);
-            box(passwordWindow, 0, 0);  // Créer un cadre
+            box(passwordWindow, 0, 0);
             wattron(passwordWindow, COLOR_PAIR(2) | A_BOLD);
             mvwprintw(passwordWindow, 1, 2, "Password: ");
             wattroff(passwordWindow, COLOR_PAIR(2) | A_BOLD);
             wrefresh(passwordWindow);
 
-            wmove(passwordWindow, 1, 11);  // Placer le curseur après "Password:"
-            noecho();  // Masquer le mot de passe
+            wmove(passwordWindow, 1, 11);
+            noecho();
             char passwordPlayer[100];
-            wgetnstr(passwordWindow, passwordPlayer, 99);  // Saisir le mot de passe
+            wgetnstr(passwordWindow, passwordPlayer, 99);
 
             if (strlen(passwordPlayer) == 0) {
                 firstTry = true;
-                delwin(passwordWindow);  // Si rien n'est saisi, fermer la fenêtre et revenir à l'étape précédente
+                delwin(passwordWindow);
                 break;  // Retour à la saisie du nom d'utilisateur
             }
             firstTry = false;
 
-            // Vérification de la connexion
-            if (udm.isCorrectLogin(namePlayer, passwordPlayer)) {
-                int user_id = db.getUserId(namePlayer);
-                if (db.isUserInSession(user_id)) {
-                    // Message si l'utilisateur est déjà connecté dans une autre session
-                    printw("\nYou are already logged in another session! \n");
-                    move(5, 22);  // Positionner le message
-                } else {
-                    napms(1000);  // Attendre avant d'afficher "Connected!"
-                    connexionData.push_back(namePlayer);
-                    connexionData.push_back(passwordPlayer);
-                    user = namePlayer;
-
-                    // Déplacer le message "Connected!" sous le cadre du mot de passe
-                    move(startY + 15, startX + 2);  // Positionner le message plus bas
-                    attron(COLOR_PAIR(2) | A_BOLD);  // Rouge pour l'affichage
-                    printw("Connected!");
-                    attroff(COLOR_PAIR(2) | A_BOLD);  // Retirer la couleur
-
-                    wrefresh(passwordWindow);
-                    refresh();
-                    napms(1000);  // Attendre un peu avant de retourner les données
-
-                    // Effacer la page de connexion avant de passer au menu
-                    erase();
-                    displayMenu(0);  // Afficher le menu avec la première option sélectionnée
-                    delwin(passwordWindow);  // Fermer la fenêtre du mot de passe
-                    return connexionData;  // Retourner les informations de connexion
-                }
-            } else {
-                // Si la connexion échoue
-                move(startY + 7, startX);  // Effacer l'ancienne erreur
-                clrtoeol();
-
-                // Afficher un message d'erreur sous le champ du mot de passe
-                curs_set(0);  // Cacher le curseur pendant le message
-                attron(COLOR_PAIR(1) | A_BOLD);  // Couleur rouge pour l'erreur
-                mvprintw(startY + 15, startX + 2, "Incorrect username or password.");
-                attroff(COLOR_PAIR(1) | A_BOLD);  // Retirer la couleur rouge
-                refresh();
-                napms(1500);  // Afficher l'erreur pendant un moment
-
-                // Effacer le message après un délai
-                move(startY + 15, startX);
-                clrtoeol();
-                refresh();
-
-                curs_set(1);  // Afficher à nouveau le curseur
-                wmove(passwordWindow, 1, 11);  // Repositionner le curseur dans la fenêtre du mot de passe
-                wrefresh(passwordWindow);
-            }
-
-            delwin(passwordWindow);  // Fermer la fenêtre du mot de passe après chaque tentative
-        }
-    }
-
-    // Retourner les données de connexion après toute tentative
-    return connexionData;
-}
-*/
- 
-
-
-vector<std::string> InterfaceTerminal::handleLogin(){
-    int sock = getSock();
-    vector<std::string> connexionData;
-    curs_set(1);
-    nodelay(stdscr, false);
-    bool returnValue;
-    while (!flag) {
-        erase();
-        echo();
-        clrtobot();
-        bool firstTry = true;
-        printw("Press ENTER to validate an entry\nPress ENTER with an empty entry to go back\n");
-        refresh();
-        printw("\nEnter your username : ");
-        move(3,22);
-        char namePlayer[100];
-        wgetnstr(stdscr,namePlayer,99);
-        if(strlen(namePlayer)==0) break;
-        while (!flag) {
-            if(firstTry) printw("\nEnter your password : ");
-            noecho();
-            char passwordPlayer[100];
-            wgetnstr(stdscr,passwordPlayer,99);
-            if(strlen(passwordPlayer)==0){firstTry = true; break;}
-            firstTry = false;
+            // --- COMMUNICATION AVEC LE SERVEUR ---
             int type = MessageType::T_Connexion;
             int size = sizeof(struct Connexion);
-            //demande au serveur de verifier
             Connexion connexion;
             std::strncpy(connexion.username, namePlayer, sizeof(connexion.username) - 1);
             std::strncpy(connexion.password, passwordPlayer, sizeof(connexion.password) - 1);
-            int bytesSentType = sendAll(sock, &type, sizeof(int));
-            int bytesSentSize = sendAll(sock, &size, sizeof(int));
+            sendAll(sock, &type, sizeof(int));
+            sendAll(sock, &size, sizeof(int));
             sendAll(sock, &connexion, sizeof(Connexion));
-            int type_;int size_;
-            if(!recvAll(sock, &type_, sizeof(int))){
+
+            int type_; int size_;
+            if (!recvAll(sock, &type_, sizeof(int)) || !recvAll(sock, &size_, sizeof(int))) {
                 flag = true;
                 break;
             }
-            if(!recvAll(sock, &size_, sizeof(int))){
-                flag = true;
-                break;
-            }
-            if (type_ == MessageType::T_ForcedExit){
+            if (type_ == MessageType::T_ForcedExit) {
                 flag = true;
                 break;
             }
             bool logResult = (type_ == MessageType::T_AcceptConnexion);
-            //
-            if(logResult){
+
+            if (logResult) {
                 int doubleSession;
-                if(!recvAll(sock, &doubleSession, sizeof(int))){
-                    flag = true;
-                    break;
-                }
-                if(!recvAll(sock, &size_, sizeof(int))){
+                if (!recvAll(sock, &doubleSession, sizeof(int)) || !recvAll(sock, &size_, sizeof(int))) {
                     flag = true;
                     break;
                 }
                 bool doubleSessionResult = (doubleSession == MessageType::T_RefuseConnexion);
-                if(doubleSessionResult){printw("\nYou are already logged in another session ! \n"); move(5,22);}
-                else{
-               		napms(1000);
-               		connexionData.push_back(namePlayer);
-               		connexionData.push_back(passwordPlayer);
-               		user = namePlayer;
-               		printw("\nConnected ! \n");
-               		refresh();
-               		napms(1000);
-               		return connexionData;}
+
+                if (doubleSessionResult) {
+                    // Affichage du message "Already logged in another session"
+                    printw("\nYou are already logged in another session! \n");
+                    move(startY + 15, startX + 2);
+                } else {
+                    napms(1000);
+                    connexionData.push_back(namePlayer);
+                    connexionData.push_back(passwordPlayer);
+                    user = namePlayer;
+
+                    move(startY + 15, startX + 2);
+                    attron(COLOR_PAIR(2) | A_BOLD);
+                    printw("Connected!");
+                    attroff(COLOR_PAIR(2) | A_BOLD);
+                    wrefresh(passwordWindow);
+                    refresh();
+                    napms(1000);
+
+                    // Effacer la page et afficher le menu
+                    erase();
+                    displayMenu(0);
+                    refresh();
+                    delwin(passwordWindow);
+                    return connexionData;
+                }
+            } else {
+                // Affichage du message d'erreur
+                move(startY + 15, startX + 2);
+                attron(COLOR_PAIR(1) | A_BOLD);
+                printw("Incorrect username or password.");
+                attroff(COLOR_PAIR(1) | A_BOLD);
+                refresh();
+                napms(1500);
+
+                move(startY + 15, startX);
+                clrtoeol();
+                refresh();
+                curs_set(1);
+                wmove(passwordWindow, 1, 11);
+                wrefresh(passwordWindow);
             }
-            else {printw("\nIncorrect username or password. \n"); move(5,22);}
-            }
+            delwin(passwordWindow);
+        }
     }
     return connexionData;
 }
-
-
 
 
 /**
@@ -1230,99 +1264,167 @@ vector<std::string> InterfaceTerminal::handleLogin(){
  * 
  * @return Un vecteur contenant le nom d'utilisateur et le mot de passe si la connexion est réussie, sinon un vecteur vide.
  */
-vector<std::string> InterfaceTerminal::handleRegister(){
-    int sock = getSock();
+ vector<std::string> InterfaceTerminal::handleRegister() {
+    int sock = getSock();  // Récupérer le socket de communication avec le serveur
     vector<std::string> connexionData;
-    curs_set(1);
-    nodelay(stdscr, false);
-    bool returnValue;
+    curs_set(1);  // Afficher le curseur
+    nodelay(stdscr, false);  // Désactiver le mode non-bloquant
+    bool repetedPasswordHandle = false;
     char repetedPasswordPlayer[100];
-    while (!flag) {
+    
+    while (!flag) {  // Boucle principale qui continue tant que 'flag' est faux
         echo();
-        bool repetedPasswordHandle = false;
         erase();
         printw("Press ENTER to validate an entry\nPress ENTER with an empty entry to go back\n");
         refresh();
-        printw("\nEnter the username : ");
+
+        int startX = (COLS - 40) / 2;  // Centrer horizontalement
+        int startY = (LINES - 12) / 2 - 5; // Centrer verticalement
+
+        // Fenêtre pour le nom d'utilisateur
+        WINDOW* usernameWindow = newwin(5, 40, startY, startX);
+        box(usernameWindow, 0, 0);
+        wattron(usernameWindow, COLOR_PAIR(2) | A_BOLD);
+        mvwprintw(usernameWindow, 1, 2, "Username: ");
+        wattroff(usernameWindow, COLOR_PAIR(2) | A_BOLD);
+        wrefresh(usernameWindow);
+
         char namePlayer[100];
-        wgetnstr(stdscr,namePlayer,99);
-        if(strlen(namePlayer)==0) break;
-        printw("\nEnter the password : ");
+        mvwgetnstr(usernameWindow, 1, 11, namePlayer, 99);
+        if (strlen(namePlayer) == 0) {
+            delwin(usernameWindow);
+            return connexionData;
+        }
+        delwin(usernameWindow);
+
         while (!flag) {
+            // Fenêtre pour le mot de passe
+            WINDOW* passwordWindow = newwin(5, 40, startY + 8, startX);
+            box(passwordWindow, 0, 0);
+            wattron(passwordWindow, COLOR_PAIR(2) | A_BOLD);
+            mvwprintw(passwordWindow, 1, 2, "Password: ");
+            wattroff(passwordWindow, COLOR_PAIR(2) | A_BOLD);
+            wrefresh(passwordWindow);
+
             noecho();
-            move(5,22);
             char passwordPlayer[100];
-            wgetnstr(stdscr,passwordPlayer,99);
-            if(strlen(passwordPlayer)==0) break;
-            while(!flag && strcmp(passwordPlayer, repetedPasswordPlayer)!=0){
-                memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); //on vide le buffer pour pas que ca s'accumule
-                if(repetedPasswordHandle) printw("\nThe passwords entered do not match !");
-                else printw("\nRepeat the password : ");
-                move(7,22);
-                wgetnstr(stdscr,repetedPasswordPlayer,99);
-                if(strlen(repetedPasswordPlayer)==0){clrtoeol(); repetedPasswordHandle = false;memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); break;}
-                repetedPasswordHandle = true;
+            memset(passwordPlayer, 0, sizeof(passwordPlayer));
+            mvwgetnstr(passwordWindow, 1, 11, passwordPlayer, 99);
+            if (strlen(passwordPlayer) == 0) {
+                delwin(passwordWindow);
+                break;
             }
+            delwin(passwordWindow);
+
+            while (!flag) {
+                // Fenêtre pour répéter le mot de passe
+                WINDOW* repeatPassword_window = newwin(5, 40, startY + 16, startX);
+                box(repeatPassword_window, 0, 0);
+                wattron(repeatPassword_window, COLOR_PAIR(2) | A_BOLD);
+                mvwprintw(repeatPassword_window, 1, 2, "Repeat password: ");
+                wattroff(repeatPassword_window, COLOR_PAIR(2) | A_BOLD);
+                wrefresh(repeatPassword_window);
+
+                memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));
+                mvwgetnstr(repeatPassword_window, 1, 18, repetedPasswordPlayer, 99);
+
+                if (strlen(repetedPasswordPlayer) == 0) {
+                    delwin(repeatPassword_window);
+                    break;
+                }
+
+                // Vérification si les mots de passe correspondent
+                if (strcmp(passwordPlayer, repetedPasswordPlayer) != 0) {
+                    wattron(repeatPassword_window, COLOR_PAIR(1));
+                    mvwprintw(repeatPassword_window, 2, 2, "Passwords do not match!");
+                    wattroff(repeatPassword_window, COLOR_PAIR(1));
+                    wrefresh(repeatPassword_window);
+                    napms(1000);
+                    delwin(repeatPassword_window);
+                    refresh();
+                } else {
+                    delwin(repeatPassword_window);
+                    refresh();
+                    break;
+                }
+            }
+
+
+            // --- ENVOI DES INFORMATIONS AU SERVEUR ---
             int typeRegister = MessageType::T_Register;
             int size = sizeof(struct Connexion);
-            //demande au serveur de verifier
             Connexion connexion;
             std::strncpy(connexion.username, namePlayer, sizeof(connexion.username) - 1);
             std::strncpy(connexion.password, passwordPlayer, sizeof(connexion.password) - 1);
-            int bytesSentType = sendAll(sock, &typeRegister, sizeof(int));
-            int bytesSentSize = sendAll(sock, &size, sizeof(int));
+
+            sendAll(sock, &typeRegister, sizeof(int));
+            sendAll(sock, &size, sizeof(int));
             sendAll(sock, &connexion, sizeof(Connexion));
+
             int typeResult_; int size_;
-            if(!recvAll(sock, &typeResult_, sizeof(int))){
+            if (!recvAll(sock, &typeResult_, sizeof(int)) || !recvAll(sock, &size_, sizeof(int))) {
                 flag = true;
                 break;
             }
-            if(!recvAll(sock, &size_, sizeof(int))){
+
+            if (typeResult_ == MessageType::T_ForcedExit) {
                 flag = true;
                 break;
             }
-            if (typeResult_ == MessageType::T_ForcedExit){
-                flag = true;
-                break;
-            }
+
             bool registerResult = (typeResult_ == MessageType::T_AcceptConnexion);
-            if(registerResult){
+
+            if (registerResult) {
                 napms(1000);
-                printw("\nRegistered !\n");
+                erase();
+                printw("\nRegistered!\n");
+
+                // Tentative de connexion après enregistrement
                 int typeLog_; int size;
-                if(!recvAll(sock, &typeLog_, sizeof(int))){
-                	flag = true;
-                	break;
-            	}
-            	if(!recvAll(sock, &size, sizeof(int))){
-                	flag = true;
-                	break;
-            	}
-                if(typeLog_ == MessageType::T_AcceptConnexion){
+                if (!recvAll(sock, &typeLog_, sizeof(int)) || !recvAll(sock, &size, sizeof(int))) {
+                    flag = true;
+                    break;
+                }
+
+                if (typeLog_ == MessageType::T_AcceptConnexion) {
                     user = namePlayer;
                     connexionData.push_back(namePlayer);
                     connexionData.push_back(passwordPlayer);
-                    //udm.setReceivingFileDescriptor(user, socket);
-                    printw("You are now Connected in your new account, good game! \n");
+
+                    attron(COLOR_PAIR(2) | A_BOLD);
+                    printw("You are now connected. Good game!\n");
+                    attroff(COLOR_PAIR(2) | A_BOLD);
+                    refresh();
                     napms(1000);
+
+                    erase();
+                    displayMenu(0);
+                    refresh();
                     return connexionData;
+                } else {
+                    attron(COLOR_PAIR(1) | A_BOLD);
+                    printw("Error while logging into your account. Please try again.\n");
+                    attroff(COLOR_PAIR(1) | A_BOLD);
                 }
-                else printw("Error while logging into your account, please try again \n");
+
                 refresh();
                 napms(1000);
-            }
-            else {repetedPasswordHandle = false; memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));
-              move(5,21);
-              clrtoeol();
-              move(9,0);
-              printw("username and/or password invalid !\n");
+            } else {
+                repetedPasswordHandle = false;
+                memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));
 
+                move(startY + 20, startX);
+                attron(COLOR_PAIR(1) | A_BOLD);
+                printw("Username and/or password invalid!\n");
+                attroff(COLOR_PAIR(1) | A_BOLD);
+                refresh();
+                napms(1500);
             }
         }
     }
+
     return connexionData;
 }
-
 
 
 /**
@@ -1506,7 +1608,12 @@ int InterfaceTerminal::start() {
                }
                break;
            case '\n':   // touche 'entrée'
+               erase();
+               refresh();
                 returnValue = handleOptionSelection(selectedOption);
+
+                erase();
+                refresh();
                if(returnValue!=-1)return returnValue;
                break;
            case 't':
