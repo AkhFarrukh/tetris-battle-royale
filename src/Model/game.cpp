@@ -524,6 +524,7 @@ bool Game::broadcastGame() {
         int size = static_cast<int>(netArray.size());
         if (!sendAll(sock, &size, sizeof(size))){return false;}
         for (auto& player : netArray) {
+            if (ps.playerId == player.playerId) {player.score = -1;}
             if (!sendAll(sock, &player.playerId, sizeof(player.playerId))) {return false;}
             if (!sendAll(sock, &player.isGameOver, sizeof(player.isGameOver))) {return false;}
             if (!sendAll(sock, &player.linesCleared, sizeof(player.linesCleared))) {return false;}
