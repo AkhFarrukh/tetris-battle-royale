@@ -17,7 +17,6 @@ void* Player::threadRoutineView (void* arg){
         threadData->mux.lock();
         bool inGame = threadData->userInGame;
         threadData->mux.unlock();
-        if(inGame){
         //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
         //To have info on the data received
         int type;
@@ -98,18 +97,6 @@ void* Player::threadRoutineView (void* arg){
             }
             */
         }
-    }
-    else{ //joueur n'est pas en game
-        int type;
-        int size;
-        if(!recvAll(sock, &type, sizeof(int))){
-            flag = true;
-            break;
-        }
-        if(!recvAll(sock, &size, sizeof(int))){
-            flag = true;
-            break;
-        }
         if (type == MessageType::T_ForcedExit){
             flag = true;
             break;
@@ -126,6 +113,7 @@ void* Player::threadRoutineView (void* arg){
             RoomInfo info;
             if (!recvAll(sock, &info, size)) {
                 perror("Error on receiving room");
+                flag = true;
                 break;
             }
             int flags = fcntl(sock, F_GETFL, 0);
@@ -293,7 +281,6 @@ void* Player::threadRoutineView (void* arg){
             }
 
         }
-    }
     }
 
 return 0;
