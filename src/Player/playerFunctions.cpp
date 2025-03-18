@@ -58,7 +58,6 @@ void* Player::threadRoutineView (void* arg){
     			std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
     			break;
 		}
-
                 player.grid.resize(gridSize);
 
                 if (!recvAll(sock, player.grid.data(), gridSize * sizeof(Color))){return nullptr;}

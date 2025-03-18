@@ -96,6 +96,7 @@ void Game::run() {
         if (elapsedTimeDropEvent > std::chrono::milliseconds(time)) {
             cout<<"chrono"<<endl;
             for (int p = 0; p < (int)players.size(); p++) {
+                if (players[p].isGameOver){continue;}
                     if (players[p].blackout != 0){players[p].blackout--;} //Il y a 10 unités lors d'un BO, cela durera 5 sec
                     bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
                     cout<<"soft dropping"<<endl;
@@ -384,7 +385,7 @@ void Game::checkGameOver() {
     for (const auto& ps : players) {
         if (!ps.isGameOver) aliveCount++;
     }
-    if (gameMode == Modes::Duel_) {
+    if (gameMode == (Modes::Duel_ or Modes::Classic_ or Modes::Royal_)) {
         if (aliveCount <= 1) {
             std::cout << "Duel ended" << std::endl;
             stop();
@@ -392,7 +393,7 @@ void Game::checkGameOver() {
     } else if (aliveCount < 1) {
         std::cout << "Game over: All players lost" << std::endl;
         stop();
-    }
+    } 
 }
 
 
@@ -530,7 +531,7 @@ bool Game::broadcastGame() {
             if (!sendAll(sock, &gridSize, sizeof(gridSize))) {return false;}
             if (!sendAll(sock, player.grid.data(), gridSize * sizeof(Color))) {return false;}
         }
-        //cout << "Sent netplayerdatda to " << sock << endl;
+        cout << "Sent netplayerdatda to " << sock << endl;
     }
     return true;
 }

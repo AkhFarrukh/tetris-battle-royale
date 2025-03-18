@@ -239,6 +239,7 @@ void* Server::threadRoutineClient(void* arg){
             *MALUS BONUS INFO
             */
             else if (type == MessageType::T_MalusBonus) {
+                cout<<"tamer"<<endl;
                 server->handleMalusBonus(client, userIsOnline, eventQueue);
             }
 

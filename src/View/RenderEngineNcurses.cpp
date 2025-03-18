@@ -22,7 +22,7 @@ int RenderEngineNcurses::getClientPlayerIndex(const vector<NetPlayerData>& playe
             return i;
         }
     }
-    return -1; // Return -1 if no player no client player found (spectator mode)
+    return 0; // Return 0 if no player no client player found (spectator mode)
 }
 
 /*
