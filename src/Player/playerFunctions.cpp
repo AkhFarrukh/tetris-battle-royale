@@ -227,10 +227,11 @@ void* Player::threadRoutineView (void* arg){
             if(!recvAll(sock, &size, sizeof(int))){flag = true;break;}
             clear();
             refresh();
-            int index = -3;
+            int index;
+            int highlightIndex = 0;
             while (!flag) {
                 threadData->displayMut.lock();
-                index = renderR.handleListRooms(roomsInfo);
+                index = renderR.handleListRooms(roomsInfo, highlightIndex);
                 threadData->displayMut.unlock();
                 if (index == -3) {
                     continue;
