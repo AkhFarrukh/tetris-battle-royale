@@ -16,7 +16,7 @@ const char* InterfaceTerminal::modeNames[] = {
                                             "Endless Mode",  
                                             "Classic Mode",  
                                             "Duel Mode",  
-                                            "Royal Competition Mode (Unreleased)"  
+                                            "Royal Competition Mode "  
                                             };    
 
 InterfaceTerminal::InterfaceTerminal() {initNcurses();}
@@ -1264,96 +1264,165 @@ int InterfaceTerminal::handleFriends() {
  * 
  * @return Un vecteur contenant le nom d'utilisateur et le mot de passe si la connexion est réussie, sinon un vecteur vide.
  */
-vector<std::string> InterfaceTerminal::handleRegister(){
-    int sock = getSock();
+ vector<std::string> InterfaceTerminal::handleRegister() {
+    int sock = getSock();  // Récupérer le socket de communication avec le serveur
     vector<std::string> connexionData;
-    curs_set(1);
-    nodelay(stdscr, false);
-    bool returnValue;
+    curs_set(1);  // Afficher le curseur
+    nodelay(stdscr, false);  // Désactiver le mode non-bloquant
+    bool repetedPasswordHandle = false;
     char repetedPasswordPlayer[100];
-    while (!flag) {
+    
+    while (!flag) {  // Boucle principale qui continue tant que 'flag' est faux
         echo();
-        bool repetedPasswordHandle = false;
         erase();
         printw("Press ENTER to validate an entry\nPress ENTER with an empty entry to go back\n");
         refresh();
-        printw("\nEnter the username : ");
+
+        int startX = (COLS - 40) / 2;  // Centrer horizontalement
+        int startY = (LINES - 12) / 2 - 5; // Centrer verticalement
+
+        // Fenêtre pour le nom d'utilisateur
+        WINDOW* usernameWindow = newwin(5, 40, startY, startX);
+        box(usernameWindow, 0, 0);
+        wattron(usernameWindow, COLOR_PAIR(2) | A_BOLD);
+        mvwprintw(usernameWindow, 1, 2, "Username: ");
+        wattroff(usernameWindow, COLOR_PAIR(2) | A_BOLD);
+        wrefresh(usernameWindow);
+
         char namePlayer[100];
-        wgetnstr(stdscr,namePlayer,99);
-        if(strlen(namePlayer)==0) break;
-        printw("\nEnter the password : ");
+        mvwgetnstr(usernameWindow, 1, 11, namePlayer, 99);
+        if (strlen(namePlayer) == 0) {
+            delwin(usernameWindow);
+            return connexionData;
+        }
+        delwin(usernameWindow);
+
         while (!flag) {
+            // Fenêtre pour le mot de passe
+            WINDOW* passwordWindow = newwin(5, 40, startY + 8, startX);
+            box(passwordWindow, 0, 0);
+            wattron(passwordWindow, COLOR_PAIR(2) | A_BOLD);
+            mvwprintw(passwordWindow, 1, 2, "Password: ");
+            wattroff(passwordWindow, COLOR_PAIR(2) | A_BOLD);
+            wrefresh(passwordWindow);
+
             noecho();
-            move(5,22);
             char passwordPlayer[100];
-            wgetnstr(stdscr,passwordPlayer,99);
-            if(strlen(passwordPlayer)==0) break;
-            while(!flag && strcmp(passwordPlayer, repetedPasswordPlayer)!=0){
-                memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); //on vide le buffer pour pas que ca s'accumule
-                if(repetedPasswordHandle) printw("\nThe passwords entered do not match !");
-                else printw("\nRepeat the password : ");
-                move(7,22);
-                wgetnstr(stdscr,repetedPasswordPlayer,99);
-                if(strlen(repetedPasswordPlayer)==0){clrtoeol(); repetedPasswordHandle = false;memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer)); break;}
-                repetedPasswordHandle = true;
+            memset(passwordPlayer, 0, sizeof(passwordPlayer));
+            mvwgetnstr(passwordWindow, 1, 11, passwordPlayer, 99);
+            if (strlen(passwordPlayer) == 0) {
+                delwin(passwordWindow);
+                break;
             }
+            delwin(passwordWindow);
+
+            while (!flag) {
+                // Fenêtre pour répéter le mot de passe
+                WINDOW* repeatPassword_window = newwin(5, 40, startY + 16, startX);
+                box(repeatPassword_window, 0, 0);
+                wattron(repeatPassword_window, COLOR_PAIR(2) | A_BOLD);
+                mvwprintw(repeatPassword_window, 1, 2, "Repeat password: ");
+                wattroff(repeatPassword_window, COLOR_PAIR(2) | A_BOLD);
+                wrefresh(repeatPassword_window);
+
+                memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));
+                mvwgetnstr(repeatPassword_window, 1, 18, repetedPasswordPlayer, 99);
+
+                if (strlen(repetedPasswordPlayer) == 0) {
+                    delwin(repeatPassword_window);
+                    break;
+                }
+
+                // Vérification si les mots de passe correspondent
+                if (strcmp(passwordPlayer, repetedPasswordPlayer) != 0) {
+                    wattron(repeatPassword_window, COLOR_PAIR(1));
+                    mvwprintw(repeatPassword_window, 2, 2, "Passwords do not match!");
+                    wattroff(repeatPassword_window, COLOR_PAIR(1));
+                    wrefresh(repeatPassword_window);
+                    napms(1000);
+                    delwin(repeatPassword_window);
+                    refresh();
+                } else {
+                    delwin(repeatPassword_window);
+                    refresh();
+                    break;
+                }
+            }
+
+
+            // --- ENVOI DES INFORMATIONS AU SERVEUR ---
             int typeRegister = MessageType::T_Register;
             int size = sizeof(struct Connexion);
-            //demande au serveur de verifier
             Connexion connexion;
             std::strncpy(connexion.username, namePlayer, sizeof(connexion.username) - 1);
             std::strncpy(connexion.password, passwordPlayer, sizeof(connexion.password) - 1);
-            int bytesSentType = sendAll(sock, &typeRegister, sizeof(int));
-            int bytesSentSize = sendAll(sock, &size, sizeof(int));
+
+            sendAll(sock, &typeRegister, sizeof(int));
+            sendAll(sock, &size, sizeof(int));
             sendAll(sock, &connexion, sizeof(Connexion));
+
             int typeResult_; int size_;
-            if(!recvAll(sock, &typeResult_, sizeof(int))){
+            if (!recvAll(sock, &typeResult_, sizeof(int)) || !recvAll(sock, &size_, sizeof(int))) {
                 flag = true;
                 break;
             }
-            if(!recvAll(sock, &size_, sizeof(int))){
+
+            if (typeResult_ == MessageType::T_ForcedExit) {
                 flag = true;
                 break;
             }
-            if (typeResult_ == MessageType::T_ForcedExit){
-                flag = true;
-                break;
-            }
+
             bool registerResult = (typeResult_ == MessageType::T_AcceptConnexion);
-            if(registerResult){
+
+            if (registerResult) {
                 napms(1000);
-                printw("\nRegistered !\n");
+                erase();
+                printw("\nRegistered!\n");
+
+                // Tentative de connexion après enregistrement
                 int typeLog_; int size;
-                if(!recvAll(sock, &typeLog_, sizeof(int))){
-                	flag = true;
-                	break;
-            	}
-            	if(!recvAll(sock, &size, sizeof(int))){
-                	flag = true;
-                	break;
-            	}
-                if(typeLog_ == MessageType::T_AcceptConnexion){
+                if (!recvAll(sock, &typeLog_, sizeof(int)) || !recvAll(sock, &size, sizeof(int))) {
+                    flag = true;
+                    break;
+                }
+
+                if (typeLog_ == MessageType::T_AcceptConnexion) {
                     user = namePlayer;
                     connexionData.push_back(namePlayer);
                     connexionData.push_back(passwordPlayer);
-                    //udm.setReceivingFileDescriptor(user, socket);
-                    printw("You are now Connected in your new account, good game! \n");
+
+                    attron(COLOR_PAIR(2) | A_BOLD);
+                    printw("You are now connected. Good game!\n");
+                    attroff(COLOR_PAIR(2) | A_BOLD);
+                    refresh();
                     napms(1000);
+
+                    erase();
+                    displayMenu(0);
+                    refresh();
                     return connexionData;
+                } else {
+                    attron(COLOR_PAIR(1) | A_BOLD);
+                    printw("Error while logging into your account. Please try again.\n");
+                    attroff(COLOR_PAIR(1) | A_BOLD);
                 }
-                else printw("Error while logging into your account, please try again \n");
+
                 refresh();
                 napms(1000);
-            }
-            else {repetedPasswordHandle = false; memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));
-              move(5,21);
-              clrtoeol();
-              move(9,0);
-              printw("username and/or password invalid !\n");
+            } else {
+                repetedPasswordHandle = false;
+                memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));
 
+                move(startY + 20, startX);
+                attron(COLOR_PAIR(1) | A_BOLD);
+                printw("Username and/or password invalid!\n");
+                attroff(COLOR_PAIR(1) | A_BOLD);
+                refresh();
+                napms(1500);
             }
         }
     }
+
     return connexionData;
 }
 
