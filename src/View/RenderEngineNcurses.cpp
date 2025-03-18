@@ -117,14 +117,18 @@ void RenderEngineNcurses::renderGamesRoyal(const vector<NetPlayerData>& players,
     erase();
     // Render the regular games grid
     renderGames(players);
-    NetPlayerData playerClient = players.at(getClientPlayerIndex(players, targetPlayerMenu));
+    int clientPlayerIndex = getClientPlayerIndex(players, targetPlayerMenu);
+    if (clientPlayerIndex == -1) {
+        // Handle the case where no client player is found
+        return;
+    }
+    NetPlayerData playerClient = players.at(clientPlayerIndex);
     if (!targetPlayerMenu) {
         drawMalusMenu(playerClient); // Draw the malus menu
     } else {
         drawPlayerSelectionMenu(players); // Draw the player selection menu
     }
 }
-
 
 void RenderEngineNcurses::renderGames(const vector<shared_ptr<NetPlayerData>>& players) {
     std::cout<<"Starting to render in renderGames"<<std::endl;

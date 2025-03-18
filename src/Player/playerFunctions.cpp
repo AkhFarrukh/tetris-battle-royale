@@ -85,7 +85,7 @@ void* Player::threadRoutineView (void* arg){
                 // Find which player is the client (ID == -1)
                 int clientPlayerIndex = -1;
                 for (size_t i = 0; i < playersData.size(); ++i) {
-                    if (playersData[i].playerId == -1) {
+                    if (playersData.at(i).playerId == -1) {
                         clientPlayerIndex = i;
                         threadData->clinetPlayerID = i; // Store the index
                         break;
