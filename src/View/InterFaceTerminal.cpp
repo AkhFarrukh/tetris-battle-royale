@@ -1593,6 +1593,7 @@ int InterfaceTerminal::start() {
    int selectedOption = 0;
 
    while (!flag) {
+        erase();
        displayMenu(selectedOption);
        int ch = getch();
        switch (ch) {
