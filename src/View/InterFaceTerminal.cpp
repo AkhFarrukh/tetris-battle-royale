@@ -1121,204 +1121,138 @@ int InterfaceTerminal::handleFriends() {
  * 
  * @return Un vecteur contenant le nom d'utilisateur et le mot de passe si la connexion est réussie, sinon un vecteur vide.
  */
- 
- /** 
  vector<std::string> InterfaceTerminal::handleLogin() {
+    int sock = getSock();  // Récupérer le socket de communication avec le serveur
     vector<std::string> connexionData;
-    curs_set(1);  // Affiche le curseur
-    nodelay(stdscr, false);  // Ne pas utiliser nodelay
+    curs_set(1);  // Afficher le curseur
+    nodelay(stdscr, false);  // Désactiver le mode non-bloquant
     bool firstTry = true;
 
     while (!flag) {
-        erase();  // Efface l'écran à chaque itération pour éviter la superposition des éléments
+        erase();  
         echo();
         clrtobot();
 
         printw("Press ENTER to validate an entry\nPress ENTER with an empty entry to go back\n");
         refresh();
 
-        // Cadre pour "Enter your username"
         int startX = (COLS - 40) / 2;
-        int startY = (LINES - 12) / 2 - 5; // Centrer verticalement et ajuster un peu pour l'alignement
+        int startY = (LINES - 12) / 2 - 5;
 
         // Fenêtre pour le nom d'utilisateur
         WINDOW* usernameWindow = newwin(5, 40, startY, startX);
-        box(usernameWindow, 0, 0);  // Créer un cadre
+        box(usernameWindow, 0, 0);
         wattron(usernameWindow, COLOR_PAIR(2) | A_BOLD);
         mvwprintw(usernameWindow, 1, 2, "Username: ");
         wattroff(usernameWindow, COLOR_PAIR(2) | A_BOLD);
         wrefresh(usernameWindow);
 
-        move(startY + 1, startX + 11);  // Placer le curseur après le texte "Username:"
+        move(startY + 1, startX + 11);
         char namePlayer[100];
-        wgetnstr(stdscr, namePlayer, 99);  // Saisir le nom de l'utilisateur
+        wgetnstr(usernameWindow, namePlayer, 99);
+
         if (strlen(namePlayer) == 0) {
-            delwin(usernameWindow);  // Si rien n'est saisi, fermer la fenêtre et retourner
+            delwin(usernameWindow);
             return connexionData;
         }
-        delwin(usernameWindow);  // Fermer la fenêtre du nom d'utilisateur
+        delwin(usernameWindow);
 
         while (!flag) {
-            // Cadre pour "Enter your password"
+            // Fenêtre pour le mot de passe
             WINDOW* passwordWindow = newwin(5, 40, startY + 8, startX);
-            box(passwordWindow, 0, 0);  // Créer un cadre
+            box(passwordWindow, 0, 0);
             wattron(passwordWindow, COLOR_PAIR(2) | A_BOLD);
             mvwprintw(passwordWindow, 1, 2, "Password: ");
             wattroff(passwordWindow, COLOR_PAIR(2) | A_BOLD);
             wrefresh(passwordWindow);
 
-            wmove(passwordWindow, 1, 11);  // Placer le curseur après "Password:"
-            noecho();  // Masquer le mot de passe
+            wmove(passwordWindow, 1, 11);
+            noecho();
             char passwordPlayer[100];
-            wgetnstr(passwordWindow, passwordPlayer, 99);  // Saisir le mot de passe
+            wgetnstr(passwordWindow, passwordPlayer, 99);
 
             if (strlen(passwordPlayer) == 0) {
                 firstTry = true;
-                delwin(passwordWindow);  // Si rien n'est saisi, fermer la fenêtre et revenir à l'étape précédente
+                delwin(passwordWindow);
                 break;  // Retour à la saisie du nom d'utilisateur
             }
             firstTry = false;
 
-            // Vérification de la connexion
-            if (udm.isCorrectLogin(namePlayer, passwordPlayer)) {
-                int user_id = db.getUserId(namePlayer);
-                if (db.isUserInSession(user_id)) {
-                    // Message si l'utilisateur est déjà connecté dans une autre session
-                    printw("\nYou are already logged in another session! \n");
-                    move(5, 22);  // Positionner le message
-                } else {
-                    napms(1000);  // Attendre avant d'afficher "Connected!"
-                    connexionData.push_back(namePlayer);
-                    connexionData.push_back(passwordPlayer);
-                    user = namePlayer;
-
-                    // Déplacer le message "Connected!" sous le cadre du mot de passe
-                    move(startY + 15, startX + 2);  // Positionner le message plus bas
-                    attron(COLOR_PAIR(2) | A_BOLD);  // Rouge pour l'affichage
-                    printw("Connected!");
-                    attroff(COLOR_PAIR(2) | A_BOLD);  // Retirer la couleur
-
-                    wrefresh(passwordWindow);
-                    refresh();
-                    napms(1000);  // Attendre un peu avant de retourner les données
-
-                    // Effacer la page de connexion avant de passer au menu
-                    erase();
-                    displayMenu(0);  // Afficher le menu avec la première option sélectionnée
-                    delwin(passwordWindow);  // Fermer la fenêtre du mot de passe
-                    return connexionData;  // Retourner les informations de connexion
-                }
-            } else {
-                // Si la connexion échoue
-                move(startY + 7, startX);  // Effacer l'ancienne erreur
-                clrtoeol();
-
-                // Afficher un message d'erreur sous le champ du mot de passe
-                curs_set(0);  // Cacher le curseur pendant le message
-                attron(COLOR_PAIR(1) | A_BOLD);  // Couleur rouge pour l'erreur
-                mvprintw(startY + 15, startX + 2, "Incorrect username or password.");
-                attroff(COLOR_PAIR(1) | A_BOLD);  // Retirer la couleur rouge
-                refresh();
-                napms(1500);  // Afficher l'erreur pendant un moment
-
-                // Effacer le message après un délai
-                move(startY + 15, startX);
-                clrtoeol();
-                refresh();
-
-                curs_set(1);  // Afficher à nouveau le curseur
-                wmove(passwordWindow, 1, 11);  // Repositionner le curseur dans la fenêtre du mot de passe
-                wrefresh(passwordWindow);
-            }
-
-            delwin(passwordWindow);  // Fermer la fenêtre du mot de passe après chaque tentative
-        }
-    }
-
-    // Retourner les données de connexion après toute tentative
-    return connexionData;
-}
-*/
- 
-
-vector<std::string> InterfaceTerminal::handleLogin(){
-    int sock = getSock();
-    vector<std::string> connexionData;
-    curs_set(1);
-    nodelay(stdscr, false);
-    bool returnValue;
-    while (!flag) {
-        erase();
-        echo();
-        clrtobot();
-        bool firstTry = true;
-        printw("Press ENTER to validate an entry\nPress ENTER with an empty entry to go back\n");
-        refresh();
-        printw("\nEnter your username : ");
-        move(3,22);
-        char namePlayer[100];
-        wgetnstr(stdscr,namePlayer,99);
-        if(strlen(namePlayer)==0) break;
-        while (!flag) {
-            if(firstTry) printw("\nEnter your password : ");
-            noecho();
-            char passwordPlayer[100];
-            wgetnstr(stdscr,passwordPlayer,99);
-            if(strlen(passwordPlayer)==0){firstTry = true; break;}
-            firstTry = false;
+            // --- COMMUNICATION AVEC LE SERVEUR ---
             int type = MessageType::T_Connexion;
             int size = sizeof(struct Connexion);
-            //demande au serveur de verifier
             Connexion connexion;
             std::strncpy(connexion.username, namePlayer, sizeof(connexion.username) - 1);
             std::strncpy(connexion.password, passwordPlayer, sizeof(connexion.password) - 1);
-            int bytesSentType = sendAll(sock, &type, sizeof(int));
-            int bytesSentSize = sendAll(sock, &size, sizeof(int));
+            sendAll(sock, &type, sizeof(int));
+            sendAll(sock, &size, sizeof(int));
             sendAll(sock, &connexion, sizeof(Connexion));
-            int type_;int size_;
-            if(!recvAll(sock, &type_, sizeof(int))){
+
+            int type_; int size_;
+            if (!recvAll(sock, &type_, sizeof(int)) || !recvAll(sock, &size_, sizeof(int))) {
                 flag = true;
                 break;
             }
-            if(!recvAll(sock, &size_, sizeof(int))){
-                flag = true;
-                break;
-            }
-            if (type_ == MessageType::T_ForcedExit){
+            if (type_ == MessageType::T_ForcedExit) {
                 flag = true;
                 break;
             }
             bool logResult = (type_ == MessageType::T_AcceptConnexion);
-            //
-            if(logResult){
+
+            if (logResult) {
                 int doubleSession;
-                if(!recvAll(sock, &doubleSession, sizeof(int))){
-                    flag = true;
-                    break;
-                }
-                if(!recvAll(sock, &size_, sizeof(int))){
+                if (!recvAll(sock, &doubleSession, sizeof(int)) || !recvAll(sock, &size_, sizeof(int))) {
                     flag = true;
                     break;
                 }
                 bool doubleSessionResult = (doubleSession == MessageType::T_RefuseConnexion);
-                if(doubleSessionResult){printw("\nYou are already logged in another session ! \n"); move(5,22);}
-                else{
-               		napms(1000);
-               		connexionData.push_back(namePlayer);
-               		connexionData.push_back(passwordPlayer);
-               		user = namePlayer;
-               		printw("\nConnected ! \n");
-               		refresh();
-               		napms(1000);
-               		return connexionData;}
+
+                if (doubleSessionResult) {
+                    // Affichage du message "Already logged in another session"
+                    printw("\nYou are already logged in another session! \n");
+                    move(startY + 15, startX + 2);
+                } else {
+                    napms(1000);
+                    connexionData.push_back(namePlayer);
+                    connexionData.push_back(passwordPlayer);
+                    user = namePlayer;
+
+                    move(startY + 15, startX + 2);
+                    attron(COLOR_PAIR(2) | A_BOLD);
+                    printw("Connected!");
+                    attroff(COLOR_PAIR(2) | A_BOLD);
+                    wrefresh(passwordWindow);
+                    refresh();
+                    napms(1000);
+
+                    // Effacer la page et afficher le menu
+                    erase();
+                    displayMenu(0);
+                    refresh();
+                    delwin(passwordWindow);
+                    return connexionData;
+                }
+            } else {
+                // Affichage du message d'erreur
+                move(startY + 15, startX + 2);
+                attron(COLOR_PAIR(1) | A_BOLD);
+                printw("Incorrect username or password.");
+                attroff(COLOR_PAIR(1) | A_BOLD);
+                refresh();
+                napms(1500);
+
+                move(startY + 15, startX);
+                clrtoeol();
+                refresh();
+                curs_set(1);
+                wmove(passwordWindow, 1, 11);
+                wrefresh(passwordWindow);
             }
-            else {printw("\nIncorrect username or password. \n"); move(5,22);}
-            }
+            delwin(passwordWindow);
+        }
     }
     return connexionData;
 }
-
-
 
 
 /**
