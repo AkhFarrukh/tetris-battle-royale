@@ -237,14 +237,18 @@ void* Player::threadRoutineView (void* arg){
                     break;
                 }
                 if (index == -1) {
-                    int sendType = MessageType::T_LeftRoom;
+                    threadData->mux.lock();
+                    threadData->userInLobby = false;
+                    threadData->mux.unlock();
+                    break;
+                    /*int sendType = MessageType::T_LeftRoom;
                     int sendSize = sizeof(int);
                     if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
                     if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
                     threadData->mux.lock();
                     threadData->userInLobby = false;
                     threadData->mux.unlock();
-                    break;
+                    break;*/
                 }
             }
 
