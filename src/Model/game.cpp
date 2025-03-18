@@ -216,10 +216,10 @@ void Game::handleMovementActionEvent(std::shared_ptr<Event> e, int p) {
  * @param playerHimself the id of the player for the Bonus.
  */
 void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
-    auto moveEvt = std::dynamic_pointer_cast<MalusBonusEvent>(e);
-    if (!moveEvt) return;
+    auto mbEvt = std::dynamic_pointer_cast<MalusBonusEvent>(e);
+    if (!mbEvt) return;
 
-    MalusBonus bm = moveEvt->getMalusBonus();
+    MalusBonus bm = mbEvt->getMalusBonus();
     int energy = players[playerHimself].energy; //energy of player that activates malus/bonus
     // Vérifier si le mode actuel est RoyalCompetition
     auto royalMode = std::dynamic_pointer_cast<RoyalCompetition>(mode);
@@ -227,7 +227,7 @@ void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
         std::cerr << "Error: MalusBonus event triggered, but game mode is not RoyalCompetition.\n";
         return;
     }
-    int target = moveEvt->getTarget();//Le joueur ciblé par les malus
+    int target = mbEvt->getTarget();//Le joueur ciblé par les malus
     // Appliquer le bon malus en fonction du type
     switch (bm) {
         case MalusBonus::MalusIncreaseFallSpeed:
