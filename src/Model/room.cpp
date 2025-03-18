@@ -90,7 +90,7 @@ bool Room::checkGameReady(){
 
 std::shared_ptr<Game> Room::launchGame() {
     std::cout << "Launching game with " << playerFds.size() << " players\n";
-    
+    matchStarted = true;
     int numPlayers = (int)playerFds.size();
     gamePtr = std::make_shared<Game>(std::vector<ThreadGameData>(playersThread), int(numPlayers), gameMode);
     return gamePtr;

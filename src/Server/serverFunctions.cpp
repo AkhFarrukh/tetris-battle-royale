@@ -66,6 +66,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         // and push the client into a vector of clients
         ClientSession new_session;
         new_session.client_fd = client_fd;
+        new_session.inRoom = -1;
         clients.push_back(new_session);
         //printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
@@ -376,6 +377,7 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
             info.isStarted            = chosenRoom->isStarted();
             info.mode                 = chosenRoom->getRoomMode();
 
+            client.inRoom = info.roomID;
             int typeToSend  = MessageType::T_RoomJoinInfo;
             int sizeToSend  = sizeof(struct RoomInfo);
 
@@ -389,9 +391,15 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
 }
 
 void Server::handleLeftRoom(Server* server, ClientSession& client) {
-    auto room = server->myRoom;
-
-    room->removePlayer(client.client_fd);
+  std::shared_ptr<Room> chosenRoom = nullptr;
+  for (auto &r : *server->roomsList) {
+        if (r->getOwnerFd() == client.inRoom) {
+            chosenRoom = r;
+            break;
+        }
+    }
+    chosenRoom->removePlayer(client.client_fd);
+    client.inRoom = -1;
 }
 
 /**
@@ -403,10 +411,18 @@ void Server::handleLeftRoom(Server* server, ClientSession& client) {
  */
 void Server::handleRefresh(Server* server, ClientSession& client, bool& userIsOnline, bool& owner){
     cout<<"Refresh received"<<endl;
+     std::shared_ptr<Room> chosenRoom = nullptr;
+     for (auto &r : *server->roomsList) {
+        if (r->getOwnerFd() == client.inRoom) {
+            chosenRoom = r;
+            break;
+        }
+     }
+    if(!chosenRoom)userIsOnline = false;
     RoomInfo info;
-    info.roomID = server->myRoom->getRoomID();
-    info.currentPlayersCount = server->myRoom->getPlayerCount();
-    info.isStarted = server->myRoom->isStarted();
+    info.roomID = chosenRoom->getRoomID();
+    info.currentPlayersCount = chosenRoom->getPlayerCount();
+    info.isStarted = chosenRoom->isStarted();
 
     int typeToSend = MessageType::T_RoomInfo;
     if(!owner)typeToSend = MessageType::T_RoomJoinInfo;
@@ -418,7 +434,14 @@ void Server::handleRefresh(Server* server, ClientSession& client, bool& userIsOn
 }
 
 void Server::handleForceStart(Server* server, ClientSession& client, bool& userIsOnline, pthread_t& threadGamePID){
-    auto room = server->myRoom;
+    std::shared_ptr<Room> room = nullptr;
+     for (auto &r : *server->roomsList) {
+        if (r->getOwnerFd() == client.inRoom) {
+            room = r;
+            break;
+        }
+     }
+     if(!room)userIsOnline = false;
     if (room->checkGameReady()){
     room->broadcastGameStart();
     std::shared_ptr<Game> gameShPtr =  room->launchGame();
@@ -488,7 +511,7 @@ void Server::handleCreateRoom(Server* server, ClientSession& client, bool& userI
     info.roomID = r->getRoomID();
     info.currentPlayersCount = r->getPlayerCount();
     info.isStarted = r->isStarted();
-
+    client.inRoom = info.roomID;
     int typeToSend = MessageType::T_RoomInfo;
     int sizeToSend = sizeof(RoomInfo);
     if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
@@ -498,17 +521,26 @@ void Server::handleCreateRoom(Server* server, ClientSession& client, bool& userI
 
 void Server::handleDeleteRoom(Server* server, ClientSession& client) {
     std::cout << "Received DeleteRoom" << std::endl;
+    std::shared_ptr<Room> room = nullptr;
+     for (auto &r : *server->roomsList) {
+        if (r->getOwnerFd() == client.client_fd) {
+            room = r;
+            break;
+        }
+     }
+
     auto allRooms = server->roomsList;
-    if (server->myRoom) {
+    if(!room){
         allRooms->erase(
             std::remove_if(allRooms->begin(), allRooms->end(),
                 [&](const std::shared_ptr<Room>& r) {
-                    return r == server->myRoom;
+                    return r == room;
                 }),
             allRooms->end()
         );
         server->myRoom.reset();
     }
+    client.inRoom = -1;
 }
 
 /**
