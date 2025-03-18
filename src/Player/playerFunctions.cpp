@@ -341,34 +341,39 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                     threadData->mux.lock();
                     threadData->targetPlayerMenu = false;
                     threadData->mux.unlock();
-
                     //send a malus
                     int type = MessageType::T_MalusBonus;
                     int size = sizeof(MalBonus);
                     MalBonus currentMalBonus;
                     currentMalBonus.malusB = intToMalusBonus(chosenMalus);
-                    currentMalBonus.target = chosenPlayer;// todo choose playerid and check  if it is not player himeself
-                    // todo chosen player is tricky since sender thread doesnt have acces to playerid, so it has to be treated on server side
-                    // todo verify with Daris or Pietro
+                    currentMalBonus.target = chosenPlayer;// todo choose playerid and check  if it is not player himeself on server
                     if (!sendAll(threadData->socket, &type, sizeof(int))) {return -1;}
                     if (!sendAll(threadData->socket, &size, sizeof(int))) {return -1;}
                     if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) {return -1;}
+                    chosenMalus = 0; chosenPlayer = 0;
                 } else {
                     // if player choses malus or bonus
-                    //todo perform energy price check
+                    //todo perform energy price check (on the server probably)
                     chosenMalus = numberKey;
                     if (chosenMalus == 6 or chosenMalus == 7) {
                         // if malus is bonus, no need for target player
-                        //todo send bonus
+                        //send a bonus
+                        chosenPlayer = -1; // to himself
+                        int type = MessageType::T_MalusBonus;
+                        int size = sizeof(MalBonus);
+                        MalBonus currentMalBonus;
+                        currentMalBonus.malusB = intToMalusBonus(chosenMalus);
+                        currentMalBonus.target = chosenPlayer;
+                        if (!sendAll(threadData->socket, &type, sizeof(int))) {return -1;}
+                        if (!sendAll(threadData->socket, &size, sizeof(int))) {return -1;}
+                        if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) {return -1;}
+                        chosenMalus = 0; chosenPlayer = 0;
                     }else {
                         // if malus is malus, player needs to choose target player
                         threadData->mux.lock();
                         threadData->targetPlayerMenu = true;
                         threadData->mux.unlock();
                     }
-
-
-                    chosenMalus = 0; chosenMalus = 0; //todo move to nested else
                 }
             }
             else {
