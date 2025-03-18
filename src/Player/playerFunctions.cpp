@@ -109,7 +109,7 @@ void* Player::threadRoutineView (void* arg){
             threadData->mux.unlock();
             continue;
         }
-        else if (type == MessageType::T_RoomInfo) {
+        else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {
             RenderRooms renderR;
             RoomInfo info;
             if (!recvAll(sock, &info, size)) {
@@ -125,7 +125,7 @@ void* Player::threadRoutineView (void* arg){
                 act = renderR.handleMyRoom(info);
                 threadData->displayMut.unlock();
 
-                if (act == 1) {
+                if (act == 1 && type == MessageType::T_RoomInfo) {
                     int sendType = MessageType::T_Menu;
                     int sendSize = sizeof(Menu);
                     Menu menu;
@@ -136,21 +136,43 @@ void* Player::threadRoutineView (void* arg){
                     if(!sendAll(sock, &menu, sizeof(Menu))){flag = true; break;}
 
                 } else if (act == -2) {
-                    int sendType = MessageType::T_Refresh;
-                    int sendSize = sizeof(int);
+                    if(type == MessageType::T_RoomInfo){
+                        int sendType = MessageType::T_Refresh;
+                        int sendSize = sizeof(int);
 
-                    if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
-                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
-                    break;
+                        if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
+                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+                        break;
+                    }
+                    else{
+                        int sendType = MessageType::T_RoomJoinRefresh;
+                        int sendSize = sizeof(int);
+
+                        if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
+                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+                        break;
+                    }
                 } else if (act == -1) {
-                    int sendType = MessageType::T_RoomDeleted;
-                    int sendSize = sizeof(int);
-                    if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
-                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
-                    threadData->mux.lock();
-                    threadData->userInLobby = false;
-                    threadData->mux.unlock();
-                    break;
+                    if(type == MessageType::T_RoomInfo){
+                        int sendType = MessageType::T_RoomDeleted;
+                        int sendSize = sizeof(int);
+                        if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
+                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+                        threadData->mux.lock();
+                        threadData->userInLobby = false;
+                        threadData->mux.unlock();
+                        break;
+                    }
+                    else{
+                        int sendType = MessageType::T_LeftRoom;
+                        int sendSize = sizeof(int);
+                        if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
+                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+                        threadData->mux.lock();
+                        threadData->userInLobby = false;
+                        threadData->mux.unlock();
+                        break;
+                    }
                 }
 
                 int messageType;
@@ -244,14 +266,6 @@ void* Player::threadRoutineView (void* arg){
                     threadData->userInLobby = false;
                     threadData->mux.unlock();
                     break;
-                    /*int sendType = MessageType::T_LeftRoom;
-                    int sendSize = sizeof(int);
-                    if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
-                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
-                    threadData->mux.lock();
-                    threadData->userInLobby = false;
-                    threadData->mux.unlock();
-                    break;*/
                 }
             }
 
