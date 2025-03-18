@@ -253,6 +253,12 @@ int main() {
             threadData->userInLobby = false;
             threadData->mux.unlock();
             napms(500);
+            if(menu.action == MenuActions::A_CreateRoom){
+                int sendType = MessageType::T_RoomDeleted;
+                int sendSize = sizeof(int);
+                if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
+                if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+            }
         }
     }
 
