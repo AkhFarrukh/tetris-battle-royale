@@ -530,7 +530,8 @@ void Server::handleDeleteRoom(Server* server, ClientSession& client) {
      }
 
     auto allRooms = server->roomsList;
-    if(!room){
+    if(room){
+        room->broadcastDeleteRoom();
         allRooms->erase(
             std::remove_if(allRooms->begin(), allRooms->end(),
                 [&](const std::shared_ptr<Room>& r) {

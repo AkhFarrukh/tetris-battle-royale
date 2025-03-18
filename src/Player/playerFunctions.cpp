@@ -181,6 +181,7 @@ void* Player::threadRoutineView (void* arg){
                 int bytesReceivedType = recv(sock, &messageType, sizeof(int), MSG_DONTWAIT);
 
                 if (bytesReceivedType > 0) {
+                    //printf("yuyyuyuu\n");
                     recv(sock, &messageSize, sizeof(int), 0);
 
                     if (messageType == MessageType::T_GameStart) {
@@ -195,6 +196,13 @@ void* Player::threadRoutineView (void* arg){
                         threadData->userInLobby = false;
                         threadData->mux.unlock();
                         flag = true;
+                        break;
+                    }
+                    else if(messageType == MessageType::T_Exit){
+                        threadData->mux.lock();
+                        threadData->userInGame = false;
+                        threadData->userInLobby = false;
+                        threadData->mux.unlock();
                         break;
                     }
                 } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
@@ -237,6 +245,9 @@ void* Player::threadRoutineView (void* arg){
                     if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {flag = true; break;}
                     if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {flag = true; break;}
                     if (!sendAll(sock, &fd, sizeof(int))) {flag = true; break;}
+                    threadData->mux.lock();
+                    threadData->userInLobby = true;
+                    threadData->mux.unlock();
                     break;
                 }
                 if (index == -2) {
