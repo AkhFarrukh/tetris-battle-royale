@@ -132,8 +132,10 @@ void Game::updateGame() {
         while (true) {
             auto evt = players[p].eventQueue->getEvent();
             if (!evt) break;
-            if (std::dynamic_pointer_cast<MalusBonusEvent>(evt))
-                handleMalusBonusEvent(evt, p);
+            if (std::dynamic_pointer_cast<MalusBonusEvent>(evt)) {
+                cout << "wesh" << endl;
+                //handleMalusBonusEvent(evt, p);
+            }
             else {
                 if (players[p].malusBonus != MalusBonus::BLOCKED){
                     handleMovementActionEvent(p, evt);
@@ -154,9 +156,9 @@ Action reverse(Action action) {
         case Action::ROTATE_RIGHT:
             return Action::ROTATE_LEFT;
         case Action::SOFT_DROP:
-            return Action::DROP;  //todo pas sur de cette inversion
+            return Action::SOFT_DROP;  //todo pas sur de cette inversion
         case Action::DROP:
-            return Action::SOFT_DROP;
+            return Action::DROP;
         default:
             return Action::NONE;
     }
@@ -190,9 +192,11 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
     if (players[p].inverted) {//if malusInverted (RC mode)
         a = reverse(a);
     }
-    bool moved = players[p].movement.setMouvement(a);
-    if (!moved && a == Action::SOFT_DROP) {
-        placePieceOnBoard(p);
+    if (!players[p].blocked) { // if malusBlocked (RC mode)
+        bool moved = players[p].movement.setMouvement(a);
+        if (!moved && a == Action::SOFT_DROP) {
+            placePieceOnBoard(p);
+        }
     }
 }
 
@@ -204,7 +208,7 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
  * @param event The event to be handled.
  * @param playerHimself the id of the player for the Bonus.
  */
-void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
+void Game::handleMalusBonusEvent(std::shared_ptr<MalusBonusEvent> e, int playerHimself) {
     auto moveEvt = std::dynamic_pointer_cast<MalusBonusEvent>(e);
     if (!moveEvt) return;
 
@@ -458,25 +462,23 @@ bool Game::broadcastGame() {
         nd.grid.resize(w * h);
 
         //4 blocks 
-        
-        for (int row = 0; row < h; row++) {
-            for (int col = 0; col < w; col++) {
-                Color c;
-                if (ps.blackout == 0) {//Le temps d'aveuglement est nul
+        if (ps.blackout == 0){
+            for (int row = 0; row < h; row++) {
+                for (int col = 0; col < w; col++) {
+                    Color c;
                     c = ps.grid->getBlockColor(col, row);
+                    nd.grid[row * GRID_WIDTH + col] = c;
                 }
-                else { //On est aveuglé
-                    c = Color::white; //Blackout malus (RC mode)
+            }
+            if (!ps.isGameOver) {
+                for (auto& figureBlock : ps.activeFigure->getBlocksRealPositions()) {
+                    nd.grid[figureBlock.getY() * GRID_WIDTH + figureBlock.getX()] = figureBlock.getColour();
                 }
-                nd.grid[row * GRID_WIDTH + col] = c;
             }
         }
-        if (!ps.isGameOver) {
-            for (auto& figureBlock : ps.activeFigure->getBlocksRealPositions()) {
-                nd.grid[figureBlock.getY() * GRID_WIDTH + figureBlock.getX()] = figureBlock.getColour();
-            }
+        else {
+            nd.grid.insert(nd.grid.begin(), w*h, Color::nullcolor);
         }
-        
         netArray.push_back(std::move(nd));
     }
     //Envoie toutes les infos nécessaire à l'affichage à chaque joueur
