@@ -72,9 +72,7 @@ int RenderRooms::handleMyRoom(const RoomInfo room) {
 }
 
 
-int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms) {
-    int highlightIndex = 0;
-
+int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms, int& highlightIndex) {
     listRooms(rooms, highlightIndex);
 
     int ch = getch();
@@ -97,7 +95,7 @@ int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms) {
         case 'r':
             return -2;
         default:
-            break;
+            return -3;
     }
 
 return -3;

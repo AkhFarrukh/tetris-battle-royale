@@ -15,7 +15,7 @@ class RenderRooms {
         RenderRooms();
         void myRoom(const RoomInfo room);
         void listRooms(const std::vector<RoomInfo>& roomsInfo, int hover);
-        int handleListRooms(std::vector<RoomInfo> roomsInfo);
+        int handleListRooms(std::vector<RoomInfo> roomsInfo, int& highlightIndex);
         int handleMyRoom(const RoomInfo room);
 
 };
