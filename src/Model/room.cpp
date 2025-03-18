@@ -108,4 +108,13 @@ void Room::broadcastGameStart() {
     cout<<"Gamestrartmsg sent successfully"<<endl;
 }
 
+
+void Room::broadcastDeleteRoom() {
+    int type = MessageType::T_Exit;
+    int size = sizeof(int);
+    for (int fd : playerFds) {
+        sendAll(fd, &type,  sizeof(type));
+        sendAll(fd, &size,  sizeof(size));
+    }
+}
 // Room::void deleteRoom(){}
