@@ -104,8 +104,8 @@ void InterfaceTerminal::initNcurses() {
     mvprintw(startY + menuHeight + 5, (width - 35) / 2, "Press 'q' to quit");
     
     refresh();
-    // Free memory for the menu window after the loop
-    //delwin(menuWindow);
+    
+    delwin(menuWindow); // detruire pour libererr mememoire
 }
 
 
@@ -401,9 +401,6 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
             //printw("   %d. %s", i + 1, modeNames[i]);
             mvwprintw(gameModeWindow, 3 + i * 3, 2, "   %d. %s", i + 1, modeNames[i]);
         }
-        if (i != 0) {
-            mvwprintw(gameModeWindow, 3 + i * 3, menuWidth - 16, "(Unreleased)");   // TODO -- à effacer quand les modes de jeu seront faits
-        }
     }
     wrefresh(gameModeWindow);
     
@@ -636,9 +633,9 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
     } else {
         for (int i = 0; i < numberFriends; ++i) {
             if (i == selectedOption) {
-                wattron(friendsWindow, COLOR_PAIR(8));
+                wattron(friendsWindow, COLOR_PAIR(9));
                 mvwprintw(friendsWindow, 2 + i, 2, "-> %d. %s", i + 1, friends[i].c_str());
-                wattroff(friendsWindow, COLOR_PAIR(8));
+                wattroff(friendsWindow, COLOR_PAIR(9));
             } else {
                 mvwprintw(friendsWindow, 2 + i, 2, "   %d. %s", i + 1, friends[i].c_str());
             }
@@ -829,6 +826,38 @@ void InterfaceTerminal::enterName() {
  * @param requestsReceived Vecteur contenant les noms des utilisateurs qui ont envoyé demande d'ami.
  * @param requestsSent Vecteur contenant noms des utilisateurs à qui une demande d'ami a été envoyée.
  */
+/** 
+ void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent) {
+    erase();
+    printw("Requests received :\n\n");
+    int numberRequestsReceived = std::size(requestsReceived);   //taille du tableau contenant les demandes d'amis recues
+    int numberRequestsSent = std::size(requestsSent);   // taille du tableau contenant les demandes d'amis envoyées
+    if(numberRequestsReceived==0) printw("No request received\n");
+    for (int i = 0; i < numberRequestsReceived; ++i) {
+        if (i == selectedOption) {
+            printw("-> %s wants to be your friend !",  requestsReceived[i].c_str());
+        } else {
+            printw("   %s wants to be your friend !",  requestsReceived[i].c_str());
+        }
+        printw("\n");
+    }
+    printw("\nRequests sent :\n\n");
+    if(numberRequestsSent==0) printw("No request sent\n");
+    for (int i = 0; i < numberRequestsSent; ++i) {
+        if (i+numberRequestsReceived == selectedOption) {
+            printw("-> friend request sent to %s ", requestsSent[i].c_str());
+        } else {
+            printw("   friend request sent to %s", requestsSent[i].c_str());
+        }
+        printw("\n");
+    }
+    printw("\nUse UP and DOWN arrow keys to navigate\nPress 'A' to accept the request\nPress 'R' to refuse\nPress 'C' to cancel a sent friend request\nPress 'q' to quit\n");
+    if(!(user==""))printw("Press 't' to open the message box\n");
+    refresh();
+}
+*/
+
+ 
  void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent) {
     //erase();
     int width = 80;
@@ -899,6 +928,7 @@ void InterfaceTerminal::enterName() {
 
     
 }
+
 
 
 
@@ -1025,7 +1055,7 @@ int InterfaceTerminal::handleFriends() {
                 }
                 else { //Demande d'amis recus
                     erase();     
-                    refresh(); 
+                    //refresh(); 
                     
                     handleFriendRequests();
                     
@@ -1535,6 +1565,7 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
     int selectedOption = 0;
 
     while (!flag) {
+        erase();
         displayFriendOptions(selectedOption);
 
         int ch = getch();    // récupère l'entrée utilisateur
@@ -1593,7 +1624,6 @@ int InterfaceTerminal::start() {
    int selectedOption = 0;
 
    while (!flag) {
-        erase();
        displayMenu(selectedOption);
        int ch = getch();
        switch (ch) {
