@@ -7,7 +7,14 @@ const int GRID_HEIGHT = 20;
 const int GRID_WIDTH = 10;
 
 
-
+// arbitary prices for the malus/bonus. Very unbalanced
+#define INCREASE_FALL_SPEED_PRICE   1
+#define REVERSE_CONTROLS_PRICE      1
+#define FREEZE_CONTROLS_PRICE       1
+#define THUNDER_PRICE               1
+#define BLACK_OUT_PRICE             1
+#define REDUCE_FALL_SPEED_PRICE     1
+#define BLOCK_1X1_PRICE             1
 
 Game::Game(){
     gameMode = Modes::NONE_;
@@ -204,11 +211,15 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
  * @param event The event to be handled.
  * @param playerHimself the id of the player for the Bonus.
  */
+
+
+
 void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
     auto moveEvt = std::dynamic_pointer_cast<MalusBonusEvent>(e);
     if (!moveEvt) return;
 
     MalusBonus bm = moveEvt->getMalusBonus();
+    int energy = players[playerHimself].energy; //energy of player that activates malus/bonus
     // Vérifier si le mode actuel est RoyalCompetition
     auto royalMode = std::dynamic_pointer_cast<RoyalCompetition>(mode);
     if (!royalMode) {
@@ -219,25 +230,46 @@ void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
     // Appliquer le bon malus en fonction du type
     switch (bm) {
         case MalusBonus::MalusIncreaseFallSpeed:
-            royalMode->malusIncreaseFallSpeed(players[target]);
+            if (energy >= INCREASE_FALL_SPEED_PRICE) {
+                players[playerHimself].energy -= INCREASE_FALL_SPEED_PRICE;
+                royalMode->malusIncreaseFallSpeed(players[target]);
+            }
         break;
         case MalusBonus::MalusReverseControls:
-            royalMode->malusReverseControls(players[target]);
+            if (energy >= REVERSE_CONTROLS_PRICE) {
+                players[playerHimself].energy -= REVERSE_CONTROLS_PRICE;
+                royalMode->malusReverseControls(players[target]);
+            }
         break;
         case MalusBonus::MalusFreezeControls:
-            royalMode->malusFreezeControls(players[target]);
+            if (energy >= FREEZE_CONTROLS_PRICE) {
+                players[playerHimself].energy -= FREEZE_CONTROLS_PRICE;
+                royalMode->malusFreezeControls(players[target]);
+            }
         break;
         case MalusBonus::MalusThunder:
-            royalMode->malusThunder(players[target]);
+            if (energy >= THUNDER_PRICE) {
+                players[playerHimself].energy -= THUNDER_PRICE;
+                royalMode->malusThunder(players[target]);
+            }
         break;
         case MalusBonus::MalusBlackOut:
-            royalMode->malusBlackOut(players[target]);
+            if (energy >= BLACK_OUT_PRICE) {
+                players[playerHimself].energy -= BLACK_OUT_PRICE;
+                royalMode->malusBlackOut(players[target]);
+            }
         break;
         case MalusBonus::BonusReduceFallSpeed:
-            royalMode->bonusReduceFallSpeed(players[playerHimself]);
+            if (energy >= REDUCE_FALL_SPEED_PRICE) {
+                players[playerHimself].energy -= REDUCE_FALL_SPEED_PRICE;
+                royalMode->bonusReduceFallSpeed(players[playerHimself]);
+            }
         break;
         case MalusBonus::Bonus_Block1X1:
-            royalMode->bonusBlockCube(players[playerHimself]);
+            if (energy >= BLOCK_1X1_PRICE) {
+                players[playerHimself].energy -= BLOCK_1X1_PRICE;
+                royalMode->bonusBlockCube(players[playerHimself]);
+            }
         break;
         default:
             std::cerr << "Unknown MalusBonus event.\n";
@@ -420,7 +452,7 @@ void Game::handleLineCompletion(int p) {
 
     if (cleared > 0) {
         ps.gameData.updateScore(cleared * 100);
-
+        ps.energy += cleared; // add number of cleared lines to energy
         //malus
         // int targetId = pickTargetPlayer(p);
         // addGarbageLines(targetId, cleared);

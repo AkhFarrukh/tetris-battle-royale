@@ -40,6 +40,8 @@ class Player {
         atomic<bool> targetPlayerMenu = false; //false if player is on malus menu, true if player is on target player menu
 
         atomic<Modes> gameMode; // to know if player is playing royal competition to use special display function
+
+        atomic<int> clinetPlayerID = -1; // to know the player id of the client player in royal mode
         };
 
         static void* threadRoutineView (void* arg); //Routine qui recoit la grid et l'affiche

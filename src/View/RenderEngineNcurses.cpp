@@ -281,7 +281,7 @@ int RenderEngineNcurses::applyColor(Color blockColor) {
      case Color::cyan:        pairIndex = 6; break;
      case Color::purple:      pairIndex = 7; break;
      case Color::grey:        pairIndex = 8; break;
-     // todo case Color::white:       pairIndex = 9; break;
+     case Color::white:       pairIndex = 9; break;
      default:                 pairIndex = 0; break;
  }
 

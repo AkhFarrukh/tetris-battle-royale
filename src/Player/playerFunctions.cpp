@@ -51,7 +51,7 @@ void* Player::threadRoutineView (void* arg){
                 if (!recvAll(sock, &player.isGameOver, sizeof(player.isGameOver))){return nullptr;}
                 if (!recvAll(sock, &player.linesCleared, sizeof(player.linesCleared))){return nullptr;}
                 if (!recvAll(sock, &player.score, sizeof(player.score))){return nullptr;}
-            
+
                 int gridSize;
            	    if (!recvAll(sock, &gridSize, sizeof(gridSize))){return nullptr;}
 
@@ -63,9 +63,9 @@ void* Player::threadRoutineView (void* arg){
                 player.grid.resize(gridSize);
 
                 if (!recvAll(sock, player.grid.data(), gridSize * sizeof(Color))){return nullptr;}
-            
+
                 playersData.push_back(player);
-            }            
+            }
             
 
             //std::cout<<"Rendered games"<<std::endl;
@@ -83,6 +83,16 @@ void* Player::threadRoutineView (void* arg){
                 threadData->displayMut.lock();
                 render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
                 threadData->displayMut.unlock();
+
+                // Find which player is the client (ID == -1)
+                int clientPlayerIndex = -1;
+                for (size_t i = 0; i < playersData.size(); ++i) {
+                    if (playersData[i].playerId == -1) {
+                        clientPlayerIndex = i;
+                        threadData->clinetPlayerID = i; // Store the index
+                        break;
+                    }
+                }
             } else {
                 // Render the regular games grid for endless, classic and duel modes
                 threadData->displayMut.lock();
@@ -90,13 +100,6 @@ void* Player::threadRoutineView (void* arg){
                 threadData->displayMut.unlock();
             }
 
-
-            /* todo add when royal mode is implemented
-            if (gamemode == Modes::Royal_){
-                //std::cout<<"Rendering royal games"<<std::endl;
-                render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
-            }
-            */
         }
     }
     else{ //joueur n'est pas en game
@@ -358,7 +361,7 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                     if (chosenMalus == 6 or chosenMalus == 7) {
                         // if malus is bonus, no need for target player
                         //send a bonus
-                        chosenPlayer = -1; // to himself
+                        chosenPlayer = threadData->clinetPlayerID; // to himself
                         int type = MessageType::T_MalusBonus;
                         int size = sizeof(MalBonus);
                         MalBonus currentMalBonus;
