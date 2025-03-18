@@ -110,7 +110,7 @@ void RoyalCompetition::malusIncreaseFallSpeed(PlayerState& player){
  * pour effet de detruire une zone 2X2 de block.(Malus)
  */
 void RoyalCompetition::malusThunder(PlayerState& player) {
-
+  cout << "malusThunder" << endl;
   int GRID_HEIGHT = 20;
   int GRID_WIDTH = 10;
   srand(time(nullptr));
@@ -122,12 +122,12 @@ void RoyalCompetition::malusThunder(PlayerState& player) {
     }
     thunderPositionLine += 1;
   }
-  player.slowed = true;
-  for (int i = 0; i <100; i++) {
-    player.grid->lightningBlock2X2(Coordinates(columnTargeted, thunderPositionLine));
-    player.grid->deleteBlock2X2(Coordinates(columnTargeted, thunderPositionLine));
-  }
-  player.slowed = false;
+
+
+  player.grid->lightningBlock2X2(Coordinates(columnTargeted, thunderPositionLine));
+  //todo fonctionne mais une animation serait bien ici
+  player.grid->deleteBlock2X2(Coordinates(columnTargeted, thunderPositionLine));
+
 
 }
 
@@ -142,6 +142,7 @@ void RoyalCompetition::malusBlackOut(PlayerState& player) {
  * @brief Les 2 prochains Tetrimino seront des cubes 1X1.(bonus)
  */
 void RoyalCompetition::bonusBlockCube(PlayerState& player) {
+  cout <<"in bonus cube"<< endl;
   player.countTetriminoGenerated = 1;
   player.isBonusCube = true;
 }

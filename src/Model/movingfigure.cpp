@@ -131,7 +131,10 @@ void MovingFigure::updateBlocks(
         std::vector<Coordinates>& blockPositions
         ) {
   bool firstInitialization = blockPositions.empty(); //checks if vector is empty
-  for(int index = 0; index < BLOCKS_TOTAL_NUMBER; index++){
+
+  int numberOfBlocks = (tetromino_->getFigShape() == TetrominoShape::ONE_BLOCK_CUBE) ? 1 : BLOCKS_TOTAL_NUMBER;
+
+  for(int index = 0; index < numberOfBlocks; index++){
     if(firstInitialization){
       //if vector is empty
       initializeBlockPosition(index, position, tetromino, blockPositions);
@@ -323,7 +326,8 @@ bool MovingFigure::setPosAndFig(
  */
 std::vector<Block> MovingFigure::getBlocksRealPositions() {
   Figure realTetro = *tetromino_;
-  for (int index = 0; index < BLOCKS_TOTAL_NUMBER; ++index)
+  int numberOfBlocks = (tetromino_->getFigShape() == TetrominoShape::ONE_BLOCK_CUBE) ? 1 : BLOCKS_TOTAL_NUMBER;
+  for (int index = 0; index < numberOfBlocks; ++index)
   {
     realTetro.setBlockPos(index, blockPositions_[index]);
   }
