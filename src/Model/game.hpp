@@ -61,7 +61,7 @@ private:
     void updateGame();
 
     void handleMovementActionEvent(int p, std::shared_ptr<Event> e);
-    void handleMalusBonusEvent(std::shared_ptr<Event> e, int p);
+    void handleMalusBonusEvent(std::shared_ptr<MalusBonusEvent> e, int p);
     void handleMalus(int targetID, int playerID);
 
     void renderGame();

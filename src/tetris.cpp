@@ -204,7 +204,7 @@ int main() {
             menu.action = MenuActions::A_Play;
             if(selectedMode == 0){
                 menu.mode = Modes::Endless_;
-                napms(500);
+                //napms(500);
             }
             else if(selectedMode == 10){
                 menu.mode = Modes::Classic_;
@@ -253,7 +253,7 @@ int main() {
             threadData->userInGame = false;
             threadData->userInLobby = false;
             threadData->mux.unlock();
-            napms(500);
+            napms(200);
             if(menu.action == MenuActions::A_CreateRoom){
                 int sendType = MessageType::T_RoomDeleted;
                 int sendSize = sizeof(int);

@@ -36,9 +36,12 @@ Figure::Figure(TetrominoShape _figShape): figShape{_figShape}{
     pair<Color, vector<Coordinates>> figData = figReferences.at(figShape);          //pair<Color, vector<Coordinates>> correspondant à la forme
     color = figData.first;
     figBlocks.push_back(Block(color, BLOCK_SIZE, Coordinates(0,0)));                //Block central en (0,0)
-    for (auto& blockCoord : figData.second)                                         //Construit chaque block de la figure
-    {
-        figBlocks.push_back(Block(color, BLOCK_SIZE, blockCoord));
+    if (figShape != TetrominoShape::ONE_BLOCK_CUBE) {
+        //Pas besoin de construire les autres blocks pour un cube
+        for (auto& blockCoord : figData.second)                                         //Construit chaque block de la figure
+        {
+            figBlocks.push_back(Block(color, BLOCK_SIZE, blockCoord));
+        }
     }
     switch (figShape)
     {
