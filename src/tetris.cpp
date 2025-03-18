@@ -245,6 +245,7 @@ int main() {
             }
             threadData->mux.lock();
             threadData->userInLobby = true;
+            threadData->gameMode = menu.mode;
             threadData->mux.unlock();
 
             Player::sendInput(threadData);

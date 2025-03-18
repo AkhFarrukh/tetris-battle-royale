@@ -67,9 +67,7 @@ void* Player::threadRoutineView (void* arg){
                 playersData.push_back(player);
             }            
             
-            threadData->displayMut.lock();
-            render.renderGames(playersData);
-            threadData->displayMut.unlock();
+
             //std::cout<<"Rendered games"<<std::endl;
             
             /*
@@ -78,6 +76,20 @@ void* Player::threadRoutineView (void* arg){
                 render.renderGames(playersData);
             }
             */
+
+
+            if (threadData->gameMode == Modes::Royal_){
+                //std::cout<<"Rendering royal games"<<std::endl;
+                threadData->displayMut.lock();
+                render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
+                threadData->displayMut.unlock();
+            } else {
+                // Render the regular games grid for endless, classic and duel modes
+                threadData->displayMut.lock();
+                render.renderGames(playersData);
+                threadData->displayMut.unlock();
+            }
+
 
             /* todo add when royal mode is implemented
             if (gamemode == Modes::Royal_){
@@ -322,22 +334,46 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
             }
 
             int numberKey = keyboardActionToInt(currentAction);
-            if (numberKey != -1) {
+            if (numberKey != -1 and threadData->gameMode == Modes::Royal_) {
                 if (threadData->targetPlayerMenu) {
+                    // if player choses target player for malus
                     chosenPlayer = numberKey;
-                    threadData->mux.lock();
-                    threadData->targetPlayerMenu = true;
-                    threadData->mux.unlock();
-
-                } else {
-                    chosenMalus = numberKey;
                     threadData->mux.lock();
                     threadData->targetPlayerMenu = false;
                     threadData->mux.unlock();
-                    //
-                    //todo send chosenMalus and chosenPlayer to server
-                    //
-                    chosenMalus = 0; chosenMalus = 0;
+                    //send a malus
+                    int type = MessageType::T_MalusBonus;
+                    int size = sizeof(MalBonus);
+                    MalBonus currentMalBonus;
+                    currentMalBonus.malusB = intToMalusBonus(chosenMalus);
+                    currentMalBonus.target = chosenPlayer;// todo choose playerid and check  if it is not player himeself on server
+                    if (!sendAll(threadData->socket, &type, sizeof(int))) {return -1;}
+                    if (!sendAll(threadData->socket, &size, sizeof(int))) {return -1;}
+                    if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) {return -1;}
+                    chosenMalus = 0; chosenPlayer = 0;
+                } else {
+                    // if player choses malus or bonus
+                    //todo perform energy price check (on the server probably)
+                    chosenMalus = numberKey;
+                    if (chosenMalus == 6 or chosenMalus == 7) {
+                        // if malus is bonus, no need for target player
+                        //send a bonus
+                        chosenPlayer = -1; // to himself
+                        int type = MessageType::T_MalusBonus;
+                        int size = sizeof(MalBonus);
+                        MalBonus currentMalBonus;
+                        currentMalBonus.malusB = intToMalusBonus(chosenMalus);
+                        currentMalBonus.target = chosenPlayer;
+                        if (!sendAll(threadData->socket, &type, sizeof(int))) {return -1;}
+                        if (!sendAll(threadData->socket, &size, sizeof(int))) {return -1;}
+                        if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) {return -1;}
+                        chosenMalus = 0; chosenPlayer = 0;
+                    }else {
+                        // if malus is malus, player needs to choose target player
+                        threadData->mux.lock();
+                        threadData->targetPlayerMenu = true;
+                        threadData->mux.unlock();
+                    }
                 }
             }
             else {
@@ -386,5 +422,23 @@ int Player::keyboardActionToInt(KeyboardAction action) {
             return 9;
         default:
             return -1;
+    }
+}
+
+MalusBonus Player::intToMalusBonus(int malus) {
+    //todo reimagine this crap hardcoded thingy
+    switch(malus) {
+        case 1:
+            return MalusIncreaseFallSpeed;
+        case 2:
+            return MalusReverseControls;
+        case 3:
+            return MalusFreezeControls;
+        case 4:
+            return MalusBlackOut;
+        case 5:
+            return MalusThunder;
+        default:
+            return MalusNONE;
     }
 }
