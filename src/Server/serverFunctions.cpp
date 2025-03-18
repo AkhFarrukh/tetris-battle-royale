@@ -212,8 +212,9 @@ void* Server::threadRoutineClient(void* arg){
             /************************************
             *REFRESH INFO
             */
-            else if (type == MessageType::T_Refresh){
-                server->handleRefresh(server, client, userIsOnline);
+            else if (type == MessageType::T_Refresh || type == MessageType::T_RoomJoinRefresh){
+                bool owner = (type == MessageType::T_Refresh);
+                server->handleRefresh(server, client, userIsOnline, owner);
             }
             else if (type == MessageType::T_LeftRoom){
                 server->handleLeftRoom(server, client);
@@ -375,7 +376,7 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
             info.isStarted            = chosenRoom->isStarted();
             info.mode                 = chosenRoom->getRoomMode();
 
-            int typeToSend  = MessageType::T_RoomInfo;
+            int typeToSend  = MessageType::T_RoomJoinInfo;
             int sizeToSend  = sizeof(struct RoomInfo);
 
             if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
@@ -404,7 +405,7 @@ void Server::handleLeftRoom(Server* server, ClientSession& client) {
  * @param client ClientSession struct
  * @param userIsOnline bool handling the listening loop, true if connected to the serv 
  */
-void Server::handleRefresh(Server* server, ClientSession& client, bool& userIsOnline){
+void Server::handleRefresh(Server* server, ClientSession& client, bool& userIsOnline, bool& owner){
     cout<<"Refresh received"<<endl;
     RoomInfo info;
     info.roomID = server->myRoom->getRoomID();
@@ -412,6 +413,7 @@ void Server::handleRefresh(Server* server, ClientSession& client, bool& userIsOn
     info.isStarted = server->myRoom->isStarted();
 
     int typeToSend = MessageType::T_RoomInfo;
+    if(!owner)typeToSend = MessageType::T_RoomJoinInfo;
     int sizeToSend = sizeof(struct RoomInfo);
 
     if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
