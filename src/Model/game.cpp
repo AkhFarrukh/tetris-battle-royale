@@ -140,12 +140,12 @@ void Game::updateGame() {
             auto evt = players[p].eventQueue->getEvent();
             if (!evt) break;
             if (std::dynamic_pointer_cast<MalusBonusEvent>(evt)) {
-                cout << "wesh" << endl;
-                //handleMalusBonusEvent(evt, p);
+                cout << "MalusBonusEvent detected for player " << p << endl;
+                handleMalusBonusEvent(evt, p);
             }
             else {
                 if (players[p].malusBonus != MalusBonus::BLOCKED){
-                    handleMovementActionEvent(p, evt);
+                    handleMovementActionEvent(evt, p);
                }
             }
         }
@@ -181,7 +181,7 @@ Action reverse(Action action) {
  *
  * @param event The event to be handled.
  */
-void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
+void Game::handleMovementActionEvent(std::shared_ptr<Event> e, int p) {
     auto moveEvt = std::dynamic_pointer_cast<MovementActionEvent>(e);
     if (!moveEvt) return;
 
@@ -215,7 +215,7 @@ void Game::handleMovementActionEvent(int p, std::shared_ptr<Event> e) {
  * @param event The event to be handled.
  * @param playerHimself the id of the player for the Bonus.
  */
-void Game::handleMalusBonusEvent(std::shared_ptr<MalusBonusEvent> e, int playerHimself) {
+void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
     auto moveEvt = std::dynamic_pointer_cast<MalusBonusEvent>(e);
     if (!moveEvt) return;
 
