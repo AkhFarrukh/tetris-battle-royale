@@ -60,8 +60,8 @@ KeyboardAction Input::getKeyboardInput() {
             return KeyboardAction::EXIT_KEY;
         case '&':
         case '1':
+        case 'm':
             return KeyboardAction::NUMBER_KEY_1;
-        case 'é':
         case '2':
             return KeyboardAction::NUMBER_KEY_2;
         case '"':
@@ -73,21 +73,19 @@ KeyboardAction Input::getKeyboardInput() {
         case '(':
         case '5':
             return KeyboardAction::NUMBER_KEY_5;
-        case '§':
         case '6':
         case '-':
+        case 'o':
             return KeyboardAction::NUMBER_KEY_6;
-        case 'è':
         case '7':
+        case 'l':
             return KeyboardAction::NUMBER_KEY_7;
         case '!':
         case '8':
         case '_':
             return KeyboardAction::NUMBER_KEY_8;
-        case 'ç':
         case '9':
             return KeyboardAction::NUMBER_KEY_9;
-        case 'à':
         case '0':
             return KeyboardAction::NUMBER_KEY_0;
 

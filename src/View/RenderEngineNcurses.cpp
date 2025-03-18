@@ -41,7 +41,7 @@ void RenderEngineNcurses::drawMalusMenu(const NetPlayerData& playerClient) {
     mvprintw(menuY + 2, menuX, "+---------------------------+");
 
     // Get energy from the first player for display (assuming all players have same energy in royal mode)
-    mvprintw(menuY + 3, menuX, "| Energy: %-16d |", 42); //todo change to playerClient.energy when it will be available
+    mvprintw(menuY + 3, menuX, "| Energy: %-16d |", playerClient.nrg); //todo change to playerClient.energy when it will be available
     //mvprintw(menuY + 3, menuX, "| Energy: %-16d |", playerClient.energy);
     mvprintw(menuY + 4, menuX, "+---------------------------+");
     mvprintw(menuY + 5, menuX, "| Available Maluses:        |");

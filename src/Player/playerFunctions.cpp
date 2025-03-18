@@ -50,6 +50,7 @@ void* Player::threadRoutineView (void* arg){
                 if (!recvAll(sock, &player.isGameOver, sizeof(player.isGameOver))){return nullptr;}
                 if (!recvAll(sock, &player.linesCleared, sizeof(player.linesCleared))){return nullptr;}
                 if (!recvAll(sock, &player.score, sizeof(player.score))){return nullptr;}
+                if (!recvAll(sock, &player.nrg, sizeof(player.nrg))) {return nullptr;}
 
                 int gridSize;
            	    if (!recvAll(sock, &gridSize, sizeof(gridSize))){return nullptr;}
