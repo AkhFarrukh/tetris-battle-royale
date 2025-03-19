@@ -320,12 +320,12 @@ void Server::handleDisconnect(Server* server, ClientSession& client, pthread_t& 
 void Server::handleForcedExit(Server* server, ClientSession& client){
     std::cout << "Client déconnecté : " << client.client_fd << std::endl;
     close(client.client_fd);
-        while(server->udbm.isLoggedIn(client.username.c_str())){
-      	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
-        server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+    while(server->udbm.isLoggedIn(client.username.c_str())){
+  	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
+    server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
                                                                                              //comme telle
-      	while(server->udbm.isUserInSession(client.userId)){
-      		server->udbm.deleteSession(client.userId);}
+  	while(server->udbm.isUserInSession(client.userId)){
+  		server->udbm.deleteSession(client.userId);}
     server->clientMutex.lock();
     auto it = std::find_if(server->clients.begin(), server->clients.end(),
                            [&client](const ClientSession& c) {
@@ -565,7 +565,10 @@ void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnlin
     sendAll(client.client_fd, &type,  sizeof(type));
     sendAll(client.client_fd, &size,  sizeof(size));
     napms(355);
-    std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_);
+
+    std::shared_ptr<ClientSession> clientSession = std::make_shared<ClientSession>(client);
+    std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_, clientSession);
+    
     auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
     pthread_t threadGamePID;
     if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
@@ -738,4 +741,3 @@ void Server::notifyAcceptConnexion(Server* server, ClientSession& client, Connex
     int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
     successfulLogin = server->udbm.isCorrectLogin(connexionData.username, connexionData.password);
 }
-

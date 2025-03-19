@@ -35,16 +35,11 @@ class UserDatabaseManager {
         bool isUniqueUsername(const char* username);
         bool isValidUsername(const char* username);
 
-        // bool isInHighestScoreTable(int userId);
-        // void setHighestScore(int userId, int highestScore);
-        // void deleteHighestScore(int userId);
-        void updatePlayerStats(int userId, int newScore, bool won, int energyUsed, std::string gameMode);
-        std::vector<std::tuple<int, std::string, int, int, int, int>> getRanking(std::string mode, int limit);
-        // std::vector<std::tuple<int, std::string, int>> getRanking(int limit = 0);
+        void addScore(int userId, int score);
+        std::vector<std::pair<std::string, int>> getTopScores(int limit);
 
         void addSession(int userId, int client_fd);
         void removeSession(int userId);
-
 
         vector<string> friendsList(const string& username);
         void deleteFriend(const string& user, const string& friendDelete);

@@ -18,7 +18,6 @@ enum class Color;
 struct PlayerState {
 
     int                              playerId;
-
     std::shared_ptr<Grid>            grid;
     std::shared_ptr<MovingFigure>    activeFigure;
     Mouvement                        movement;
@@ -53,7 +52,6 @@ struct NetPlayerData {
     int linesCleared;
     int score;
     int nrg;
-
     vector<Color> grid;
 };
 

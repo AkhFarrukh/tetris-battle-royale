@@ -59,7 +59,7 @@ public:
   int handleFriendRequests();
   void displayMessageNoRead(const std::string& user, const string& friendName);
 
-
+  void displayLeaderboard();
 
   int start();
 };

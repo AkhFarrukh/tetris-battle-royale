@@ -35,7 +35,7 @@ class Game {
 public:
 
     Game();
-    Game(std::vector<ThreadGameData> playersData, int numPlayers, Modes gameMode);
+    Game(std::vector<ThreadGameData> playersData, int numPlayers, Modes gameMode, std::shared_ptr<ClientSession> clientSession = nullptr);
     ~Game();
 
     void run();
@@ -47,12 +47,14 @@ public:
 
 private:
 
+    std::shared_ptr<ClientSession> clientSes;
     Modes gameMode;
     std::vector<PlayerState> players;
     FigureGenerator figureGenerator;
     bool isRunning;
     shared_ptr<Mode> mode;
     int numPlayers_;
+    UserDatabaseManager udbm;
 
 
 
