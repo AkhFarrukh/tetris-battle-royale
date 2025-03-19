@@ -264,6 +264,7 @@ void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
         break;
         case MalusBonus::BonusReduceFallSpeed:
             if (energy >= REDUCE_FALL_SPEED_PRICE) {
+                cout << "Malus Reducing fall speed" << endl;
                 players[playerHimself].energy -= REDUCE_FALL_SPEED_PRICE;
                 royalMode->bonusReduceFallSpeed(players[playerHimself]);
             }

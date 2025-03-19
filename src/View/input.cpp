@@ -58,35 +58,40 @@ KeyboardAction Input::getKeyboardInput() {
         case 27:  // ESC key
         case KEY_CANCEL:
             return KeyboardAction::EXIT_KEY;
-        case '&':
+        case 38:
+        //case '&':
         case '1':
-        case 'm':
+        //case 'm':
             return KeyboardAction::NUMBER_KEY_1;
         case '2':
+        case 169:
             return KeyboardAction::NUMBER_KEY_2;
-        case '"':
+        case 34:
         case '3':
             return KeyboardAction::NUMBER_KEY_3;
-        case '\'':
+        case 39:
         case '4':
             return KeyboardAction::NUMBER_KEY_4;
-        case '(':
+        case 40:
         case '5':
             return KeyboardAction::NUMBER_KEY_5;
         case '6':
-        case '-':
-        case 'o':
+        case 45:
+        //case 'o':
             return KeyboardAction::NUMBER_KEY_6;
         case '7':
-        case 'l':
+        case 168:
+        //case 'l':
             return KeyboardAction::NUMBER_KEY_7;
         case '!':
         case '8':
-        case '_':
+        case 95:
             return KeyboardAction::NUMBER_KEY_8;
+        case 167:
         case '9':
             return KeyboardAction::NUMBER_KEY_9;
         case '0':
+        case 160:
             return KeyboardAction::NUMBER_KEY_0;
 
         default:
