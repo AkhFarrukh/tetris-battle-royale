@@ -95,7 +95,7 @@ void Game::run() {
             for (int p = 0; p < (int)players.size(); p++) {
                 if (players[p].isGameOver){continue;}
                     if (players[p].blackout != 0){players[p].blackout--;} //Il y a 10 unités lors d'un BO, cela durera 5 sec
-                    bool canDrop;
+                    bool canDrop = false;
                     if (players[p].sped_up){
                         canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
                     }
