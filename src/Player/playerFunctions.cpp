@@ -475,6 +475,10 @@ MalusBonus Player::intToMalusBonus(int malus) {
             return MalusBlackOut;
         case 5:
             return MalusThunder;
+        case 6:
+            return Bonus_Block1X1;
+        case 7: 
+            return BonusReduceFallSpeed;
         default:
             return MalusNONE;
     }
