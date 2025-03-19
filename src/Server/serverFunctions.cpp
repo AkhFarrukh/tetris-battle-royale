@@ -11,15 +11,14 @@ Server::Server(){
  * TODO: COMMENTS TO BE ADDED BY THOSE WHO WROTE THIS FUNCTION/METHOD. STP
  */
 void Server::broadcastMessage(Message message, bool& userIsOnline) {
-    for (const auto client : clients) {
-        if (client.username == message.destinataire) {
-            int messageSent = MessageType::T_Message;
-        	int size_ = sizeof(struct Message);
-        	if(!sendAll(client.client_fd, &messageSent, sizeof(int))){userIsOnline = false; break;}
-        	if(!sendAll(client.client_fd, &size_, sizeof(int))){userIsOnline = false; break;}
-        	if(!sendAll(client.client_fd, &message, sizeof(Message))){userIsOnline = false; break;}
-        }
-    }
+    std::string dest(message.destinataire);
+    int destId = udbm.getUserId(message.destinataire);
+    int sock = udbm.getSockUser(destId);
+    int messageSent = MessageType::T_Message;
+    int size_ = sizeof(struct Message);
+    if(!sendAll(sock, &messageSent, sizeof(int))){userIsOnline = false;}
+    if(!sendAll(sock, &size_, sizeof(int))){userIsOnline = false;}
+    if(!sendAll(sock, &message, sizeof(Message))){userIsOnline = false;}
 }
 
 

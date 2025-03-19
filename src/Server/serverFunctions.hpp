@@ -67,7 +67,7 @@ class Server{
         int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen);
         void broadcastMessage(Message message, bool& userIsOnline);
         static void* threadRoutineClient(void* arg);
-        std::vector<ClientSession> getClients(){return clients;}
+        //std::vector<ClientSession>& getClients(){return clients;}
         static void* threadRoutineGame(void* arg);
 
         /* Login Methods */

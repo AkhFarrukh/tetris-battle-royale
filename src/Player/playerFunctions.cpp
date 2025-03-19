@@ -3,7 +3,7 @@
 #include <fcntl.h>
 
 
-void Player::affichageMessage(Message message){
+void Player::affichageMessage(Message& message){
     nodelay(stdscr, false);
     interfaceMutex.lock();
     refresh();

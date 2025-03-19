@@ -334,7 +334,11 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         int size_ = sizeof(struct Message);
         Message messageToSent;
         std::strncpy(messageToSent.expediteur, user.c_str(), sizeof(messageToSent.expediteur) - 1);
+        messageToSent.expediteur[sizeof(messageToSent.expediteur) - 1] =  '\0';
         std::strncpy(messageToSent.message, buffer, sizeof(messageToSent.message) - 1);
+        messageToSent.message[sizeof(messageToSent.message) - 1] =  '\0';
+        std::strncpy(messageToSent.destinataire, friendName.c_str(), sizeof(messageToSent.destinataire) - 1);
+        messageToSent.destinataire[sizeof(messageToSent.destinataire) - 1] =  '\0';
         if(!sendAll(socket, &messageSent, sizeof(int))){flag=true; break;}
         if(!sendAll(socket, &size_, sizeof(int))){flag=true; break;}
         if(!sendAll(socket, &messageToSent, sizeof(Message))){flag=true; break;}
@@ -1639,7 +1643,7 @@ int InterfaceTerminal::start() {
                break;
            case 't':
            case 'T':
-               if(!(user==""))if(handleMessageBox()<0)return -1;
+               if((user!=""))if(handleMessageBox()<0)return -1;
                break;
            case 'q':
            case 'Q':
