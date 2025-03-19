@@ -198,7 +198,7 @@ int InterfaceTerminal::handleMessageBox() {
             case 'q':
             case 'Q':
                 endwin();
-            return -1;
+            return 0;
         }
     }
     return -1;
@@ -1643,7 +1643,7 @@ int InterfaceTerminal::start() {
                break;
            case 't':
            case 'T':
-               if((user!=""))if(handleMessageBox()<0)return -1;
+               if(handleMessageBox()<0)return -1;
                break;
            case 'q':
            case 'Q':
