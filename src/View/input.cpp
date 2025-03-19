@@ -61,7 +61,7 @@ KeyboardAction Input::getKeyboardInput() {
         case 38:
         //case '&':
         case '1':
-        //case 'm':
+        case 'm':
             return KeyboardAction::NUMBER_KEY_1;
         case '2':
         case 169:
@@ -77,11 +77,11 @@ KeyboardAction Input::getKeyboardInput() {
             return KeyboardAction::NUMBER_KEY_5;
         case '6':
         case 45:
-        //case 'o':
+        case 'o':
             return KeyboardAction::NUMBER_KEY_6;
         case '7':
         case 168:
-        //case 'l':
+        case 'l':
             return KeyboardAction::NUMBER_KEY_7;
         case '!':
         case '8':
