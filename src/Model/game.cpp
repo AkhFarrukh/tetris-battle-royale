@@ -87,7 +87,7 @@ void Game::run() {
         //cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
-        
+        int time = 500;
         cout<<"Checking timing for players"<<endl;
         int time = 250;
         cout<<"Before chrono"<<endl;
@@ -124,7 +124,6 @@ void Game::run() {
                         else{players[p].skipTiming++;}
                     }
                     cout<<"soft dropping"<<endl;
-                    
             }
             chronoDropEvent = now;
         }
@@ -138,7 +137,7 @@ void Game::run() {
         }
         //cout<<"Broadcasted"<<endl;
         checkGameOver();
-        cout<<"CheckGameOver"<<endl;
+        //cout<<"CheckGameOver"<<endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
@@ -212,7 +211,6 @@ void Game::handleMovementActionEvent(std::shared_ptr<Event> e, int p) {
     if (a == Action::ESCAPE) {
         if(p==0){stop(); return;}
         players[p].isGameOver = true;
-        cout <<"put 1"<<endl;
         players[p].isInGame = false;
         int type = MessageType::T_Exit;
         int size = sizeof(MessageType);
@@ -287,7 +285,6 @@ void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
         break;
         case MalusBonus::BonusReduceFallSpeed:
             if (energy >= REDUCE_FALL_SPEED_PRICE) {
-                cout << "Malus Reducing fall speed" << endl;
                 players[playerHimself].energy -= REDUCE_FALL_SPEED_PRICE;
                 royalMode->bonusReduceFallSpeed(players[playerHimself]);
             }
@@ -356,7 +353,6 @@ void Game::placePieceOnBoard(int p) {
 
     if (!ps.activeFigure->spawnSucceeded()) {
         ps.isGameOver = true;
-        cout<<"spawn not succeded"<<endl;
         ps.gameData.set_isGameOver(true);
     }
     else {
@@ -413,11 +409,11 @@ void Game::checkInput() {
 void Game::checkGameOver() {
     int aliveCount = 0;
     for (const auto& ps : players) {
-        if (!ps.isGameOver) {aliveCount++;}
+        if (!ps.isGameOver) aliveCount++;
     }
     if (gameMode == Modes::Duel_ or gameMode == Modes::Classic_ or gameMode == Modes::Royal_) {
         if (aliveCount <= 1) {
-            std::cout << "Duel ended" << std::endl;
+            //std::cout << "Duel ended" << std::endl;
             stop();
         }
     } else if (aliveCount < 1) {
