@@ -40,45 +40,6 @@ void handle_sigint(int sig) {
 }
 
 
-void* readServer(void* socket){
-    int sock = *(int*)socket;
-    while(!flag){
-        if(username == "" || isInGame){}
-        /*else{
-            int type;
-            int size;
-        if(!recvAll(sock, &type, sizeof(int))){
-            flag = true;
-            break;
-        }
-        if(!recvAll(sock, &size, sizeof(int))){
-            flag = true;
-            break;
-        }
-        if (type == MessageType::T_ForcedExit){
-            flag = true;
-            break;
-        }
-
-        else if(type == MessageType::T_Message){
-            char buffer[1024] = {0};
-            int bytesReceived = recv(sock, buffer, sizeof(buffer)-1, 0);
-            if (bytesReceived <= 0) {
-                flag = true;
-                return nullptr;
-            }
-            else{
-                buffer[bytesReceived] = '\0';
-                size_t friendNameLength = strlen(buffer);
-                std::string friendName(buffer);
-                std::string message(buffer+friendNameLength+1, bytesReceived - friendNameLength-1);
-                affichageMessage(friendName, message);
-           }
-        }
-    }*/
- }
-    return nullptr;
-}
 
 
 
@@ -113,14 +74,6 @@ int main() {
         close(sock);
         return 1;
     }
-    /*pthread_t threadLecture;
-    if (pthread_create(&threadLecture, nullptr, readServer, &sock)!=0) {
-            perror("error creation thread");
-            return -1;
-        }*/
-
-    //std::cout << "Connecté au serveur !\n";
-
     pthread_t threadID;
     std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
     //Game loop
@@ -224,6 +177,7 @@ int main() {
                 if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
                 if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
             }
+
         }
     }
 
