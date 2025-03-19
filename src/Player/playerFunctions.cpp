@@ -39,6 +39,7 @@ void* Player::threadRoutineView (void* arg){
             threadData->userInGame = false;
             threadData->userInLobby = false;
             threadData->mux.unlock();
+            napms(300);
             continue;
         }
         else if(type == MessageType::T_PlayerData){
@@ -102,6 +103,7 @@ void* Player::threadRoutineView (void* arg){
         }
         if (type == MessageType::T_ForcedExit){
             flag = true;
+            napms(300);
             break;
         }
         else if (type == MessageType::T_GameStart) {
@@ -337,9 +339,9 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                     MalBonus currentMalBonus;
                     currentMalBonus.malusB = intToMalusBonus(chosenMalus);
                     currentMalBonus.target = chosenPlayer;// todo choose playerid and check  if it is not player himeself on server
-                    if (!sendAll(threadData->socket, &type, sizeof(int))) {return -1;}
-                    if (!sendAll(threadData->socket, &size, sizeof(int))) {return -1;}
-                    if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) {return -1;}
+                    if (!sendAll(threadData->socket, &type, sizeof(int))) { flag = true; break;}
+                    if (!sendAll(threadData->socket, &size, sizeof(int))) { flag = true; break;}
+                    if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) { flag = true; break;}
                     chosenMalus = 0; chosenPlayer = 0;
                 } else {
                     // if player choses malus or bonus
@@ -354,9 +356,9 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                         MalBonus currentMalBonus;
                         currentMalBonus.malusB = intToMalusBonus(chosenMalus);
                         currentMalBonus.target = chosenPlayer;
-                        if (!sendAll(threadData->socket, &type, sizeof(int))) {return -1;}
-                        if (!sendAll(threadData->socket, &size, sizeof(int))) {return -1;}
-                        if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) {return -1;}
+                        if (!sendAll(threadData->socket, &type, sizeof(int))) {flag = true; break;}
+                        if (!sendAll(threadData->socket, &size, sizeof(int))) {flag = true; break;}
+                        if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) {flag = true; break;}
                         chosenMalus = 0; chosenPlayer = 0;
                     }else {
                         // if malus is malus, player needs to choose target player
@@ -371,9 +373,9 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                 int size = sizeof(InputMessage);
                 InputMessage inputMessage;
                 inputMessage.input = currentAction;
-                if (!sendAll(threadData->socket, &type, sizeof(int))) {return -1;}
-                if (!sendAll(threadData->socket, &size, sizeof(int))) {return -1;}
-                if (!sendAll(threadData->socket, &inputMessage, sizeof(InputMessage))) {return -1;}
+                if (!sendAll(threadData->socket, &type, sizeof(int))) { flag = true; break;}
+                if (!sendAll(threadData->socket, &size, sizeof(int))) { flag = true; break;}
+                if (!sendAll(threadData->socket, &inputMessage, sizeof(InputMessage))) { flag = true; break;}
             }
         }}
     }

@@ -249,10 +249,11 @@ void* Server::threadRoutineClient(void* arg){
             else if (type == MessageType::T_ForcedExit){
                 server->handleForcedExit(server, client);
             }
-            if (!userIsOnline){
-                /* EXIT PROPREMENT DU SERV SI DECO */
+            /*if (!userIsOnline){
+                // EXIT PROPREMENT DU SERV SI DECO //
+                printf("ici\n");
                 server->handleDisconnect(server, client, threadGamePID);
-            }
+            }*/
         }
     }
     else {

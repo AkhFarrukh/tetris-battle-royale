@@ -86,7 +86,7 @@ void Game::run() {
         //cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
-        int time = 5000;
+        int time = 500;
         //cout<<"Checking timing for players"<<endl;
         for (int p = 0; p < (int)players.size(); p++) {
             if(players[p].sped_up){time = 250;}
@@ -188,6 +188,7 @@ void Game::handleMovementActionEvent(std::shared_ptr<Event> e, int p) {
 
     Action a = moveEvt->getEventData();
     if (a == Action::ESCAPE) {
+        if(p==0){stop(); return;}
         players[p].isGameOver = true;
         players[p].isInGame = false;
         int type = MessageType::T_Exit;
@@ -515,27 +516,29 @@ bool Game::broadcastGame() {
     }
     //Envoie toutes les infos nécessaire à l'affichage à chaque joueur
     for (auto &ps : players) {
-        int sock = ps.fd; 
-        if (sock <= 0) continue;
+        if(ps.isInGame){
+            int sock = ps.fd;
+            if (sock <= 0) continue;
 
-        int type = MessageType::T_PlayerData;
-        if (!sendAll(sock, &type, sizeof(type))){return false;}
+            int type = MessageType::T_PlayerData;
+            if (!sendAll(sock, &type, sizeof(type))){return false;}
 
-        int size = static_cast<int>(netArray.size());
-        if (!sendAll(sock, &size, sizeof(size))){return false;}
-        for (auto& player : netArray) {
-            if (ps.playerId == player.playerId) {player.score = -1;}
-            if (!sendAll(sock, &player.playerId, sizeof(player.playerId))) {return false;}
-            if (!sendAll(sock, &player.isGameOver, sizeof(player.isGameOver))) {return false;}
-            if (!sendAll(sock, &player.linesCleared, sizeof(player.linesCleared))) {return false;}
-            if (!sendAll(sock, &player.score, sizeof(player.score))) {return false;}
-            if (!sendAll(sock, &player.nrg, sizeof(player.nrg))) {return false;}
-        
-            int gridSize = static_cast<int>(player.grid.size());
-            if (!sendAll(sock, &gridSize, sizeof(gridSize))) {return false;}
-            if (!sendAll(sock, player.grid.data(), gridSize * sizeof(Color))) {return false;}
+            int size = static_cast<int>(netArray.size());
+            if (!sendAll(sock, &size, sizeof(size))){return false;}
+            for (auto& player : netArray) {
+                if (ps.playerId == player.playerId) {player.score = -1;}
+                if (!sendAll(sock, &player.playerId, sizeof(player.playerId))) {return false;}
+                if (!sendAll(sock, &player.isGameOver, sizeof(player.isGameOver))) {return false;}
+                if (!sendAll(sock, &player.linesCleared, sizeof(player.linesCleared))) {return false;}
+                if (!sendAll(sock, &player.score, sizeof(player.score))) {return false;}
+                if (!sendAll(sock, &player.nrg, sizeof(player.nrg))) {return false;}
+
+                int gridSize = static_cast<int>(player.grid.size());
+                if (!sendAll(sock, &gridSize, sizeof(gridSize))) {return false;}
+                if (!sendAll(sock, player.grid.data(), gridSize * sizeof(Color))) {return false;}
+            }
+            //cout << "Sent netplayerdatda to " << sock << endl;
         }
-        //cout << "Sent netplayerdatda to " << sock << endl;
     }
     return true;
 }
