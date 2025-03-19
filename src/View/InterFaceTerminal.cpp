@@ -660,10 +660,11 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
     // Instructions sous le cadre
     mvprintw(startY + menuHeight + 2, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");
     mvprintw(startY + menuHeight + 3, (width - 45) / 2, "Press ENTER to select an option");
-    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press 'q' to quit");
+    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press 'd' to delete the friend");
+    mvprintw(startY + menuHeight + 5, (width - 45) / 2, "Press 'q' to quit");
 
     if ((user != ""))
-        mvprintw(startY + menuHeight + 5, (width - 45) / 2, "Press 't' to open the message box");
+        mvprintw(startY + menuHeight + 6, (width - 45) / 2, "Press 't' to open the message box");
 
     refresh();
     delwin(friendsWindow);
@@ -1038,16 +1039,13 @@ int InterfaceTerminal::handleFriends() {
 
             // touche 'entrée'
             case '\n':
-                if (selectedOption < friendsList.size()) { //On a cliqué sur un des amis
-                    handleFriendsOptionSelection(friendsList[selectedOption]);
-                }
-                else if (selectedOption == friendsList.size()) { //on a cliqué sur ajouter un ami
+                if (selectedOption == friendsList.size()) { //on a cliqué sur ajouter un ami
                     enterName();
                     noecho();
                     curs_set(0);
                     nodelay(stdscr, true);
                 }
-                else { //Demande d'amis recus
+                else if(selectedOption == friendsList.size()+1){ //Demande d'amis recus
                     erase();     
                     //refresh(); 
                     
@@ -1058,6 +1056,12 @@ int InterfaceTerminal::handleFriends() {
                     refresh();
                 }
             break;
+            case 'd':
+            case 'D':
+                if (selectedOption < friendsList.size()) { //On a cliqué sur un des amis
+                    db.deleteFriend(user, friendsList[selectedOption]);
+                }
+                break;
             case 't':
             case 'T':
                if(!(user==""))if(handleMessageBox()<0)return -1;

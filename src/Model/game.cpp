@@ -87,7 +87,6 @@ void Game::run() {
         //cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
-        int time = 500;
         cout<<"Checking timing for players"<<endl;
         int time = 250;
         cout<<"Before chrono"<<endl;
