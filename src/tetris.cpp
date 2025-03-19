@@ -97,6 +97,8 @@ int main() {
     }
     else{
         std::cout << "Echec de la connexion au compte.\n";
+        close(sock); // Fermer le socket après utilisation
+        return 0;
     }
     while(playing && !flag){
         //Getting the selected menu in terminal
