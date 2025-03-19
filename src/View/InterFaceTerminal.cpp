@@ -198,10 +198,14 @@ int InterfaceTerminal::handleMessageBox() {
             break;
             case 'q':
             case 'Q':
+                erase();
+                refresh();
                 endwin();
             return 0;
         }
     }
+    erase();
+    refresh();
     return -1;
 }
 
@@ -350,6 +354,8 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
 }
         }
     }
+    erase();
+    refresh();
     db.conversationClose(user_id, friend_id);
     return -1;
 }
@@ -1180,6 +1186,8 @@ int InterfaceTerminal::handleFriends() {
         wgetnstr(usernameWindow, namePlayer, 99);
 
         if (strlen(namePlayer) == 0) {
+            erase();
+            refresh();
             delwin(usernameWindow);
             return connexionData;
         }
@@ -1321,6 +1329,8 @@ int InterfaceTerminal::handleFriends() {
         char namePlayer[100];
         mvwgetnstr(usernameWindow, 1, 11, namePlayer, 99);
         if (strlen(namePlayer) == 0) {
+            erase();
+            refresh();
             delwin(usernameWindow);
             return connexionData;
         }
@@ -1622,7 +1632,8 @@ int InterfaceTerminal::start() {
    int returnValue = -1;
    initNcurses();
    int selectedOption = 0;
-
+   erase();
+   refresh();
    while (!flag) {
        displayMenu(selectedOption);
        int ch = getch();

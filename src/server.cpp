@@ -34,7 +34,7 @@ void handle_sigint(int sig) {
         server.udbm.deleteSession(clientId);}
     }
     napms(100);
-    if(server_sock != -1){printf("xeesh\n");close(server_sock); server_sock = -1;}
+    if(server_sock != -1){close(server_sock); server_sock = -1;}
     //signal(SIGINT, SIG_DFL);
     //raise(SIGINT);
 }

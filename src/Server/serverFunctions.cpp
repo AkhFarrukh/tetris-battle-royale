@@ -255,7 +255,6 @@ void* Server::threadRoutineClient(void* arg){
     else {
         std::cerr << "login failed";
     }
-    printf("lul\n");
     return nullptr;
 }
 

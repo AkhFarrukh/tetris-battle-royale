@@ -13,6 +13,7 @@
 #include "communication.hpp"    //sendAll & recvAll
 #include "playerFunctions.hpp" //Functions for main
 #include <csignal>      //sigint
+#include <cstdlib>
 
 using namespace std;
 
@@ -97,7 +98,14 @@ int main() {
     }
     else{
         std::cout << "Echec de la connexion au compte.\n";
+        nocbreak();
+        keypad(stdscr, false);
+        curs_set(1);
+        nodelay(stdscr, false);
+        system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
         close(sock); // Fermer le socket après utilisation
+        std::string command = "clear";
+        int result = system(command.c_str());
         return 0;
     }
     while(playing && !flag){
@@ -172,7 +180,7 @@ int main() {
             threadData->userInGame = false;
             threadData->userInLobby = false;
             threadData->mux.unlock();
-            napms(200);
+            napms(400);
             if(menu.action == MenuActions::A_CreateRoom){
                 int sendType = MessageType::T_RoomDeleted;
                 int sendSize = sizeof(int);
@@ -198,6 +206,8 @@ int main() {
     nodelay(stdscr, false);
     system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
     close(sock); // Fermer le socket après utilisation
+    std::string command = "clear";
+    int result = system(command.c_str());
     return 0;
 }
 
@@ -213,6 +223,3 @@ int main() {
  * NB : Le faire avec sendAll mais le principe reste le même
  */
 
-/*#include <cstdlib>
-std::string command = "ls -la";
-int result = system(command.c_str());*/
