@@ -2,6 +2,42 @@
 #include "input.hpp"
 #include <fcntl.h>
 
+
+void Player::affichageMessage(Message message){
+    nodelay(stdscr, false);
+    interfaceMutex.lock();
+    refresh();
+    curs_set(0);
+    int currentLine = LINES-1;
+    while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
+        currentLine--;
+    }
+    move(currentLine, 0);
+    printw("%s : %s\n", message.expediteur, message.message);
+    if (LINES-currentLine<5) {
+        move(LINES-1, 0);
+        clrtoeol();
+        scrollok(stdscr, true);
+        scroll(stdscr);
+        scrollok(stdscr, false);
+        move(3, 0);clrtoeol();
+        move(2, 0);clrtoeol();
+        move(1, 0);clrtoeol();
+        move(0, 0);clrtoeol();
+        printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+        printw("\nDiscussion with %s : \n", message.expediteur);
+    }
+    move(LINES- 1, 0);
+    clrtoeol();
+    printw("Enter your message : ");
+    refresh();
+    curs_set(1);
+    interfaceMutex.unlock();
+}
+
+
+
+
 /**
  * @brief Routine capturing all the thing the server sends, and if it's a player state, show it
  * 
@@ -33,6 +69,15 @@ void* Player::threadRoutineView (void* arg){
             threadData->mux.unlock();
             flag = true;
             break;
+        }
+        else if(type == MessageType::T_Message){
+            Message message;
+            if (!recvAll(sock, &message, size)) {
+                perror("Error on receiving room");
+                flag = true;
+                break;
+            }
+            affichageMessage(message);
         }
         else if(type == MessageType::T_Exit){
             threadData->mux.lock();

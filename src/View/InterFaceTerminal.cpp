@@ -333,22 +333,11 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         int messageSent = MessageType::T_Message;
         int size_ = sizeof(struct Message);
         Message messageToSent;
-      //int bytesSentType = sendAll(socket, &messageSent, sizeof(int));
-      //int bytesSentSize = sendAll(socket, &size_, sizeof(int));
-       /*d::strncpy(messageToSent.expediteur, user, sizeof(message  e) - 1);
-       //essageToSent.destinataire =
-      //messageToSent.message =
-      //ssize_t bytesWritten = write(socket , message.data() , friendName.size()+1+strlen(buffer)+1);
-        if (bytesWritten <= 0){
-            if (errno == EPIPE){
-                perror("Serveur est déconnecté");}
-            else{
-                perror("Erreur d'écriture");}
-            db.conversationClose(user_id, friend_id);
-            return -1;
-        }
-        else{//memset(buffer, 0, sizeof(buffer));
-          }*/
+        std::strncpy(messageToSent.expediteur, user, sizeof(messageToSent.expediteur) - 1);
+        std::strncpy(messageToSent.message, buffer, sizeof(messageToSent.message) - 1);
+        if(!sendAll(socket, &messageSent, sizeof(int))){flag=true; break;}
+        if(!sendAll(socket, &size_, sizeof(int))){flag=true; break;}
+        sendAll(socket, &messageToSent, sizeof(Message));
     }
     else{ //si le correspondant n'est pas dans la conv
         db.addMessage(user_id, friend_id, buffer);
@@ -1212,6 +1201,7 @@ int InterfaceTerminal::handleFriends() {
             int type = MessageType::T_Connexion;
             int size = sizeof(struct Connexion);
             Connexion connexion;
+
             std::strncpy(connexion.username, namePlayer, sizeof(connexion.username) - 1);
             std::strncpy(connexion.password, passwordPlayer, sizeof(connexion.password) - 1);
             sendAll(sock, &type, sizeof(int));
