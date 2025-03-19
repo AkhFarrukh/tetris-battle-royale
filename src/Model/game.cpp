@@ -518,13 +518,14 @@ bool Game::broadcastGame() {
         int sock = ps.fd; 
         if (sock <= 0) continue;
 
+        netArray[ps.playerId].playerId = -1;
+
         int type = MessageType::T_PlayerData;
         if (!sendAll(sock, &type, sizeof(type))){return false;}
 
         int size = static_cast<int>(netArray.size());
         if (!sendAll(sock, &size, sizeof(size))){return false;}
         for (auto& player : netArray) {
-            if (ps.playerId == player.playerId) {player.score = -1;}
             if (!sendAll(sock, &player.playerId, sizeof(player.playerId))) {return false;}
             if (!sendAll(sock, &player.isGameOver, sizeof(player.isGameOver))) {return false;}
             if (!sendAll(sock, &player.linesCleared, sizeof(player.linesCleared))) {return false;}
@@ -536,6 +537,7 @@ bool Game::broadcastGame() {
             if (!sendAll(sock, player.grid.data(), gridSize * sizeof(Color))) {return false;}
         }
         //cout << "Sent netplayerdatda to " << sock << endl;
+        netArray[ps.playerId].playerId = ps.playerId;
     }
     return true;
 }
