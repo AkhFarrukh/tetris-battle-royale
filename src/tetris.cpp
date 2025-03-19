@@ -213,9 +213,6 @@ int main() {
  * NB : Le faire avec sendAll mais le principe reste le même
  */
 
-
-
-
-#include <cstdlib> 
+/*#include <cstdlib>
 std::string command = "ls -la";
-int result = system(command.c_str());
+int result = system(command.c_str());*/
