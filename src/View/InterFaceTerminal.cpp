@@ -102,6 +102,7 @@ void InterfaceTerminal::initNcurses() {
     mvprintw(startY + menuHeight+ 3, (width - 35) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
     mvprintw(startY + menuHeight + 4, (width - 35) / 2, "Press ENTER to select an action");
     mvprintw(startY + menuHeight + 5, (width - 35) / 2, "Press 'q' to quit");
+    mvprintw(startY + menuHeight + 6, (width - 35) / 2, "Press 't' to open the chat");
     
     refresh();
     
@@ -402,7 +403,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
     mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press ENTER to select an action");
     mvprintw(startY + menuHeight + 5, (width - 45) / 2, "Press 'q' to quit");
     
-    if (!(user == "")) mvprintw(startY + menuHeight + 7, (width - 45) / 2, "Press 't' to open the message box");
+    if ((user != "")) mvprintw(startY + menuHeight + 6, (width - 45) / 2, "Press 't' to open the message box");
     //if(!(user==""))printw("Press 't' to open the message box\n");
     
     refresh();
@@ -603,7 +604,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
     int width = COLS;   // Largeur et hauteur de la fenêtre (via ncurses)
     int height = LINES;
     int menuWidth = 50;  // Largeur du menu des amis
-    int menuHeight = 25; // Hauteur du menu
+    int menuHeight = 20; // Hauteur du menu
 
     // Position pour centrer le cadre
     int startX = (width - menuWidth) / 2;
@@ -661,8 +662,8 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
     mvprintw(startY + menuHeight + 3, (width - 45) / 2, "Press ENTER to select an option");
     mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press 'q' to quit");
 
-    if (!(user == "")) 
-        mvprintw(startY + menuHeight + 6, (width - 45) / 2, "Press 't' to open the message box");         
+    if ((user != ""))
+        mvprintw(startY + menuHeight + 5, (width - 45) / 2, "Press 't' to open the message box");
 
     refresh();
     delwin(friendsWindow);
@@ -906,13 +907,13 @@ void InterfaceTerminal::enterName() {
     wrefresh(requestWindow);
     
     //Instructions sous le cadre
-    mvprintw(startY + height + 2, (COLS - 50) / 2, "Use UP and DOWN arrow keys to navigate");
-    mvprintw(startY + height + 3, (COLS - 50) / 2, "Press 'A' to accept the request");
-    mvprintw(startY + height + 4, (COLS - 50) / 2, "Press 'R' to refuse");
-    mvprintw(startY + height + 5, (COLS - 50) / 2, "Press 'C' to cancel a sent friend request");
-    mvprintw(startY + height + 6, (COLS - 50) / 2, "Press 'q' to quit");
-    if (!(user == ""))
-        mvprintw(startY + height + 7, (COLS - 50) / 2, "Press 't' to open the message box");
+    mvprintw(startY + height + 1, (COLS - 50) / 2, "Use UP and DOWN arrow keys to navigate");
+    mvprintw(startY + height + 2, (COLS - 50) / 2, "Press 'A' to accept the request");
+    mvprintw(startY + height + 3, (COLS - 50) / 2, "Press 'R' to refuse");
+    mvprintw(startY + height + 4, (COLS - 50) / 2, "Press 'C' to cancel a sent friend request");
+    mvprintw(startY + height + 5, (COLS - 50) / 2, "Press 'q' to quit");
+    if ((user != ""))
+        mvprintw(startY + height + 6, (COLS - 50) / 2, "Press 't' to open the message box");
     
 
     refresh();
@@ -1120,12 +1121,12 @@ int InterfaceTerminal::handleFriends() {
     //printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
     //if(!(user==""))printw("Press 't' to open the message box\n");
 
-    mvprintw(startY + menuHeight+ 3, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
-    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press ENTER to select an action");
-    mvprintw(startY + menuHeight + 5, (width - 45) / 2, "Press 'q' to quit");
+    mvprintw(startY + menuHeight+ 2, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
+    mvprintw(startY + menuHeight + 3, (width - 45) / 2, "Press ENTER to select an action");
+    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press 'q' to quit");
 
 
-    if (!(user == "")) mvprintw(startY + menuHeight + 7, (width - 35) / 2, "Press 't' to open the message box");
+    if ((user != "")) mvprintw(startY + menuHeight + 5, (width - 35) / 2, "Press 't' to open the message box");
     refresh();
 
     delwin(connexionOptions_window);
@@ -1629,7 +1630,7 @@ int InterfaceTerminal::start() {
                }
                break; 
            case KEY_DOWN:  // descendre
-               if (selectedOption < 3) {
+               if (selectedOption < 2) {
                    selectedOption++;
                }
                break;
