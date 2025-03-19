@@ -86,7 +86,7 @@ void Game::run() {
         //cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
-        int time = 5000;
+        int time = 500;
         //cout<<"Checking timing for players"<<endl;
         for (int p = 0; p < (int)players.size(); p++) {
             if(players[p].sped_up){time = 250;}
@@ -188,6 +188,7 @@ void Game::handleMovementActionEvent(std::shared_ptr<Event> e, int p) {
 
     Action a = moveEvt->getEventData();
     if (a == Action::ESCAPE) {
+        if(p==0){stop(); return;}
         players[p].isGameOver = true;
         players[p].isInGame = false;
         int type = MessageType::T_Exit;
@@ -520,8 +521,8 @@ bool Game::broadcastGame() {
 
         netArray[ps.playerId].playerId = -1;
 
-        int type = MessageType::T_PlayerData;
-        if (!sendAll(sock, &type, sizeof(type))){return false;}
+            int type = MessageType::T_PlayerData;
+            if (!sendAll(sock, &type, sizeof(type))){return false;}
 
         int size = static_cast<int>(netArray.size());
         if (!sendAll(sock, &size, sizeof(size))){return false;}

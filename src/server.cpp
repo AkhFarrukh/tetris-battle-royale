@@ -21,7 +21,6 @@ int server_sock = -1;
 void handle_sigint(int sig) {
     std::vector<int> clients = server.udbm.getUserIdSession();
     for(const auto& clientId:clients){
-        printf("%d \n", clientId);
         server.udbm.logOut(clientId);//on marque la personne comme deconnecté
         server.udbm.setNotInConversation(clientId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
                                                                                     //comme telle
