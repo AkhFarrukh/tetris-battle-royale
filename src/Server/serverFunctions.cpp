@@ -10,24 +10,14 @@ Server::Server(){
 /**
  * TODO: COMMENTS TO BE ADDED BY THOSE WHO WROTE THIS FUNCTION/METHOD. STP
  */
-void Server::broadcastMessage(const char* buffer, const std::string& sender_username) {
-    size_t friendNameLength = std::find(buffer, buffer+strlen(buffer), '\0') - buffer;
-
-    // Extraire le nom d'utilisateur
-    std::string friendName(buffer, friendNameLength);
-
-    // Extraire le message (après le nom d'utilisateur)
-    std::string message(buffer + friendNameLength + 1);
+void Server::broadcastMessage(Message message, bool& userIsOnline) {
     for (const auto client : clients) {
-        if (client.username == friendName) {
-            std::vector<char> messageToSend(sender_username.size()+1+message.size());
-            memcpy(messageToSend.data(), sender_username.c_str(), sender_username.size()+1);
-            memcpy(messageToSend.data() + sender_username.size()+1, message.c_str(), message.size());
-            int bytesReceived = send(client.client_fd, messageToSend.data(), messageToSend.size(), 0);
-            if (bytesReceived <= 0) {
-                std::cout << "Client déconnecté : " << client.client_fd << std::endl;
-                //TODO l'enlever de la liste?
-            }
+        if (client.username == message.destinataire) {
+            int messageSent = MessageType::T_Message;
+        	int size_ = sizeof(struct Message);
+        	if(!sendAll(client.client_fd, &messageSent, sizeof(int))){userIsOnline = false; break;}
+        	if(!sendAll(client.client_fd, &size_, sizeof(int))){userIsOnline = false; break;}
+        	if(!sendAll(client.client_fd, &message, sizeof(Message))){userIsOnline = false; break;}
         }
     }
 }
@@ -242,7 +232,15 @@ void* Server::threadRoutineClient(void* arg){
                 cout<<"tamer"<<endl;
                 server->handleMalusBonus(client, userIsOnline, eventQueue);
             }
-
+			else if(type == MessageType::T_Message){
+                Message message;
+            	if (!recvAll(client.client_fd, &message, size)) {
+                	perror("Error on receiving room");
+                	userIsOnline = false;
+                	break;
+            	}
+                server->broadcastMessage(message, userIsOnline);
+            }
             /************************************
             *FORCED EXIT INFO
             */

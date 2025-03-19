@@ -333,11 +333,11 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         int messageSent = MessageType::T_Message;
         int size_ = sizeof(struct Message);
         Message messageToSent;
-        std::strncpy(messageToSent.expediteur, user, sizeof(messageToSent.expediteur) - 1);
+        std::strncpy(messageToSent.expediteur, user.c_str(), sizeof(messageToSent.expediteur) - 1);
         std::strncpy(messageToSent.message, buffer, sizeof(messageToSent.message) - 1);
         if(!sendAll(socket, &messageSent, sizeof(int))){flag=true; break;}
         if(!sendAll(socket, &size_, sizeof(int))){flag=true; break;}
-        sendAll(socket, &messageToSent, sizeof(Message));
+        if(!sendAll(socket, &messageToSent, sizeof(Message))){flag=true; break;}
     }
     else{ //si le correspondant n'est pas dans la conv
         db.addMessage(user_id, friend_id, buffer);

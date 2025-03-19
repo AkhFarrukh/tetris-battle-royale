@@ -65,7 +65,7 @@ class Server{
         Server();
         UserDatabaseManager udbm;
         int handleClient(int server_fd, struct sockaddr_in& address, size_t addressLen);
-        void broadcastMessage(const char* buffer, const std::string& sender_username);
+        void broadcastMessage(Message message, bool& userIsOnline);
         static void* threadRoutineClient(void* arg);
         std::vector<ClientSession> getClients(){return clients;}
         static void* threadRoutineGame(void* arg);
