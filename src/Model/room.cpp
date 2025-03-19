@@ -84,7 +84,7 @@ void Room::forceStart() {
 }
 
 bool Room::checkGameReady(){
-    if ((int)playerFds.size() >= maxPlayers){return true;}
+    if (((int)playerFds.size() <= maxPlayers) || ((int)playerFds.size() >= minPlayers)){return true;}
     return false;
 }
 

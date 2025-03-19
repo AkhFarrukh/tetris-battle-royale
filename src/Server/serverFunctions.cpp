@@ -165,7 +165,6 @@ void* Server::threadRoutineClient(void* arg){
 
         while (userIsOnline) {
             std::cout << "start listening cuh" << std::endl;
-            std::cout << "THANOSSSSSSSSSSSSSSS" << std::endl;
             //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
 
             //To have info on the data received

@@ -86,18 +86,32 @@ void Game::run() {
         cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
-        int time = 500;
+        
         cout<<"Checking timing for players"<<endl;
-        for (int p = 0; p < (int)players.size(); p++) {
-            if(players[p].sped_up){time = 250;}
-            else if(players[p].slowed){time = 1000;}
-        }
+        int time = 250;
         cout<<"Before chrono"<<endl;
         if (elapsedTimeDropEvent > std::chrono::milliseconds(time)) {
             cout<<"chrono"<<endl;
             for (int p = 0; p < (int)players.size(); p++) {
                     if (players[p].blackout != 0){players[p].blackout--;} //Il y a 10 unités lors d'un BO, cela durera 5 sec
-                    bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                    bool canDrop;
+                    if (players[p].sped_up){
+                        canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                    }
+                    else if (players[p].slowed){
+                        if (players[p].skipTiming == 3){
+                            canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                            players[p].skipTiming = 0;
+                        }
+                        else{players[p].skipTiming++;}
+                    }
+                    else {
+                        if (players[p].skipTiming == 1){
+                            canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                            players[p].skipTiming = 0;
+                        }
+                        else{players[p].skipTiming++;}
+                    }
                     cout<<"soft dropping"<<endl;
                     if (!canDrop) {
                         placePieceOnBoard(p);
