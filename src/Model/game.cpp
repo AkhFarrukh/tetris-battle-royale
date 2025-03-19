@@ -98,11 +98,17 @@ void Game::run() {
                     bool canDrop = false;
                     if (players[p].sped_up){
                         canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                        if (!canDrop) {
+                            placePieceOnBoard(p);
+                        }
                     }
                     else if (players[p].slowed){
                         if (players[p].skipTiming == 3){
                             canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
                             players[p].skipTiming = 0;
+                            if (!canDrop) {
+                                placePieceOnBoard(p);
+                            }
                         }
                         else{players[p].skipTiming++;}
                     }
@@ -110,13 +116,14 @@ void Game::run() {
                         if (players[p].skipTiming == 1){
                             canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
                             players[p].skipTiming = 0;
+                            if (!canDrop) {
+                                placePieceOnBoard(p);
+                            }
                         }
                         else{players[p].skipTiming++;}
                     }
                     cout<<"soft dropping"<<endl;
-                    if (!canDrop) {
-                        placePieceOnBoard(p);
-                    }
+                    
             }
             chronoDropEvent = now;
         }
@@ -130,7 +137,7 @@ void Game::run() {
         }
         //cout<<"Broadcasted"<<endl;
         checkGameOver();
-        //cout<<"CheckGameOver"<<endl;
+        cout<<"CheckGameOver"<<endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
@@ -204,6 +211,7 @@ void Game::handleMovementActionEvent(std::shared_ptr<Event> e, int p) {
     if (a == Action::ESCAPE) {
         if(p==0){stop(); return;}
         players[p].isGameOver = true;
+        cout <<"put 1"<<endl;
         players[p].isInGame = false;
         int type = MessageType::T_Exit;
         int size = sizeof(MessageType);
@@ -346,6 +354,7 @@ void Game::placePieceOnBoard(int p) {
 
     if (!ps.activeFigure->spawnSucceeded()) {
         ps.isGameOver = true;
+        cout<<"spawn not succeded"<<endl;
         ps.gameData.set_isGameOver(true);
     }
     else {
@@ -399,11 +408,11 @@ void Game::checkInput() {
 void Game::checkGameOver() {
     int aliveCount = 0;
     for (const auto& ps : players) {
-        if (!ps.isGameOver) aliveCount++;
+        if (!ps.isGameOver) {aliveCount++;}
     }
     if (gameMode == Modes::Duel_ or gameMode == Modes::Classic_ or gameMode == Modes::Royal_) {
         if (aliveCount <= 1) {
-            //std::cout << "Duel ended" << std::endl;
+            std::cout << "Duel ended" << std::endl;
             stop();
         }
     } else if (aliveCount < 1) {
