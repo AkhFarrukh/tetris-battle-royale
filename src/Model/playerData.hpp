@@ -38,7 +38,7 @@ struct PlayerState {
     bool                             sped_up = false;
     int                              countTetriminoGenerated = 0;
     bool                             isBonusCube = false;
-    int                              energy = 0; //Energy pour acheter des malus/Bonus dans RC mode
+    int                              energy = 10000000; //Energy pour acheter des malus/Bonus dans RC mode
     int                              completedLines = 0; //mode Classic et Duel
 
     PlayerState(int pid, Modes gameMode)
@@ -52,6 +52,7 @@ struct NetPlayerData {
     bool isGameOver;
     int linesCleared;
     int score;
+    int nrg;
 
     vector<Color> grid;
 };

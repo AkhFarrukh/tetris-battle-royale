@@ -83,7 +83,7 @@ void Game::run() {
     auto chronoDropEvent = std::chrono::steady_clock::now();
 
     while (isRunning) {
-        cout<<"Starting game loop"<<endl;
+        //cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
         
@@ -91,8 +91,9 @@ void Game::run() {
         int time = 250;
         cout<<"Before chrono"<<endl;
         if (elapsedTimeDropEvent > std::chrono::milliseconds(time)) {
-            cout<<"chrono"<<endl;
+            //cout<<"chrono"<<endl;
             for (int p = 0; p < (int)players.size(); p++) {
+                if (players[p].isGameOver){continue;}
                     if (players[p].blackout != 0){players[p].blackout--;} //Il y a 10 unités lors d'un BO, cela durera 5 sec
                     bool canDrop;
                     if (players[p].sped_up){
@@ -121,15 +122,15 @@ void Game::run() {
         }
 
         updateGame();
-        cout<<"Updated"<<endl;
+        //cout<<"Updated"<<endl;
         if(broadcastGame() == false)
         {
             perror("Error while broadcasting the game : ");
             isRunning = false;
         }
-        cout<<"Broadcasted"<<endl;
+        //cout<<"Broadcasted"<<endl;
         checkGameOver();
-        cout<<"CheckGameOver"<<endl;
+        //cout<<"CheckGameOver"<<endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
@@ -201,6 +202,7 @@ void Game::handleMovementActionEvent(std::shared_ptr<Event> e, int p) {
 
     Action a = moveEvt->getEventData();
     if (a == Action::ESCAPE) {
+        if(p==0){stop(); return;}
         players[p].isGameOver = true;
         players[p].isInGame = false;
         int type = MessageType::T_Exit;
@@ -287,6 +289,7 @@ void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
             }
         break;
         default:
+            std::cout<<"gg"<< bm<<endl;
             std::cerr << "Unknown MalusBonus event.\n";
         break;
     }
@@ -398,15 +401,15 @@ void Game::checkGameOver() {
     for (const auto& ps : players) {
         if (!ps.isGameOver) aliveCount++;
     }
-    if (gameMode == Modes::Duel_) {
+    if (gameMode == Modes::Duel_ or gameMode == Modes::Classic_ or gameMode == Modes::Royal_) {
         if (aliveCount <= 1) {
-            std::cout << "Duel ended" << std::endl;
+            //std::cout << "Duel ended" << std::endl;
             stop();
         }
     } else if (aliveCount < 1) {
-        std::cout << "Game over: All players lost" << std::endl;
+        //std::cout << "Game over: All players lost" << std::endl;
         stop();
-    }
+    } 
 }
 
 
@@ -499,6 +502,7 @@ bool Game::broadcastGame() {
         nd.isGameOver  = ps.isGameOver;
         nd.linesCleared= ps.gameData.get_numberBrokenLines();
         nd.score       = ps.gameData.get_score();
+        nd.nrg         = ps.energy;
 
         int w = 10;
         int h = 20;
@@ -529,8 +533,10 @@ bool Game::broadcastGame() {
         int sock = ps.fd; 
         if (sock <= 0) continue;
 
-        int type = MessageType::T_PlayerData;
-        if (!sendAll(sock, &type, sizeof(type))){return false;}
+        netArray[ps.playerId].playerId = -1;
+
+            int type = MessageType::T_PlayerData;
+            if (!sendAll(sock, &type, sizeof(type))){return false;}
 
         int size = static_cast<int>(netArray.size());
         if (!sendAll(sock, &size, sizeof(size))){return false;}
@@ -539,12 +545,14 @@ bool Game::broadcastGame() {
             if (!sendAll(sock, &player.isGameOver, sizeof(player.isGameOver))) {return false;}
             if (!sendAll(sock, &player.linesCleared, sizeof(player.linesCleared))) {return false;}
             if (!sendAll(sock, &player.score, sizeof(player.score))) {return false;}
+            if (!sendAll(sock, &player.nrg, sizeof(player.nrg))) {return false;}
         
             int gridSize = static_cast<int>(player.grid.size());
             if (!sendAll(sock, &gridSize, sizeof(gridSize))) {return false;}
             if (!sendAll(sock, player.grid.data(), gridSize * sizeof(Color))) {return false;}
         }
         //cout << "Sent netplayerdatda to " << sock << endl;
+        netArray[ps.playerId].playerId = ps.playerId;
     }
     return true;
 }

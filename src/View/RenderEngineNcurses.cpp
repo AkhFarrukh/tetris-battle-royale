@@ -22,7 +22,7 @@ int RenderEngineNcurses::getClientPlayerIndex(const vector<NetPlayerData>& playe
             return i;
         }
     }
-    return -1; // Return -1 if no player no client player found (spectator mode)
+    return 0; // Return 0 if no player no client player found (spectator mode)
 }
 
 /*
@@ -41,7 +41,7 @@ void RenderEngineNcurses::drawMalusMenu(const NetPlayerData& playerClient) {
     mvprintw(menuY + 2, menuX, "+---------------------------+");
 
     // Get energy from the first player for display (assuming all players have same energy in royal mode)
-    mvprintw(menuY + 3, menuX, "| Energy: %-16d |", 42); //todo change to playerClient.energy when it will be available
+    mvprintw(menuY + 3, menuX, "| Energy: %-16d |", playerClient.nrg); //todo change to playerClient.energy when it will be available
     //mvprintw(menuY + 3, menuX, "| Energy: %-16d |", playerClient.energy);
     mvprintw(menuY + 4, menuX, "+---------------------------+");
     mvprintw(menuY + 5, menuX, "| Available Maluses:        |");
@@ -117,14 +117,18 @@ void RenderEngineNcurses::renderGamesRoyal(const vector<NetPlayerData>& players,
     erase();
     // Render the regular games grid
     renderGames(players);
-    NetPlayerData playerClient = players.at(getClientPlayerIndex(players, targetPlayerMenu));
+    int clientPlayerIndex = getClientPlayerIndex(players, targetPlayerMenu);
+    if (clientPlayerIndex == -1) {
+        // Handle the case where no client player is found
+        return;
+    }
+    NetPlayerData playerClient = players.at(clientPlayerIndex);
     if (!targetPlayerMenu) {
         drawMalusMenu(playerClient); // Draw the malus menu
     } else {
         drawPlayerSelectionMenu(players); // Draw the player selection menu
     }
 }
-
 
 void RenderEngineNcurses::renderGames(const vector<shared_ptr<NetPlayerData>>& players) {
     std::cout<<"Starting to render in renderGames"<<std::endl;

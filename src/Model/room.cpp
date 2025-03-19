@@ -14,6 +14,10 @@ Room::Room(int sockHoster, Modes mode, std::shared_ptr<EventQueue> hostEventQueu
         minPlayers = 2;
         maxPlayers = 2;
     }
+    if (mode == Modes::Royal_ or mode == Modes::Classic_){
+        minPlayers = 3;
+        maxPlayers = 9;
+    }
     gamePtr = nullptr;
     playerFds.push_back(sockHoster);
     ThreadGameData thread;
@@ -84,7 +88,7 @@ void Room::forceStart() {
 }
 
 bool Room::checkGameReady(){
-    if (((int)playerFds.size() <= maxPlayers) || ((int)playerFds.size() >= minPlayers)){return true;}
+    if ((int)playerFds.size() <= maxPlayers and (int)playerFds.size() >= minPlayers ){ return true; }
     return false;
 }
 

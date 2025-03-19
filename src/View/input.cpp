@@ -59,6 +59,36 @@ KeyboardAction Input::getKeyboardInput() {
         case KEY_CANCEL:
             return KeyboardAction::EXIT_KEY;
         case '&':
+        case '1':
+        case 'm':
+            return KeyboardAction::NUMBER_KEY_1;
+        case '2':
+            return KeyboardAction::NUMBER_KEY_2;
+        case '"':
+        case '3':
+            return KeyboardAction::NUMBER_KEY_3;
+        case '\'':
+        case '4':
+            return KeyboardAction::NUMBER_KEY_4;
+        case '(':
+        case '5':
+            return KeyboardAction::NUMBER_KEY_5;
+        case '6':
+        case '-':
+        case 'o':
+            return KeyboardAction::NUMBER_KEY_6;
+        case '7':
+        case 'l':
+            return KeyboardAction::NUMBER_KEY_7;
+        case '!':
+        case '8':
+        case '_':
+            return KeyboardAction::NUMBER_KEY_8;
+        case '9':
+            return KeyboardAction::NUMBER_KEY_9;
+        case '0':
+            return KeyboardAction::NUMBER_KEY_0;
+
         default:
             return KeyboardAction::NO_ACTION;
     }
