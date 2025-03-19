@@ -29,6 +29,7 @@
 #include <csignal>
 
 class GameController;
+extern atomic<bool> flagServ;
 
 class Server{
     private:

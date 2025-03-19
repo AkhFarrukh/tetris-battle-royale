@@ -1,6 +1,7 @@
 #include "serverFunctions.hpp"
 #include <algorithm>
 
+atomic<bool> flagServ = false;
 
 Server::Server(){
     roomsList = make_shared<vector<shared_ptr<Room>>>();
@@ -50,7 +51,6 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         // The password MUST be a plain password (what received from the client).
         // The User Database Manager will take care of password hash validation.
 
-        printf("goood\n");
         // Create a "new session" with client info to be sent to thread routine
         // and push the client into a vector of clients
         ClientSession new_session;
@@ -73,6 +73,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
             clients.pop_back();
             return -1;
         }
+        //pthread_detach(threadID);
         // Unlock mutex when got the signal from inside the thread
         cv.wait(lock, [this]{return lockThread;});
         std::cout << "Thread successfully created !" << std::endl;
@@ -104,7 +105,6 @@ void* Server::threadRoutineClient(void* arg){
     GameController gameController;
     Server* server = threadData->serverInstance;
     ClientSession& client = threadData->client;
-
     server->lockThread = true;
     server->cv.notify_one();
 
@@ -117,8 +117,8 @@ void* Server::threadRoutineClient(void* arg){
     while(flagConnexion){
         int type;
         int size;
-        int bytesReceivedType = recvAll(client.client_fd, &type, sizeof(int));
-        int bytesReceivedSize = recvAll(client.client_fd, &size, sizeof(int));
+        if(!recvAll(client.client_fd, &type, sizeof(int))){break;};
+        if(!recvAll(client.client_fd, &size, sizeof(int))){break;};
         Connexion connexionData;
         if(type == MessageType::T_Connexion && size == sizeof(struct Connexion)){
             server->handleConnexion(server, client, connexionData, size, successfulLogin, flagConnexion);
@@ -152,7 +152,7 @@ void* Server::threadRoutineClient(void* arg){
         bool userIsOnline = true;
         bool userIsInGame = false;
 
-        while (userIsOnline) {
+        while (!flagServ && userIsOnline) {
             std::cout << "start listening cuh" << std::endl;
             //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
 

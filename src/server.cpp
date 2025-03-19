@@ -19,6 +19,7 @@ Server server;
 int server_sock = -1;
 
 void handle_sigint(int sig) {
+    flagServ = true;
     std::vector<int> clients = server.udbm.getUserIdSession();
     for(const auto& clientId:clients){
         server.udbm.logOut(clientId);//on marque la personne comme deconnecté
@@ -33,9 +34,9 @@ void handle_sigint(int sig) {
         server.udbm.deleteSession(clientId);}
     }
     napms(100);
-    if(server_sock != -1)close(server_sock);
-    signal(SIGINT, SIG_DFL);
-    raise(SIGINT);
+    if(server_sock != -1){printf("xeesh\n");close(server_sock); server_sock = -1;}
+    //signal(SIGINT, SIG_DFL);
+    //raise(SIGINT);
 }
 
 
@@ -67,8 +68,10 @@ int main () {
     }
     //Wait for a client
     if (listen (server_fd, MAX_PENDING_CONNECTION) <= -1){
-        perror("Error while listening : ");
-        return 1;
+
+        if(!flagServ){
+            perror("Error while listening : ");
+            return 1;}
     }
 
     /**************************************************************
@@ -78,11 +81,13 @@ int main () {
     auto rooms = std::make_shared<std::vector<std::shared_ptr<Room>>>();
 
     if (server.handleClient(server_fd, address, addressLen) <= -1){
-        perror("Error while handling client : ");
-        close(server_fd);
-        return 1;
+
+        if(!flagServ){
+            perror("Error while handling client : ");
+            close(server_fd);
+            return 1;}
     }
 
-    close(server_fd);
+    if(server_sock != -1)close(server_fd);
     return 0;
 }
