@@ -105,10 +105,10 @@ int main() {
         int selectedMode = terminal.start();
         if (selectedMode == -1){
             //Quit game
-            int exitType = MessageType::T_ForcedExit;
+            /*int exitType = MessageType::T_ForcedExit;
             int size_ = sizeof(int);
             int bytesSentType = sendAll(socket_serveur, &exitType, sizeof(int));
-            int bytesSentSize = sendAll(socket_serveur, &size_, sizeof(int));
+            int bytesSentSize = sendAll(socket_serveur, &size_, sizeof(int));*/
             playing = false;
         }
         else{

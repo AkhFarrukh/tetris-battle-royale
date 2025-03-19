@@ -117,8 +117,8 @@ void* Server::threadRoutineClient(void* arg){
     while(flagConnexion){
         int type;
         int size;
-        if(!recvAll(client.client_fd, &type, sizeof(int))){break;};
-        if(!recvAll(client.client_fd, &size, sizeof(int))){break;};
+        if(!recvAll(client.client_fd, &type, sizeof(int))){return nullptr;};
+        if(!recvAll(client.client_fd, &size, sizeof(int))){return nullptr;};
         Connexion connexionData;
         if(type == MessageType::T_Connexion && size == sizeof(struct Connexion)){
             server->handleConnexion(server, client, connexionData, size, successfulLogin, flagConnexion);
@@ -255,6 +255,7 @@ void* Server::threadRoutineClient(void* arg){
     else {
         std::cerr << "login failed";
     }
+    printf("lul\n");
     return nullptr;
 }
 

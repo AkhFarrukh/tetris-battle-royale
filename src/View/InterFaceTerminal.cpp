@@ -1658,7 +1658,7 @@ int InterfaceTerminal::start() {
                return -1;
        }
    }
-   return -1;
+   return -2;
 }
 
 void InterfaceTerminal::displayLeaderboard() {
