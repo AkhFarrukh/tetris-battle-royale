@@ -96,10 +96,32 @@ void Game::run() {
             for (int p = 0; p < (int)players.size(); p++) {
                 if (players[p].isGameOver){continue;}
                     if (players[p].blackout != 0){players[p].blackout--;} //Il y a 10 unités lors d'un BO, cela durera 5 sec
-                    bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
-                    //cout<<"soft dropping"<<endl;
-                    if (!canDrop) {
-                        placePieceOnBoard(p);
+                    bool canDrop = false;
+                    if (players[p].sped_up){
+                        canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                        if (!canDrop) {
+                            placePieceOnBoard(p);
+                        }
+                    }
+                    else if (players[p].slowed){
+                        if (players[p].skipTiming == 3){
+                            canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                            players[p].skipTiming = 0;
+                            if (!canDrop) {
+                                placePieceOnBoard(p);
+                            }
+                        }
+                        else{players[p].skipTiming++;}
+                    }
+                    else {
+                        if (players[p].skipTiming == 1){
+                            canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
+                            players[p].skipTiming = 0;
+                            if (!canDrop) {
+                                placePieceOnBoard(p);
+                            }
+                        }
+                        else{players[p].skipTiming++;}
                     }
                     cout<<"soft dropping"<<endl;
             }
@@ -115,7 +137,6 @@ void Game::run() {
         }
         //cout<<"Broadcasted"<<endl;
         checkGameOver();
-        //cout<<"CheckGameOver"<<endl;
         //cout<<"CheckGameOver"<<endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
@@ -389,11 +410,9 @@ void Game::checkGameOver() {
     int aliveCount = 0;
     for (const auto& ps : players) {
         if (!ps.isGameOver) aliveCount++;
-        if (!ps.isGameOver) aliveCount++;
     }
     if (gameMode == Modes::Duel_ or gameMode == Modes::Classic_ or gameMode == Modes::Royal_) {
         if (aliveCount <= 1) {
-            //std::cout << "Duel ended" << std::endl;
             //std::cout << "Duel ended" << std::endl;
             stop();
         }
