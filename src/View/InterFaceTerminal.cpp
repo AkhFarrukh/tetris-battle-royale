@@ -1537,6 +1537,7 @@ int InterfaceTerminal::handleOptionSelection(int &selectedOption) {
        case 2:
            // Si l'utilisateur sélectionne "Account", on affiche les options possibles pour se connecter.
            //handleConnexionOption();
+            displayLeaderboard();
        break;
 
    }
@@ -1654,3 +1655,31 @@ int InterfaceTerminal::start() {
    }
    return -1;
 }
+
+void InterfaceTerminal::displayLeaderboard() {
+    while(!flag){
+    erase();
+    printw("🏆 Leaderboard: Top Endless Mode Players 🏆\n\n");
+    std::vector<std::pair<std::string, int>> scores = udm.getTopScores(5); // afficher les top 5
+
+    if (scores.empty()) {
+        printw("No scores recorded yet.\n");
+    } else {
+        for (size_t i = 0; i < scores.size(); i++) {
+            printw("%d. %s - %d points\n", i + 1, scores[i].first.c_str(), scores[i].second);
+        }
+    }
+
+    printw("\nPress 'q' to return to the menu...");
+    refresh();
+        int ch = getch();
+        switch (ch) {
+
+            case 'q':
+            case 'Q':
+                endwin();
+                return;
+        }
+    }
+}
+

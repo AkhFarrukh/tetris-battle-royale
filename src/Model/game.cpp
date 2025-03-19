@@ -23,11 +23,13 @@ Game::Game(){
     isRunning = false;
     mode = make_shared<Mode>();
     numPlayers_ = 0;
+    clientSes = nullptr;
 }
-Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, Modes gameMode)
+Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, Modes gameMode, std::shared_ptr<ClientSession> clientSession)
     :   isRunning(false),
         numPlayers_(numPlayers),
-        gameMode(gameMode)
+        gameMode(gameMode),
+        clientSes(std::move(clientSession))
 {
     cout<< "Starting Game constructor"<<endl;
     switch (gameMode)
@@ -51,7 +53,6 @@ Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, Modes gameMo
     }
     for (int i = 0; i < numPlayers; i++) {
         PlayerState ps(i, gameMode);
-
         ps.grid = std::make_shared<Grid>();
         ps.eventQueue = playersData[i].eventQueue;
         ps.fd = playersData[i].client_fd;
@@ -354,13 +355,16 @@ void Game::placePieceOnBoard(int p) {
     }
 }
 
-// void Game::stop() {
-//     isRunning = false;
-// }
-
-
 void Game::stop() {
     for (auto &ps : players) {
+        if (ps.isGameOver){
+            int finalScore = ps.gameData.get_score();
+            Modes gameMode = ps.gameData.get_gameMode();
+
+            if(gameMode == 1){
+                udbm.addScore(udbm.getUserId(clientSes->username.c_str()), finalScore);
+            }
+        }
         if (ps.isInGame) {
             int type = MessageType::T_Exit;
             int size = sizeof(MessageType);
@@ -521,11 +525,11 @@ bool Game::broadcastGame() {
 
         netArray[ps.playerId].playerId = -1;
 
-            int type = MessageType::T_PlayerData;
-            if (!sendAll(sock, &type, sizeof(type))){return false;}
-
+        int type = MessageType::T_PlayerData;
+        if (!sendAll(sock, &type, sizeof(type))){return false;}
         int size = static_cast<int>(netArray.size());
         if (!sendAll(sock, &size, sizeof(size))){return false;}
+
         for (auto& player : netArray) {
             if (!sendAll(sock, &player.playerId, sizeof(player.playerId))) {return false;}
             if (!sendAll(sock, &player.isGameOver, sizeof(player.isGameOver))) {return false;}
