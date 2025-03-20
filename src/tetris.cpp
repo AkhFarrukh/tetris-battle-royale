@@ -180,7 +180,7 @@ int main() {
             threadData->userInGame = false;
             threadData->userInLobby = false;
             threadData->mux.unlock();
-            napms(400);
+            napms(600);
             if(menu.action == MenuActions::A_CreateRoom){
                 int sendType = MessageType::T_RoomDeleted;
                 int sendSize = sizeof(int);

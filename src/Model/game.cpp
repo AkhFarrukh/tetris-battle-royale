@@ -539,8 +539,9 @@ bool Game::broadcastGame() {
     }
     //Envoie toutes les infos nécessaire à l'affichage à chaque joueur
     for (auto &ps : players) {
-        int sock = ps.fd; 
-        if (sock <= 0) continue;
+        if(ps.isInGame){
+            int sock = ps.fd;
+            if (sock <= 0) continue;
 
         netArray[ps.playerId].playerId = -1;
 
@@ -562,6 +563,7 @@ bool Game::broadcastGame() {
         }
         //cout << "Sent netplayerdatda to " << sock << endl;
         netArray[ps.playerId].playerId = ps.playerId;
+        }
     }
     return true;
 }
