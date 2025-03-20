@@ -52,6 +52,7 @@ struct NetPlayerData {
     int linesCleared;
     int score;
     int nrg;
+    bool endGame = false;
     vector<Color> grid;
 };
 

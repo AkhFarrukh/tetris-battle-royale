@@ -198,7 +198,10 @@ void RenderEngineNcurses::renderGame(const NetPlayerData& player, Coordinates of
         mvprintw(y + 3 + offset.y, offset.x + GRID_WIDTH * 2 + 1, "|");
     }
     mvprintw(offset.y + GRID_HEIGHT + 3, offset.x, "+--------------------+");
-
+    if(player.endGame || player.isGameOver){
+      if(player.isGameOver)mvprintw(offset.y + GRID_HEIGHT + 5, offset.x, "GAME OVER");
+      else mvprintw(offset.y + GRID_HEIGHT + 5, offset.x, "You are the winner !");
+      }
     // Color the limits of the grid in white if playerID is -1
     if (player.playerId == -1) {
         highlightGridBorders(offset);

@@ -42,7 +42,7 @@ public:
     void stop();
     
     Color getBlockColor(Coordinates cell);
-    bool broadcastGame();
+    bool broadcastGame(bool endGame = false);
 
 
 private:

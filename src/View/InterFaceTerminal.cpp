@@ -1657,7 +1657,7 @@ int InterfaceTerminal::start() {
                 erase();
                 refresh();
                if(returnValue!=-1)return returnValue;
-               break;
+               continue;
            case 't':
            case 'T':
                if(handleMessageBox()<0)return -1;

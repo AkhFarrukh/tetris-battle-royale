@@ -59,6 +59,7 @@ enum MessageType {
     T_MalusBonus,
     T_Menu,
     T_PlayerData,
+    T_EndGame,
     T_Exit,
     T_Connexion,
     T_Register,

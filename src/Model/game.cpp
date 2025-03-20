@@ -411,8 +411,13 @@ void Game::checkGameOver() {
         if (!ps.isGameOver) aliveCount++;
     }
     if (gameMode == Modes::Duel_ or gameMode == Modes::Classic_ or gameMode == Modes::Royal_) {
-        if (aliveCount <= 1) {
+        if (aliveCount < 1) {
             //std::cout << "Duel ended" << std::endl;
+            stop();
+        }
+        else if(aliveCount == 1) {
+            broadcastGame(true);
+            napms(4000);
             stop();
         }
     } else if (aliveCount < 1) {
@@ -502,7 +507,7 @@ Color Game::getBlockColor(Coordinates cell) {
 
 
 
-bool Game::broadcastGame() {
+bool Game::broadcastGame(bool endGame) {
     std::vector<NetPlayerData> netArray;
 
     for (auto &ps : players) {
@@ -546,6 +551,7 @@ bool Game::broadcastGame() {
         netArray[ps.playerId].playerId = -1;
 
         int type = MessageType::T_PlayerData;
+        if(endGame)type = MessageType::T_EndGame;
         if (!sendAll(sock, &type, sizeof(type))){return false;}
         int size = static_cast<int>(netArray.size());
         if (!sendAll(sock, &size, sizeof(size))){return false;}

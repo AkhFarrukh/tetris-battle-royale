@@ -87,7 +87,7 @@ void* Player::threadRoutineView (void* arg){
             napms(300);
             continue;
         }
-        else if(type == MessageType::T_PlayerData){
+        else if(type == MessageType::T_PlayerData || type == MessageType::T_EndGame){
             vector<NetPlayerData> playersData;
             for (int i = 0; i < size; ++i) {
                 NetPlayerData player;
@@ -108,10 +108,9 @@ void* Player::threadRoutineView (void* arg){
                 player.grid.resize(gridSize);
 
                 if (!recvAll(sock, player.grid.data(), gridSize * sizeof(Color))){return nullptr;}
-
+                if(type == MessageType::T_EndGame)player.endGame = true;
                 playersData.push_back(player);
             }
-            
 
             //std::cout<<"Rendered games"<<std::endl;
             
