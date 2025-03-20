@@ -1673,10 +1673,9 @@ int InterfaceTerminal::start() {
 }
 
 void InterfaceTerminal::displayLeaderboard() {
+    erase();
+    refresh();
     while (!flag) {
-        erase();
-        refresh();
-    
         // Définition des dimensions et positions du cadre
         int width = COLS;
         int height = LINES;

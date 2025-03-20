@@ -199,8 +199,16 @@ void RenderEngineNcurses::renderGame(const NetPlayerData& player, Coordinates of
     }
     mvprintw(offset.y + GRID_HEIGHT + 3, offset.x, "+--------------------+");
     if(player.endGame || player.isGameOver){
-      if(player.isGameOver)mvprintw(offset.y + GRID_HEIGHT + 5, offset.x, "GAME OVER");
-      else mvprintw(offset.y + GRID_HEIGHT + 5, offset.x, "You are the winner !");
+        int colorIndex;
+      if(player.isGameOver){
+          colorIndex = applyColor(Color::red);
+          attron(COLOR_PAIR(colorIndex));
+        mvprintw(offset.y + GRID_HEIGHT + 5, offset.x, "GAME OVER");}
+      else {
+        colorIndex = applyColor(Color::green);
+        attron(COLOR_PAIR(colorIndex));
+        mvprintw(offset.y + GRID_HEIGHT + 5, offset.x, "You are the winner !");}
+        attroff(COLOR_PAIR(colorIndex));
       }
     // Color the limits of the grid in white if playerID is -1
     if (player.playerId == -1) {
