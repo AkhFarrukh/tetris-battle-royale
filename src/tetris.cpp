@@ -15,8 +15,7 @@
 #include <csignal>      //sigint
 #include <cstdlib>
 
-#include <QtWidgets/QApplication>   // Qt6
-#include "MainWindow.hpp"
+#include "Gui/gui_launcher.hpp"
 
 using namespace std;
 
@@ -84,7 +83,6 @@ int main(int argc, char** argv) {
     pthread_t threadID;
     std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
     //Game loop
-
     if (argc > 1 && std::string(argv[1]) == "--gui") {
         // threadData->socket = sock;
         // threadData->userInGame = false;
@@ -95,14 +93,8 @@ int main(int argc, char** argv) {
         //     return 1;
         // }
     
-        QApplication app(argc, argv);
-        MainWindow window;
-        window.show();
-        int result = app.exec();
-        // flag = true;
-        // pthread_join(threadID, nullptr);
-        // cout << result;
-        return result;
+        return runGuiApp(argc, argv);
+
     } else {
         bool playing = false;
         InterfaceTerminal terminal;

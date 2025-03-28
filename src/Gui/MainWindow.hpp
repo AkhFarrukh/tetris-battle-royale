@@ -14,7 +14,6 @@ public:
 
 private:
     QLabel* helloLabel;
-
     void setupUI();
 };
 

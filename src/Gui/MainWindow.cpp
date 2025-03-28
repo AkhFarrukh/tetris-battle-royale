@@ -1,11 +1,18 @@
-#include "MainWindow.hpp"
+#ifdef scroll
+#undef scroll
+#endif
+
+#include <QApplication>
 #include <QLabel>
 #include <QVBoxLayout>
-#include <QWidget>
+#include <QMainWindow>
+#include "MainWindow.hpp"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setupUI();
 }
+
+MainWindow::~MainWindow() {}
 
 void MainWindow::setupUI() {
     auto* centralWidget = new QWidget(this);
@@ -17,8 +24,6 @@ void MainWindow::setupUI() {
     layout->addWidget(helloLabel);
     setCentralWidget(centralWidget);
 
-    setWindowTitle("Tetris Qt GUI");
+    setWindowTitle("Tetris Qt GUI");    
     resize(400, 200);
 }
-
-MainWindow::~MainWindow() {}
