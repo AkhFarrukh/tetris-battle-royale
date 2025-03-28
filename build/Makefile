@@ -22,6 +22,7 @@ QT_LDFLAGS := $(shell pkg-config --libs $(QT_PACKAGES))
 LDFLAGS = -L$(NCURSES_DIR)/lib -L$(SQLITE_DIR)/lib -L$(LIB_DIR)
 INCLUDE_FLAGS = -I$(NCURSES_DIR)/include -I$(SQLITE_DIR)/include -I$(LIB_DIR)/include
 LIBS = -lncursesw -lsqlite3
+MOC := moc #faut faire "sudo apt install qt6-base-dev pkg-config" sous linux pour que ca compile reste a tester
 
 # Ajout spécifique pour macOS uniquement
 ifeq ($(UNAME_S),Darwin)
