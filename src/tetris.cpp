@@ -15,6 +15,9 @@
 #include <csignal>      //sigint
 #include <cstdlib>
 
+#include <QtWidgets/QApplication>   // Qt6
+#include "MainWindow.hpp"
+
 using namespace std;
 
 
@@ -40,64 +43,188 @@ void handle_sigint(int sig) {
     int bytesSentSize = sendAll(socket_serveur, &size_, sizeof(int));}
 }
 
-
-
-
-
-int main() {
-    signal(SIGINT, handle_sigint);
-    /**********************************************************************************
-     *SETUP CONNECTION TO SERVER
-     *********************************************************************************/
-    // Création du socket
+int createSocket() {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
         perror("Erreur lors de la création du socket : ");
-        return 1;
+        return -1;
     }
 
     struct sockaddr_in serv_addr;
-    memset(&serv_addr, 0, sizeof(serv_addr)); // Initialisation à zéro
+    memset(&serv_addr, 0, sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(8080);
 
-    // Conversion de l'adresse IP en format binaire
     if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        perror("Adresse invalide ou non supportée : ");
+        perror("Adresse invalide : ");
         close(sock);
-        return 1;
+        return -1;
     }
 
-    // Connexion au serveur
     if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("Échec de la connexion : ");
         close(sock);
-        return 1;
+        return -1;
     }
+    return sock;
+}
+
+
+
+int main(int argc, char** argv) {
+    signal(SIGINT, handle_sigint);
+    // ==== 1. Connexion au serveur ====
+    int sock = createSocket();
+    if (sock < 0) return 1;
+
+    socket_serveur = sock;
+
+
     pthread_t threadID;
     std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
     //Game loop
-    bool playing = false;
-    InterfaceTerminal terminal;
-    socket_serveur = sock;
-    terminal.setSock(socket_serveur);
-    //Identification auprès de la db
-    vector<std::string> dataConnexion = terminal.handleConnexionOption();
-    if(dataConnexion.size()==2){
-        username = dataConnexion[0];
-        playing = true;
-        threadData->userInGame = false;
-        threadData->socket = sock;
-        threadData->userInLobby = false;
-        if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
-            perror("Error on thread creation : ");
+
+    if (argc > 1 && std::string(argv[1]) == "--gui") {
+        // threadData->socket = sock;
+        // threadData->userInGame = false;
+        // threadData->userInLobby = false;
+        // if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
+        //     perror("Error on thread creation : ");
+        //     close(sock);
+        //     return 1;
+        // }
+    
+        QApplication app(argc, argv);
+        MainWindow window;
+        window.show();
+        int result = app.exec();
+        // flag = true;
+        // pthread_join(threadID, nullptr);
+        // cout << result;
+        return result;
+    } else {
+        bool playing = false;
+        InterfaceTerminal terminal;
+        socket_serveur = sock;
+        terminal.setSock(socket_serveur);
+        //Identification auprès de la db
+        vector<std::string> dataConnexion = terminal.handleConnexionOption();
+        if(dataConnexion.size()==2){
+            username = dataConnexion[0];
+            playing = true;
+            threadData->userInGame = false;
+            threadData->socket = sock;
+            threadData->userInLobby = false;
+            if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
+                perror("Error on thread creation : ");
+                close(sock); // Fermer le socket après utilisation
+                return 0;
+            }
+        }else{
+            std::cout << "Echec de la connexion au compte.\n";
+            nocbreak();
+            keypad(stdscr, false);
+            curs_set(1);
+            nodelay(stdscr, false);
+            system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
             close(sock); // Fermer le socket après utilisation
+            std::string command = "clear";
+            int result = system(command.c_str());
             return 0;
         }
-    }
-    else{
-        std::cout << "Echec de la connexion au compte.\n";
+        while(playing && !flag){
+            //Getting the selected menu in terminal
+            int selectedMode = terminal.start();
+            if (selectedMode == -1){
+                //Quit game
+                int exitType = MessageType::T_ForcedExit;
+                int size_ = sizeof(int);
+                int bytesSentType = sendAll(socket_serveur, &exitType, sizeof(int));
+                int bytesSentSize = sendAll(socket_serveur, &size_, sizeof(int));
+                playing = false;
+            }
+            else{
+                /*
+                *SHOULD BE ELSE IF AND CHANGE DEPENDING ON MENU CLICKED
+                */
+                //Ask to start a game
+                int type = MessageType::T_Menu;
+                int size = sizeof(Menu);
+                //Defining the struct we will send  
+                Menu menu;
+                menu.action = MenuActions::A_Play;
+                if(selectedMode == 0){
+                    menu.mode = Modes::Endless_;
+                    //napms(500);
+                }
+                else if(selectedMode == 10){
+                    menu.mode = Modes::Classic_;
+                    menu.action = MenuActions::A_CreateRoom;
+                }
+                else if(selectedMode == 11){
+                    menu.mode = Modes::Classic_;
+                    menu.action = MenuActions::A_JoinRoom;
+                }
+                else if(selectedMode == 20){
+                    menu.mode = Modes::Duel_;
+                    menu.action = MenuActions::A_CreateRoom;
+                }
+                else if(selectedMode == 21){
+                    menu.mode = Modes::Duel_;
+                    menu.action = MenuActions::A_JoinRoom;
+                }
+                else if(selectedMode == 30){
+                    menu.mode = Modes::Royal_;
+                    menu.action = MenuActions::A_CreateRoom;
+                }
+                else if(selectedMode == 31){
+                    menu.mode = Modes::Royal_;
+                    menu.action = MenuActions::A_JoinRoom;
+                }
+                //Sending info to server
+                if(sendAll(sock, &type, sizeof(int)) == false){
+                    perror("Error sending menu info : ");
+                    return 1;
+                }
+                if(sendAll(sock, &size, sizeof(int)) == false){
+                    perror("Error sending menu info : ");
+                    return 1;
+                }
+                if(sendAll(sock, &menu, sizeof(Menu)) == false){
+                    perror("Error sending menu info : ");
+                    return 1;
+                }
+                threadData->mux.lock();
+                threadData->userInLobby = true;
+                threadData->gameMode = menu.mode;
+                threadData->mux.unlock();
+
+                Player::sendInput(threadData);
+                threadData->mux.lock();
+                threadData->userInGame = false;
+                threadData->userInLobby = false;
+                threadData->mux.unlock();
+                napms(600);
+                if(menu.action == MenuActions::A_CreateRoom){
+                    int sendType = MessageType::T_RoomDeleted;
+                    int sendSize = sizeof(int);
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+                }
+
+            }
+        }
+
+        flag = true;//thread principal a terminé et va demander à threadLecture de se terminer.
+        shutdown(sock, SHUT_RD);
+        pthread_join(threadID, nullptr);
+
+        ///**********************************************************************************
+        // * START GAME
+        // *********************************************************************************/
+
+        //on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec un SIGINT)
         nocbreak();
         keypad(stdscr, false);
         curs_set(1);
@@ -107,108 +234,8 @@ int main() {
         std::string command = "clear";
         int result = system(command.c_str());
         return 0;
+
     }
-    while(playing && !flag){
-        //Getting the selected menu in terminal
-        int selectedMode = terminal.start();
-        if (selectedMode == -1){
-            //Quit game
-            int exitType = MessageType::T_ForcedExit;
-            int size_ = sizeof(int);
-            int bytesSentType = sendAll(socket_serveur, &exitType, sizeof(int));
-            int bytesSentSize = sendAll(socket_serveur, &size_, sizeof(int));
-            playing = false;
-        }
-        else{
-            /*
-            *SHOULD BE ELSE IF AND CHANGE DEPENDING ON MENU CLICKED
-            */
-            //Ask to start a game
-            int type = MessageType::T_Menu;
-            int size = sizeof(Menu);
-            //Defining the struct we will send  
-            Menu menu;
-            menu.action = MenuActions::A_Play;
-            if(selectedMode == 0){
-                menu.mode = Modes::Endless_;
-                //napms(500);
-            }
-            else if(selectedMode == 10){
-                menu.mode = Modes::Classic_;
-                menu.action = MenuActions::A_CreateRoom;
-            }
-            else if(selectedMode == 11){
-                menu.mode = Modes::Classic_;
-                menu.action = MenuActions::A_JoinRoom;
-            }
-            else if(selectedMode == 20){
-                menu.mode = Modes::Duel_;
-                menu.action = MenuActions::A_CreateRoom;
-            }
-            else if(selectedMode == 21){
-                menu.mode = Modes::Duel_;
-                menu.action = MenuActions::A_JoinRoom;
-            }
-            else if(selectedMode == 30){
-                menu.mode = Modes::Royal_;
-                menu.action = MenuActions::A_CreateRoom;
-            }
-            else if(selectedMode == 31){
-                menu.mode = Modes::Royal_;
-                menu.action = MenuActions::A_JoinRoom;
-            }
-            //Sending info to server
-            if(sendAll(sock, &type, sizeof(int)) == false){
-                perror("Error sending menu info : ");
-                return 1;
-            }
-            if(sendAll(sock, &size, sizeof(int)) == false){
-                perror("Error sending menu info : ");
-                return 1;
-            }
-            if(sendAll(sock, &menu, sizeof(Menu)) == false){
-                perror("Error sending menu info : ");
-                return 1;
-            }
-            threadData->mux.lock();
-            threadData->userInLobby = true;
-            threadData->gameMode = menu.mode;
-            threadData->mux.unlock();
-
-            Player::sendInput(threadData);
-            threadData->mux.lock();
-            threadData->userInGame = false;
-            threadData->userInLobby = false;
-            threadData->mux.unlock();
-            napms(600);
-            if(menu.action == MenuActions::A_CreateRoom){
-                int sendType = MessageType::T_RoomDeleted;
-                int sendSize = sizeof(int);
-                if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
-                if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
-            }
-
-        }
-    }
-
-    flag = true;//thread principal a terminé et va demander à threadLecture de se terminer.
-    shutdown(sock, SHUT_RD);
-    pthread_join(threadID, nullptr);
-
-    ///**********************************************************************************
-    // * START GAME
-    // *********************************************************************************/
-
-    //on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec un SIGINT)
-    nocbreak();
-    keypad(stdscr, false);
-    curs_set(1);
-    nodelay(stdscr, false);
-    system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
-    close(sock); // Fermer le socket après utilisation
-    std::string command = "clear";
-    int result = system(command.c_str());
-    return 0;
 }
 
 /**
@@ -222,4 +249,7 @@ int main() {
  * 
  * NB : Le faire avec sendAll mais le principe reste le même
  */
+
+
+
 
