@@ -2,6 +2,7 @@
 #undef scroll
 #endif
 
+#include <QPushButton>
 #include <QApplication>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -15,15 +16,20 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 MainWindow::~MainWindow() {}
 
 void MainWindow::setupUI() {
-    auto* centralWidget = new QWidget(this);
-    auto* layout = new QVBoxLayout(centralWidget);
+    auto centralWidget = new QWidget(this);
+    auto layout = new QVBoxLayout(centralWidget);
 
-    helloLabel = new QLabel("first menu should be here", this);
-    helloLabel->setAlignment(Qt::AlignCenter);
+    // Créer un bouton
+    QPushButton *button = new QPushButton("Clique-moi", this);
 
-    layout->addWidget(helloLabel);
+    // Connecter le bouton à une action
+    connect(button, &QPushButton::clicked, this, &MainWindow::onButtonClicked);
+
+    layout->addWidget(button);
     setCentralWidget(centralWidget);
+}
 
-    setWindowTitle("Tetris Qt GUI");    
-    resize(400, 200);
+// Fonction déclenchée au clic
+void MainWindow::onButtonClicked() {
+    qDebug() << "Bouton cliqué !";
 }
