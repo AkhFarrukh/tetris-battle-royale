@@ -21,7 +21,7 @@ QT_LDFLAGS := $(shell pkg-config --libs $(QT_PACKAGES))
 LDFLAGS = -L$(NCURSES_DIR)/lib -L$(SQLITE_DIR)/lib -L$(LIB_DIR)
 INCLUDE_FLAGS = -I$(NCURSES_DIR)/include -I$(SQLITE_DIR)/include -I$(LIB_DIR)/include
 LIBS = -lncursesw -lsqlite3
-MOC := moc
+MOC := $(shell find /usr -name moc -type f 2>/dev/null| grep qt6 | head -n 1)
 
 # macOS specific
 ifeq ($(UNAME_S),Darwin)
