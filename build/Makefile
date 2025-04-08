@@ -1,9 +1,13 @@
 # Nom des exécutables finaux
 SERVER_TARGET := ../server.exe
 CLIENT_TARGET := ../tetris.exe
+$(info INCLUDE_DIRS = $(INCLUDE_DIRS))
+$(info COMMON_CXXFLAGS = $(COMMON_CXXFLAGS))
 
 # Dossiers sources et objets
 SRC_DIR = ../src
+SRC_SERVER_DIR = $(SRC_DIR)/Server $(SRC_DIR)/Common
+SRC_CLIENT_DIR = $(SRC_DIR)/Client $(SRC_DIR)/Common
 BUILD_DIR = ../build
 LIB_DIR = ../lib
 NCURSES_DIR = $(LIB_DIR)/ncurses-install
@@ -39,11 +43,14 @@ export LD_LIBRARY_PATH := $(LIB_DIR):$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LD_L
 
 # Compilateur
 CXX = g++
-COMMON_CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Player -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(SRC_DIR)/Database -I$(SRC_DIR)/Server -I$(SRC_DIR)/Gui $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
+COMMON_CXXFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
+# Include directories
+INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d)
+COMMON_CXXFLAGS += $(foreach dir,$(INCLUDE_DIRS),-I$(dir))
 
 # Sources
-SERVER_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -name "tetris.cpp" ! -path "$(SRC_DIR)/Gui/*")
-CLIENT_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -name "server.cpp")
+SERVER_SRCS = $(foreach dir,$(SRC_SERVER_DIR),$(shell find $(dir) -type f -name "*.cpp"))
+CLIENT_SRCS = $(foreach dir,$(SRC_CLIENT_DIR),$(shell find $(dir) -type f -name "*.cpp"))
 
 # Objet principaux
 SERVER_OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SERVER_SRCS))
