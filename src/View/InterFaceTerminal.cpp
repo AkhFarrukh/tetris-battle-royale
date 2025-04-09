@@ -3,14 +3,8 @@
 #include <locale.h>  // Needed for wide characters (if printing Unicode blocks)
 
 
-
-Database db("tetris.db");
-UserDatabaseManager udm;
-Chat chat;
-
-atomic<bool> flag = false; //informer thread de se terminer (ctrlC notamment)
+atomic<bool> flag = false; // informer thread de se terminer (Ctrl + C notamment)
 std::mutex interfaceMutex;
-std::string user = "";
 
 const char* InterfaceTerminal::modeNames[] = {
                                             "Endless Mode",  
@@ -125,16 +119,16 @@ void InterfaceTerminal::initNcurses() {
 void InterfaceTerminal::displayMessageBox(int selectedOption, vector<string> friends) {
     erase();
     printw("Message box : \n\n");
-    int user_id = db.getUserId(user.c_str());
+    int user_id = udm.getUserId(user.c_str());
     int numberFriends = std::size(friends);   // taille du tableau contenant les amis
     if(numberFriends == 0) {printw("Empty friends list \n");}
     else{
         for (int i = 0; i < numberFriends; ++i) {
-            int friend_id = db.getUserId(friends[i].c_str());
+            int friend_id = udm.getUserId(friends[i].c_str());
             if (i == selectedOption) {
-                printw("-> %d. %s(%d)", i + 1, friends[i].c_str(), db.getNumberMessageNoRead(user_id, friend_id));
+                printw("-> %d. %s(%d)", i + 1, friends[i].c_str(), udm.getNumberMessageNoRead(user_id, friend_id));
             } else {
-                printw("   %d. %s(%d)", i + 1, friends[i].c_str(), db.getNumberMessageNoRead(user_id, friend_id));
+                printw("   %d. %s(%d)", i + 1, friends[i].c_str(), udm.getNumberMessageNoRead(user_id, friend_id));
             }
             printw("\n");
         }
@@ -171,7 +165,7 @@ int InterfaceTerminal::handleMessageBox() {
     }
     while (!flag) {
 
-        vector<string> friendsList = db.friendsList(user);
+        vector<string> friendsList = udm.getFriendsList(user);
         displayMessageBox(selectedOption, friendsList);  // affiche le menu avec les options
 
         int ch = getch();    // récupère l'entrée utilisateur
@@ -220,9 +214,9 @@ int InterfaceTerminal::handleMessageBox() {
  * @param friendName Nom de l'ami dont on affiche les messages non lus.
  */
 void InterfaceTerminal::displayMessageNoRead(const std::string& user, const string& friendName){
-    int user_id = db.getUserId(user.c_str());
-    int friend_id = db.getUserId(friendName.c_str());
-    vector<std::string> messagesNoRead = db.getMessages(friend_id, user_id);
+    int user_id = udm.getUserId(user.c_str());
+    int friend_id = udm.getUserId(friendName.c_str());
+    vector<std::string> messagesNoRead = udm.getMessagesNoRead(friend_id, user_id);
     nodelay(stdscr, false);
     printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
     printw("\nDiscussion with %s : \n", friendName.c_str());
@@ -267,14 +261,14 @@ void InterfaceTerminal::displayMessageNoRead(const std::string& user, const stri
  */
 
 int InterfaceTerminal::chatWith(const std::string& user, const string& friendName){
-    int user_id = db.getUserId(user.c_str());
-    int friend_id = db.getUserId(friendName.c_str());
+    int user_id = udm.getUserId(user.c_str());
+    int friend_id = udm.getUserId(friendName.c_str());
     erase();
     interfaceMutex.lock();
     displayMessageNoRead(user, friendName);
     interfaceMutex.unlock();
-    db.deleteMessages(friend_id, user_id);
-    db.conversationOpen(user_id, friend_id);
+    udm.deleteMessages(friend_id, user_id);
+    udm.openConversation(user_id, friend_id);
     refresh();
     echo();
     curs_set(1);
@@ -295,7 +289,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         printw("Enter your message : ");
         refresh();
         wgetnstr(stdscr,buffer,1023-friendName.size()-1);
-        if(strlen(buffer)==0){db.conversationClose(user_id, friend_id); return 0;}
+        if(strlen(buffer)==0){udm.closeConversation(user_id, friend_id); return 0;}
         else{
         ///
         /// MUTEX DEB
@@ -334,7 +328,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         ///
         int socket = getSock();
         if(udm.isLoggedIn(friendName.c_str())){
-          if(db.getInConversation(user_id, friend_id) == 1){ //si le destinataire est sur la conv
+          if(udm.getInConversation(user_id, friend_id) == 1){ //si le destinataire est sur la conv
         int messageSent = MessageType::T_Message;
         int size_ = sizeof(struct Message);
         Message messageToSent;
@@ -349,14 +343,14 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         if(!sendAll(socket, &messageToSent, sizeof(Message))){flag=true; break;}
     }
     else{ //si le correspondant n'est pas dans la conv
-        db.addMessage(user_id, friend_id, buffer);
+        udm.addMessage(user_id, friend_id, buffer);
     }
 }
         }
     }
     erase();
     refresh();
-    db.conversationClose(user_id, friend_id);
+    udm.closeConversation(user_id, friend_id);
     return -1;
 }
 
@@ -655,11 +649,11 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
 
     if (selectedOption == numberFriends + 1) {
         wattron(friendsWindow, COLOR_PAIR(9));
-        mvwprintw(friendsWindow, bottomY + 2, 2, "-> Friend requests (%d)", db.getNumberFriendRequestsReceived(user));
+        mvwprintw(friendsWindow, bottomY + 2, 2, "-> Friend requests (%d)", udm.getNumberFriendRequestsReceived(user));
         wattroff(friendsWindow, COLOR_PAIR(9));
     }
     else {
-        mvwprintw(friendsWindow, bottomY + 2, 2, "   Friend requests (%d)", db.getNumberFriendRequestsReceived(user));
+        mvwprintw(friendsWindow, bottomY + 2, 2, "   Friend requests (%d)", udm.getNumberFriendRequestsReceived(user));
     }
     wrefresh(friendsWindow);
 
@@ -777,12 +771,12 @@ void InterfaceTerminal::enterName() {
         napms(1000);
 
         // Vérifier si la demande d'ami est possible
-        int returnValue = db.verifyRequestFriend(user, namePlayer);
+        int returnValue = udm.verifyFriendRequest(user, namePlayer);
         erase();  // Efface tout avant d'afficher le résultat
 
         // Afficher le résultat de la recherche
         if (returnValue == 0) {
-            if (db.requestFriend(user, namePlayer)) {
+            if (udm.sendFriendRequest(user, namePlayer)) {
                 attron(COLOR_PAIR(2) | A_BOLD);
                 mvprintw(startY + 6, startX, "Friend request sent!");
                 attroff(COLOR_PAIR(2) | A_BOLD);
@@ -796,8 +790,8 @@ void InterfaceTerminal::enterName() {
             mvprintw(startY + 6, startX, "You have already sent a request to %s", namePlayer);
             attroff(COLOR_PAIR(1) | A_BOLD);
         } else if (returnValue == 4) {
-            db.deleteRequestFriend(user, namePlayer);
-            db.addFriend(user, namePlayer);
+            udm.deleteRequestFriend(user, namePlayer);
+            udm.addFriend(user, namePlayer);
             attron(COLOR_PAIR(2) | A_BOLD);
             mvprintw(startY + 6, startX, "%s already requested you, now you're friends!", namePlayer);
             attroff(COLOR_PAIR(2) | A_BOLD);
@@ -948,8 +942,8 @@ int InterfaceTerminal::handleFriendRequests() {
 
     while (!flag) {
 
-        vector<string> requestsReceivedList = db.requestReceivedList(user);
-        vector<string> requestsSentList = db.requestSentList(user);
+        vector<string> requestsReceivedList = udm.getReceivedRequestsList(user);
+        vector<string> requestsSentList = udm.getSentRequestsList(user);
         int numberRequestReceived = std::size(requestsReceivedList);
         int numberRequestSent = std::size(requestsSentList);
         displayFriendRequests(selectedOption, requestsReceivedList, requestsSentList);  //affiche le menu avec les demandes
@@ -972,20 +966,20 @@ int InterfaceTerminal::handleFriendRequests() {
             case 'A':
             case 'a':
               if(selectedOption < numberRequestReceived){
-                db.addFriend(user, requestsReceivedList[selectedOption]);
-                db.deleteRequestFriend(user, requestsReceivedList[selectedOption]);
+                udm.addFriend(user, requestsReceivedList[selectedOption]);
+                udm.deleteRequestFriend(user, requestsReceivedList[selectedOption]);
               }
             break;
             case 'R':
             case 'r':
               if(selectedOption < numberRequestReceived){
-                  db.deleteRequestFriend(user, requestsReceivedList[selectedOption]);
+                  udm.deleteRequestFriend(user, requestsReceivedList[selectedOption]);
               }
             break;
             case 'C':
             case 'c':
               if(numberRequestReceived <= selectedOption && selectedOption < numberRequestSent){
-                  db.deleteRequestFriend(user, requestsSentList[selectedOption]);
+                  udm.deleteRequestFriend(user, requestsSentList[selectedOption]);
               }
             break;
             case 't':
@@ -1026,7 +1020,7 @@ int InterfaceTerminal::handleFriends() {
     }
     while (!flag) {
 
-        vector<string> friendsList = db.friendsList(user);
+        vector<string> friendsList = udm.getFriendsList(user);
         displayFriendsMenu(selectedOption, friendsList);  // affiche le menu avec les options
 
         int ch = getch();    // récupère l'entrée utilisateur
@@ -1065,7 +1059,7 @@ int InterfaceTerminal::handleFriends() {
             case 'd':
             case 'D':
                 if (selectedOption < friendsList.size()) { //On a cliqué sur un des amis
-                    db.deleteFriend(user, friendsList[selectedOption]);
+                    udm.deleteFriend(user, friendsList[selectedOption]);
                 }
                 break;
             case 't':
@@ -1605,7 +1599,7 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
         switch (selectedOption) {
         case 0:
             // Si l'utilisateur sélectionne "Remove Player", on retire l'amis de la liste d'amis.
-            db.deleteFriend(user, friendName);
+            udm.deleteFriend(user, friendName);
             erase();
             printw("Friend removed !\n");
             refresh();

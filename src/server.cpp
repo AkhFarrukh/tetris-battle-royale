@@ -25,7 +25,7 @@ void handle_sigint(int sig) {
         server.udbm.logOut(clientId);//on marque la personne comme deconnecté
         server.udbm.setNotInConversation(clientId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
                                                                                     //comme telle
-        int sock_client = server.udbm.getSockUser(clientId);
+        int sock_client = server.udbm.getUserSocket(clientId);
         int exitType = MessageType::T_ForcedExit;
         int size_ = sizeof(int);
         int bytesSentType = sendAll(sock_client, &exitType, sizeof(int));
