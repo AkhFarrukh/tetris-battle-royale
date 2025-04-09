@@ -9,7 +9,7 @@
 Database::Database(const char* databaseFileName){
     
     // "returnCode" returns 0 (SQLITE_OK) on successful file opening
-    returnCode = sqlite3_open(databaseFileName, &db); 
+    returnCode = sqlite3_open_v2(databaseFileName, &db, SQLITE_OPEN_READWRITE, nullptr); 
     if (returnCode == SQLITE_OK){
         fprintf(stderr, "Database connection established\n");
     }
@@ -101,7 +101,7 @@ void Database::loadStatements(const std::string statementsFileName){
  * @return a statement corresponding to a particular key
  */
 std::string Database::getStatement(const std::string key){
-    std::cout << statements.at(key) << std::endl;
+    std::cout << statements.at(key) << " -> " << strlen(statements.at(key).c_str()) << std::endl;
     return statements.at(key);
 }
 
