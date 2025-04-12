@@ -12,7 +12,7 @@
 #include "MainWindow.hpp"
 
 
-MainWindow::MainWindow(QWidget* parent, int sock) : QMainWindow(parent) , sock(sock){
+MainWindow::MainWindow(QWidget* parent, int sock) : sock(sock), QMainWindow(parent){
     setupUI();
 }
 
@@ -110,8 +110,17 @@ void MainWindow::showLoginScreen() {
 }
 
 void MainWindow::showAuthScreen() {
+    if (authScreen) {
+        stackedWidget->removeWidget(authScreen);
+        authScreen->deleteLater(); // évite les fuites mémoire
+        authScreen = nullptr;
+    }
+
+    setupAuthScreen();
+    stackedWidget->addWidget(authScreen);
     stackedWidget->setCurrentWidget(authScreen);
 }
+
 
 void MainWindow::handleAuth() {
     QString username = usernameInput->text();
@@ -204,7 +213,6 @@ void MainWindow::handleAuth() {
     }
 
     // Connexion réussie !
-    //user = username.toStdString();
     QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
     // TODO : aller à la page suivante (menu, partie, etc.)
 }

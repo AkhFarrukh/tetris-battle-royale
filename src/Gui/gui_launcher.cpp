@@ -7,7 +7,7 @@
 
 int runGuiApp(int argc, char** argv, int sock) {
     QApplication app(argc, argv);
-    MainWindow window;
+    MainWindow window(nullptr, sock);
     window.show();
     return app.exec();
 }
