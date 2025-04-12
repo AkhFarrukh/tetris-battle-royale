@@ -8,12 +8,18 @@
 #include <QVBoxLayout>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QScreen>
 #include "communication.hpp"
 #include "MainWindow.hpp"
 
 
 MainWindow::MainWindow(QWidget* parent, int sock) : sock(sock), QMainWindow(parent){
     setupUI();
+    // Taille plus grande
+    resize(600, 500); // ou setFixedSize si tu veux fixer la taille
+
+    // Centrage sur l'écran principal
+    move(QGuiApplication::primaryScreen()->geometry().center() - frameGeometry().center());
 }
 
 MainWindow::~MainWindow() {}
@@ -21,6 +27,7 @@ MainWindow::~MainWindow() {}
 void MainWindow::setupUI() {
     // Création du widget central avec QStackedWidget
     auto centralWidget = new QWidget(this);
+    centralWidget->setStyleSheet("background-color: #a066cc;"); // violet doux
     auto layout = new QVBoxLayout(centralWidget);
 
     stackedWidget = new QStackedWidget(this);
@@ -28,10 +35,15 @@ void MainWindow::setupUI() {
     // Configuration des écrans
     setupLoginScreen();
     setupAuthScreen();
+    setupMainMenuScreen();
+    setupGameModeScreen();
 
     // Ajouter les pages au QStackedWidget
     stackedWidget->addWidget(loginScreen);
     stackedWidget->addWidget(authScreen);
+    stackedWidget->addWidget(mainMenuScreen); // facultatif si tu le fais déjà dans setup
+    stackedWidget->addWidget(gameModeScreen); // idem
+
 
     layout->addWidget(stackedWidget);
     centralWidget->setLayout(layout);
@@ -43,13 +55,16 @@ void MainWindow::setupUI() {
 
 void MainWindow::setupLoginScreen() {
     loginScreen = new QWidget(this);
+    loginScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
     auto layout = new QVBoxLayout(loginScreen);
 
     QLabel *titleLabel = new QLabel("Welcome !", this);
     layout->addWidget(titleLabel);
 
     QPushButton *loginButton = new QPushButton("Login", this);
+    loginButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
     QPushButton *registerButton = new QPushButton("Register", this);
+    registerButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
 
     layout->addWidget(loginButton);
     layout->addWidget(registerButton);
@@ -69,6 +84,7 @@ void MainWindow::setupLoginScreen() {
 
 void MainWindow::setupAuthScreen() {
     authScreen = new QWidget(this);
+    authScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
     auto layout = new QVBoxLayout(authScreen);
 
     QLabel *usernameLabel = new QLabel("Username:", this);
@@ -94,7 +110,9 @@ void MainWindow::setupAuthScreen() {
     }
 
     QPushButton *submitButton = new QPushButton(isRegisterMode ? "Register" : "Login", this);
+    submitButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
     QPushButton *backButton = new QPushButton("Retour", this);
+    backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
     layout->addWidget(submitButton);
     layout->addWidget(backButton);
 
@@ -120,6 +138,74 @@ void MainWindow::showAuthScreen() {
     stackedWidget->addWidget(authScreen);
     stackedWidget->setCurrentWidget(authScreen);
 }
+
+void MainWindow::setupGameModeScreen() {
+    gameModeScreen = new QWidget(this);
+    gameModeScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
+    auto layout = new QVBoxLayout(gameModeScreen);
+
+    QLabel *titleLabel = new QLabel("Select a Game Mode:", this);
+    layout->addWidget(titleLabel);
+
+    QPushButton *endlessButton = new QPushButton("Endless Mode", this);
+    endlessButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    QPushButton *classicButton = new QPushButton("Classic Mode", this);
+    classicButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    QPushButton *duelButton = new QPushButton("Duel Mode", this);
+    duelButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    QPushButton *royalButton = new QPushButton("Royal Competition Mode", this);
+    royalButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    QPushButton *backButton = new QPushButton("Retour", this);  // <-- Ajout du bouton retour
+    backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+
+
+    layout->addWidget(endlessButton);
+    layout->addWidget(classicButton);
+    layout->addWidget(duelButton);
+    layout->addWidget(royalButton);
+    layout->addWidget(backButton);  // <-- Ajout dans le layout
+
+    connect(backButton, &QPushButton::clicked, this, &MainWindow::showMainMenuScreen); // <-- Connexion du bouton
+
+    gameModeScreen->setLayout(layout);
+    stackedWidget->addWidget(gameModeScreen); // Important !
+}
+
+void MainWindow::showMainMenuScreen() {
+    stackedWidget->setCurrentWidget(mainMenuScreen);
+}
+
+void MainWindow::showGameModeScreen() {
+    stackedWidget->setCurrentWidget(gameModeScreen);
+}
+
+
+void MainWindow::setupMainMenuScreen() {
+    mainMenuScreen = new QWidget(this);
+    mainMenuScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
+    auto layout = new QVBoxLayout(mainMenuScreen);
+
+    QLabel *titleLabel = new QLabel("Main Menu", this);
+    layout->addWidget(titleLabel);
+
+    QPushButton *playButton = new QPushButton("Play", this);
+    playButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    QPushButton *friendsButton = new QPushButton("Handle Friends", this);
+    friendsButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    QPushButton *leaderboardButton = new QPushButton("Leaderboard (Endless Mode)", this);
+    leaderboardButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+
+    layout->addWidget(playButton);
+    layout->addWidget(friendsButton);
+    layout->addWidget(leaderboardButton);
+
+    connect(playButton, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
+
+    mainMenuScreen->setLayout(layout);
+    stackedWidget->addWidget(mainMenuScreen); // Important !
+}
+
+
 
 
 void MainWindow::handleAuth() {
@@ -214,5 +300,5 @@ void MainWindow::handleAuth() {
 
     // Connexion réussie !
     QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
-    // TODO : aller à la page suivante (menu, partie, etc.)
+    showMainMenuScreen();
 }

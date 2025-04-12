@@ -17,6 +17,10 @@ public:
         void showLoginScreen(); // Affiche la page de connexion
     void showAuthScreen();  // Affiche la page Username/Password
     void handleAuth();
+    void setupMainMenuScreen();
+    void setupGameModeScreen();
+    void showGameModeScreen();
+    void showMainMenuScreen();
 private:
     int sock;
     void setupUI();
@@ -33,7 +37,12 @@ private:
     QLineEdit *usernameInput;
     QLineEdit *passwordInput;
     QLineEdit *confirmPasswordInput = nullptr; // champ en plus si Register
-
+    QWidget *mainMenuScreen;
+    QWidget *selectGameModeScreen;
+    QWidget* gameModeScreen;
+    QPushButton *playButton;
+    QPushButton *handleFriendsButton;
+    QPushButton *leaderboardButton;
     bool isRegisterMode = false;
 };
 

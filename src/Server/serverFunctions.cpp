@@ -142,6 +142,7 @@ void* Server::threadRoutineClient(void* arg){
     pthread_t threadGamePID;
     if (successfulLogin){
         // Get user ID and insert user into sessions table
+
         server->udbm.setLogin(client.userId);
         server->udbm.addSession(client.userId, client.client_fd);
 
@@ -153,7 +154,7 @@ void* Server::threadRoutineClient(void* arg){
         bool userIsInGame = false;
 
         while (!flagServ && userIsOnline) {
-            std::cout << "start listening cuh" << std::endl;
+            //std::cout << "start listening cuh" << std::endl;
             //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
 
             //To have info on the data received
@@ -663,6 +664,7 @@ void Server::handleConnexion(Server* server, ClientSession& client, Connexion& c
     // Check if both username and password are correct or not.
     std::string username = connexionData.username;
     std::string password = connexionData.password;
+
     successfulLogin = server->udbm.isCorrectLogin(username.c_str(), password.c_str());
     int typeConnexion;
     int doubleSession;
@@ -689,7 +691,9 @@ void Server::handleRegister(Server* server, ClientSession& client, Connexion& co
         std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
         return;
     }
+    cout << "pseudo: "<<connexionData.username<<" mdp: "<<connexionData.password<<endl;
     bool registered = server->udbm.newAccountCreated(connexionData.username, connexionData.password);
+    cout <<"is registred: "<<registered<<endl;
     if(registered){
         server->notifyAcceptConnexion(server, client, connexionData, successfulLogin);
         if(successfulLogin){
