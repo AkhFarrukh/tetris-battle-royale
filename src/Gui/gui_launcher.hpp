@@ -1,2 +1,2 @@
 #pragma once
-int runGuiApp(int argc, char** argv);
+int runGuiApp(int argc, char** argv, int sock);

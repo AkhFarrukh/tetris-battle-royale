@@ -10,14 +10,15 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr, int sock=-1);
     ~MainWindow();
 
     private slots:
         void showLoginScreen(); // Affiche la page de connexion
     void showAuthScreen();  // Affiche la page Username/Password
-
+    void handleAuth();
 private:
+    int sock;
     void setupUI();
     void setupLoginScreen();
     void setupAuthScreen();
@@ -31,6 +32,9 @@ private:
     QWidget *authScreen;
     QLineEdit *usernameInput;
     QLineEdit *passwordInput;
+    QLineEdit *confirmPasswordInput = nullptr; // champ en plus si Register
+
+    bool isRegisterMode = false;
 };
 
 #endif // MAINWINDOW_HPP

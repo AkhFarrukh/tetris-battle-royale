@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
         //     return 1;
         // }
     
-        return runGuiApp(argc, argv);
+        return runGuiApp(argc, argv, sock);
 
     } else {
         bool playing = false;
