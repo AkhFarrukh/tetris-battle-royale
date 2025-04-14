@@ -8,7 +8,9 @@ $(info COMMON_CXXFLAGS = $(COMMON_CXXFLAGS))
 SRC_DIR = ../src
 SRC_SERVER_DIR = $(SRC_DIR)/Server $(SRC_DIR)/Common
 SRC_CLIENT_DIR = $(SRC_DIR)/Client $(SRC_DIR)/Common
+SRC_GUI_DIR = $(SRC_DIR)/Client/Gui
 BUILD_DIR = ../build
+BUILD_GUI_DIR = $(BUILD_DIR)/Client/Gui
 LIB_DIR = ../lib
 NCURSES_DIR = $(LIB_DIR)/ncurses-install
 SQLITE_DIR = $(LIB_DIR)/sqlite-install
@@ -59,8 +61,8 @@ CLIENT_OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(CLIENT_SRCS))
 
 # --- AUTOMOC ---
 # Détection des fichiers .hpp avec Q_OBJECT
-MOC_HEADERS := $(shell grep -l Q_OBJECT $(SRC_DIR)/Gui/*.hpp 2>/dev/null)
-MOC_CPP := $(patsubst $(SRC_DIR)/Gui/%.hpp, $(BUILD_DIR)/Gui/moc_%.cpp, $(MOC_HEADERS))
+MOC_HEADERS := $(shell grep -l Q_OBJECT $(SRC_GUI_DIR)/*.hpp 2>/dev/null)
+MOC_CPP := $(patsubst $(SRC_GUI_DIR)/%.hpp, $(BUILD_GUI_DIR)/moc_%.cpp, $(MOC_HEADERS))
 MOC_OBJS := $(patsubst %.cpp, %.o, $(MOC_CPP))
 
 CLIENT_OBJS += $(MOC_OBJS)
@@ -83,17 +85,17 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(COMMON_CXXFLAGS) $(QT_CXXFLAGS) -c $< -o $@
 
 # --- MOC generation ---
-$(BUILD_DIR)/Gui/moc_%.cpp: $(SRC_DIR)/Gui/%.hpp
+$(BUILD_GUI_DIR)/moc_%.cpp: $(SRC_GUI_DIR)/%.hpp
 	@mkdir -p $(dir $@)
 	$(MOC) $(QT_CXXFLAGS) $< -o $@
 
 # --- Compile MOC files ---
-$(BUILD_DIR)/Gui/%.o: $(BUILD_DIR)/Gui/%.cpp
+$(BUILD_GUI_DIR)/%.o: $(BUILD_GUI_DIR)/%.cpp
 	$(CXX) $(COMMON_CXXFLAGS) $(QT_CXXFLAGS) -c $< -o $@
 
 # --- CLEAN ---
 clean:
-	rm -rf $(BUILD_DIR)/*.o $(BUILD_DIR)/*/*.o $(BUILD_DIR)/Gui/moc_*.cpp $(SERVER_TARGET) $(CLIENT_TARGET)
+	rm -rf $(BUILD_DIR)/*.o $(BUILD_DIR)/*/*.o $(BUILD_GUI_DIR)/moc_*.cpp $(SERVER_TARGET) $(CLIENT_TARGET)
 
 run: all
 	LD_LIBRARY_PATH=$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LIB_DIR):$$LD_LIBRARY_PATH ./$(CLIENT_TARGET)
