@@ -1,7 +1,9 @@
 #include "tetris.hpp"
+#include "global.hpp"
+#include <atomic>
 
+using namespace std;
 
-atomic<bool> keepRunning = true;
 //Signal handlers
 void handleSigint(int sig)
 {
