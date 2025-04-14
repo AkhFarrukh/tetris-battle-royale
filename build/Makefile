@@ -1,8 +1,6 @@
 # Nom des exécutables finaux
 SERVER_TARGET := ../server.exe
 CLIENT_TARGET := ../tetris.exe
-$(info INCLUDE_DIRS = $(INCLUDE_DIRS))
-$(info COMMON_CXXFLAGS = $(COMMON_CXXFLAGS))
 
 # Dossiers sources et objets
 SRC_DIR = ../src
