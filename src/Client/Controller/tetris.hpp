@@ -22,16 +22,17 @@ using namespace std;
 class Tetris 
 {
     private:
+        atomic<bool>& keepRunning;
         int socketServer;
         atomic<bool> isInGame;
         string username;
     public:
-        Tetris();
+        Tetris(atomic<bool>& keepRunning_);
         ~Tetris();
         
         void exitTetris();
         int createSocket();
         int runTetris(int argc, char **argv);
 
-        int authentification(std::vector<std::string> &dataConnexion, bool &playing, std::shared_ptr<Player::ThreadData> &threadData, int sock, pthread_t &threadID, bool &retFlag);
+        int authentification(std::vector<std::string> &dataConnexion, std::shared_ptr<Player::ThreadData> &threadData, int sock, pthread_t &threadID, bool &retFlag);
 };

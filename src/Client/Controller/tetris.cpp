@@ -2,7 +2,7 @@
 
 
 //Constructor
-Tetris::Tetris():socketServer{-1}, isInGame{false}, username{""}{};
+Tetris::Tetris(atomic<bool>& keepRunning_):keepRunning{keepRunning_},socketServer{-1}, isInGame{false}, username{""}{};
 
 //Destructor
 Tetris::~Tetris()
@@ -69,7 +69,7 @@ int Tetris::createSocket() {
 
 int Tetris::runTetris(int argc, char** argv) {
     // ==== 1. Connexion au serveur ====
-    int socketServer = createSocket();
+    socketServer = createSocket();
     if (socketServer < 0) return 1;
 
     pthread_t threadID;
@@ -81,16 +81,15 @@ int Tetris::runTetris(int argc, char** argv) {
     } 
     else 
     {
-        bool playing = false;
         InterfaceTerminal terminal;
         terminal.setSock(socketServer);
         //Identification auprès de la db
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
         bool retFlag;
-        int retVal = authentification(dataConnexion, playing, threadData, socketServer, threadID, retFlag);
+        int retVal = authentification(dataConnexion, threadData, socketServer, threadID, retFlag);
         if (retFlag)
             return retVal;
-        while(playing && !flag){
+        while(isInGame && !flag){
             //Getting the selected menu in terminal
             int selectedMode = terminal.start();
             if (selectedMode == -1){
@@ -99,7 +98,7 @@ int Tetris::runTetris(int argc, char** argv) {
                 int size_ = sizeof(int);
                 int bytesSentType = sendAll(socketServer, &exitType, sizeof(int));
                 int bytesSentSize = sendAll(socketServer, &size_, sizeof(int));
-                playing = false;
+                isInGame = false;
             }
             else{
                 /*
@@ -195,13 +194,13 @@ int Tetris::runTetris(int argc, char** argv) {
     }
 }
 
-int Tetris::authentification(std::vector<std::string> &dataConnexion, bool &playing, std::shared_ptr<Player::ThreadData> &threadData, int socketServer, pthread_t &threadID, bool &retFlag)
+int Tetris::authentification(std::vector<std::string> &dataConnexion, std::shared_ptr<Player::ThreadData> &threadData, int socketServer, pthread_t &threadID, bool &retFlag)
 {
     retFlag = true;
     if (dataConnexion.size() == 2)
     {
         username = dataConnexion[0];
-        playing = true;
+        isInGame = true;
         threadData->userInGame = false;
         threadData->socket = socketServer;
         threadData->userInLobby = false;
