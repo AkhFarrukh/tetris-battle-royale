@@ -93,7 +93,7 @@ $(BUILD_GUI_DIR)/%.o: $(BUILD_GUI_DIR)/%.cpp
 
 # --- CLEAN ---
 clean:
-	rm -rf $(BUILD_DIR)/*.o $(BUILD_DIR)/*/*.o $(BUILD_GUI_DIR)/moc_*.cpp $(SERVER_TARGET) $(CLIENT_TARGET)
+	rm -rf $(SERVER_OBJS)/*.o $(CLIENT_OBJS)/*.o $(BUILD_GUI_DIR)/moc_*.cpp $(BUILD_GUI_DIR)/moc_*.o $(SERVER_TARGET) $(CLIENT_TARGET)
 
 run: all
 	LD_LIBRARY_PATH=$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LIB_DIR):$$LD_LIBRARY_PATH ./$(CLIENT_TARGET)
