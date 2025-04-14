@@ -47,6 +47,7 @@ COMMON_CXXFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedan
 # Include directories
 INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d)
 COMMON_CXXFLAGS += $(foreach dir,$(INCLUDE_DIRS),-I$(dir))
+COMMON_CXXFLAGS += $(QT_CXXFLAGS)
 
 # Sources
 SERVER_SRCS = $(foreach dir,$(SRC_SERVER_DIR),$(shell find $(dir) -type f -name "*.cpp"))
