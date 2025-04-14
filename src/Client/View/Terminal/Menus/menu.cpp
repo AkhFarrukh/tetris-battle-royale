@@ -22,7 +22,7 @@ void Menu::displayMenu(int optionHovered)
     int titleLength = title.size(); // longueur du titre
 
     attron(A_BOLD); // mettre en gras (via ncurses)
-    mvprintw(startY - 8, (windowWidth - titleLength) / 2, "%s", title);  // titre Afficher au-dessus du cadre
+    mvprintw(startY - 8, (windowWidth - titleLength) / 2, "%s", title.c_str());  // titre Afficher au-dessus du cadre
     attroff(A_BOLD);
 
     // creation d'une fenetre pour le menu ( avec un cadre/bordure)
@@ -34,10 +34,10 @@ void Menu::displayMenu(int optionHovered)
         if (i == optionHovered) {
             // met en evidence l'option selectionnée
             wattron(menuWindow, COLOR_PAIR(9));   // pour activer  mise en blanc de l'option
-            mvwprintw(menuWindow, 3 + i * 2, 2, "-> %d. %s ", i + 1, menuOptions[i].c_str());    // ' * 2 '  pour un avoir espacer un peu plus entre options
+            mvwprintw(menuWindow, 3 + (i - 1) * 2, 2, "-> %d. %s ", i, menuOptions[i].c_str());    // ' * 2 '  pour un avoir espacer un peu plus entre options
             wattroff(menuWindow, COLOR_PAIR(9)); 
         } else {
-            mvwprintw(menuWindow, 3 + i*2 , 2, "   %d. %s ", i + 1, menuOptions[i].c_str());
+            mvwprintw(menuWindow, 3 + (i - 1)*2 , 2, "   %d. %s ", i, menuOptions[i].c_str());
         }
     }
     wrefresh(menuWindow); // Refresh la window
