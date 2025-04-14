@@ -1,50 +1,46 @@
-#include "serverFunctions.hpp"
-#include "InterFaceTerminal.hpp"
-#include "MenuGameModeController.hpp"
-#include <sys/types.h>      //socket
-#include <sys/socket.h>     //socket management
-#include <unistd.h>         //socket
-#include <string>           
-#include <iostream>         //io management
-#include <errno.h>          //errror management
-#include <netinet/in.h>     //ip management
-#include <arpa/inet.h>
-#include <cstring>      // Pour memset
-#include "communication.hpp"    //sendAll & recvAll
-#include "playerFunctions.hpp" //Functions for main
-#include <csignal>      //sigint
-#include <cstdlib>
-
-#include "Gui/gui_launcher.hpp"
-
-using namespace std;
+#include "tetris.hpp"
 
 
-std::string username = "";
-int socket_serveur = -1;
-atomic<bool> isInGame = false;
+//Constructor
+Tetris::Tetris():socketServer{-1}, isInGame{false}, username{""}{};
 
-void handle_sigint(int sig) {
-   flag = true;
-   if(socket_serveur != -1){
-     if(isInGame){
-         int type = MessageType::T_Input;
-         int size = sizeof(InputMessage);
-         InputMessage inputMessage;
-         inputMessage.input = EXIT_KEY;
-         sendAll(socket_serveur, &type, sizeof(int));
-         sendAll(socket_serveur, &size, sizeof(int));
-         sendAll(socket_serveur, &inputMessage, sizeof(InputMessage));
-     }
-    int exitType = MessageType::T_ForcedExit;
-    int size_ = sizeof(int);
-    int bytesSentType = sendAll(socket_serveur, &exitType, sizeof(int));
-    int bytesSentSize = sendAll(socket_serveur, &size_, sizeof(int));}
+//Destructor
+Tetris::~Tetris()
+{
+    exitTetris();
 }
 
-int createSocket() {
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == -1) {
+//Methods
+/**
+ * @brief Properly notify the server that the player's app is closing
+ * 
+ */
+void Tetris::exitTetris() {
+    if(socketServer != -1){
+        if(isInGame){
+            int type = MessageType::T_Input;
+            int size = sizeof(InputMessage);
+            InputMessage inputMessage;
+            inputMessage.input = EXIT_KEY;
+            sendAll(socketServer, &type, sizeof(int));
+            sendAll(socketServer, &size, sizeof(int));
+            sendAll(socketServer, &inputMessage, sizeof(InputMessage));
+        }
+    int exitType = MessageType::T_ForcedExit;
+    int size_ = sizeof(int);
+    int bytesSentType = sendAll(socketServer, &exitType, sizeof(int));
+    int bytesSentSize = sendAll(socketServer, &size_, sizeof(int));
+    }
+}
+
+/**
+ * @brief Connect to the server
+ * 
+ * @return int : socket fd
+ */
+int Tetris::createSocket() {
+    int socketServer = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketServer == -1) {
         perror("Erreur lors de la création du socket : ");
         return -1;
     }
@@ -57,74 +53,43 @@ int createSocket() {
 
     if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
         perror("Adresse invalide : ");
-        close(sock);
+        close(socketServer);
         return -1;
     }
 
-    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+    if (connect(socketServer, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("Échec de la connexion : ");
-        close(sock);
+        close(socketServer);
         return -1;
     }
-    return sock;
+    return socketServer;
 }
 
 
 
-int main(int argc, char** argv) {
-    signal(SIGINT, handle_sigint);
+int Tetris::runTetris(int argc, char** argv) {
     // ==== 1. Connexion au serveur ====
-    int sock = createSocket();
-    if (sock < 0) return 1;
-
-    socket_serveur = sock;
-
+    int socketServer = createSocket();
+    if (socketServer < 0) return 1;
 
     pthread_t threadID;
     std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
     //Game loop
-    if (argc > 1 && std::string(argv[1]) == "--gui") {
-        // threadData->socket = sock;
-        // threadData->userInGame = false;
-        // threadData->userInLobby = false;
-        // if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
-        //     perror("Error on thread creation : ");
-        //     close(sock);
-        //     return 1;
-        // }
-    
+    if (argc > 1 && std::string(argv[1]) == "--gui") 
+    {
         return runGuiApp(argc, argv);
-
-    } else {
+    } 
+    else 
+    {
         bool playing = false;
         InterfaceTerminal terminal;
-        socket_serveur = sock;
-        terminal.setSock(socket_serveur);
+        terminal.setSock(socketServer);
         //Identification auprès de la db
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
-        if(dataConnexion.size()==2){
-            username = dataConnexion[0];
-            playing = true;
-            threadData->userInGame = false;
-            threadData->socket = sock;
-            threadData->userInLobby = false;
-            if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
-                perror("Error on thread creation : ");
-                close(sock); // Fermer le socket après utilisation
-                return 0;
-            }
-        }else{
-            std::cout << "Echec de la connexion au compte.\n";
-            nocbreak();
-            keypad(stdscr, false);
-            curs_set(1);
-            nodelay(stdscr, false);
-            system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
-            close(sock); // Fermer le socket après utilisation
-            std::string command = "clear";
-            int result = system(command.c_str());
-            return 0;
-        }
+        bool retFlag;
+        int retVal = authentification(dataConnexion, playing, threadData, socketServer, threadID, retFlag);
+        if (retFlag)
+            return retVal;
         while(playing && !flag){
             //Getting the selected menu in terminal
             int selectedMode = terminal.start();
@@ -132,8 +97,8 @@ int main(int argc, char** argv) {
                 //Quit game
                 int exitType = MessageType::T_ForcedExit;
                 int size_ = sizeof(int);
-                int bytesSentType = sendAll(socket_serveur, &exitType, sizeof(int));
-                int bytesSentSize = sendAll(socket_serveur, &size_, sizeof(int));
+                int bytesSentType = sendAll(socketServer, &exitType, sizeof(int));
+                int bytesSentSize = sendAll(socketServer, &size_, sizeof(int));
                 playing = false;
             }
             else{
@@ -175,15 +140,15 @@ int main(int argc, char** argv) {
                     menu.action = MenuActions::A_JoinRoom;
                 }
                 //Sending info to server
-                if(sendAll(sock, &type, sizeof(int)) == false){
+                if(sendAll(socketServer, &type, sizeof(int)) == false){
                     perror("Error sending menu info : ");
                     return 1;
                 }
-                if(sendAll(sock, &size, sizeof(int)) == false){
+                if(sendAll(socketServer, &size, sizeof(int)) == false){
                     perror("Error sending menu info : ");
                     return 1;
                 }
-                if(sendAll(sock, &menu, sizeof(Menu)) == false){
+                if(sendAll(socketServer, &menu, sizeof(Menu)) == false){
                     perror("Error sending menu info : ");
                     return 1;
                 }
@@ -201,15 +166,15 @@ int main(int argc, char** argv) {
                 if(menu.action == MenuActions::A_CreateRoom){
                     int sendType = MessageType::T_RoomDeleted;
                     int sendSize = sizeof(int);
-                    if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
-                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+                    if(!sendAll(socketServer, &sendType, sizeof(sendType))){flag = true; break;}
+                    if(!sendAll(socketServer, &sendSize, sizeof(sendSize))){flag = true; break;}
                 }
 
             }
         }
 
         flag = true;//thread principal a terminé et va demander à threadLecture de se terminer.
-        shutdown(sock, SHUT_RD);
+        shutdown(socketServer, SHUT_RD);
         pthread_join(threadID, nullptr);
 
         ///**********************************************************************************
@@ -222,7 +187,7 @@ int main(int argc, char** argv) {
         curs_set(1);
         nodelay(stdscr, false);
         system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
-        close(sock); // Fermer le socket après utilisation
+        close(socketServer); // Fermer le socket après utilisation
         std::string command = "clear";
         int result = system(command.c_str());
         return 0;
@@ -230,18 +195,36 @@ int main(int argc, char** argv) {
     }
 }
 
-/**
- * @brief Manière d'envoyer un message au serv
- * Def a type   : int type = MessageType::Input
- * Def the size : int size = sizeof(struct Input)
- * 
- * send (sock, &type, sizeof(int), 0);
- * send (sock, &size, sizeof(int), 0);
- * send (sock, &messageOfTypeInput, sizeof(Input), 0)
- * 
- * NB : Le faire avec sendAll mais le principe reste le même
- */
-
-
-
-
+int Tetris::authentification(std::vector<std::string> &dataConnexion, bool &playing, std::shared_ptr<Player::ThreadData> &threadData, int socketServer, pthread_t &threadID, bool &retFlag)
+{
+    retFlag = true;
+    if (dataConnexion.size() == 2)
+    {
+        username = dataConnexion[0];
+        playing = true;
+        threadData->userInGame = false;
+        threadData->socket = socketServer;
+        threadData->userInLobby = false;
+        if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0)
+        {
+            perror("Error on thread creation : ");
+            close(socketServer); // Fermer le socket après utilisation
+            return 0;
+        }
+    }
+    else
+    {
+        std::cout << "Echec de la connexion au compte.\n";
+        nocbreak();
+        keypad(stdscr, false);
+        curs_set(1);
+        nodelay(stdscr, false);
+        system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
+        close(socketServer);         // Fermer le socket après utilisation
+        std::string command = "clear";
+        int result = system(command.c_str());
+        return 0;
+    }
+    retFlag = false;
+    return 0;
+}
