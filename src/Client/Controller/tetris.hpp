@@ -19,15 +19,16 @@
 
 using namespace std;
 
+extern atomic<bool> keepRunning; // to stop the program (if ctrl C for example)
+
 class Tetris 
 {
     private:
-        atomic<bool>& keepRunning;
         int socketServer;
         atomic<bool> isInGame;
         string username;
     public:
-        Tetris(atomic<bool>& keepRunning_);
+        Tetris();
         ~Tetris();
         
         void exitTetris();

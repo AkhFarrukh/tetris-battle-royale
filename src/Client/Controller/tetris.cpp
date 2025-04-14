@@ -2,7 +2,7 @@
 
 
 //Constructor
-Tetris::Tetris(atomic<bool>& keepRunning_):keepRunning{keepRunning_},socketServer{-1}, isInGame{false}, username{""}{};
+Tetris::Tetris():socketServer{-1}, isInGame{false}, username{""}{};
 
 //Destructor
 Tetris::~Tetris()
@@ -89,8 +89,8 @@ int Tetris::runTetris(int argc, char** argv) {
         int retVal = authentification(dataConnexion, threadData, socketServer, threadID, retFlag);
         if (retFlag)
             return retVal;
-        while(isInGame && !flag){
-            //Getting the selected menu in terminal
+        while(isInGame && keepRunning){
+            //Getting the selected MenuMessage in terminal
             int selectedMode = terminal.start();
             if (selectedMode == -1){
                 //Quit game
@@ -102,58 +102,58 @@ int Tetris::runTetris(int argc, char** argv) {
             }
             else{
                 /*
-                *SHOULD BE ELSE IF AND CHANGE DEPENDING ON MENU CLICKED
+                *SHOULD BE ELSE IF AND CHANGE DEPENDING ON MenuMessage CLICKED
                 */
                 //Ask to start a game
                 int type = MessageType::T_Menu;
-                int size = sizeof(Menu);
+                int size = sizeof(MenuMessage);
                 //Defining the struct we will send  
-                Menu menu;
-                menu.action = MenuActions::A_Play;
+                MenuMessage MenuMessage;
+                MenuMessage.action = MenuActions::A_Play;
                 if(selectedMode == 0){
-                    menu.mode = Modes::Endless_;
+                    MenuMessage.mode = Modes::Endless_;
                     //napms(500);
                 }
                 else if(selectedMode == 10){
-                    menu.mode = Modes::Classic_;
-                    menu.action = MenuActions::A_CreateRoom;
+                    MenuMessage.mode = Modes::Classic_;
+                    MenuMessage.action = MenuActions::A_CreateRoom;
                 }
                 else if(selectedMode == 11){
-                    menu.mode = Modes::Classic_;
-                    menu.action = MenuActions::A_JoinRoom;
+                    MenuMessage.mode = Modes::Classic_;
+                    MenuMessage.action = MenuActions::A_JoinRoom;
                 }
                 else if(selectedMode == 20){
-                    menu.mode = Modes::Duel_;
-                    menu.action = MenuActions::A_CreateRoom;
+                    MenuMessage.mode = Modes::Duel_;
+                    MenuMessage.action = MenuActions::A_CreateRoom;
                 }
                 else if(selectedMode == 21){
-                    menu.mode = Modes::Duel_;
-                    menu.action = MenuActions::A_JoinRoom;
+                    MenuMessage.mode = Modes::Duel_;
+                    MenuMessage.action = MenuActions::A_JoinRoom;
                 }
                 else if(selectedMode == 30){
-                    menu.mode = Modes::Royal_;
-                    menu.action = MenuActions::A_CreateRoom;
+                    MenuMessage.mode = Modes::Royal_;
+                    MenuMessage.action = MenuActions::A_CreateRoom;
                 }
                 else if(selectedMode == 31){
-                    menu.mode = Modes::Royal_;
-                    menu.action = MenuActions::A_JoinRoom;
+                    MenuMessage.mode = Modes::Royal_;
+                    MenuMessage.action = MenuActions::A_JoinRoom;
                 }
                 //Sending info to server
                 if(sendAll(socketServer, &type, sizeof(int)) == false){
-                    perror("Error sending menu info : ");
+                    perror("Error sending MenuMessage info : ");
                     return 1;
                 }
                 if(sendAll(socketServer, &size, sizeof(int)) == false){
-                    perror("Error sending menu info : ");
+                    perror("Error sending MenuMessage info : ");
                     return 1;
                 }
-                if(sendAll(socketServer, &menu, sizeof(Menu)) == false){
-                    perror("Error sending menu info : ");
+                if(sendAll(socketServer, &MenuMessage, sizeof(MenuMessage)) == false){
+                    perror("Error sending MenuMessage info : ");
                     return 1;
                 }
                 threadData->mux.lock();
                 threadData->userInLobby = true;
-                threadData->gameMode = menu.mode;
+                threadData->gameMode = MenuMessage.mode;
                 threadData->mux.unlock();
 
                 Player::sendInput(threadData);
@@ -162,17 +162,17 @@ int Tetris::runTetris(int argc, char** argv) {
                 threadData->userInLobby = false;
                 threadData->mux.unlock();
                 napms(600);
-                if(menu.action == MenuActions::A_CreateRoom){
+                if(MenuMessage.action == MenuActions::A_CreateRoom){
                     int sendType = MessageType::T_RoomDeleted;
                     int sendSize = sizeof(int);
-                    if(!sendAll(socketServer, &sendType, sizeof(sendType))){flag = true; break;}
-                    if(!sendAll(socketServer, &sendSize, sizeof(sendSize))){flag = true; break;}
+                    if(!sendAll(socketServer, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                    if(!sendAll(socketServer, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
                 }
 
             }
         }
 
-        flag = true;//thread principal a terminé et va demander à threadLecture de se terminer.
+        keepRunning = false;//thread principal a terminé et va demander à threadLecture de se terminer.
         shutdown(socketServer, SHUT_RD);
         pthread_join(threadID, nullptr);
 

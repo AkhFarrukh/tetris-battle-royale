@@ -51,8 +51,8 @@ class Server{
         void handleLeftRoom(Server* server, ClientSession& client);
         void handleRefresh(Server* server, ClientSession& client, bool& userIsOnline, bool& owner);
         void handleForceStart(Server* server, ClientSession& client, bool& userIsOnline, pthread_t& threadGamePID);
-        void handleGetRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu);
-        void handleCreateRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu, shared_ptr<EventQueue> eventQueue);
+        void handleGetRoom(Server* server, ClientSession& client, bool& userIsOnline, MenuMessage& MenuMessage);
+        void handleCreateRoom(Server* server, ClientSession& client, bool& userIsOnline, MenuMessage& MenuMessage, shared_ptr<EventQueue> eventQueue);
         void handleDeleteRoom(Server* server, ClientSession& client);
         void handlePlay(Server* server, ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, ThreadGameData& threadGameData);
         void handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue);

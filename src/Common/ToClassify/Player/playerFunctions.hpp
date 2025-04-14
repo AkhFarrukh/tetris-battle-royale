@@ -22,11 +22,12 @@
 #include <atomic>
 #include "InterFaceTerminal.hpp"
 #include "RenderRooms.hpp"
+#include "input.hpp"
+#include <fcntl.h>
 
 using namespace std;
 //pthread_mutex_t mutexPlayer = PTHREAD_MUTEX_INITIALIZER;
-extern atomic<bool> flag;
-
+extern atomic<bool> keepRunning; // to stop the program (if ctrl C for example)
 class Player {
     public:
         struct ThreadData {

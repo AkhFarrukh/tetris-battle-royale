@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <mutex>
 #include <atomic>
-
+#include "menu.hpp"
 
 extern std::mutex interfaceMutex;
 extern Database db;

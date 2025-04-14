@@ -63,50 +63,9 @@ void InterfaceTerminal::initNcurses() {
  
  void InterfaceTerminal::displayMenu(int selectedOption) const {
     
-    const char* menuOptions[] = { "Play", "Handle friends", "Leaderboard (Endless Mode)" };
-    int numberPossibleOptions = std::size(menuOptions);  //  nombre d'options du menu
-    
-    int width = COLS;   // largeur et hauteur de la windows (via ncurses)
-    int height = LINES;
-    int menuWidth = 40;  // largeur menu principal
-    int menuHeight = 10; // hauteur menu
-
-    // position de depart du menu pour un bon cadrage
-    int startX = (width - menuWidth) / 2;
-    int startY = (height - menuHeight) / 2;
-
-    const char* title = "Welcome to Tetris Royale (Terminal Edition)";
-    int titleLength = strlen(title);
-
-    attron(A_BOLD); // mettre en gras (via ncurses)
-    mvprintw(startY - 8, (width - titleLength) / 2, "%s", title);  // titre Afficher au-dessus du cadre
-    attroff(A_BOLD);
-
-    // creation d'une fenetre pour le menu ( avec un cadre/bordure)
-    WINDOW* menuWindow = newwin(menuHeight, menuWidth, startY, startX);
-    box(menuWindow, 0, 0);  // dessine le cadre
-
-    // Display menu options
-    for (int i = 0; i < numberPossibleOptions; ++i) {
-        if (i == selectedOption) {
-            // met en evidence l'option selectionnée
-            wattron(menuWindow, COLOR_PAIR(9));   // pour activer  mise en blanc de l'option
-            mvwprintw(menuWindow, 3 + i * 2, 2, "-> %d. %s ", i + 1, menuOptions[i]);    // ' * 2 '  pour un avoir espacer un peu plus entre options
-            wattroff(menuWindow, COLOR_PAIR(9)); 
-        } else {
-            mvwprintw(menuWindow, 3 + i*2 , 2, "   %d. %s ", i + 1, menuOptions[i]);
-        }
-    }
-    wrefresh(menuWindow); // Refresh la window
-
-    mvprintw(startY + menuHeight+ 3, (width - 35) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
-    mvprintw(startY + menuHeight + 4, (width - 35) / 2, "Press ENTER to select an action");
-    mvprintw(startY + menuHeight + 5, (width - 35) / 2, "Press 'q' to quit");
-    mvprintw(startY + menuHeight + 6, (width - 35) / 2, "Press 't' to open the chat");
-    
-    refresh();
-    
-    delwin(menuWindow); // detruire pour libererr mememoire
+    vector<string> menuOptions = { "Welcome to Tetris Royale (Terminal Edition)", "Play", "Handle friends", "Leaderboard (Endless Mode)" };
+    Menu menuMain("Main Menu", menuOptions, COLS, LINES, 40, 10);
+    menuMain.displayMenu(selectedOption); // Affiche le menu principal
 }
 
 
