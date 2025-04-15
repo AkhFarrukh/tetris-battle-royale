@@ -1254,7 +1254,6 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
 
     while (!flag) {
         erase();
-        displayFriendOptions(selectedOption);
 
         int ch = getch();    // récupère l'entrée utilisateur
         switch (ch) {

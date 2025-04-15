@@ -172,7 +172,13 @@ void Menu::displayFriendRequestsMenu(int selectedOption, vector<string>& request
     delwin(requestWindow);
 }
 
-
+/**
+ * @brief S'occupe des particularité d'affichage du friends menu
+ * 
+ * @param menuWindow 
+ * @param optionHovered 
+ * @param numberFRR friend requests received number
+ */
 void Menu::displayFriendsMenu(WINDOW* menuWindow, int& optionHovered, int& numberFRR)
 {
     int bottomY = menuHeight - 4;
