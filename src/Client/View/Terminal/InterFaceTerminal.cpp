@@ -508,75 +508,16 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
  * @return Retourne 0 si l'utilisateur quitte normalement, ou -1 en cas d'erreur lors de l'ouverture.
  */
  void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> friends) {
-    //erase();
-    
-    int width = COLS;   // Largeur et hauteur de la fenêtre (via ncurses)
-    int height = LINES;
-    int menuWidth = 50;  // Largeur du menu des amis
-    int menuHeight = 20; // Hauteur du menu
 
-    // Position pour centrer le cadre
-    int startX = (width - menuWidth) / 2;
-    int startY = (height - menuHeight - 3) / 2 ;
-
-    const char* title = "Friends list:";
-    attron(COLOR_PAIR(2) | A_BOLD);
-    mvprintw(startY - 2, startX, "%s", title);  // Titre aligné avec le cadre
-    attroff(COLOR_PAIR(2) | A_BOLD);
-
-    // fenêtre pour le menu des amis
-    WINDOW* friendsWindow = newwin(menuHeight, menuWidth, startY, startX);
-    box(friendsWindow, 0, 0);  // Dessiner le cadre
-
-    int numberFriends = friends.size();  // Nombre d'amis
-
-    // pour afficher les amis
-    if (numberFriends == 0) {
-        mvwprintw(friendsWindow, 2, 2, "Empty friends list");
-    } else {
-        for (int i = 0; i < numberFriends; ++i) {
-            if (i == selectedOption) {
-                wattron(friendsWindow, COLOR_PAIR(9));
-                mvwprintw(friendsWindow, 2 + i, 2, "-> %d. %s", i + 1, friends[i].c_str());
-                wattroff(friendsWindow, COLOR_PAIR(9));
-            } else {
-                mvwprintw(friendsWindow, 2 + i, 2, "   %d. %s", i + 1, friends[i].c_str());
-            }
-        }
+    vector<string> menuOptions = { "Friends list:"};
+    for (auto& friend_ : friends) {
+        menuOptions.push_back(friend_);
     }
+    Menu menuGameMode(Menus::FriendsMenu, menuOptions, COLS, LINES, 50, 20);
 
-    // pour ajouter des options en bas du cadre  (car si il y a trop d'amis --> cadre trop petit)
-    int bottomY = menuHeight - 4;
-    if (selectedOption == numberFriends) {
-        wattron(friendsWindow, COLOR_PAIR(9));
-        mvwprintw(friendsWindow, bottomY, 2, "-> Add new friend");
-        wattroff(friendsWindow, COLOR_PAIR(9));
-    }
-    else {
-        mvwprintw(friendsWindow, bottomY, 2, "   Add new friend");
-    }
+    int numberFRR = db.getNumberFriendRequestsReceived(user);
 
-    if (selectedOption == numberFriends + 1) {
-        wattron(friendsWindow, COLOR_PAIR(9));
-        mvwprintw(friendsWindow, bottomY + 2, 2, "-> Friend requests (%d)", db.getNumberFriendRequestsReceived(user));
-        wattroff(friendsWindow, COLOR_PAIR(9));
-    }
-    else {
-        mvwprintw(friendsWindow, bottomY + 2, 2, "   Friend requests (%d)", db.getNumberFriendRequestsReceived(user));
-    }
-    wrefresh(friendsWindow);
-
-    // Instructions sous le cadre
-    mvprintw(startY + menuHeight + 2, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");
-    mvprintw(startY + menuHeight + 3, (width - 45) / 2, "Press ENTER to select an option");
-    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press 'd' to delete the friend");
-    mvprintw(startY + menuHeight + 5, (width - 45) / 2, "Press 'q' to quit");
-
-    if ((user != ""))
-        mvprintw(startY + menuHeight + 6, (width - 45) / 2, "Press 't' to open the message box");
-
-    refresh();
-    delwin(friendsWindow);
+    menuGameMode.displayMenu(selectedOption, {}, numberFRR); // Affiche le menu principal
 }
 
 

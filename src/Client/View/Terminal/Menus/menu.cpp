@@ -12,7 +12,7 @@ Menu::Menu(Menus menuName_, vector<string> menuOptions_, int windowWidth_, int w
  * 
  * @param optionHovered option qui est "surlignée"
  */
-void Menu::displayMenu(int optionHovered, std::vector<std::pair<std::string, int>> scores)
+void Menu::displayMenu(int optionHovered, std::vector<std::pair<std::string, int>> scores, int numberFRR)
 {
     // position de depart du menu pour un bon cadrage
     int startX = (windowWidth - menuWidth) / 2;
@@ -32,6 +32,11 @@ void Menu::displayMenu(int optionHovered, std::vector<std::pair<std::string, int
     if (menuName == Menus::LeaderboardMenu)
     {
         displayLeaderboard(menuWindow, scores); // Afficher le leaderboard
+    }
+    else if (menuName == Menus::FriendsMenu)
+    {
+        displayClassicMenu(menuWindow, optionHovered);
+        displayFriendsMenu(menuWindow, optionHovered, numberFRR); // Afficher le menu des amis
     }
     else 
     {
@@ -166,6 +171,30 @@ void Menu::displayFriendRequestsMenu(int selectedOption, vector<string>& request
     refresh();
     delwin(requestWindow);
 }
+
+
+void Menu::displayFriendsMenu(WINDOW* menuWindow, int& optionHovered, int& numberFRR)
+{
+    int bottomY = menuHeight - 4;
+    if (optionHovered == numberOfOptions) {
+        wattron(menuWindow, COLOR_PAIR(9));
+        mvwprintw(menuWindow, bottomY, 2, "-> Add new friend");
+        wattroff(menuWindow, COLOR_PAIR(9));
+    }
+    else {
+        mvwprintw(menuWindow, bottomY, 2, "   Add new friend");
+    }
+
+    if (optionHovered == numberOfOptions + 1) {
+        wattron(menuWindow, COLOR_PAIR(9));
+        mvwprintw(menuWindow, bottomY + 2, 2, "-> Friend requests (%d)", numberFRR);
+        wattroff(menuWindow, COLOR_PAIR(9));
+    }
+    else {
+        mvwprintw(menuWindow, bottomY + 2, 2, "   Friend requests (%d)", numberFRR);
+    }
+}
+
 
 
 
