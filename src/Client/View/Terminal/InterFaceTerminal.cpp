@@ -1495,47 +1495,8 @@ int InterfaceTerminal::start() {
 }
 
 void InterfaceTerminal::displayLeaderboard() {
-    erase();
-    refresh();
-    while (!flag) {
-        // Définition des dimensions et positions du cadre
-        int width = COLS;
-        int height = LINES;
-        int boxWidth = 50;
-        int boxHeight = 12;
-        int startX = (width - boxWidth) / 2;
-        int startY = (height - boxHeight) / 2;
-
-        // Création de la fenêtre pour afficher le leaderboard
-        WINDOW *leaderboardWin = newwin(boxHeight, boxWidth, startY, startX);
-        box(leaderboardWin, 0, 0);
-
-        // Affichage du titre centré
-        attron(COLOR_PAIR(2) | A_BOLD);
-        mvprintw(startY - 2, startX + (boxWidth - 43) / 2, "🏆 Leaderboard: Top Endless Mode Players 🏆");
-        attroff(COLOR_PAIR(2) | A_BOLD);
-
-        // Récupération des scores
-        std::vector<std::pair<std::string, int>> scores = udm.getTopScores(5);
-
-        if (scores.empty()) {
-            mvwprintw(leaderboardWin, 3, 2, "No scores recorded yet.");
-        } else {
-            for (size_t i = 0; i < scores.size(); i++) {
-                mvwprintw(leaderboardWin, 3 + i, 2, "%d. %-15s - %d points", i + 1, scores[i].first.c_str(), scores[i].second);
-            }
-        }
-
-        // Instruction pour quitter
-        mvprintw(startY + boxHeight + 1, startX, "Press 'q' to return to menu...");
-        wrefresh(leaderboardWin);
-
-        int ch = getch();
-        if (ch == 'q' || ch == 'Q') {
-            delwin(leaderboardWin);
-            break;
-        }
-        napms(100);  // Petite pause pour éviter une consommation CPU excessive
-    }
-    refresh();
+    std::vector<std::pair<std::string, int>> scores = udm.getTopScores(5);
+    vector<string> menuOptions = { "Leaderboard: Top Endless Mode Players" };
+    Menu menuGameMode(Menus::LeaderboardMenu, menuOptions, COLS, LINES, 50, 12);
+    menuGameMode.displayMenu(0, scores); // Affiche le menu principal
 }

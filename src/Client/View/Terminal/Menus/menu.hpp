@@ -14,6 +14,7 @@ enum class Menus {
     GameModeMenu,
     JoinCreateMenu,
     LoginMenu,
+    LeaderboardMenu,
 
 };
 
@@ -33,8 +34,10 @@ class Menu
         Menu(Menus menuName_, vector<string> menuOptions_, int windowWidth_, int windowHeight_, int menuWidth_, int menuHeight_);
         ~Menu() = default;
 
-        void displayMenu(int menuHovered);
+        void displayMenu(int optionHovered, std::vector<std::pair<std::string, int>> scores = {});
         void displayMenuControls(WINDOW* menuWindow);
+        void displayClassicMenu(WINDOW* menuWindow, int& optionHovered);
+        void displayLeaderboard(WINDOW* menuWindow, std::vector<std::pair<std::string, int>>& scores);
 
 };
 

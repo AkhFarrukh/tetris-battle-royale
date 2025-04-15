@@ -12,7 +12,7 @@ Menu::Menu(Menus menuName_, vector<string> menuOptions_, int windowWidth_, int w
  * 
  * @param optionHovered option qui est "surlignée"
  */
-void Menu::displayMenu(int optionHovered)
+void Menu::displayMenu(int optionHovered, std::vector<std::pair<std::string, int>> scores)
 {
     // position de depart du menu pour un bon cadrage
     int startX = (windowWidth - menuWidth) / 2;
@@ -29,16 +29,13 @@ void Menu::displayMenu(int optionHovered)
     WINDOW* menuWindow = newwin(menuHeight, menuWidth, startY, startX);
     box(menuWindow, 0, 0);  // dessine le cadre
 
-    // Display menu options
-    for (int i = 1; i < numberOfOptions; ++i) {
-        if (i == optionHovered) {
-            // met en evidence l'option selectionnée
-            wattron(menuWindow, COLOR_PAIR(9));   // pour activer  mise en blanc de l'option
-            mvwprintw(menuWindow, 3 + (i - 1) * 2, 2, "-> %d. %s ", i, menuOptions[i].c_str());    // ' * 2 '  pour un avoir espacer un peu plus entre options
-            wattroff(menuWindow, COLOR_PAIR(9)); 
-        } else {
-            mvwprintw(menuWindow, 3 + (i - 1)*2 , 2, "   %d. %s ", i, menuOptions[i].c_str());
-        }
+    if (menuName == Menus::LeaderboardMenu)
+    {
+        displayLeaderboard(menuWindow, scores); // Afficher le leaderboard
+    }
+    else 
+    {
+        displayClassicMenu(menuWindow, optionHovered); // Afficher le menu classique
     }
     displayMenuControls(menuWindow); // Afficher les controles du menu
     wrefresh(menuWindow); // Refresh la window
@@ -62,4 +59,33 @@ void Menu::displayMenuControls(WINDOW* menuWindow)
     mvprintw(startY + menuHeight + 4, (windowWidth - 45) / 2, "Press ENTER to select an action");
     mvprintw(startY + menuHeight + 5, (windowWidth - 45) / 2, "Press 'q' to quit");
     mvprintw(startY + menuHeight + 6, (windowWidth - 45) / 2, "Press 't' to open the chat");
+}
+
+void Menu::displayClassicMenu(WINDOW* menuWindow, int& optionHovered)
+{
+    // Display menu options
+    for (int i = 1; i < numberOfOptions; ++i) {
+        if (i == optionHovered) {
+            // met en evidence l'option selectionnée
+            wattron(menuWindow, COLOR_PAIR(9));   // pour activer  mise en blanc de l'option
+            mvwprintw(menuWindow, 3 + (i - 1) * 2, 2, "-> %d. %s ", i, menuOptions[i].c_str());    // ' * 2 '  pour un avoir espacer un peu plus entre options
+            wattroff(menuWindow, COLOR_PAIR(9)); 
+        } else {
+            mvwprintw(menuWindow, 3 + (i - 1)*2 , 2, "   %d. %s ", i, menuOptions[i].c_str());
+        }
+    }
+}
+
+void Menu::displayLeaderboard(WINDOW* menuWindow, std::vector<std::pair<std::string, int>>& scores)
+{
+    // Récupération des scores
+    if (scores.empty()) {
+        mvwprintw(menuWindow, 3, 2, "No scores recorded yet.");
+    } else {
+        for (size_t i = 0; i < scores.size(); i++) {
+            mvwprintw(menuWindow, 3 + i, 2, "%d. %-15s - %d points", i + 1, scores[i].first.c_str(), scores[i].second);
+        }
+    }
+    wrefresh(menuWindow); // Refresh la window
+    refresh();
 }
