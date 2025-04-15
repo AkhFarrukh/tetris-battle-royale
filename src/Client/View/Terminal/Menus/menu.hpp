@@ -15,6 +15,8 @@ enum class Menus {
     JoinCreateMenu,
     LoginMenu,
     LeaderboardMenu,
+    FriendRequestMenu,
+
 
 };
 
@@ -38,6 +40,7 @@ class Menu
         void displayMenuControls(WINDOW* menuWindow);
         void displayClassicMenu(WINDOW* menuWindow, int& optionHovered);
         void displayLeaderboard(WINDOW* menuWindow, std::vector<std::pair<std::string, int>>& scores);
+        void displayFriendRequestsMenu(int selectedOption, vector<string>& requestsReceived, vector<string>& requestsSent);
 
 };
 

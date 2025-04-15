@@ -43,24 +43,46 @@ void Menu::displayMenu(int optionHovered, std::vector<std::pair<std::string, int
     delwin(menuWindow); // detruire pour liberer memoire
 }
 
-
+/**
+ * @brief affiche les controles du menu
+ * 
+ * @param menuWindow 
+ */
 void Menu::displayMenuControls(WINDOW* menuWindow)
 {
+    int startY = (windowHeight - menuHeight) / 2;
     if (menuName == Menus::LoginMenu)
     {  
         mvwprintw(menuWindow, 1, 2, "Log in or Register here:");
+        mvprintw(startY + menuHeight+ 3, (windowWidth - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
+        mvprintw(startY + menuHeight + 4, (windowWidth - 45) / 2, "Press ENTER to select an action");
+        mvprintw(startY + menuHeight + 5, (windowWidth - 45) / 2, "Press 'q' to quit");
+        mvprintw(startY + menuHeight + 6, (windowWidth - 45) / 2, "Press 't' to open the chat");
     }
-    else
+    else if(menuName == Menus::FriendRequestMenu)
     {
-
+        mvprintw(startY + menuHeight + 1, (COLS - 50) / 2, "Use UP and DOWN arrow keys to navigate");
+        mvprintw(startY + menuHeight + 2, (COLS - 50) / 2, "Press 'A' to accept the request");
+        mvprintw(startY + menuHeight + 3, (COLS - 50) / 2, "Press 'R' to refuse");
+        mvprintw(startY + menuHeight + 4, (COLS - 50) / 2, "Press 'C' to cancel a sent friend request");
+        mvprintw(startY + menuHeight + 5, (COLS - 50) / 2, "Press 'q' to quit");
+        mvprintw(startY + menuHeight + 6, (COLS - 50) / 2, "Press 't' to open the message box");
     }
-    int startY = (windowHeight - menuHeight) / 2;
-    mvprintw(startY + menuHeight+ 3, (windowWidth - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
-    mvprintw(startY + menuHeight + 4, (windowWidth - 45) / 2, "Press ENTER to select an action");
-    mvprintw(startY + menuHeight + 5, (windowWidth - 45) / 2, "Press 'q' to quit");
-    mvprintw(startY + menuHeight + 6, (windowWidth - 45) / 2, "Press 't' to open the chat");
+    else 
+    {
+        mvprintw(startY + menuHeight+ 3, (windowWidth - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
+        mvprintw(startY + menuHeight + 4, (windowWidth - 45) / 2, "Press ENTER to select an action");
+        mvprintw(startY + menuHeight + 5, (windowWidth - 45) / 2, "Press 'q' to quit");
+        mvprintw(startY + menuHeight + 6, (windowWidth - 45) / 2, "Press 't' to open the chat");
+    }
 }
 
+/**
+ * @brief Affiche le menu classique
+ * 
+ * @param menuWindow 
+ * @param optionHovered option qui est "surlignée"
+ */
 void Menu::displayClassicMenu(WINDOW* menuWindow, int& optionHovered)
 {
     // Display menu options
@@ -76,6 +98,12 @@ void Menu::displayClassicMenu(WINDOW* menuWindow, int& optionHovered)
     }
 }
 
+/**
+ * @brief Affiche le leaderboard
+ * 
+ * @param menuWindow 
+ * @param scores contient les meilleurs scores
+ */
 void Menu::displayLeaderboard(WINDOW* menuWindow, std::vector<std::pair<std::string, int>>& scores)
 {
     // Récupération des scores
@@ -89,3 +117,56 @@ void Menu::displayLeaderboard(WINDOW* menuWindow, std::vector<std::pair<std::str
     wrefresh(menuWindow); // Refresh la window
     refresh();
 }
+
+/**
+ * @brief Affiche le menu des demandes d'amis
+ * 
+ * @param selectedOption option qui est "surlignée"
+ * @param requestsReceived demandes d'amis reçues
+ * @param requestsSent demandes d'amis envoyées
+ */
+void Menu::displayFriendRequestsMenu(int selectedOption, vector<string>& requestsReceived, vector<string>& requestsSent)
+{
+    int startX = (COLS - menuWidth)/ 2;
+    int startY = (LINES - menuHeight - 10) / 2;
+
+    // Créer une fenêtre avec un grand cadre
+    WINDOW* requestWindow = newwin(menuHeight, menuWidth, startY, startX);
+    box(requestWindow, 0, 0);
+
+    vector<vector<string>> requests = { requestsReceived, requestsSent };
+    vector<string> requestsReceivedSentences = {"No request received !", "-> %s wants to be your friend!", "   %s wants to be your friend!" };
+    vector<string> requestsSentSentences = {"No requests sent !", "-> Friend request sent to %s", "   Friend request sent to %s" };
+    vector<vector<string>> requestsSentences = { requestsReceivedSentences, requestsSentSentences };
+
+    for (int j = 0; j<menuOptions.size(); j++)
+    {
+        // Titre "Requests received" en vert
+        wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
+        mvwprintw(requestWindow, (9 * j) + 1, 2, menuOptions[j].c_str());
+        wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
+
+        int numberRequests = requests[j].size();
+
+        if (numberRequests == 0) {
+            mvwprintw(requestWindow, (9 * j ) + 3, 4, requestsSentences[j][0].c_str());
+        } else {
+            for (int i = 0; i < numberRequests; ++i) {
+                if (i == selectedOption) {
+                    wattron(requestWindow, A_REVERSE);
+                    mvwprintw(requestWindow, (9 * j ) + 3 + i, 4, requestsSentences[j][1].c_str(), requestsReceived[i].c_str());
+                    wattroff(requestWindow, A_REVERSE);
+                } else {
+                    mvwprintw(requestWindow, (9 * j ) + 3 + i, 4, requestsSentences[j][2].c_str(), requestsReceived[i].c_str());
+                }
+            }
+        }
+    }
+    wrefresh(requestWindow);
+    refresh();
+    delwin(requestWindow);
+}
+
+
+
+

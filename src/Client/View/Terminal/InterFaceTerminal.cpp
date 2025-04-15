@@ -581,26 +581,6 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
 
 
 
-void InterfaceTerminal::displayFriendOptions(int selectedOption) {
-    /* LA METHODE EST DEFAILLANTE */
-    //erase();
-    //printw("Choose an action to do with :\n\n");
-    //int numberFriendsOptionsPossible = 5;   // taille du tableau contenant les modes de jeu
-//
-    //for (int i = 0; i < numberFriendsOptionsPossible; ++i) {
-    //    if (i == selectedOption) {
-    //        printw("-> %d. %s", i + 1, friendsOptions[i]);
-    //    } else {
-    //        printw("   %d. %s", i + 1, friendsOptions[i]);
-    //    }
-    //    printw("\n");
-    //}
-    //printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    //if(!(user==""))printw("Press 't' to open the message box\n");
-    //refresh();
-}
-
-
 /**
  * @brief Permet à l'utilisateur de rechercher un autre utilisateur en en entrant le username de celui -ci.
  *
@@ -728,74 +708,9 @@ void InterfaceTerminal::enterName() {
  * @param requestsSent Vecteur contenant noms des utilisateurs à qui une demande d'ami a été envoyée.
  */
  void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent) {
-    //erase();
-    int width = 80;
-    int height = 20;
-    int startX = (COLS - width)/ 2;
-    int startY = (LINES - height - 10) / 2;
-
-    // Créer une fenêtre avec un grand cadre
-    WINDOW* requestWindow = newwin(height, width, startY, startX);
-    box(requestWindow, 0, 0);
-
-    // Titre "Requests received" en vert
-    wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
-    mvwprintw(requestWindow, 1, 2, "Requests received:");
-    wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
-
-    int numberRequestsReceived = requestsReceived.size();
-    int numberRequestsSent = requestsSent.size();
-    
-    if (numberRequestsReceived == 0) {
-        mvwprintw(requestWindow, 3, 4, "No request received");
-    } else {
-        for (int i = 0; i < numberRequestsReceived; ++i) {
-            if (i == selectedOption) {
-                wattron(requestWindow, A_REVERSE);
-                mvwprintw(requestWindow, 3 + i, 4, "-> %s wants to be your friend!", requestsReceived[i].c_str());
-                wattroff(requestWindow, A_REVERSE);
-            } else {
-                mvwprintw(requestWindow, 3 + i, 4, "   %s wants to be your friend!", requestsReceived[i].c_str());
-            }
-        }
-    }
-
-    // Titre "Requests sent" en vert
-    wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
-    mvwprintw(requestWindow, 10, 2, "Requests sent:");
-    wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
-
-    if (numberRequestsSent == 0) {
-        mvwprintw(requestWindow, 12, 4, "No request sent");
-    } else {
-        for (int i = 0; i < numberRequestsSent; ++i) {
-            if (i + numberRequestsReceived == selectedOption) {
-                wattron(requestWindow, A_REVERSE);
-                mvwprintw(requestWindow, 12 + i, 4, "-> Friend request sent to %s", requestsSent[i].c_str());
-                wattroff(requestWindow, A_REVERSE);
-            } else {
-                mvwprintw(requestWindow, 12 + i, 4, "   Friend request sent to %s", requestsSent[i].c_str());
-            }
-        }
-    }
-
-    wrefresh(requestWindow);
-    
-    //Instructions sous le cadre
-    mvprintw(startY + height + 1, (COLS - 50) / 2, "Use UP and DOWN arrow keys to navigate");
-    mvprintw(startY + height + 2, (COLS - 50) / 2, "Press 'A' to accept the request");
-    mvprintw(startY + height + 3, (COLS - 50) / 2, "Press 'R' to refuse");
-    mvprintw(startY + height + 4, (COLS - 50) / 2, "Press 'C' to cancel a sent friend request");
-    mvprintw(startY + height + 5, (COLS - 50) / 2, "Press 'q' to quit");
-    if ((user != ""))
-        mvprintw(startY + height + 6, (COLS - 50) / 2, "Press 't' to open the message box");
-    
-
-    refresh();
-    delwin(requestWindow);
-    //erase();
-
-    
+    vector<string> menuOptions = { "Received requests", "Sent requests" };
+    Menu menuGameMode(Menus::FriendRequestMenu, menuOptions, COLS, LINES, 80, 20);
+    menuGameMode.displayFriendRequestsMenu(selectedOption, requestsReceived, requestsSent); // Affiche le menu principal    
 }
 
 
@@ -1494,6 +1409,10 @@ int InterfaceTerminal::start() {
    return -2;
 }
 
+/**
+ * @brief Cette méthode affiche le leaderboard
+ * 
+ */
 void InterfaceTerminal::displayLeaderboard() {
     std::vector<std::pair<std::string, int>> scores = udm.getTopScores(5);
     vector<string> menuOptions = { "Leaderboard: Top Endless Mode Players" };
