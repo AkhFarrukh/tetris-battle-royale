@@ -9,10 +9,19 @@
 
 using namespace std;
 
+enum class Menus {
+    MainMenu,
+    GameModeMenu,
+    JoinCreateMenu,
+    LoginMenu,
+
+};
+
+
 class Menu
 {
     private:
-        string menuName;
+        Menus menuName;
         vector<string> menuOptions;
         int windowWidth;
         int windowHeight;
@@ -21,18 +30,17 @@ class Menu
         int numberOfOptions;
 
     public:
-        Menu(string menuName_, vector<string> menuOptions_, int windowWidth_, int windowHeight_, int menuWidth_, int menuHeight_);
+        Menu(Menus menuName_, vector<string> menuOptions_, int windowWidth_, int windowHeight_, int menuWidth_, int menuHeight_);
         ~Menu() = default;
 
         void displayMenu(int menuHovered);
+        void displayMenuControls(WINDOW* menuWindow);
 
 };
 
 
 
-enum class Menus {
 
-};
 
 
 #endif

@@ -1,7 +1,7 @@
 #include "menu.hpp"
 
 
-Menu::Menu(string menuName_, vector<string> menuOptions_, int windowWidth_, int windowHeight_, int menuWidth_, int menuHeight_) :
+Menu::Menu(Menus menuName_, vector<string> menuOptions_, int windowWidth_, int windowHeight_, int menuWidth_, int menuHeight_) :
     menuName(menuName_), menuOptions(menuOptions_), windowWidth(windowWidth_), windowHeight(windowHeight_), menuWidth(menuWidth_), menuHeight(menuHeight_)
     {
         numberOfOptions = menuOptions.size();
@@ -40,14 +40,26 @@ void Menu::displayMenu(int optionHovered)
             mvwprintw(menuWindow, 3 + (i - 1)*2 , 2, "   %d. %s ", i, menuOptions[i].c_str());
         }
     }
+    displayMenuControls(menuWindow); // Afficher les controles du menu
     wrefresh(menuWindow); // Refresh la window
-
-    mvprintw(startY + menuHeight+ 3, (windowWidth - 35) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
-    mvprintw(startY + menuHeight + 4, (windowWidth - 35) / 2, "Press ENTER to select an action");
-    mvprintw(startY + menuHeight + 5, (windowWidth - 35) / 2, "Press 'q' to quit");
-    mvprintw(startY + menuHeight + 6, (windowWidth - 35) / 2, "Press 't' to open the chat");
-
     refresh();
-    
     delwin(menuWindow); // detruire pour liberer memoire
+}
+
+
+void Menu::displayMenuControls(WINDOW* menuWindow)
+{
+    if (menuName == Menus::LoginMenu)
+    {  
+        mvwprintw(menuWindow, 1, 2, "Log in or Register here:");
+    }
+    else
+    {
+
+    }
+    int startY = (windowHeight - menuHeight) / 2;
+    mvprintw(startY + menuHeight+ 3, (windowWidth - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
+    mvprintw(startY + menuHeight + 4, (windowWidth - 45) / 2, "Press ENTER to select an action");
+    mvprintw(startY + menuHeight + 5, (windowWidth - 45) / 2, "Press 'q' to quit");
+    mvprintw(startY + menuHeight + 6, (windowWidth - 45) / 2, "Press 't' to open the chat");
 }
