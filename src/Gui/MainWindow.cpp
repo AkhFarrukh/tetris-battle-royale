@@ -13,6 +13,7 @@
 #include "MainWindow.hpp"
 
 
+
 MainWindow::MainWindow(QWidget* parent, int sock) : sock(sock), QMainWindow(parent){
     setupUI();
     // Taille plus grande
@@ -24,7 +25,25 @@ MainWindow::MainWindow(QWidget* parent, int sock) : sock(sock), QMainWindow(pare
 
 MainWindow::~MainWindow() {}
 
+void handleSigint(int signum) {
+    std::cout << "\nDéconnexion forcée (SIGINT reçu)...\n";
+
+    int exitType = MessageType::T_ForcedExit;
+    int size_ = sizeof(int);
+
+    if (sendAll(sock, &exitType, sizeof(int)) <= 0 ||
+        sendAll(sock, &size_, sizeof(int)) <= 0) {
+        std::cerr << "Erreur lors de l'envoi de la déconnexion au serveur.\n";
+        } else {
+            std::cout << "Message de déconnexion envoyé au serveur.\n";
+        }
+
+    close(sock); // Optionnel mais propre
+    std::exit(EXIT_SUCCESS);
+}
+
 void MainWindow::setupUI() {
+
     // Création du widget central avec QStackedWidget
     auto centralWidget = new QWidget(this);
     centralWidget->setStyleSheet("background-color: #a066cc;"); // violet doux
@@ -51,6 +70,7 @@ void MainWindow::setupUI() {
 
     // Afficher l'écran de connexion au départ
     stackedWidget->setCurrentWidget(loginScreen);
+
 }
 
 void MainWindow::setupLoginScreen() {

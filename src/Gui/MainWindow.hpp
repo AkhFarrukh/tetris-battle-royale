@@ -5,6 +5,7 @@
 #include <QStackedWidget>
 #include <QLineEdit>
 #include <QPushButton>
+#include <csignal>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -21,6 +22,8 @@ public:
     void setupGameModeScreen();
     void showGameModeScreen();
     void showMainMenuScreen();
+    /// @param signum Signal reçu (normalement SIGINT)
+    void handleSigint(int signum);
 private:
     int sock;
     void setupUI();
