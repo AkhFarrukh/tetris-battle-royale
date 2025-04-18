@@ -40,12 +40,14 @@ void MainWindow::setupUI() {
     setupAuthScreen();
     setupMainMenuScreen();
     setupGameModeScreen();
+    setupFriendsListScreen();
 
     // Ajouter les pages au QStackedWidget
     stackedWidget->addWidget(loginScreen);
     stackedWidget->addWidget(authScreen);
-    stackedWidget->addWidget(mainMenuScreen); // facultatif si tu le fais déjà dans setup
-    stackedWidget->addWidget(gameModeScreen); // idem
+    stackedWidget->addWidget(mainMenuScreen);
+    stackedWidget->addWidget(gameModeScreen);
+    stackedWidget->addWidget(friendsListScreen);
 
 
     layout->addWidget(stackedWidget);
@@ -198,6 +200,21 @@ void MainWindow::setupMainMenuScreen() {
     friendsButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
     QPushButton *leaderboardButton = new QPushButton("Leaderboard (Endless Mode)", this);
     leaderboardButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+
+    QPushButton *chatButton = new QPushButton(this);
+	chatButton->setText(" Chat");
+
+	chatButton->setIcon(QIcon::fromTheme("mail-message-new")); // Peut être remplacé par un chemin QIcon(":/icons/chat.png")
+
+	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setIconSize(QSize(20, 20));
+
+	layout->addWidget(chatButton);
+
+	connect(chatButton, &QPushButton::clicked, [this]() {
+        callerWindow = mainMenuScreen;//new QWidget(this);
+    	stackedWidget->setCurrentWidget(friendsListScreen);
+});
 
     layout->addWidget(playButton);
     layout->addWidget(friendsButton);
