@@ -25,22 +25,6 @@ MainWindow::MainWindow(QWidget* parent, int sock) : sock(sock), QMainWindow(pare
 
 MainWindow::~MainWindow() {}
 
-void handleSigint(int signum) {
-    std::cout << "\nDéconnexion forcée (SIGINT reçu)...\n";
-
-    int exitType = MessageType::T_ForcedExit;
-    int size_ = sizeof(int);
-
-    if (sendAll(sock, &exitType, sizeof(int)) <= 0 ||
-        sendAll(sock, &size_, sizeof(int)) <= 0) {
-        std::cerr << "Erreur lors de l'envoi de la déconnexion au serveur.\n";
-        } else {
-            std::cout << "Message de déconnexion envoyé au serveur.\n";
-        }
-
-    close(sock); // Optionnel mais propre
-    std::exit(EXIT_SUCCESS);
-}
 
 void MainWindow::setupUI() {
 

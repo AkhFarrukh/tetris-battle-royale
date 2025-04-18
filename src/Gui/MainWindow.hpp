@@ -22,8 +22,7 @@ public:
     void setupGameModeScreen();
     void showGameModeScreen();
     void showMainMenuScreen();
-    /// @param signum Signal reçu (normalement SIGINT)
-    void handleSigint(int signum);
+
 private:
     int sock;
     void setupUI();
