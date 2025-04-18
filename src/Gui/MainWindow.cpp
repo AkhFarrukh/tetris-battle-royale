@@ -225,7 +225,7 @@ void MainWindow::handleAuth() {
     std::strncpy(connexion.username, username.toStdString().c_str(), sizeof(connexion.username) - 1);
     std::strncpy(connexion.password, password.toStdString().c_str(), sizeof(connexion.password) - 1);
 
-    int size = sizeof(Connexion);
+    int size = sizeof(struct Connexion);
 
     if (isRegisterMode) {
         // Vérifie la confirmation du mot de passe
@@ -305,4 +305,12 @@ void MainWindow::handleAuth() {
     // Connexion réussie !
     QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
     showMainMenuScreen();
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    int exitType = MessageType::T_ForcedExit;
+    int size_ = sizeof(int);
+    int bytesSentType = sendAll(sock, &exitType, sizeof(int));
+    int bytesSentSize = sendAll(sock, &size_, sizeof(int));
+    event->accept();
 }

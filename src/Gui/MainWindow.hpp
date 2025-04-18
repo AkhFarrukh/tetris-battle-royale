@@ -6,6 +6,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <csignal>
+#include <QCloseEvent>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -22,6 +23,7 @@ public:
     void setupGameModeScreen();
     void showGameModeScreen();
     void showMainMenuScreen();
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     int sock;
