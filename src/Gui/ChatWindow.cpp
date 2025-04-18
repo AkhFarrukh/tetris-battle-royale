@@ -18,8 +18,11 @@ void MainWindow::setupFriendsListScreen() {
 
     QListWidget *friendsList = new QListWidget(this);
 
-    // Liste d'amis statique pour test
-    QStringList friends = {"Alice", "Bob", "Charlie"};
+    std::vector<std::string> friendsVec = udm.friendsList(username_);
+    QStringList friends;
+    for (const auto& name : friendsVec) {
+        friends << QString::fromStdString(name);
+    }
     friendsList->addItems(friends);
     if (friends.isEmpty()) {
         QLabel *noFriendsLabel = new QLabel("You don't have any friends yet.", this);
@@ -48,6 +51,9 @@ void MainWindow::setupFriendsListScreen() {
 }
 
 void MainWindow::openChatWith(const QString& friendName) {
+    int friendId_ = udm.getUserId(friendName.toStdString().c_str());
+
+    udm.conversationOpen(userId_, friendId_);
     QWidget *chatScreen = new QWidget(this);
     auto layout = new QVBoxLayout(chatScreen);
 
@@ -68,6 +74,21 @@ void MainWindow::openChatWith(const QString& friendName) {
     QString message = messageInput->text();
     if (!message.isEmpty()) {
         chatHistory->append("<b>You:</b> " + message);
+        if(udm.getInConversation(userId_, friendId_) == 1){
+            int messageSent = MessageType::T_Message;
+            int size_ = sizeof(struct Message);
+            Message messageToSent;
+            std::strncpy(messageToSent.expediteur, username_.c_str(), sizeof(messageToSent.expediteur) - 1);
+            messageToSent.expediteur[sizeof(messageToSent.expediteur) - 1] =  '\0';
+            std::strncpy(messageToSent.message, message.toStdString().c_str(), sizeof(messageToSent.message) - 1);
+            messageToSent.message[sizeof(messageToSent.message) - 1] =  '\0';
+            std::strncpy(messageToSent.destinataire, friendName.toStdString().c_str(), sizeof(messageToSent.destinataire) - 1);
+            messageToSent.destinataire[sizeof(messageToSent.destinataire) - 1] =  '\0';
+            if(!sendAll(sock, &messageSent, sizeof(int)))return;
+            if(!sendAll(sock, &size_, sizeof(int)))return;
+            if(!sendAll(sock, &messageToSent, sizeof(Message)))return;
+        }
+        else udm.addMessage(userId_, friendId_, message.toStdString());
         messageInput->clear();
     }
     });
@@ -77,11 +98,10 @@ void MainWindow::openChatWith(const QString& friendName) {
     QPushButton *backButton = new QPushButton("Back to friends list", this);
     layout->addWidget(backButton);
 
-    connect(backButton, &QPushButton::clicked, this, [this]() {
+    connect(backButton, &QPushButton::clicked, this, [this, friendId_]() {
+        udm.conversationClose(userId_, friendId_);
         stackedWidget->setCurrentWidget(friendsListScreen);
     });
-
-    // Tu peux connecter sendButton à une future fonction pour gérer l'envoi
 
     chatScreen->setLayout(layout);
     stackedWidget->addWidget(chatScreen);

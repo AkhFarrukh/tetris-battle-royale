@@ -73,7 +73,7 @@ void* Player::threadRoutineView (void* arg){
         else if(type == MessageType::T_Message){
             Message message;
             if (!recvAll(sock, &message, size)) {
-                perror("Error on receiving room");
+                perror("Error on receiving message");
                 flag = true;
                 break;
             }

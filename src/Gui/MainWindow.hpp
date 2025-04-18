@@ -18,6 +18,9 @@
 #include <QListWidget>
 #include <QTextEdit>
 #include <QGuiApplication>
+#include "userdatabasemanager.hpp"
+#include "communication.hpp"
+
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -39,7 +42,12 @@ public:
     void showChatScreen();
 
 private:
-    int sock;
+
+    UserDatabaseManager udm; // REFACTORING enlever ca
+
+    int userId_ = -1;  // REFACTORING enlever ca
+    std::string username_;  // REFACTORING enlever ca
+    int sock;  // REFACTORING enlever ca
     QWidget *callerWindow = nullptr;
     void setupUI();
     void setupLoginScreen();

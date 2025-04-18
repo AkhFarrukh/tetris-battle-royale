@@ -9,7 +9,6 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QScreen>
-#include "communication.hpp"
 #include "MainWindow.hpp"
 
 
@@ -40,14 +39,12 @@ void MainWindow::setupUI() {
     setupAuthScreen();
     setupMainMenuScreen();
     setupGameModeScreen();
-    setupFriendsListScreen();
 
     // Ajouter les pages au QStackedWidget
     stackedWidget->addWidget(loginScreen);
     stackedWidget->addWidget(authScreen);
     stackedWidget->addWidget(mainMenuScreen);
     stackedWidget->addWidget(gameModeScreen);
-    stackedWidget->addWidget(friendsListScreen);
 
 
     layout->addWidget(stackedWidget);
@@ -320,7 +317,14 @@ void MainWindow::handleAuth() {
     }
 
     // Connexion réussie !
+
     QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
+    username_ = username.toStdString();  // REFACTORING enlever ca
+    userId_ = udm.getUserId(username_.c_str());  // REFACTORING enlever ca
+
+    setupFriendsListScreen();
+    stackedWidget->addWidget(friendsListScreen);
+
     showMainMenuScreen();
 }
 
