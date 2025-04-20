@@ -12,7 +12,7 @@
 class Grid;
 class MovingFigure;
 class Figure;
-class EvenQueue;
+class EventQueue;
 enum class Color;
 
 struct PlayerState {

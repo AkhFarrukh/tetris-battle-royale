@@ -92,8 +92,9 @@ int main(int argc, char** argv) {
         //     close(sock);
         //     return 1;
         // }
-    
-        return runGuiApp(argc, argv, sock);
+
+        threadData->isGui = true;
+        return runGuiApp(argc, argv, sock, threadData);
 
     } else {
         bool playing = false;

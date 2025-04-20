@@ -1,7 +1,13 @@
+#ifdef border
+#undef border
+#endif
+
 #ifdef scroll
 #undef scroll
 #endif
 
+// MainWindow.cpp
+#include "MainWindow.hpp"
 #include <QPushButton>
 #include <QApplication>
 #include <QLabel>
@@ -9,22 +15,29 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QScreen>
-#include "communication.hpp"
-#include "MainWindow.hpp"
+#include <QMetaObject>
+#include <QDebug>
 
 
+MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::ThreadData> threadData)
+    : QMainWindow(parent), sock(sock), threadData(threadData) {
 
-MainWindow::MainWindow(QWidget* parent, int sock) : sock(sock), QMainWindow(parent){
     setupUI();
-    // Taille plus grande
-    resize(600, 500); // ou setFixedSize si tu veux fixer la taille
-
-    // Centrage sur l'écran principal
+    resize(600, 500);
     move(QGuiApplication::primaryScreen()->geometry().center() - frameGeometry().center());
+
+    this->threadData->isGui = true;
+    this->threadData->qtParent = this;
+
+    pthread_create(&threadID, nullptr, Player::threadRoutineView, this->threadData.get());
 }
 
-MainWindow::~MainWindow() {}
 
+MainWindow::~MainWindow() {
+    flag = true;
+    shutdown(sock, SHUT_RD);
+    if (threadID) pthread_join(threadID, nullptr);
+}
 
 void MainWindow::setupUI() {
 
@@ -40,12 +53,14 @@ void MainWindow::setupUI() {
     setupAuthScreen();
     setupMainMenuScreen();
     setupGameModeScreen();
+    setupGameScreens();
 
     // Ajouter les pages au QStackedWidget
     stackedWidget->addWidget(loginScreen);
     stackedWidget->addWidget(authScreen);
     stackedWidget->addWidget(mainMenuScreen); // facultatif si tu le fais déjà dans setup
     stackedWidget->addWidget(gameModeScreen); // idem
+    stackedWidget->addWidget(endlessScreen);
 
 
     layout->addWidget(stackedWidget);
@@ -143,47 +158,6 @@ void MainWindow::showAuthScreen() {
     stackedWidget->setCurrentWidget(authScreen);
 }
 
-void MainWindow::setupGameModeScreen() {
-    gameModeScreen = new QWidget(this);
-    gameModeScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
-    auto layout = new QVBoxLayout(gameModeScreen);
-
-    QLabel *titleLabel = new QLabel("Select a Game Mode:", this);
-    layout->addWidget(titleLabel);
-
-    QPushButton *endlessButton = new QPushButton("Endless Mode", this);
-    endlessButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
-    QPushButton *classicButton = new QPushButton("Classic Mode", this);
-    classicButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
-    QPushButton *duelButton = new QPushButton("Duel Mode", this);
-    duelButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
-    QPushButton *royalButton = new QPushButton("Royal Competition Mode", this);
-    royalButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
-    QPushButton *backButton = new QPushButton("Retour", this);  // <-- Ajout du bouton retour
-    backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
-
-
-    layout->addWidget(endlessButton);
-    layout->addWidget(classicButton);
-    layout->addWidget(duelButton);
-    layout->addWidget(royalButton);
-    layout->addWidget(backButton);  // <-- Ajout dans le layout
-
-    connect(backButton, &QPushButton::clicked, this, &MainWindow::showMainMenuScreen); // <-- Connexion du bouton
-
-    gameModeScreen->setLayout(layout);
-    stackedWidget->addWidget(gameModeScreen); // Important !
-}
-
-void MainWindow::showMainMenuScreen() {
-    stackedWidget->setCurrentWidget(mainMenuScreen);
-}
-
-void MainWindow::showGameModeScreen() {
-    stackedWidget->setCurrentWidget(gameModeScreen);
-}
-
-
 void MainWindow::setupMainMenuScreen() {
     mainMenuScreen = new QWidget(this);
     mainMenuScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
@@ -209,7 +183,143 @@ void MainWindow::setupMainMenuScreen() {
     stackedWidget->addWidget(mainMenuScreen); // Important !
 }
 
+void MainWindow::setupGameModeScreen() {
+    gameModeScreen = new QWidget(this);
+    gameModeScreen->setStyleSheet("background-color: #a066cc;");
+    auto layout = new QVBoxLayout(gameModeScreen);
 
+    QLabel *titleLabel = new QLabel("Select a Game Mode:", this);
+    layout->addWidget(titleLabel);
+
+    QPushButton *endlessButton = new QPushButton("Endless Mode", this);
+    QPushButton *classicButton = new QPushButton("Classic Mode", this);
+    QPushButton *duelButton = new QPushButton("Duel Mode", this);
+    QPushButton *royalButton = new QPushButton("Royal Competition Mode", this);
+    QPushButton *backButton = new QPushButton("Retour", this);
+
+    QList<QPushButton*> buttons = {endlessButton, classicButton, duelButton, royalButton, backButton};
+    for (auto* btn : buttons) {
+        btn->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
+        layout->addWidget(btn);
+    }
+
+    connect(endlessButton, &QPushButton::clicked, this, [this]() {
+        showModeScreen("endless");
+    });
+
+    connect(classicButton, &QPushButton::clicked, this, [this]() {
+        showModeScreen("classic");
+    });
+
+    connect(duelButton, &QPushButton::clicked, this, [this]() {
+        showModeScreen("duel");
+    });
+
+    connect(royalButton, &QPushButton::clicked, this, [this]() {
+        showModeScreen("royal");
+    });
+
+    connect(backButton, &QPushButton::clicked, this, [this]() {
+        showMainMenuScreen();
+    });
+
+    gameModeScreen->setLayout(layout);
+    stackedWidget->addWidget(gameModeScreen);
+}
+
+void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
+    Menu menu;
+    menu.action = action;
+    menu.mode = mode;
+
+    int type = MessageType::T_Menu;
+    int size = sizeof(Menu);
+
+    std::cout<< "--------->sendMenuAction called<----------" <<endl;
+
+    if (!sendAll(sock, &type, sizeof(int)) ||
+        !sendAll(sock, &size, sizeof(int)) ||
+        !sendAll(sock, &menu, sizeof(Menu))) {
+        QMessageBox::critical(this, "Erreur", "Échec de l'envoi du menu.");
+        return;
+    }
+
+    if (mode == Modes::Endless_) {
+        int typeResponse, sizeResponse;
+        if (!recvAll(sock, &typeResponse, sizeof(int)) ||
+            !recvAll(sock, &sizeResponse, sizeof(int))) {
+            QMessageBox::critical(this, "Erreur", "Pas de réponse du serveur.");
+            return;
+        }
+
+        if (typeResponse == MessageType::T_GameStart) {
+            qDebug() << "Démarrage du mode Endless !";
+            // Ici, afficher l'écran de jeu
+            stackedWidget->setCurrentWidget(endlessScreen);
+        }
+    }
+
+    if (action == MenuActions::A_JoinRoom) {
+        int typeResponse;
+        int nbRooms;
+    
+        if (!recvAll(sock, &typeResponse, sizeof(int)) ||
+            !recvAll(sock, &nbRooms, sizeof(int))) {
+            QMessageBox::critical(this, "Erreur", "Erreur lors de la réception des rooms.");
+            return;
+        }
+    
+        if (typeResponse != MessageType::T_RoomsInfo) {
+            QMessageBox::warning(this, "Aucune salle", "Aucune salle disponible.");
+            return;
+        }
+    
+        std::vector<RoomInfo> rooms(nbRooms);
+        if (!recvAll(sock, rooms.data(), nbRooms * sizeof(RoomInfo))) {
+            QMessageBox::critical(this, "Erreur", "Impossible de recevoir les infos de salle.");
+            return;
+        }
+    
+        qDebug() << "Nombre de salles reçues : " << nbRooms;
+    }
+    
+}
+
+void MainWindow::setupGameScreens() {
+    endlessScreen = new QWidget(this);
+    auto layout = new QVBoxLayout(endlessScreen);
+
+    renderQt = new RenderEngineQt(endlessScreen);
+    renderQt->setThreadData(threadData);  // pour que RenderEngineQt accède aux données
+    layout->addWidget(renderQt);
+
+    endlessScreen->setLayout(layout);
+    stackedWidget->addWidget(endlessScreen);  // indispensable pour pouvoir l'afficher ensuite
+}
+
+
+void MainWindow::showModeScreen(const QString& mode) {
+    if (mode == "endless") {
+        sendMenuAction(MenuActions::A_Play, Modes::Endless_);
+    } else if (mode == "classic") {
+        sendMenuAction(MenuActions::A_Play, Modes::Classic_);
+    } else if (mode == "duel") {
+        sendMenuAction(MenuActions::A_JoinRoom, Modes::Duel_);
+    } else if (mode == "royal") {
+        sendMenuAction(MenuActions::A_JoinRoom, Modes::Royal_);
+    } else {
+        qDebug() << "Mode inconnu: " << mode;
+    }
+}
+
+
+void MainWindow::showMainMenuScreen() {
+    stackedWidget->setCurrentWidget(mainMenuScreen);
+}
+
+void MainWindow::showGameModeScreen() {
+    stackedWidget->setCurrentWidget(gameModeScreen);
+}
 
 
 void MainWindow::handleAuth() {

@@ -101,10 +101,10 @@ void* Player::threadRoutineView (void* arg){
                 int gridSize;
            	    if (!recvAll(sock, &gridSize, sizeof(gridSize))){return nullptr;}
 
-		if (gridSize <= 0 || gridSize > 100000) {  // juste pour detecter quand gridSize devient trop grand
-    			std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
-    			break;
-		}
+                if (gridSize <= 0 || gridSize > 100000) {  // juste pour detecter quand gridSize devient trop grand
+                        std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
+                        break;
+                }
                 player.grid.resize(gridSize);
 
                 if (!recvAll(sock, player.grid.data(), gridSize * sizeof(Color))){return nullptr;}
@@ -121,28 +121,41 @@ void* Player::threadRoutineView (void* arg){
             }
             */
 
-
-            if (threadData->gameMode == Modes::Royal_){
-                //std::cout<<"Rendering royal games"<<std::endl;
-                threadData->displayMut.lock();
-                render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
-                threadData->displayMut.unlock();
-
-                // Find which player is the client (ID == -1)
-                int clientPlayerIndex = -1;
-                for (size_t i = 0; i < playersData.size(); ++i) {
-                    if (playersData.at(i).playerId == -1) {
-                        clientPlayerIndex = i;
-                        threadData->clinetPlayerID = i; // Store the index
-                        break;
-                    }
-                }
+            if (threadData->isGui) {
+                threadData->mux.lock();
+                threadData->playersData = std::move(playersData);
+                threadData->mux.unlock();
             } else {
-                // Render the regular games grid for endless, classic and duel modes
-                threadData->displayMut.lock();
-                render.renderGames(playersData);
-                threadData->displayMut.unlock();
+                if (threadData->gameMode == Modes::Royal_){
+                    //std::cout<<"Rendering royal games"<<std::endl;
+                    threadData->displayMut.lock();
+                    render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
+                    threadData->displayMut.unlock();
+
+                    // Find which player is the client (ID == -1)
+                    int clientPlayerIndex = -1;
+                    for (size_t i = 0; i < playersData.size(); ++i) {
+                        if (playersData.at(i).playerId == -1) {
+                            clientPlayerIndex = i;
+                            threadData->clinetPlayerID = i; // Store the index
+                            break;
+                        }
+                    }
+                } else {
+                    // Render the regular games grid for endless, classic and duel modes
+                    threadData->displayMut.lock();
+                    render.renderGames(playersData);
+                    threadData->displayMut.unlock();
+                }
             }
+
+            // if (threadData->isGui && threadData->qtParent) {
+            //     QMetaObject::invokeMethod(
+            //         static_cast<MainWindow*>(threadData->qtParent),
+            //         "updateGameScreen",
+            //         Qt::QueuedConnection
+            //     );
+            // }
 
         }
         if (type == MessageType::T_ForcedExit){
