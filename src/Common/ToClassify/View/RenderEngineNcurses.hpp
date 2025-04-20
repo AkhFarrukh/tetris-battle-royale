@@ -23,15 +23,21 @@ public:
     void renderGame(std::shared_ptr<NetPlayerData> player, Coordinates offset);
     void renderGame(const NetPlayerData& player, Coordinates offset);
 
+    void printBlock(Color blockColor, Coordinates offset, Coordinates currentCoordinates);
+
+    void printEndgameMessage(const NetPlayerData &player, Coordinates offset);
+
     void highlightGridBorders(Coordinates offset);
 
     void renderGame(std::shared_ptr<NetPlayerData> player);
 
     int getClientPlayerIndex(const vector<NetPlayerData> &players, bool targetPlayerMenu);
 
-    void drawMalusMenu(const NetPlayerData &playerClient);
+    void drawTitleWithBorder(Coordinates offset, string title);
 
-    void drawPlayerSelectionMenu(const vector<NetPlayerData> &players);
+    void drawMalusMenu(const NetPlayerData &playerClient, int numberOfPlayers);
+
+    void drawPlayerSelectionMenu(const vector<NetPlayerData> &players, int numberOfPlayers);
 
     void renderGamesRoyal(const vector<NetPlayerData> &players, bool targetPlayerMenu);
 
