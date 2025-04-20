@@ -49,6 +49,9 @@ void* Player::threadRoutineView (void* arg){
     Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
     int sock = threadData->socket;
     RenderEngineNcurses render;
+    while (threadData->socket == 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }    
     while (!flag) {
         threadData->mux.lock();
         bool inGame = threadData->userInGame;
@@ -120,11 +123,11 @@ void* Player::threadRoutineView (void* arg){
                 render.renderGames(playersData);
             }
             */
-
+            std::cout << "[threadRoutineView] Received" << playersData.size() << "players from server" << endl;
             if (threadData->isGui) {
-                threadData->mux.lock();
+                std::lock_guard<std::mutex> lock(threadData->mux);
                 threadData->playersData = std::move(playersData);
-                threadData->mux.unlock();
+                std::cout << "[threadRoutineView] playersData set in threadData" << endl;
             } else {
                 if (threadData->gameMode == Modes::Royal_){
                     //std::cout<<"Rendering royal games"<<std::endl;

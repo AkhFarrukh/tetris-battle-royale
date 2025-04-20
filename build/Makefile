@@ -1,3 +1,4 @@
+
 # Nom des exécutables finaux
 SERVER_TARGET := ../server.exe
 CLIENT_TARGET := ../tetris.exe
@@ -89,3 +90,4 @@ clean:
 
 run: all
 	LD_LIBRARY_PATH=$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LIB_DIR):$$LD_LIBRARY_PATH ./$(CLIENT_TARGET)
+

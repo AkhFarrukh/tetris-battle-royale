@@ -6,6 +6,10 @@
 #undef scroll
 #endif
 
+#ifdef timeout
+#undef timeout
+#endif
+
 // MainWindow.cpp
 #include "MainWindow.hpp"
 #include <QPushButton>
@@ -26,10 +30,19 @@ MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::Thread
     resize(600, 500);
     move(QGuiApplication::primaryScreen()->geometry().center() - frameGeometry().center());
 
-    this->threadData->isGui = true;
-    this->threadData->qtParent = this;
+    // this->threadData->socket = sock;
+    // this->threadData->gameMode = Modes::Endless_;
+    // this->threadData->userInGame = false;  // Will be set later
+    // this->threadData->userInLobby = false;
+    // this->threadData->isGui = true;
+    // this->threadData->qtParent = this;
+    
+    // pthread_create(&threadID, nullptr, Player::threadRoutineView, this->threadData.get());
 
-    pthread_create(&threadID, nullptr, Player::threadRoutineView, this->threadData.get());
+    auto timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &MainWindow::updateGameScreen);
+    timer->start(100);
+
 }
 
 
@@ -60,7 +73,9 @@ void MainWindow::setupUI() {
     stackedWidget->addWidget(authScreen);
     stackedWidget->addWidget(mainMenuScreen); // facultatif si tu le fais déjà dans setup
     stackedWidget->addWidget(gameModeScreen); // idem
-    stackedWidget->addWidget(endlessScreen);
+    // stackedWidget->addWidget(endlessScreen);
+        stackedWidget->addWidget(gameScreen);
+
 
 
     layout->addWidget(stackedWidget);
@@ -231,6 +246,16 @@ void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
     Menu menu;
     menu.action = action;
     menu.mode = mode;
+    // 🧠 Setup threadData before waiting for T_GameStart
+    threadData->mux.lock();
+    threadData->socket = sock;
+    threadData->gameMode = mode;
+    threadData->isGui = true;
+    threadData->qtParent = this;
+    threadData->userInGame = false;   // <-- will be set to true by threadRoutineView
+    threadData->userInLobby = true;
+    threadData->mux.unlock();
+
 
     int type = MessageType::T_Menu;
     int size = sizeof(Menu);
@@ -252,11 +277,20 @@ void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
             return;
         }
 
-        if (typeResponse == MessageType::T_GameStart) {
-            qDebug() << "Démarrage du mode Endless !";
-            // Ici, afficher l'écran de jeu
-            stackedWidget->setCurrentWidget(endlessScreen);
-        }
+        else if (typeResponse == MessageType::T_GameStart) {
+            threadData->mux.lock();
+            threadData->userInGame = true;
+            threadData->userInLobby = true;
+            threadData->mux.unlock();
+        
+            if (threadData->isGui && threadData->qtParent) {
+                QMetaObject::invokeMethod(static_cast<QObject*>(threadData->qtParent), [this]() {
+                    static_cast<MainWindow*>(threadData->qtParent)->setGameScreen();
+                });
+            }
+        
+            // continue;
+        }        
     }
 
     if (action == MenuActions::A_JoinRoom) {
@@ -285,16 +319,29 @@ void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
     
 }
 
-void MainWindow::setupGameScreens() {
-    endlessScreen = new QWidget(this);
-    auto layout = new QVBoxLayout(endlessScreen);
+void MainWindow::setGameScreen() {
+    stackedWidget->setCurrentWidget(gameScreen);
+}
 
-    renderQt = new RenderEngineQt(endlessScreen);
-    renderQt->setThreadData(threadData);  // pour que RenderEngineQt accède aux données
+void MainWindow::setupGameScreens() {
+    gameScreen = new QWidget(this);
+    auto layout = new QVBoxLayout(gameScreen);
+
+    renderQt = new RenderEngineQt(gameScreen);
+    renderQt->setThreadData(threadData);
     layout->addWidget(renderQt);
 
-    endlessScreen->setLayout(layout);
-    stackedWidget->addWidget(endlessScreen);  // indispensable pour pouvoir l'afficher ensuite
+    gameScreen->setLayout(layout);
+    stackedWidget->addWidget(gameScreen);
+}
+
+void MainWindow::updateGameScreen() {
+    if (!renderQt || !threadData) return;
+    std::lock_guard<std::mutex> lock(threadData->mux);
+    qDebug() << "updateGameScreen() playersData size:" << threadData->playersData.size();
+    if (!threadData->userInGame) return;
+    renderQt->renderGames(threadData->playersData);
+    stackedWidget->setCurrentWidget(gameScreen);
 }
 
 
@@ -412,6 +459,15 @@ void MainWindow::handleAuth() {
         return;
     }
 
+    this->threadData->socket = sock;
+    this->threadData->gameMode = Modes::Endless_; //this just a default mode, it will be overwritten later...
+    this->threadData->userInGame = false;
+    this->threadData->userInLobby = false;
+    this->threadData->isGui = true;
+    this->threadData->qtParent = this;
+    
+    pthread_create(&threadID, nullptr, Player::threadRoutineView, this->threadData.get());
+
     // Connexion réussie !
     QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
     showMainMenuScreen();
@@ -423,4 +479,123 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     int bytesSentType = sendAll(sock, &exitType, sizeof(int));
     int bytesSentSize = sendAll(sock, &size_, sizeof(int));
     event->accept();
+}
+
+void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
+    if (roomListScreen) delete roomListScreen;
+
+    roomListScreen = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(roomListScreen);
+    QLabel* title = new QLabel("Available Rooms", this);
+    layout->addWidget(title);
+
+    if (roomsInfo.empty()) {
+        layout->addWidget(new QLabel("No rooms available."));
+    } else {
+        for (const auto& r : roomsInfo) {
+            QString text = QString("RoomID: %1 | Players: %2 | Started: %3")
+                .arg(r.roomID)
+                .arg(r.currentPlayersCount)
+                .arg(r.isStarted ? "YES" : "NO");
+            QPushButton* joinBtn = new QPushButton(text, this);
+
+            connect(joinBtn, &QPushButton::clicked, [this, r]() {
+                joinRoom(r.roomID);
+            });
+
+            layout->addWidget(joinBtn);
+        }
+    }
+
+    QPushButton* refreshBtn = new QPushButton("Refresh");
+    QPushButton* backBtn = new QPushButton("Back");
+    layout->addWidget(refreshBtn);
+    layout->addWidget(backBtn);
+
+    connect(refreshBtn, &QPushButton::clicked, this, [this]() {
+        requestRoomList();  // define this to re-fetch rooms from server
+    });
+
+    connect(backBtn, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
+
+    stackedWidget->addWidget(roomListScreen);
+    stackedWidget->setCurrentWidget(roomListScreen);
+}
+
+void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
+    if (myRoomScreen) delete myRoomScreen;
+
+    myRoomScreen = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(myRoomScreen);
+
+    layout->addWidget(new QLabel(QString("Room ID: %1").arg(room.roomID)));
+    layout->addWidget(new QLabel(QString("Players: %1").arg(room.currentPlayersCount)));
+    layout->addWidget(new QLabel(QString("Started: %1").arg(room.isStarted ? "YES" : "NO")));
+
+    QPushButton* forceStartBtn = new QPushButton("Force Start");
+    QPushButton* refreshBtn = new QPushButton("Refresh");
+    QPushButton* leaveBtn = new QPushButton("Leave Room");
+
+    layout->addWidget(forceStartBtn);
+    layout->addWidget(refreshBtn);
+    layout->addWidget(leaveBtn);
+
+    connect(forceStartBtn, &QPushButton::clicked, this, [this]() {
+        sendForceStart(); // define this
+    });
+
+    connect(refreshBtn, &QPushButton::clicked, this, [this]() {
+        requestRoomUpdate(); // define this
+    });
+
+    connect(leaveBtn, &QPushButton::clicked, this, [this]() {
+        sendLeaveRoom(); // define this
+    });
+
+    stackedWidget->addWidget(myRoomScreen);
+    stackedWidget->setCurrentWidget(myRoomScreen);
+}
+
+void MainWindow::joinRoom(int roomID) {
+    int type = MessageType::T_Join;
+    int size = sizeof(int);
+    sendAll(sock, &type, sizeof(int));
+    sendAll(sock, &size, sizeof(int));
+    sendAll(sock, &roomID, sizeof(int));
+}
+
+void MainWindow::sendForceStart() {
+    Menu menu;
+    menu.action = MenuActions::A_ForceStart;
+    int type = MessageType::T_Menu;
+    int size = sizeof(Menu);
+    sendAll(sock, &type, sizeof(int));
+    sendAll(sock, &size, sizeof(int));
+    sendAll(sock, &menu, sizeof(Menu));
+}
+
+void MainWindow::sendLeaveRoom() {
+    int type = MessageType::T_LeftRoom;
+    int size = sizeof(int);
+    sendAll(sock, &type, sizeof(int));
+    sendAll(sock, &size, sizeof(int));
+}
+
+void MainWindow::requestRoomUpdate() {
+    int type = MessageType::T_Refresh;
+    int size = sizeof(int);
+    sendAll(sock, &type, sizeof(int));
+    sendAll(sock, &size, sizeof(int));
+}
+
+void MainWindow::requestRoomList() {
+    Menu menu;
+    menu.mode = threadData->gameMode;
+    menu.action = MenuActions::A_JoinRoom;
+
+    int type = MessageType::T_Menu;
+    int size = sizeof(Menu);
+    sendAll(sock, &type, sizeof(int));
+    sendAll(sock, &size, sizeof(int));
+    sendAll(sock, &menu, sizeof(Menu));
 }

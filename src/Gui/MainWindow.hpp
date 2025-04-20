@@ -1,5 +1,6 @@
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
+
 #ifdef border
 #undef border
 #endif
@@ -8,12 +9,17 @@
 #undef scroll
 #endif
 
+#ifdef timeout
+#undef timeout
+#endif
+
+
 #include <QMainWindow>
 #include <QStackedWidget>
 #include <QLineEdit>
 #include <QPushButton>
-#include <csignal>
 #include <QCloseEvent>
+#include <QTimer>
 #include "communication.hpp"
 #include "playerFunctions.hpp"
 #include "RenderEngineQt.hpp"
@@ -25,9 +31,13 @@ public:
     explicit MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::ThreadData> threadData);
     ~MainWindow();
 
-    private slots:
-    void showLoginScreen(); // Affiche la page de connexion
-    void showAuthScreen();  // Affiche la page Username/Password
+    void setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo);
+    void setupMyRoomScreen(const RoomInfo& room, bool isOwner);
+
+
+private slots:
+    void showLoginScreen();
+    void showAuthScreen();
     void handleAuth();
     void setupMainMenuScreen();
     void setupGameModeScreen();
@@ -37,39 +47,46 @@ public:
     void showMainMenuScreen();
     void closeEvent(QCloseEvent *event) override;
     void setupGameScreens();
+    void updateGameScreen();
+    void setGameScreen();
 
 private:
     int sock;
     void setupUI();
     void setupLoginScreen();
     void setupAuthScreen();
+    void joinRoom(int roomID);
+    void sendForceStart();
+    void sendLeaveRoom();
+    void requestRoomUpdate();
+    void requestRoomList();
 
-    QWidget *endlessScreen = nullptr;
+    QWidget* loginScreen = nullptr;
+    QWidget* authScreen = nullptr;
+    QWidget* mainMenuScreen = nullptr;
+    QWidget* gameModeScreen = nullptr;
+    QWidget* gameScreen = nullptr;
+
+    QLineEdit* usernameInput = nullptr;
+    QLineEdit* passwordInput = nullptr;
+    QLineEdit* confirmPasswordInput = nullptr;
+
+    QPushButton* playButton = nullptr;
+    QPushButton* handleFriendsButton = nullptr;
+    QPushButton* leaderboardButton = nullptr;
+
+    QStackedWidget* stackedWidget = nullptr;
     RenderEngineQt* renderQt = nullptr;
 
-    QStackedWidget *stackedWidget;
-
-    // Widgets de la page Login/Register
-    QWidget *loginScreen;
-
-    // Widgets de la page Username/Password
-    QWidget *authScreen;
-    QLineEdit *usernameInput;
-    QLineEdit *passwordInput;
-    QLineEdit *confirmPasswordInput = nullptr; // champ en plus si Register
-    QWidget *mainMenuScreen;
-    QWidget *selectGameModeScreen;
-    QWidget* gameModeScreen;
-    QPushButton *playButton;
-    QPushButton *handleFriendsButton;
-    QPushButton *leaderboardButton;
-    // Mode actuel (login ou register)
     bool isRegisterMode = false;
 
-    // Thread de communication
     std::shared_ptr<Player::ThreadData> threadData;
     pthread_t threadID;
-    
+
+
+    QWidget* roomListScreen = nullptr;
+    QWidget* myRoomScreen = nullptr;
+
 };
 
 #endif // MAINWINDOW_HPP
