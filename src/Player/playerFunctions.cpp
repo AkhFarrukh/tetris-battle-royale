@@ -187,6 +187,14 @@ void* Player::threadRoutineView (void* arg){
                 flag = true;
                 break;
             }
+
+
+            threadData->mux.lock();
+            threadData->roomInfo = info;
+            threadData->roomInfoUpdated = true;
+            threadData->isOwner = (type == MessageType::T_RoomInfo);
+            threadData->mux.unlock();        
+
             int flags = fcntl(sock, F_GETFL, 0);
             fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 

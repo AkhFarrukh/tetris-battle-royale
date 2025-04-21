@@ -39,6 +39,11 @@ class Player {
             bool isGui = false;
             void* qtParent = nullptr;
             std::vector<NetPlayerData> playersData;
+
+            RoomInfo roomInfo;
+            bool roomInfoUpdated = false;
+            bool isOwner = false;
+
         
 
             //for the Royal competition mode to track the state of menu that sends maluses

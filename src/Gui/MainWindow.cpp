@@ -30,14 +30,6 @@ MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::Thread
     resize(600, 500);
     move(QGuiApplication::primaryScreen()->geometry().center() - frameGeometry().center());
 
-    // this->threadData->socket = sock;
-    // this->threadData->gameMode = Modes::Endless_;
-    // this->threadData->userInGame = false;  // Will be set later
-    // this->threadData->userInLobby = false;
-    // this->threadData->isGui = true;
-    // this->threadData->qtParent = this;
-    
-    // pthread_create(&threadID, nullptr, Player::threadRoutineView, this->threadData.get());
 
     auto timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::updateGameScreen);
@@ -73,10 +65,7 @@ void MainWindow::setupUI() {
     stackedWidget->addWidget(authScreen);
     stackedWidget->addWidget(mainMenuScreen); // facultatif si tu le fais déjà dans setup
     stackedWidget->addWidget(gameModeScreen); // idem
-    // stackedWidget->addWidget(endlessScreen);
-        stackedWidget->addWidget(gameScreen);
-
-
+    stackedWidget->addWidget(gameScreen);
 
     layout->addWidget(stackedWidget);
     centralWidget->setLayout(layout);
@@ -618,6 +607,24 @@ void MainWindow::handleAuth() {
     this->threadData->qtParent = this;
     
     pthread_create(&threadID, nullptr, Player::threadRoutineView, this->threadData.get());
+
+    // ✅ Start periodic UI refresh from threadData
+    auto timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, [this]() {
+        std::lock_guard<std::mutex> lock(threadData->mux);
+
+        if (threadData->roomInfoUpdated) {
+            threadData->roomInfoUpdated = false;
+            setupMyRoomScreen(threadData->roomInfo, threadData->isOwner);
+        }
+
+        if (threadData->userInGame) {
+            renderQt->renderGames(threadData->playersData);
+            stackedWidget->setCurrentWidget(gameScreen);
+        }
+    });
+    timer->start(100); // every 100ms
+
 
     // Connexion réussie !
     QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
