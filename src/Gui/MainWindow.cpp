@@ -348,7 +348,7 @@ void MainWindow::showModeScreen(const QString& mode) {
     if (mode == "endless") {
         sendMenuAction(MenuActions::A_Play, Modes::Endless_);
     } else if (mode == "classic") {
-        sendMenuAction(MenuActions::A_Play, Modes::Classic_);
+        sendMenuAction(MenuActions::A_JoinRoom, Modes::Classic_);
     } else if (mode == "duel") {
         sendMenuAction(MenuActions::A_JoinRoom, Modes::Duel_);
     } else if (mode == "royal") {
@@ -655,7 +655,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
     while (threadData->socket == 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    
+
     while (!flag) {
         std::cout << "realy ?";
         int type, size;
