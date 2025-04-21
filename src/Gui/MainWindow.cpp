@@ -313,6 +313,10 @@ void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
             QMessageBox::critical(this, "Erreur", "Impossible de recevoir les infos de salle.");
             return;
         }
+
+        QMetaObject::invokeMethod(this, [this, rooms]() {
+            setupRoomListScreen(rooms);
+        });        
     
         qDebug() << "Nombre de salles reçues : " << nbRooms;
     }
@@ -368,6 +372,153 @@ void MainWindow::showGameModeScreen() {
     stackedWidget->setCurrentWidget(gameModeScreen);
 }
 
+void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
+    if (roomListScreen) delete roomListScreen;
+
+    roomListScreen = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(roomListScreen);
+    QLabel* title = new QLabel("Available Rooms", this);
+    layout->addWidget(title);
+
+    if (roomsInfo.empty()) {
+        layout->addWidget(new QLabel("No rooms available."));
+    } else {
+        for (const auto& r : roomsInfo) {
+            QString text = QString("RoomID: %1 | Players: %2 | Started: %3")
+                .arg(r.roomID)
+                .arg(r.currentPlayersCount)
+                .arg(r.isStarted ? "YES" : "NO");
+            QPushButton* joinBtn = new QPushButton(text, this);
+
+            connect(joinBtn, &QPushButton::clicked, [this, r]() {
+                joinRoom(r.roomID);
+            });
+
+            layout->addWidget(joinBtn);
+        }
+    }
+
+    QPushButton* createBtn = new QPushButton("Create Room");
+    QPushButton* refreshBtn = new QPushButton("Refresh");
+    QPushButton* backBtn = new QPushButton("Back");
+    layout->addWidget(createBtn);
+    layout->addWidget(refreshBtn);
+    layout->addWidget(backBtn);
+
+    // Handle create
+    connect(createBtn, &QPushButton::clicked, this, [this]() {
+        sendCreateRoom();
+    });
+
+    // Keep existing
+    connect(refreshBtn, &QPushButton::clicked, this, &MainWindow::requestRoomList);
+    connect(backBtn, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
+
+    connect(refreshBtn, &QPushButton::clicked, this, [this]() {
+        requestRoomList();  // define this to re-fetch rooms from server
+    });
+
+    connect(backBtn, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
+
+    stackedWidget->addWidget(roomListScreen);
+    stackedWidget->setCurrentWidget(roomListScreen);
+}
+
+void MainWindow::sendCreateRoom() {
+    Menu menu;
+    menu.mode = threadData->gameMode;
+    menu.action = MenuActions::A_CreateRoom;
+
+    int type = MessageType::T_Menu;
+    int size = sizeof(Menu);
+
+    if (!sendAll(sock, &type, sizeof(type)) ||
+        !sendAll(sock, &size, sizeof(size)) ||
+        !sendAll(sock, &menu, sizeof(Menu))) {
+        QMessageBox::critical(this, "Erreur", "Échec de la création de la salle.");
+        return;
+    }
+
+    qDebug() << "Create room request sent";
+}
+
+void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
+    if (myRoomScreen) delete myRoomScreen;
+
+    myRoomScreen = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(myRoomScreen);
+
+    layout->addWidget(new QLabel(QString("Room ID: %1").arg(room.roomID)));
+    layout->addWidget(new QLabel(QString("Players: %1").arg(room.currentPlayersCount)));
+    layout->addWidget(new QLabel(QString("Started: %1").arg(room.isStarted ? "YES" : "NO")));
+
+    QPushButton* forceStartBtn = new QPushButton("Force Start");
+    QPushButton* refreshBtn = new QPushButton("Refresh");
+    QPushButton* leaveBtn = new QPushButton("Leave Room");
+
+    layout->addWidget(forceStartBtn);
+    layout->addWidget(refreshBtn);
+    layout->addWidget(leaveBtn);
+
+    connect(forceStartBtn, &QPushButton::clicked, this, [this]() {
+        sendForceStart(); // define this
+    });
+
+    connect(refreshBtn, &QPushButton::clicked, this, [this]() {
+        requestRoomUpdate(); // define this
+    });
+
+    connect(leaveBtn, &QPushButton::clicked, this, [this]() {
+        sendLeaveRoom(); // define this
+    });
+
+    stackedWidget->addWidget(myRoomScreen);
+    stackedWidget->setCurrentWidget(myRoomScreen);
+}
+
+void MainWindow::joinRoom(int roomID) {
+    int type = MessageType::T_Join;
+    int size = sizeof(int);
+    sendAll(sock, &type, sizeof(int));
+    sendAll(sock, &size, sizeof(int));
+    sendAll(sock, &roomID, sizeof(int));
+}
+
+void MainWindow::sendForceStart() {
+    Menu menu;
+    menu.action = MenuActions::A_ForceStart;
+    int type = MessageType::T_Menu;
+    int size = sizeof(Menu);
+    sendAll(sock, &type, sizeof(int));
+    sendAll(sock, &size, sizeof(int));
+    sendAll(sock, &menu, sizeof(Menu));
+}
+
+void MainWindow::sendLeaveRoom() {
+    int type = MessageType::T_LeftRoom;
+    int size = sizeof(int);
+    sendAll(sock, &type, sizeof(int));
+    sendAll(sock, &size, sizeof(int));
+}
+
+void MainWindow::requestRoomUpdate() {
+    int type = MessageType::T_Refresh;
+    int size = sizeof(int);
+    sendAll(sock, &type, sizeof(int));
+    sendAll(sock, &size, sizeof(int));
+}
+
+void MainWindow::requestRoomList() {
+    Menu menu;
+    menu.mode = threadData->gameMode;
+    menu.action = MenuActions::A_JoinRoom;
+
+    int type = MessageType::T_Menu;
+    int size = sizeof(Menu);
+    sendAll(sock, &type, sizeof(int));
+    sendAll(sock, &size, sizeof(int));
+    sendAll(sock, &menu, sizeof(Menu));
+}
 
 void MainWindow::handleAuth() {
     QString username = usernameInput->text();
@@ -479,123 +630,4 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     int bytesSentType = sendAll(sock, &exitType, sizeof(int));
     int bytesSentSize = sendAll(sock, &size_, sizeof(int));
     event->accept();
-}
-
-void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
-    if (roomListScreen) delete roomListScreen;
-
-    roomListScreen = new QWidget(this);
-    QVBoxLayout* layout = new QVBoxLayout(roomListScreen);
-    QLabel* title = new QLabel("Available Rooms", this);
-    layout->addWidget(title);
-
-    if (roomsInfo.empty()) {
-        layout->addWidget(new QLabel("No rooms available."));
-    } else {
-        for (const auto& r : roomsInfo) {
-            QString text = QString("RoomID: %1 | Players: %2 | Started: %3")
-                .arg(r.roomID)
-                .arg(r.currentPlayersCount)
-                .arg(r.isStarted ? "YES" : "NO");
-            QPushButton* joinBtn = new QPushButton(text, this);
-
-            connect(joinBtn, &QPushButton::clicked, [this, r]() {
-                joinRoom(r.roomID);
-            });
-
-            layout->addWidget(joinBtn);
-        }
-    }
-
-    QPushButton* refreshBtn = new QPushButton("Refresh");
-    QPushButton* backBtn = new QPushButton("Back");
-    layout->addWidget(refreshBtn);
-    layout->addWidget(backBtn);
-
-    connect(refreshBtn, &QPushButton::clicked, this, [this]() {
-        requestRoomList();  // define this to re-fetch rooms from server
-    });
-
-    connect(backBtn, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
-
-    stackedWidget->addWidget(roomListScreen);
-    stackedWidget->setCurrentWidget(roomListScreen);
-}
-
-void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
-    if (myRoomScreen) delete myRoomScreen;
-
-    myRoomScreen = new QWidget(this);
-    QVBoxLayout* layout = new QVBoxLayout(myRoomScreen);
-
-    layout->addWidget(new QLabel(QString("Room ID: %1").arg(room.roomID)));
-    layout->addWidget(new QLabel(QString("Players: %1").arg(room.currentPlayersCount)));
-    layout->addWidget(new QLabel(QString("Started: %1").arg(room.isStarted ? "YES" : "NO")));
-
-    QPushButton* forceStartBtn = new QPushButton("Force Start");
-    QPushButton* refreshBtn = new QPushButton("Refresh");
-    QPushButton* leaveBtn = new QPushButton("Leave Room");
-
-    layout->addWidget(forceStartBtn);
-    layout->addWidget(refreshBtn);
-    layout->addWidget(leaveBtn);
-
-    connect(forceStartBtn, &QPushButton::clicked, this, [this]() {
-        sendForceStart(); // define this
-    });
-
-    connect(refreshBtn, &QPushButton::clicked, this, [this]() {
-        requestRoomUpdate(); // define this
-    });
-
-    connect(leaveBtn, &QPushButton::clicked, this, [this]() {
-        sendLeaveRoom(); // define this
-    });
-
-    stackedWidget->addWidget(myRoomScreen);
-    stackedWidget->setCurrentWidget(myRoomScreen);
-}
-
-void MainWindow::joinRoom(int roomID) {
-    int type = MessageType::T_Join;
-    int size = sizeof(int);
-    sendAll(sock, &type, sizeof(int));
-    sendAll(sock, &size, sizeof(int));
-    sendAll(sock, &roomID, sizeof(int));
-}
-
-void MainWindow::sendForceStart() {
-    Menu menu;
-    menu.action = MenuActions::A_ForceStart;
-    int type = MessageType::T_Menu;
-    int size = sizeof(Menu);
-    sendAll(sock, &type, sizeof(int));
-    sendAll(sock, &size, sizeof(int));
-    sendAll(sock, &menu, sizeof(Menu));
-}
-
-void MainWindow::sendLeaveRoom() {
-    int type = MessageType::T_LeftRoom;
-    int size = sizeof(int);
-    sendAll(sock, &type, sizeof(int));
-    sendAll(sock, &size, sizeof(int));
-}
-
-void MainWindow::requestRoomUpdate() {
-    int type = MessageType::T_Refresh;
-    int size = sizeof(int);
-    sendAll(sock, &type, sizeof(int));
-    sendAll(sock, &size, sizeof(int));
-}
-
-void MainWindow::requestRoomList() {
-    Menu menu;
-    menu.mode = threadData->gameMode;
-    menu.action = MenuActions::A_JoinRoom;
-
-    int type = MessageType::T_Menu;
-    int size = sizeof(Menu);
-    sendAll(sock, &type, sizeof(int));
-    sendAll(sock, &size, sizeof(int));
-    sendAll(sock, &menu, sizeof(Menu));
 }

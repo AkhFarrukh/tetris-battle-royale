@@ -74,6 +74,7 @@ void* Player::threadRoutineView (void* arg){
             break;
         }
         else if(type == MessageType::T_Message){
+            std::cout << "MessageType::T_Message recived" << endl;
             Message message;
             if (!recvAll(sock, &message, size)) {
                 perror("Error on receiving room");
@@ -83,6 +84,7 @@ void* Player::threadRoutineView (void* arg){
             affichageMessage(message);
         }
         else if(type == MessageType::T_Exit){
+            std::cout << "MessageType::T_Exit recived" << endl;
             threadData->mux.lock();
             threadData->userInGame = false;
             threadData->userInLobby = false;
@@ -91,6 +93,7 @@ void* Player::threadRoutineView (void* arg){
             continue;
         }
         else if(type == MessageType::T_PlayerData || type == MessageType::T_EndGame){
+            std::cout << "MessageType::T_PlayerData || type == MessageType::T_EndGame recived" << endl;
             vector<NetPlayerData> playersData;
             for (int i = 0; i < size; ++i) {
                 NetPlayerData player;
@@ -162,11 +165,13 @@ void* Player::threadRoutineView (void* arg){
 
         }
         if (type == MessageType::T_ForcedExit){
+            std::cout << "MessageType::T_ForcedExit recived" << endl;
             flag = true;
             napms(300);
             break;
         }
         else if (type == MessageType::T_GameStart) {
+            std::cout << "MessageType::T_GameStart recived" << endl;
             threadData->mux.lock();
             threadData->userInGame = true;
             threadData->userInLobby = true;
@@ -174,6 +179,7 @@ void* Player::threadRoutineView (void* arg){
             continue;
         }
         else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {
+            std::cout << "MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo recived" << endl;
             RenderRooms renderR;
             RoomInfo info;
             if (!recvAll(sock, &info, size)) {
@@ -281,6 +287,7 @@ void* Player::threadRoutineView (void* arg){
          }
 
         else if (type == MessageType::T_RoomsInfo){
+            std::cout << "MessageType::T_RoomsInfo recived" << endl;
             RenderRooms renderR;
             std::vector<RoomInfo> roomsInfo;
             roomsInfo.resize(size);

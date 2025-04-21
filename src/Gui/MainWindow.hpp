@@ -31,10 +31,6 @@ public:
     explicit MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::ThreadData> threadData);
     ~MainWindow();
 
-    void setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo);
-    void setupMyRoomScreen(const RoomInfo& room, bool isOwner);
-
-
 private slots:
     void showLoginScreen();
     void showAuthScreen();
@@ -55,11 +51,14 @@ private:
     void setupUI();
     void setupLoginScreen();
     void setupAuthScreen();
+    void setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo);
+    void setupMyRoomScreen(const RoomInfo& room, bool isOwner);
     void joinRoom(int roomID);
     void sendForceStart();
     void sendLeaveRoom();
     void requestRoomUpdate();
     void requestRoomList();
+    void sendCreateRoom();
 
     QWidget* loginScreen = nullptr;
     QWidget* authScreen = nullptr;
