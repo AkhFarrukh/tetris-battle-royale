@@ -49,9 +49,6 @@ void* Player::threadRoutineView (void* arg){
     Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
     int sock = threadData->socket;
     RenderEngineNcurses render;
-    while (threadData->socket == 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }    
     while (!flag) {
         threadData->mux.lock();
         bool inGame = threadData->userInGame;
@@ -74,7 +71,6 @@ void* Player::threadRoutineView (void* arg){
             break;
         }
         else if(type == MessageType::T_Message){
-            std::cout << "MessageType::T_Message recived" << endl;
             Message message;
             if (!recvAll(sock, &message, size)) {
                 perror("Error on receiving room");
@@ -84,7 +80,6 @@ void* Player::threadRoutineView (void* arg){
             affichageMessage(message);
         }
         else if(type == MessageType::T_Exit){
-            std::cout << "MessageType::T_Exit recived" << endl;
             threadData->mux.lock();
             threadData->userInGame = false;
             threadData->userInLobby = false;
@@ -93,7 +88,6 @@ void* Player::threadRoutineView (void* arg){
             continue;
         }
         else if(type == MessageType::T_PlayerData || type == MessageType::T_EndGame){
-            std::cout << "MessageType::T_PlayerData || type == MessageType::T_EndGame recived" << endl;
             vector<NetPlayerData> playersData;
             for (int i = 0; i < size; ++i) {
                 NetPlayerData player;
@@ -126,52 +120,36 @@ void* Player::threadRoutineView (void* arg){
                 render.renderGames(playersData);
             }
             */
-            std::cout << "[threadRoutineView] Received" << playersData.size() << "players from server" << endl;
-            if (threadData->isGui) {
-                std::lock_guard<std::mutex> lock(threadData->mux);
-                threadData->playersData = std::move(playersData);
-                std::cout << "[threadRoutineView] playersData set in threadData" << endl;
-            } else {
-                if (threadData->gameMode == Modes::Royal_){
-                    //std::cout<<"Rendering royal games"<<std::endl;
-                    threadData->displayMut.lock();
-                    render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
-                    threadData->displayMut.unlock();
 
-                    // Find which player is the client (ID == -1)
-                    int clientPlayerIndex = -1;
-                    for (size_t i = 0; i < playersData.size(); ++i) {
-                        if (playersData.at(i).playerId == -1) {
-                            clientPlayerIndex = i;
-                            threadData->clinetPlayerID = i; // Store the index
-                            break;
-                        }
+            if (threadData->gameMode == Modes::Royal_){
+                //std::cout<<"Rendering royal games"<<std::endl;
+                threadData->displayMut.lock();
+                render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
+                threadData->displayMut.unlock();
+
+                // Find which player is the client (ID == -1)
+                int clientPlayerIndex = -1;
+                for (size_t i = 0; i < playersData.size(); ++i) {
+                    if (playersData.at(i).playerId == -1) {
+                        clientPlayerIndex = i;
+                        threadData->clinetPlayerID = i; // Store the index
+                        break;
                     }
-                } else {
-                    // Render the regular games grid for endless, classic and duel modes
-                    threadData->displayMut.lock();
-                    render.renderGames(playersData);
-                    threadData->displayMut.unlock();
                 }
+            } else {
+                // Render the regular games grid for endless, classic and duel modes
+                threadData->displayMut.lock();
+                render.renderGames(playersData);
+                threadData->displayMut.unlock();
             }
-
-            // if (threadData->isGui && threadData->qtParent) {
-            //     QMetaObject::invokeMethod(
-            //         static_cast<MainWindow*>(threadData->qtParent),
-            //         "updateGameScreen",
-            //         Qt::QueuedConnection
-            //     );
-            // }
 
         }
         if (type == MessageType::T_ForcedExit){
-            std::cout << "MessageType::T_ForcedExit recived" << endl;
             flag = true;
             napms(300);
             break;
         }
         else if (type == MessageType::T_GameStart) {
-            std::cout << "MessageType::T_GameStart recived" << endl;
             threadData->mux.lock();
             threadData->userInGame = true;
             threadData->userInLobby = true;
@@ -179,7 +157,6 @@ void* Player::threadRoutineView (void* arg){
             continue;
         }
         else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {
-            std::cout << "MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo recived" << endl;
             RenderRooms renderR;
             RoomInfo info;
             if (!recvAll(sock, &info, size)) {
@@ -187,14 +164,6 @@ void* Player::threadRoutineView (void* arg){
                 flag = true;
                 break;
             }
-
-
-            threadData->mux.lock();
-            threadData->roomInfo = info;
-            threadData->roomInfoUpdated = true;
-            threadData->isOwner = (type == MessageType::T_RoomInfo);
-            threadData->mux.unlock();        
-
             int flags = fcntl(sock, F_GETFL, 0);
             fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 
@@ -295,7 +264,6 @@ void* Player::threadRoutineView (void* arg){
          }
 
         else if (type == MessageType::T_RoomsInfo){
-            std::cout << "MessageType::T_RoomsInfo recived" << endl;
             RenderRooms renderR;
             std::vector<RoomInfo> roomsInfo;
             roomsInfo.resize(size);
@@ -373,7 +341,7 @@ return 0;
  * @return int 
  */
 
-int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
+int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
     threadData->mux.lock();

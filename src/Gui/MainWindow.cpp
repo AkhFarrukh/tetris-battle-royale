@@ -21,6 +21,9 @@
 #include <QScreen>
 #include <QMetaObject>
 #include <QDebug>
+#include <atomic>
+
+extern std::atomic<bool> flag;
 
 
 MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::ThreadData> threadData)
@@ -246,69 +249,73 @@ void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
     threadData->mux.unlock();
 
 
+    if (!threadID) {
+        pthread_create(&threadID, nullptr, MainWindow::threadRoutineQtView, threadData.get());
+    }
+    
     int type = MessageType::T_Menu;
     int size = sizeof(Menu);
 
     std::cout<< "--------->sendMenuAction called<----------" <<endl;
-
-    if (!sendAll(sock, &type, sizeof(int)) ||
-        !sendAll(sock, &size, sizeof(int)) ||
+    
+    if (!sendAll(sock, &type, sizeof(type)) ||
+        !sendAll(sock, &size, sizeof(size)) ||
         !sendAll(sock, &menu, sizeof(Menu))) {
         QMessageBox::critical(this, "Erreur", "Échec de l'envoi du menu.");
         return;
     }
+    
 
-    if (mode == Modes::Endless_) {
-        int typeResponse, sizeResponse;
-        if (!recvAll(sock, &typeResponse, sizeof(int)) ||
-            !recvAll(sock, &sizeResponse, sizeof(int))) {
-            QMessageBox::critical(this, "Erreur", "Pas de réponse du serveur.");
-            return;
-        }
+    // if (mode == Modes::Endless_) {
+    //     int typeResponse, sizeResponse;
+    //     if (!recvAll(sock, &typeResponse, sizeof(int)) ||
+    //         !recvAll(sock, &sizeResponse, sizeof(int))) {
+    //         QMessageBox::critical(this, "Erreur", "Pas de réponse du serveur.");
+    //         return;
+    //     }
 
-        else if (typeResponse == MessageType::T_GameStart) {
-            threadData->mux.lock();
-            threadData->userInGame = true;
-            threadData->userInLobby = true;
-            threadData->mux.unlock();
+    //     else if (typeResponse == MessageType::T_GameStart) {
+    //         threadData->mux.lock();
+    //         threadData->userInGame = true;
+    //         threadData->userInLobby = true;
+    //         threadData->mux.unlock();
         
-            if (threadData->isGui && threadData->qtParent) {
-                QMetaObject::invokeMethod(static_cast<QObject*>(threadData->qtParent), [this]() {
-                    static_cast<MainWindow*>(threadData->qtParent)->setGameScreen();
-                });
-            }
+    //         if (threadData->isGui && threadData->qtParent) {
+    //             QMetaObject::invokeMethod(static_cast<QObject*>(threadData->qtParent), [this]() {
+    //                 static_cast<MainWindow*>(threadData->qtParent)->setGameScreen();
+    //             });
+    //         }
         
-            // continue;
-        }        
-    }
+    //         // continue;
+    //     }        
+    // }
 
-    if (action == MenuActions::A_JoinRoom) {
-        int typeResponse;
-        int nbRooms;
+    // if (action == MenuActions::A_JoinRoom) {
+    //     int typeResponse;
+    //     int nbRooms;
     
-        if (!recvAll(sock, &typeResponse, sizeof(int)) ||
-            !recvAll(sock, &nbRooms, sizeof(int))) {
-            QMessageBox::critical(this, "Erreur", "Erreur lors de la réception des rooms.");
-            return;
-        }
+    //     if (!recvAll(sock, &typeResponse, sizeof(int))) {
+    //         QMessageBox::critical(this, "Erreur", "Erreur lors de la réception du type.");
+    //         return;
+    //     }        
     
-        if (typeResponse != MessageType::T_RoomsInfo) {
-            QMessageBox::warning(this, "Aucune salle", "Aucune salle disponible.");
-            return;
-        }
+    //     if (typeResponse != MessageType::T_RoomsInfo) {
+    //         QMessageBox::warning(this, "Aucune salle", "Aucune salle disponible.");
+    //         return;
+    //     }
     
-        std::vector<RoomInfo> rooms(nbRooms);
-        if (!recvAll(sock, rooms.data(), nbRooms * sizeof(RoomInfo))) {
-            QMessageBox::critical(this, "Erreur", "Impossible de recevoir les infos de salle.");
-            return;
-        }
+    //     std::vector<RoomInfo> rooms(nbRooms);
+    //     if (!recvAll(sock, rooms.data(), nbRooms * sizeof(RoomInfo))) {
+    //         QMessageBox::critical(this, "Erreur", "Impossible de recevoir les infos de salle.");
+    //         return;
+    //     }
 
-        QMetaObject::invokeMethod(this, [this, rooms]() {
-            setupRoomListScreen(rooms);
-        });        
+        // QMetaObject::invokeMethod(this, [this, rooms]() {
+        //     setupRoomListScreen(rooms);
+        // });        
     
-        qDebug() << "Nombre de salles reçues : " << nbRooms;
-    }
+    //     qDebug() << "Nombre de salles reçues : " << nbRooms;
+    // }
     
 }
 
@@ -331,7 +338,6 @@ void MainWindow::setupGameScreens() {
 void MainWindow::updateGameScreen() {
     if (!renderQt || !threadData) return;
     std::lock_guard<std::mutex> lock(threadData->mux);
-    qDebug() << "updateGameScreen() playersData size:" << threadData->playersData.size();
     if (!threadData->userInGame) return;
     renderQt->renderGames(threadData->playersData);
     stackedWidget->setCurrentWidget(gameScreen);
@@ -606,12 +612,14 @@ void MainWindow::handleAuth() {
     this->threadData->isGui = true;
     this->threadData->qtParent = this;
     
-    pthread_create(&threadID, nullptr, Player::threadRoutineView, this->threadData.get());
+    pthread_create(&threadID, nullptr, MainWindow::threadRoutineQtView, threadData.get());
 
-    // ✅ Start periodic UI refresh from threadData
+    //Start periodic UI refresh from threadData
     auto timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, [this]() {
         std::lock_guard<std::mutex> lock(threadData->mux);
+
+        // std::cout << "-------------timer----------------" << endl;
 
         if (threadData->roomInfoUpdated) {
             threadData->roomInfoUpdated = false;
@@ -637,4 +645,117 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     int bytesSentType = sendAll(sock, &exitType, sizeof(int));
     int bytesSentSize = sendAll(sock, &size_, sizeof(int));
     event->accept();
+}
+
+void* MainWindow::threadRoutineQtView(void* arg) {
+    Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
+    int sock = threadData->socket;
+    auto* parent = static_cast<MainWindow*>(threadData->qtParent);
+
+    while (threadData->socket == 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    
+    while (!flag) {
+        std::cout << "realy ?";
+        int type, size;
+        if (!recvAll(sock, &type, sizeof(int)) || !recvAll(sock, &size, sizeof(int))) {
+            perror("Disconnected or error");
+            flag = true;
+            break;
+        }
+
+        if (type == MessageType::T_Message) {
+            Message message;
+            if (!recvAll(sock, &message, size)) break;
+        }
+
+        else if (type == MessageType::T_Exit || type == MessageType::T_ForcedExit) {
+            threadData->mux.lock();
+            threadData->userInGame = false;
+            threadData->userInLobby = false;
+            threadData->mux.unlock();
+            flag = true;
+            break;
+        }
+
+        else if (type == MessageType::T_PlayerData || type == MessageType::T_EndGame) {
+            std::vector<NetPlayerData> playersData;
+            for (int i = 0; i < size; ++i) {
+                NetPlayerData player;
+                if (!recvAll(sock, &player.playerId, sizeof(player.playerId))) return nullptr;
+                if (!recvAll(sock, &player.isGameOver, sizeof(player.isGameOver))) return nullptr;
+                if (!recvAll(sock, &player.linesCleared, sizeof(player.linesCleared))) return nullptr;
+                if (!recvAll(sock, &player.score, sizeof(player.score))) return nullptr;
+                if (!recvAll(sock, &player.nrg, sizeof(player.nrg))) return nullptr;
+                int gridSize;
+                if (!recvAll(sock, &gridSize, sizeof(gridSize)) || gridSize < 0 || gridSize > 100000) break;
+                player.grid.resize(gridSize);
+                if (!recvAll(sock, player.grid.data(), gridSize * sizeof(Color))) return nullptr;
+                if (type == MessageType::T_EndGame) player.endGame = true;
+                playersData.push_back(player);
+            }
+
+            std::lock_guard<std::mutex> lock(threadData->mux);
+            threadData->playersData = std::move(playersData);
+        }
+
+        else if (type == MessageType::T_GameStart) {
+            threadData->mux.lock();
+            threadData->userInGame = true;
+            threadData->userInLobby = true;
+            threadData->mux.unlock();
+
+            QMetaObject::invokeMethod(
+                static_cast<QObject*>(parent),
+                [parent]() {
+                    parent->setGameScreen();
+                }
+            );
+        }
+
+        else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {
+            RoomInfo info;
+            if (!recvAll(sock, &info, size)) break;
+
+            threadData->mux.lock();
+            threadData->roomInfo = info;
+            threadData->roomInfoUpdated = false;
+            threadData->isOwner = (type == MessageType::T_RoomInfo);
+            threadData->mux.unlock();
+
+            QMetaObject::invokeMethod(
+                static_cast<QObject*>(parent),
+                [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
+                    parent->setupMyRoomScreen(info, isOwner);
+                }
+            );
+        }
+
+        else if (type == MessageType::T_RoomsInfo) {
+            std::vector<RoomInfo> rooms(size);
+            if (!recvAll(sock, rooms.data(), size * sizeof(RoomInfo))) break;
+
+            int modeInt, modeSize;
+            if (!recvAll(sock, &modeInt, sizeof(int))) break;
+            if (!recvAll(sock, &modeSize, sizeof(int))) break;
+
+            QMetaObject::invokeMethod(
+                static_cast<QObject*>(parent),
+                [rooms, parent]() {
+                    parent->setupRoomListScreen(rooms);
+                }
+            );
+        }
+
+        else {
+            std::cerr << "[QtView] Unhandled type: " << type << std::endl;
+            char buffer[1024];
+            recv(sock, buffer, std::min(size, 1024), 0);
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    }
+
+    return nullptr;
 }

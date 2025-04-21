@@ -20,6 +20,7 @@
 #include <QPushButton>
 #include <QCloseEvent>
 #include <QTimer>
+#include <atomic>
 #include "communication.hpp"
 #include "playerFunctions.hpp"
 #include "RenderEngineQt.hpp"
@@ -59,6 +60,7 @@ private:
     void requestRoomUpdate();
     void requestRoomList();
     void sendCreateRoom();
+    static void* threadRoutineQtView(void* arg);
 
     QWidget* loginScreen = nullptr;
     QWidget* authScreen = nullptr;
