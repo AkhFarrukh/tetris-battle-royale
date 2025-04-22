@@ -149,53 +149,20 @@ void RenderEngineQt::paintEvent(QPaintEvent*) {
         }
 
         if (isRoyal) {
-            int menuX = width() - 250;  // right side
+            int menuX = width() - 250;
             int menuY = 40;
-            int lineHeight = 25;
-        
-            QFont font("Arial", 10);
-            painter.setFont(font);
-            painter.setPen(Qt::white);
-        
-            // Title
-            painter.drawText(menuX, menuY, "== Malus/Bonus Menu =="); menuY += lineHeight;
-        
-            // Energy display
+            QFont energyFont("Arial", 12, QFont::Bold);
+            painter.setFont(energyFont);
+            painter.setPen(Qt::yellow);
+    
             for (const auto& player : currentPlayers) {
                 if (player.playerId == -1) {
-                    painter.drawText(menuX, menuY, QString("Energy: %1").arg(player.nrg)); menuY += 2 * lineHeight;
+                    painter.drawText(menuX, menuY, QString("Energy: %1").arg(player.nrg));
                     break;
                 }
             }
-        
-            // Maluses
-            painter.drawText(menuX, menuY, "Maluses:"); menuY += lineHeight;
-            QStringList maluses = {
-                "1 - Speed Up Enemy",
-                "2 - Reverse Controls",
-                "3 - Freeze Controls",
-                "4 - Blackout",
-                "5 - Thunder"
-            };
-            for (const auto& m : maluses) {
-                painter.drawText(menuX, menuY, m); menuY += lineHeight;
-            }
-        
-            menuY += lineHeight / 2;
-            painter.drawText(menuX, menuY, "Bonuses:"); menuY += lineHeight;
-        
-            QStringList bonuses = {
-                "6 - Bonus Block 1x1",
-                "7 - Slow Down"
-            };
-            for (const auto& b : bonuses) {
-                painter.drawText(menuX, menuY, b); menuY += lineHeight;
-            }
-        
-            painter.drawText(menuX, menuY + lineHeight, "Use keys 1-7 to activate");
-        }        
-
-        // Draw game over message if needed
+        }
+    
         if (player.endGame || player.isGameOver) {
             QFont gameOverFont("Arial", 16, QFont::Bold);
             painter.setFont(gameOverFont);

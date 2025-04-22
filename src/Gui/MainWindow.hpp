@@ -45,6 +45,7 @@ private slots:
     void closeEvent(QCloseEvent *event) override;
     void setupGameScreens();
     void updateGameScreen();
+    void addMalusButtonsIfRoyal();
     void setGameScreen();
 
 private:
@@ -61,6 +62,7 @@ private:
     void requestRoomList();
     void sendCreateRoom();
     static void* threadRoutineQtView(void* arg);
+    void handleMalusBonus(int malusId);
 
     QWidget* loginScreen = nullptr;
     QWidget* authScreen = nullptr;

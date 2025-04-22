@@ -22,6 +22,9 @@
 #include <QMetaObject>
 #include <QDebug>
 #include <atomic>
+#include <QInputDialog>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
 
 extern std::atomic<bool> flag;
 
@@ -482,6 +485,7 @@ void MainWindow::joinRoom(int roomID) {
 void MainWindow::sendForceStart() {
     Menu menu;
     menu.action = MenuActions::A_ForceStart;
+    // menu.mode = threadData->gameMode;
     int type = MessageType::T_Menu;
     int size = sizeof(Menu);
     sendAll(sock, &type, sizeof(int));
@@ -709,6 +713,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
             QMetaObject::invokeMethod(
                 static_cast<QObject*>(parent),
                 [parent]() {
+                    parent->addMalusButtonsIfRoyal();
                     parent->setGameScreen();
                 }
             );
@@ -720,7 +725,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
 
             threadData->mux.lock();
             threadData->roomInfo = info;
-            threadData->roomInfoUpdated = false;
+            threadData->roomInfoUpdated = true;
             threadData->isOwner = (type == MessageType::T_RoomInfo);
             threadData->mux.unlock();
 
@@ -758,4 +763,79 @@ void* MainWindow::threadRoutineQtView(void* arg) {
     }
 
     return nullptr;
+}
+
+void MainWindow::addMalusButtonsIfRoyal() {
+    if (threadData && threadData->gameMode == Modes::Royal_ && gameScreen) {
+        QHBoxLayout* malusBonusLayout = new QHBoxLayout();
+
+        QStringList labels = {
+            "1. Speed Up Enemy",
+            "2. Reverse Controls",
+            "3. Freeze Controls",
+            "4. Blackout",
+            "5. Thunder",
+            "6. Block 1x1",
+            "7. Slow Down"
+        };
+
+        for (int i = 0; i < labels.size(); ++i) {
+            QPushButton* btn = new QPushButton(labels[i], this);
+            btn->setStyleSheet("background-color: #f39c12; color: white; font-weight: bold;");
+            malusBonusLayout->addWidget(btn);
+
+            connect(btn, &QPushButton::clicked, this, [this, i]() {
+                handleMalusBonus(i + 1);
+            });
+        }
+
+        QVBoxLayout* mainLayout = qobject_cast<QVBoxLayout*>(gameScreen->layout());
+        if (mainLayout) {
+            mainLayout->addLayout(malusBonusLayout);
+        }
+    }
+}
+
+
+void MainWindow::handleMalusBonus(int malusId) {
+    // Bonuses (6 & 7) are applied to self
+    int target = threadData->clinetPlayerID;
+
+    if (malusId >= 1 && malusId <= 5) {
+        QStringList playerOptions;
+        for (const auto& p : threadData->playersData) {
+            if (p.playerId != -1) {
+                playerOptions << QString("Player %1").arg(p.playerId);
+            }
+        }
+
+        bool ok = false;
+        QString chosen = QInputDialog::getItem(this, "Select Target Player",
+            "Choose player to apply malus:", playerOptions, 0, false, &ok);
+
+        if (!ok || chosen.isEmpty()) return;
+
+        QRegularExpression re("Player (\\d+)");
+        QRegularExpressionMatch match = re.match(chosen);
+        if (match.hasMatch()) {
+            target = match.captured(1).toInt();
+        } else {
+            QMessageBox::warning(this, "Error", "Invalid player selection.");
+            return;
+        }
+    }
+
+    // Send to server
+    MalBonus mb;
+    mb.malusB = static_cast<MalusBonus>(malusId);
+    mb.target = target;
+
+    int type = MessageType::T_MalusBonus;
+    int size = sizeof(MalBonus);
+
+    if (!sendAll(sock, &type, sizeof(int)) ||
+        !sendAll(sock, &size, sizeof(int)) ||
+        !sendAll(sock, &mb, sizeof(MalBonus))) {
+        QMessageBox::critical(this, "Erreur", "Failed to send malus/bonus.");
+    }
 }
