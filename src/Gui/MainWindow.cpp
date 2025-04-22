@@ -188,6 +188,10 @@ void MainWindow::setupMainMenuScreen() {
     layout->addWidget(leaderboardButton);
 
     connect(playButton, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
+    // connect(friendsButton, &QPushButton::clicked, this, nullptr);
+    connect(leaderboardButton, &QPushButton::clicked, this, &MainWindow::showLeaderboardScreen);
+
+
 
     mainMenuScreen->setLayout(layout);
     stackedWidget->addWidget(mainMenuScreen); // Important !
@@ -838,4 +842,43 @@ void MainWindow::handleMalusBonus(int malusId) {
         !sendAll(sock, &mb, sizeof(MalBonus))) {
         QMessageBox::critical(this, "Erreur", "Failed to send malus/bonus.");
     }
+}
+
+void MainWindow::showLeaderboardScreen() {
+    if (leaderboardScreen) {
+        delete leaderboardScreen;
+        leaderboardScreen = nullptr;
+    }
+
+    leaderboardScreen = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(leaderboardScreen);
+
+    QLabel* title = new QLabel("🏆 Leaderboard: Top Endless Mode Players 🏆", this);
+    title->setStyleSheet("font-size: 18px; font-weight: bold; color: gold;");
+    layout->addWidget(title);
+
+    std::vector<std::pair<std::string, int>> scores = udm.getTopScores(5);
+
+    if (scores.empty()) {
+        layout->addWidget(new QLabel("No scores recorded yet.", this));
+    } else {
+        for (size_t i = 0; i < scores.size(); ++i) {
+            QString entry = QString("%1. %2 - %3 points")
+                                .arg(i + 1)
+                                .arg(QString::fromStdString(scores[i].first))
+                                .arg(scores[i].second);
+            QLabel* scoreLabel = new QLabel(entry, this);
+            scoreLabel->setStyleSheet("color: white; font-size: 14px;");
+            layout->addWidget(scoreLabel);
+        }
+    }
+
+    QPushButton* backBtn = new QPushButton("Back", this);
+    backBtn->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;");
+    connect(backBtn, &QPushButton::clicked, this, &MainWindow::showMainMenuScreen);
+    layout->addWidget(backBtn);
+
+    leaderboardScreen->setLayout(layout);
+    stackedWidget->addWidget(leaderboardScreen);
+    stackedWidget->setCurrentWidget(leaderboardScreen);
 }

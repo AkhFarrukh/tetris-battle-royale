@@ -24,6 +24,7 @@
 #include "communication.hpp"
 #include "playerFunctions.hpp"
 #include "RenderEngineQt.hpp"
+#include "userdatabasemanager.hpp"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -47,6 +48,7 @@ private slots:
     void updateGameScreen();
     void addMalusButtonsIfRoyal();
     void setGameScreen();
+    void showLeaderboardScreen();
 
 private:
     int sock;
@@ -63,13 +65,14 @@ private:
     void sendCreateRoom();
     static void* threadRoutineQtView(void* arg);
     void handleMalusBonus(int malusId);
+    
 
     QWidget* loginScreen = nullptr;
     QWidget* authScreen = nullptr;
     QWidget* mainMenuScreen = nullptr;
     QWidget* gameModeScreen = nullptr;
     QWidget* gameScreen = nullptr;
-
+    QWidget* leaderboardScreen = nullptr;
     QLineEdit* usernameInput = nullptr;
     QLineEdit* passwordInput = nullptr;
     QLineEdit* confirmPasswordInput = nullptr;
@@ -86,6 +89,8 @@ private:
     std::shared_ptr<Player::ThreadData> threadData;
     pthread_t threadID;
 
+    Database db{"./tetris.db"};
+    UserDatabaseManager udm;
 
     QWidget* roomListScreen = nullptr;
     QWidget* myRoomScreen = nullptr;
