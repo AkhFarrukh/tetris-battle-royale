@@ -14,9 +14,31 @@ SQLITE_DIR = $(LIB_DIR)/sqlite-install
 UNAME_S := $(shell uname -s)
 
 # Qt6 flags (via pkg-config)
-QT_PACKAGES = Qt6Core Qt6Widgets Qt6Gui
-QT_CXXFLAGS := $(shell pkg-config --cflags $(QT_PACKAGES))
-QT_LDFLAGS := $(shell pkg-config --libs $(QT_PACKAGES))
+#QT_PACKAGES = Qt6Core Qt6Widgets Qt6Gui
+#QT_CXXFLAGS := $(shell pkg-config --cflags $(QT_PACKAGES))
+#QT_LDFLAGS := $(shell pkg-config --libs $(QT_PACKAGES))
+
+
+# Vérifier si on est sous WSL
+IS_WSL := $(shell uname -r | grep -o microsoft)
+
+# Qt6 flags (pour WSL uniquement)
+ifeq ($(IS_WSL), microsoft)
+  # Si on est sur WSL2, utiliser les flags manuels de Qt6
+  QT_INCLUDE_DIR = /usr/include/x86_64-linux-gnu/qt6
+  QT_LIB_DIR = /usr/lib/x86_64-linux-gnu
+
+  QT_CXXFLAGS := -I$(QT_INCLUDE_DIR) -I$(QT_INCLUDE_DIR)/QtCore -I$(QT_INCLUDE_DIR)/QtWidgets -I$(QT_INCLUDE_DIR)/QtGui
+  QT_LDFLAGS := -L$(QT_LIB_DIR) -lQt6Core -lQt6Widgets -lQt6Gui
+else
+  # Si on n'est pas sur WSL2, utiliser pkg-config
+  QT_PACKAGES = Qt6Core Qt6Widgets Qt6Gui
+  QT_CXXFLAGS := $(shell pkg-config --cflags $(QT_PACKAGES))
+  QT_LDFLAGS := $(shell pkg-config --libs $(QT_PACKAGES))
+endif
+
+
+
 
 # Chemins par défaut
 LDFLAGS = -L$(NCURSES_DIR)/lib -L$(SQLITE_DIR)/lib -L$(LIB_DIR)
@@ -40,7 +62,8 @@ export LD_LIBRARY_PATH := $(LIB_DIR):$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LD_L
 
 # Compilateur
 CXX = g++
-COMMON_CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Player -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(SRC_DIR)/Database -I$(SRC_DIR)/Server -I$(SRC_DIR)/Gui $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
+# ajout à la fin de -fPIC car ca beugait sur WSL2
+COMMON_CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Player -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(SRC_DIR)/Database -I$(SRC_DIR)/Server -I$(SRC_DIR)/Gui $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fPIC
 
 # Sources
 SERVER_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -name "tetris.cpp" ! -path "$(SRC_DIR)/Gui/*")
