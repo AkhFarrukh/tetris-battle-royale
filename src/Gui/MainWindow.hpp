@@ -23,7 +23,7 @@
 #include <atomic>
 #include "communication.hpp"
 #include "playerFunctions.hpp"
-#include "RenderEngineQt.hpp"
+#include "GridQt.hpp"
 #include "userdatabasemanager.hpp"
 
 class MainWindow : public QMainWindow {
@@ -82,7 +82,7 @@ private:
     QPushButton* leaderboardButton = nullptr;
 
     QStackedWidget* stackedWidget = nullptr;
-    RenderEngineQt* renderQt = nullptr;
+    GridQt* renderQt = nullptr;
 
     bool isRegisterMode = false;
 

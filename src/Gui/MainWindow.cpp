@@ -245,7 +245,6 @@ void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
     Menu menu;
     menu.action = action;
     menu.mode = mode;
-    // 🧠 Setup threadData before waiting for T_GameStart
     threadData->mux.lock();
     threadData->socket = sock;
     threadData->gameMode = mode;
@@ -262,68 +261,13 @@ void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
     
     int type = MessageType::T_Menu;
     int size = sizeof(Menu);
-
-    std::cout<< "--------->sendMenuAction called<----------" <<endl;
     
     if (!sendAll(sock, &type, sizeof(type)) ||
         !sendAll(sock, &size, sizeof(size)) ||
         !sendAll(sock, &menu, sizeof(Menu))) {
         QMessageBox::critical(this, "Erreur", "Échec de l'envoi du menu.");
         return;
-    }
-    
-
-    // if (mode == Modes::Endless_) {
-    //     int typeResponse, sizeResponse;
-    //     if (!recvAll(sock, &typeResponse, sizeof(int)) ||
-    //         !recvAll(sock, &sizeResponse, sizeof(int))) {
-    //         QMessageBox::critical(this, "Erreur", "Pas de réponse du serveur.");
-    //         return;
-    //     }
-
-    //     else if (typeResponse == MessageType::T_GameStart) {
-    //         threadData->mux.lock();
-    //         threadData->userInGame = true;
-    //         threadData->userInLobby = true;
-    //         threadData->mux.unlock();
-        
-    //         if (threadData->isGui && threadData->qtParent) {
-    //             QMetaObject::invokeMethod(static_cast<QObject*>(threadData->qtParent), [this]() {
-    //                 static_cast<MainWindow*>(threadData->qtParent)->setGameScreen();
-    //             });
-    //         }
-        
-    //         // continue;
-    //     }        
-    // }
-
-    // if (action == MenuActions::A_JoinRoom) {
-    //     int typeResponse;
-    //     int nbRooms;
-    
-    //     if (!recvAll(sock, &typeResponse, sizeof(int))) {
-    //         QMessageBox::critical(this, "Erreur", "Erreur lors de la réception du type.");
-    //         return;
-    //     }        
-    
-    //     if (typeResponse != MessageType::T_RoomsInfo) {
-    //         QMessageBox::warning(this, "Aucune salle", "Aucune salle disponible.");
-    //         return;
-    //     }
-    
-    //     std::vector<RoomInfo> rooms(nbRooms);
-    //     if (!recvAll(sock, rooms.data(), nbRooms * sizeof(RoomInfo))) {
-    //         QMessageBox::critical(this, "Erreur", "Impossible de recevoir les infos de salle.");
-    //         return;
-    //     }
-
-        // QMetaObject::invokeMethod(this, [this, rooms]() {
-        //     setupRoomListScreen(rooms);
-        // });        
-    
-    //     qDebug() << "Nombre de salles reçues : " << nbRooms;
-    // }
-    
+    }    
 }
 
 void MainWindow::setGameScreen() {
@@ -334,7 +278,7 @@ void MainWindow::setupGameScreens() {
     gameScreen = new QWidget(this);
     auto layout = new QVBoxLayout(gameScreen);
 
-    renderQt = new RenderEngineQt(gameScreen);
+    renderQt = new GridQt(gameScreen);
     renderQt->setThreadData(threadData);
     layout->addWidget(renderQt);
 
@@ -802,10 +746,18 @@ void MainWindow::addMalusButtonsIfRoyal() {
 
 
 void MainWindow::handleMalusBonus(int malusId) {
-    // Bonuses (6 & 7) are applied to self
-    int target = threadData->clinetPlayerID;
+    int target = -1;
 
-    if (malusId >= 1 && malusId <= 5) {
+    // Bonus: auto-target self
+    if (malusId == 6 || malusId == 7) {
+        for (const auto& p : threadData->playersData) {
+            if (p.playerId == -1) {
+                target = threadData->clinetPlayerID;
+                break;
+            }
+        }
+    } else {
+        // Malus: select another target
         QStringList playerOptions;
         for (const auto& p : threadData->playersData) {
             if (p.playerId != -1) {
@@ -829,7 +781,12 @@ void MainWindow::handleMalusBonus(int malusId) {
         }
     }
 
-    // Send to server
+    if (target == -1) {
+        QMessageBox::warning(this, "Error", "Could not determine target player.");
+        return;
+    }
+
+    // Send malus/bonus to the server
     MalBonus mb;
     mb.malusB = static_cast<MalusBonus>(malusId);
     mb.target = target;
@@ -840,9 +797,10 @@ void MainWindow::handleMalusBonus(int malusId) {
     if (!sendAll(sock, &type, sizeof(int)) ||
         !sendAll(sock, &size, sizeof(int)) ||
         !sendAll(sock, &mb, sizeof(MalBonus))) {
-        QMessageBox::critical(this, "Erreur", "Failed to send malus/bonus.");
+        QMessageBox::critical(this, "Error", "Failed to send malus/bonus.");
     }
 }
+
 
 void MainWindow::showLeaderboardScreen() {
     if (leaderboardScreen) {
