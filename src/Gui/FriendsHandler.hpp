@@ -12,6 +12,7 @@
 #include <QHeaderView>
 #include <QTimer>
 #include <QLineEdit>
+#include <QVector>
 #include <QMessageBox>
 
 #include "../Database/database.hpp" //changer en "database.hpp" si probleme
@@ -39,6 +40,7 @@ class FriendsHandler: public QWidget {
 
         QLineEdit* usernameInput; // champs qui va contenir le username recherché
         QString currentUser; 
+        QListWidget* requestsListWidget;  // Liste des demandes d'amis
 
 
     
@@ -47,7 +49,8 @@ class FriendsHandler: public QWidget {
         FriendsHandler(QWidget* parent = nullptr, const std::vector<QString>& friendsList = {}, int countRequests = 0);
         
         void searchPlayerName() ;
-        void handleFriendRequests();
+        void showFriendsRequests(const std::vector<string>& requestsReceivedList, const std::vector<string>& requestSentList);
+        
         
         QWidget* getWindowWidget() const;
         QTableWidget* getFriendsTableWidget() const;
@@ -57,7 +60,9 @@ class FriendsHandler: public QWidget {
     
     public slots:
         void searchNameButtonClicked();
-
+        void acceptFriendRequest();
+        void refuseFriendRequest();
+        void handleFriendsRequests();
 };
 
 
