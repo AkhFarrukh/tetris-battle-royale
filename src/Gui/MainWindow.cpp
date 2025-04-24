@@ -389,7 +389,12 @@ void MainWindow::sendCreateRoom() {
 }
 
 void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
-    if (myRoomScreen) delete myRoomScreen;
+    if (myRoomScreen) {
+        stackedWidget->removeWidget(myRoomScreen);
+        delete myRoomScreen;
+        myRoomScreen = nullptr;
+    }
+    
 
     myRoomScreen = new QWidget(this);
     QVBoxLayout* layout = new QVBoxLayout(myRoomScreen);
@@ -442,11 +447,37 @@ void MainWindow::sendForceStart() {
 }
 
 void MainWindow::sendLeaveRoom() {
-    int type = MessageType::T_LeftRoom;
+    int type;
     int size = sizeof(int);
-    sendAll(sock, &type, sizeof(int));
-    sendAll(sock, &size, sizeof(int));
+
+    if (threadData->isOwner) {
+        type = MessageType::T_RoomDeleted;
+    } else {
+        type = MessageType::T_LeftRoom;
+    }
+
+    if (!sendAll(sock, &type, sizeof(int)) ||
+        !sendAll(sock, &size, sizeof(int))) {
+        QMessageBox::critical(this, "Error", "Failed to leave room.");
+        return;
+    }
+
+    // Remove room screen UI
+    if (myRoomScreen) {
+        stackedWidget->removeWidget(myRoomScreen);
+        delete myRoomScreen;
+        myRoomScreen = nullptr;
+    }
+
+    threadData->mux.lock();
+    threadData->userInLobby = false;
+    threadData->roomInfoUpdated = false;
+    threadData->isOwner = false;
+    threadData->mux.unlock();
+
+    requestRoomList();
 }
+
 
 void MainWindow::requestRoomUpdate() {
     int type = MessageType::T_Refresh;
@@ -623,12 +654,22 @@ void* MainWindow::threadRoutineQtView(void* arg) {
         }
 
         else if (type == MessageType::T_Exit || type == MessageType::T_ForcedExit) {
-            threadData->mux.lock();
-            threadData->userInGame = false;
-            threadData->userInLobby = false;
-            threadData->mux.unlock();
-            flag = true;
-            break;
+            if (type == MessageType::T_ForcedExit) {
+                threadData->mux.lock();
+                threadData->userInGame = false;
+                threadData->userInLobby = false;
+                threadData->mux.unlock();
+                flag = true;
+                break;
+            } else {
+                // ibrahim irhamni
+                threadData->mux.lock();
+                threadData->userInGame = false;
+                threadData->userInLobby = false;
+                threadData->mux.unlock();
+                continue;
+            }
+        
         }
 
         else if (type == MessageType::T_PlayerData || type == MessageType::T_EndGame) {
@@ -653,6 +694,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
         }
 
         else if (type == MessageType::T_GameStart) {
+            std::cout << "t_gamgestart recived correctly" << endl;
             threadData->mux.lock();
             threadData->userInGame = true;
             threadData->userInLobby = true;
@@ -665,6 +707,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
                     parent->setGameScreen();
                 }
             );
+            
         }
 
         else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {

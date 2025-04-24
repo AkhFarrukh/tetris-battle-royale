@@ -391,14 +391,20 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
 }
 
 void Server::handleLeftRoom(Server* server, ClientSession& client) {
-  std::shared_ptr<Room> chosenRoom = nullptr;
-  for (auto &r : *server->roomsList) {
-        if (r->getOwnerFd() == client.inRoom) {
+    std::shared_ptr<Room> chosenRoom = nullptr;
+    for (auto &r : *server->roomsList) {
+        if (r->getRoomID() == client.inRoom) {
             chosenRoom = r;
             break;
         }
     }
-    chosenRoom->removePlayer(client.client_fd);
+
+    if (chosenRoom) {
+        chosenRoom->removePlayer(client.client_fd);
+    } else {
+        std::cerr << "ERROR: Tried to leave room, but no matching room for ID " << client.inRoom << std::endl;
+    }
+
     client.inRoom = -1;
 }
 
