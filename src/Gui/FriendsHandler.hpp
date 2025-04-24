@@ -30,27 +30,29 @@ class FriendsHandler: public QWidget {
     Q_OBJECT
 
     private:
+        QString currentUser; 
+        
         QWidget* window;
         QLabel* titleLabel;
         QLabel* infoLabel;  // message d'info à l'utilisateur
-
-        QTableWidget* friendsTableWidget;
+        
         QPushButton* addFriendButton;
         QPushButton* friendRequestsButton;
 
+        QTableWidget* friendsTableWidget;
+        QTableWidget* requestsTable;
+
         QLineEdit* usernameInput; // champs qui va contenir le username recherché
-        QString currentUser; 
         QListWidget* requestsListWidget;  // Liste des demandes d'amis
 
 
-    
     public:
+        FriendsHandler(QWidget* parent = nullptr, const QString& currentUser = "", const std::vector<QString>& friendsList = {}, int countRequests = 0);
+        ~FriendsHandler() override;
 
-        FriendsHandler(QWidget* parent = nullptr, const std::vector<QString>& friendsList = {}, int countRequests = 0);
         
         void searchPlayerName() ;
         void showFriendsRequests(const std::vector<string>& requestsReceivedList, const std::vector<string>& requestSentList);
-        
         
         QWidget* getWindowWidget() const;
         QTableWidget* getFriendsTableWidget() const;

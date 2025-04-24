@@ -3,7 +3,9 @@
 
 
 
-FriendsHandler::FriendsHandler(QWidget* parent, const std::vector<QString>& friendsList, int countRequests){
+FriendsHandler::FriendsHandler(QWidget* parent, const QString& currentUser, const std::vector<QString>& friendsList, int countRequests)
+        : QWidget(parent), currentUser(currentUser) {
+
     
     window = new QWidget(parent);
     window->setWindowTitle("Friends List");
@@ -49,12 +51,20 @@ FriendsHandler::FriendsHandler(QWidget* parent, const std::vector<QString>& frie
 
 }
 
+FriendsHandler::~FriendsHandler() {}
+
 
 /**
 * @brief permet de rechercher le username d'un joueur.
 * permet de faire la recherche via un champs et un bouton.
 */
 void FriendsHandler::searchPlayerName() {
+
+    if (!window->layout()) return;
+    // pour effacer les anciennes widget
+    if (usernameInput) usernameInput->deleteLater();
+    if (infoLabel) infoLabel->deleteLater();
+
     usernameInput = new QLineEdit();
     usernameInput->setPlaceholderText("Enter player username");
 
@@ -105,6 +115,10 @@ void FriendsHandler::searchNameButtonClicked() {
 
 void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsReceivedList, const std::vector<string>& requestSentList){
     
+    if (requestsTable) {
+        requestsTable->deleteLater();  // suppression
+    }
+
     // cree table pour pouvoir afficher sous forme de colonnes les requêtes (3 colonnes)
     QTableWidget* requestsTable = new QTableWidget(requestsReceivedList.size() + requestSentList.size(), 3);
 
@@ -145,6 +159,8 @@ void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsRece
         row++;
     }
 
+    qobject_cast<QVBoxLayout*>(window->layout())->addWidget(requestsTable);
+
     for (const auto& request_sent : requestSentList) {
         QString requestSentTo = QString::fromStdString(request_sent);
         requestsTable->setItem(row, 0, new QTableWidgetItem(requestSentTo));  // colonne 0 nom
@@ -181,7 +197,7 @@ void FriendsHandler::acceptFriendRequest() {
 
     QMessageBox::information(window, "Request Accepted", "you have accepted the friend request !");
 
-    showFriendsRequests(db.requestReceivedList(currentUser.toStdString()), db.requestSentList(currentUser.toStdString()));  // mettre à jour affichage des requêtes
+    handleFriendsRequests();
 }
 
 
