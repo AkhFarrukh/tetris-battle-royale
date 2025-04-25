@@ -12,6 +12,7 @@
 
 // MainWindow.cpp
 #include "MainWindow.hpp"
+#include "FriendsHandler.hpp"
 #include <QPushButton>
 #include <QApplication>
 #include <QLabel>
@@ -188,7 +189,7 @@ void MainWindow::setupMainMenuScreen() {
     layout->addWidget(leaderboardButton);
 
     connect(playButton, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
-    // connect(friendsButton, &QPushButton::clicked, this, nullptr);
+    connect(friendsButton, &QPushButton::clicked, this, &MainWindow::handleFriendsMenu);
     connect(leaderboardButton, &QPushButton::clicked, this, &MainWindow::showLeaderboardScreen);
 
 
@@ -524,16 +525,17 @@ void MainWindow::requestRoomList() {
 }
 
 void MainWindow::handleAuth() {
-    QString username = usernameInput->text();
+    QString username_qt = usernameInput->text();   // ++++++++++++++++++++++++++++++++++++++++++++++
+    username = username_qt.toStdString();          //++++++++++++++++++++++++++++++++++++++++++
     QString password = passwordInput->text();
 
-    if (username.isEmpty() || password.isEmpty()) {
+    if (username_qt.isEmpty() || password.isEmpty()) {
         QMessageBox::warning(this, "Erreur", "Veuillez remplir tous les champs.");
         return;
     }
 
     Connexion connexion;
-    std::strncpy(connexion.username, username.toStdString().c_str(), sizeof(connexion.username) - 1);
+    std::strncpy(connexion.username, username.c_str(), sizeof(connexion.username) - 1); // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     std::strncpy(connexion.password, password.toStdString().c_str(), sizeof(connexion.password) - 1);
 
     int size = sizeof(struct Connexion);
@@ -844,6 +846,30 @@ void MainWindow::handleMalusBonus(int malusId) {
     }
 }
 
+
+
+void MainWindow::handleFriendsMenu() {
+    if (friendsHandler) {
+        friendsHandler->close();
+        delete friendsHandler;
+        friendsHandler = nullptr;
+    }
+
+    std::vector<QString> friendsList; // Tu peux charger une vraie liste si tu veux
+    int requestCount = static_cast<int>(db.requestReceivedList(username).size());
+
+    friendsHandler = new FriendsHandler(nullptr, QString::fromStdString(username), friendsList, requestCount);
+    friendsHandler->show();
+    
+}
+
+
+
+
+
+
+
+
 void MainWindow::showLeaderboardScreen() {
     if (leaderboardScreen) {
         delete leaderboardScreen;
@@ -882,3 +908,6 @@ void MainWindow::showLeaderboardScreen() {
     stackedWidget->addWidget(leaderboardScreen);
     stackedWidget->setCurrentWidget(leaderboardScreen);
 }
+
+
+

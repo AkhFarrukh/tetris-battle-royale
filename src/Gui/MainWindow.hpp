@@ -25,6 +25,8 @@
 #include "playerFunctions.hpp"
 #include "RenderEngineQt.hpp"
 #include "userdatabasemanager.hpp"
+#include "FriendsHandler.hpp"
+
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -52,6 +54,9 @@ private slots:
 
 private:
     int sock;
+    FriendsHandler* friendsHandler = nullptr;
+    std::string username;
+
     void setupUI();
     void setupLoginScreen();
     void setupAuthScreen();
@@ -65,6 +70,7 @@ private:
     void sendCreateRoom();
     static void* threadRoutineQtView(void* arg);
     void handleMalusBonus(int malusId);
+    void handleFriendsMenu();
     
 
     QWidget* loginScreen = nullptr;

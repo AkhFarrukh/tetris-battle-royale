@@ -3,6 +3,7 @@
 
 
 
+
 FriendsHandler::FriendsHandler(QWidget* parent, const QString& currentUser, const std::vector<QString>& friendsList, int countRequests)
         : QWidget(parent), currentUser(currentUser) {
 
