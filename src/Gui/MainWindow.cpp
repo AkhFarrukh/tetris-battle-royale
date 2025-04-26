@@ -541,20 +541,20 @@ void MainWindow::handleAuth() {
         }
 
         // L'inscription est acceptée => tentative de connexion
-        type = MessageType::T_Connexion;
-        sendAll(sock, &type, sizeof(int));
-        sendAll(sock, &size, sizeof(int));
-        sendAll(sock, &connexion, sizeof(Connexion));
+        // type = MessageType::T_Connexion;
+        // sendAll(sock, &type, sizeof(int));
+        // sendAll(sock, &size, sizeof(int));
+        // sendAll(sock, &connexion, sizeof(Connexion));
 
-        if (!recvAll(sock, &typeResponse, sizeof(int)) || !recvAll(sock, &sizeResponse, sizeof(int))) {
-            QMessageBox::critical(this, "Erreur", "Erreur de connexion après l'inscription.");
-            return;
-        }
+        // if (!recvAll(sock, &typeResponse, sizeof(int)) || !recvAll(sock, &sizeResponse, sizeof(int))) {
+        //     QMessageBox::critical(this, "Erreur", "Erreur de connexion après l'inscription.");
+        //     return;
+        // }
 
-        if (typeResponse != MessageType::T_AcceptConnexion) {
-            QMessageBox::critical(this, "Erreur", "Inscription réussie, mais la connexion a échoué.");
-            return;
-        }
+        // if (typeResponse != MessageType::T_AcceptConnexion) {
+        //     QMessageBox::critical(this, "Erreur", "Inscription réussie, mais la connexion a échoué.");
+        //     return;
+        // }
 
     } else {
         // Connexion simple
@@ -618,7 +618,7 @@ void MainWindow::handleAuth() {
 
 
     // Connexion réussie !
-    QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
+    // QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
     showMainMenuScreen();
 }
 
@@ -866,7 +866,7 @@ void MainWindow::sendMalusBonus(int malusId, int targetPlayerIndex) {
         !sendAll(sock, &mb, sizeof(MalBonus))) {
         QMessageBox::critical(this, "Error", "Failed to send malus/bonus.");
     } else {
-        QMessageBox::information(this, "Malus/Bonus Sent", "Malus/Bonus successfully sent.");
+        // QMessageBox::information(this, "Malus/Bonus Sent", "Malus/Bonus successfully sent.");
     }
 }
 
