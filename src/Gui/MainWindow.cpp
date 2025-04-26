@@ -623,6 +623,13 @@ void MainWindow::handleAuth() {
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
+    if (threadData && threadData->isOwner) {
+        int roomDeletedType = MessageType::T_RoomDeleted;
+        int size_ = sizeof(int);
+        sendAll(sock, &roomDeletedType, sizeof(int));
+        sendAll(sock, &size_, sizeof(int));
+    }
+
     int exitType = MessageType::T_ForcedExit;
     int size_ = sizeof(int);
     int bytesSentType = sendAll(sock, &exitType, sizeof(int));
@@ -691,6 +698,13 @@ void* MainWindow::threadRoutineQtView(void* arg) {
 
             std::lock_guard<std::mutex> lock(threadData->mux);
             threadData->playersData = std::move(playersData);
+            // threadData->clinetPlayerID = -1; 
+            for (size_t i = 0; i < playersData.size(); ++i) {
+                if (playersData.at(i).playerId == -1) {
+                    threadData->clinetPlayerID = i;
+                    break;
+                }
+            }            
         }
 
         else if (type == MessageType::T_GameStart) {
@@ -791,16 +805,16 @@ void MainWindow::addMalusButtonsIfRoyal() {
 void MainWindow::handleMalusBonus(int malusId) {
     int target = -1;
 
-    // Bonus: auto-target self
+    // self
     if (malusId == 6 || malusId == 7) {
-        for (const auto& p : threadData->playersData) {
-            if (p.playerId == -1) {
-                target = threadData->clinetPlayerID;
+        for (size_t i = 0; i < threadData->playersData.size(); ++i) {
+            if (threadData->playersData[i].playerId == -1) {
+                target = static_cast<int>(i);
                 break;
             }
-        }
+        }    
     } else {
-        // Malus: select another target
+        // Malus: select target
         QStringList playerOptions;
         for (const auto& p : threadData->playersData) {
             if (p.playerId != -1) {
@@ -817,7 +831,14 @@ void MainWindow::handleMalusBonus(int malusId) {
         QRegularExpression re("Player (\\d+)");
         QRegularExpressionMatch match = re.match(chosen);
         if (match.hasMatch()) {
-            target = match.captured(1).toInt();
+            int playerId = match.captured(1).toInt();            
+            // Find the index corresponding to that playerId
+            for (size_t i = 0; i < threadData->playersData.size(); ++i) {
+                if (threadData->playersData[i].playerId == playerId) {
+                    target = static_cast<int>(i);
+                    break;
+                }
+            }
         } else {
             QMessageBox::warning(this, "Error", "Invalid player selection.");
             return;
@@ -829,10 +850,13 @@ void MainWindow::handleMalusBonus(int malusId) {
         return;
     }
 
-    // Send malus/bonus to the server
+    sendMalusBonus(malusId, target);
+}
+
+void MainWindow::sendMalusBonus(int malusId, int targetPlayerIndex) {
     MalBonus mb;
     mb.malusB = static_cast<MalusBonus>(malusId);
-    mb.target = target;
+    mb.target = targetPlayerIndex;
 
     int type = MessageType::T_MalusBonus;
     int size = sizeof(MalBonus);
@@ -841,6 +865,8 @@ void MainWindow::handleMalusBonus(int malusId) {
         !sendAll(sock, &size, sizeof(int)) ||
         !sendAll(sock, &mb, sizeof(MalBonus))) {
         QMessageBox::critical(this, "Error", "Failed to send malus/bonus.");
+    } else {
+        QMessageBox::information(this, "Malus/Bonus Sent", "Malus/Bonus successfully sent.");
     }
 }
 

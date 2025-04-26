@@ -594,10 +594,11 @@ void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnlin
  * @param eventQueue ptr for the player's eventQueue in Game
  */
 void Server::handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue){
-    cout<<"MalusBonus received"<<endl;
     MalBonus malusBobo;
 
     if (!recvAll(client.client_fd, &malusBobo, sizeof(MalBonus))){userIsOnline = false;}
+    cout<<"MalusBonus received: "<< malusBobo.malusB << " against :" << malusBobo.target << endl;
+
 
     eventQueue->addEvent(make_shared<MalusBonusEvent>(malusBobo.malusB, malusBobo.target));
 }

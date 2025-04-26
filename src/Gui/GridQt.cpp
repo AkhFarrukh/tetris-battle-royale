@@ -96,6 +96,7 @@ void GridQt::paintEvent(QPaintEvent*) {
         QFont scoreFont("Arial", 12, QFont::Bold);
         painter.setFont(scoreFont);
         painter.drawText(playerOffset + QPoint(0, -10), QString("Score: %1").arg(player.score));
+        painter.drawText(playerOffset + QPoint(0, 10), QString("ID: %1").arg(i));
 
         // Draw grid border
         QRect gridRect(playerOffset, QSize(gridWidth * (blockSize + spacing), gridHeight * (blockSize + spacing)));
@@ -162,6 +163,7 @@ void GridQt::paintEvent(QPaintEvent*) {
                 }
             }
         }
+        
     
         if (player.endGame || player.isGameOver) {
             QFont gameOverFont("Arial", 16, QFont::Bold);

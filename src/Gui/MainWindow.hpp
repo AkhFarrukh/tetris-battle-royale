@@ -65,7 +65,8 @@ private:
     void sendCreateRoom();
     static void* threadRoutineQtView(void* arg);
     void handleMalusBonus(int malusId);
-    
+    void sendMalusBonus(int malusId, int targetPlayerIndex);
+
 
     QWidget* loginScreen = nullptr;
     QWidget* authScreen = nullptr;
