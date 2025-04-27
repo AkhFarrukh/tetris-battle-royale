@@ -540,22 +540,6 @@ void MainWindow::handleAuth() {
             return;
         }
 
-        // L'inscription est acceptée => tentative de connexion
-        // type = MessageType::T_Connexion;
-        // sendAll(sock, &type, sizeof(int));
-        // sendAll(sock, &size, sizeof(int));
-        // sendAll(sock, &connexion, sizeof(Connexion));
-
-        // if (!recvAll(sock, &typeResponse, sizeof(int)) || !recvAll(sock, &sizeResponse, sizeof(int))) {
-        //     QMessageBox::critical(this, "Erreur", "Erreur de connexion après l'inscription.");
-        //     return;
-        // }
-
-        // if (typeResponse != MessageType::T_AcceptConnexion) {
-        //     QMessageBox::critical(this, "Erreur", "Inscription réussie, mais la connexion a échoué.");
-        //     return;
-        // }
-
     } else {
         // Connexion simple
         int type = MessageType::T_Connexion;
@@ -803,59 +787,56 @@ void MainWindow::addMalusButtonsIfRoyal() {
 
 
 void MainWindow::handleMalusBonus(int malusId) {
-    int target = -1;
+    static int chosenMalus = 0;
+    static int chosenPlayer = 0;
 
-    // self
-    if (malusId == 6 || malusId == 7) {
+    chosenMalus = malusId;
+
+    if (chosenMalus == 6 || chosenMalus == 7) {
+        int myself = -1;
         for (size_t i = 0; i < threadData->playersData.size(); ++i) {
             if (threadData->playersData[i].playerId == -1) {
-                target = static_cast<int>(i);
+                myself = static_cast<int>(i);
                 break;
             }
-        }    
+        }
+        if (myself == -1) return;
+
+        sendMalusBonus(chosenMalus, myself);
+        chosenMalus = 0;
+        chosenPlayer = 0;
     } else {
-        // Malus: select target
+
         QStringList playerOptions;
-        for (const auto& p : threadData->playersData) {
-            if (p.playerId != -1) {
-                playerOptions << QString("Player %1").arg(p.playerId);
+        std::vector<int> playerIndices;
+        for (size_t i = 0; i < threadData->playersData.size(); ++i) {
+            if (threadData->playersData[i].playerId != -1) {
+                playerOptions.push_back(QString::number(i));
+                playerIndices.push_back(static_cast<int>(i));
             }
         }
 
         bool ok = false;
-        QString chosen = QInputDialog::getItem(this, "Select Target Player",
-            "Choose player to apply malus:", playerOptions, 0, false, &ok);
+        QString chosen = QInputDialog::getItem(this, "Select Target", "Choose target:", playerOptions, 0, false, &ok);
 
-        if (!ok || chosen.isEmpty()) return;
-
-        QRegularExpression re("Player (\\d+)");
-        QRegularExpressionMatch match = re.match(chosen);
-        if (match.hasMatch()) {
-            int playerId = match.captured(1).toInt();            
-            // Find the index corresponding to that playerId
-            for (size_t i = 0; i < threadData->playersData.size(); ++i) {
-                if (threadData->playersData[i].playerId == playerId) {
-                    target = static_cast<int>(i);
-                    break;
-                }
-            }
-        } else {
-            QMessageBox::warning(this, "Error", "Invalid player selection.");
+        if (!ok || chosen.isEmpty()) {
             return;
         }
-    }
 
-    if (target == -1) {
-        QMessageBox::warning(this, "Error", "Could not determine target player.");
-        return;
-    }
+        int selected = chosen.toInt();
+        chosenPlayer = selected;
 
-    sendMalusBonus(malusId, target);
+        sendMalusBonus(chosenMalus, chosenPlayer);
+
+        chosenMalus = 0;
+        chosenPlayer = 0;
+    }
 }
+
 
 void MainWindow::sendMalusBonus(int malusId, int targetPlayerIndex) {
     MalBonus mb;
-    mb.malusB = static_cast<MalusBonus>(malusId);
+    mb.malusB = Player::intToMalusBonus(malusId);
     mb.target = targetPlayerIndex;
 
     int type = MessageType::T_MalusBonus;
@@ -865,8 +846,6 @@ void MainWindow::sendMalusBonus(int malusId, int targetPlayerIndex) {
         !sendAll(sock, &size, sizeof(int)) ||
         !sendAll(sock, &mb, sizeof(MalBonus))) {
         QMessageBox::critical(this, "Error", "Failed to send malus/bonus.");
-    } else {
-        // QMessageBox::information(this, "Malus/Bonus Sent", "Malus/Bonus successfully sent.");
     }
 }
 
