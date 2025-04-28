@@ -66,6 +66,7 @@ void MainWindow::setupUI() {
     setupMainMenuScreen();
     setupGameModeScreen();
     setupGameScreens();
+    setupFriendsScreen();
 
     // Ajouter les pages au QStackedWidget
     stackedWidget->addWidget(loginScreen);
@@ -241,6 +242,22 @@ void MainWindow::setupGameModeScreen() {
     gameModeScreen->setLayout(layout);
     stackedWidget->addWidget(gameModeScreen);
 }
+
+
+void MainWindow::setupFriendsScreen(){
+    friendsScreen = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(friendsScreen);
+
+    QPushButton* backButton = new QPushButton("Back to Menu", this);
+    backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
+    
+    layout->addWidget(backButton);
+    connect(backButton, &QPushButton::clicked, this, &MainWindow::showMainMenuScreen);   // connecte bouton "back to menu" pour pouvoir retourner en arriere, au menu
+
+    friendsScreen->setLayout(layout);
+    stackedWidget->addWidget(friendsScreen);
+}
+
 
 void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
     Menu menu;
@@ -850,16 +867,27 @@ void MainWindow::handleMalusBonus(int malusId) {
 
 void MainWindow::handleFriendsMenu() {
     if (friendsHandler) {
-        friendsHandler->close();
-        delete friendsHandler;
-        friendsHandler = nullptr;
+        friendsHandler->deleteLater();   //supprimera l'ancien friendsHandler si il existait
+        friendsHandler = nullptr;    
     }
 
-    std::vector<QString> friendsList; // Tu peux charger une vraie liste si tu veux
-    int requestCount = static_cast<int>(db.requestReceivedList(username).size());
+    std::vector<QString> friendsList;  // liste vide d'amis (qui sera remplie apres)
+    int requestCount = static_cast<int>(db.requestReceivedList(username).size()); // Récupère via la db le nombre de demandes d'amis reçues par le user
 
-    friendsHandler = new FriendsHandler(nullptr, QString::fromStdString(username), friendsList, requestCount);
-    friendsHandler->show();
+    friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), friendsList, requestCount);
+
+    QVBoxLayout*layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
+
+    if(layout){
+        while(layout->count() > 2){ // Laisse les 2 derniers éléments (probablement fixes, ex : barre de navigation)
+            QLayoutItem* item = layout->takeAt(0);
+            if (item->widget()) item->widget()->deleteLater();
+            delete item;  
+        }
+        //layout ->insertWidget(0, friendsHandler->getWindowWidget());
+        layout->insertWidget(0, friendsHandler);   // insere tout au dessus le friendshandler
+    } 
+    stackedWidget->setCurrentWidget(friendsScreen); // place dans le stackedWidget
     
 }
 

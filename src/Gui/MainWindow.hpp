@@ -41,6 +41,7 @@ private slots:
     void handleAuth();
     void setupMainMenuScreen();
     void setupGameModeScreen();
+    void setupFriendsScreen();
     void sendMenuAction(MenuActions action, Modes mode);
     void showModeScreen(const QString& mode);
     void showGameModeScreen();
@@ -77,6 +78,7 @@ private:
     QWidget* authScreen = nullptr;
     QWidget* mainMenuScreen = nullptr;
     QWidget* gameModeScreen = nullptr;
+    QWidget* friendsScreen = nullptr;
     QWidget* gameScreen = nullptr;
     QWidget* leaderboardScreen = nullptr;
     QLineEdit* usernameInput = nullptr;

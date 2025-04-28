@@ -8,13 +8,13 @@ FriendsHandler::FriendsHandler(QWidget* parent, const QString& currentUser, cons
         : QWidget(parent), currentUser(currentUser) {
 
     
-    window = new QWidget(parent);
-    window->setWindowTitle("Friends List");
-    window->resize(400, 500);
+    //window = parent;
+    setWindowTitle("Friends List");
+    resize(400, 500);
 
-    QVBoxLayout* layout = new QVBoxLayout(window);
+    QVBoxLayout* layout = new QVBoxLayout(this);
 
-    titleLabel = new QLabel("Friends list:");
+    titleLabel = new QLabel("Friends list:", this);
     QFont titleFont = titleLabel->font();
     titleFont.setBold(true);               // mettre en gras
     titleFont.setPointSize(14);            // taille police
@@ -23,7 +23,7 @@ FriendsHandler::FriendsHandler(QWidget* parent, const QString& currentUser, cons
 
     // pour pouvoir afficher amis sous forme de colonnes
     friendsTableWidget = new QTableWidget();
-    friendsTableWidget->setColumnCount(2);  // 2 colonnes : Numéro et Nom
+    friendsTableWidget->setColumnCount(2);  // Numéro et Nom
     friendsTableWidget->setRowCount(friendsList.size());  // Le nombre de lignes est égal au nombre d'amis
 
     // Masquer les en-têtes des colonnes et des lignes
@@ -47,8 +47,8 @@ FriendsHandler::FriendsHandler(QWidget* parent, const QString& currentUser, cons
     friendRequestsButton = new QPushButton(QString("Friend requests (%1)").arg(countRequests));  // Bouton pour les demandes d'amis
     layout->addWidget(friendRequestsButton);    
 
-    window->setLayout(layout);
-    window->show();
+    setLayout(layout);
+    //window->show();
 
 }
 
@@ -61,7 +61,7 @@ FriendsHandler::~FriendsHandler() {}
 */
 void FriendsHandler::searchPlayerName() {
 
-    if (!window->layout()) return;
+    if (!this->layout()) return;
     // pour effacer les anciennes widget
     if (usernameInput) usernameInput->deleteLater();
     if (infoLabel) infoLabel->deleteLater();
@@ -117,23 +117,23 @@ void FriendsHandler::searchNameButtonClicked() {
 void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsReceivedList, const std::vector<string>& requestSentList){
     
     if (requestsTable) {
-        requestsTable->deleteLater();  // suppression
+        requestsTable->deleteLater();  // suppression si une ancienne table eexiste
     }
 
     // cree table pour pouvoir afficher sous forme de colonnes les requêtes (3 colonnes)
     QTableWidget* requestsTable = new QTableWidget(requestsReceivedList.size() + requestSentList.size(), 3);
 
-    requestsTable->horizontalHeader()->setVisible(false);
+    requestsTable->horizontalHeader()->setVisible(false);   //pour cacher les titres colonnes
     requestsTable->horizontalHeader()->setStretchLastSection(true); // Étire la dernière colonne
 
     int row = 0;
 
     for (const auto& request_received: requestsReceivedList){
-        QString requestReceived_name = QString::fromStdString(request_received);
+        QString requestReceived_name = QString::fromStdString(request_received);  // conversion du nom (username) en qtstring pour chaque requete recue (chaque username)
         requestsTable->setItem(row, 0, new QTableWidgetItem(requestReceived_name)); // colonne 0 nom
         requestsTable->setItem(row, 1, new QTableWidgetItem("Received")); // col 1 type de requete (received ou sent)
 
-        // bouton accept et refuse
+        // creation des boutons accept et refuse
         QWidget* actionWidget = new QWidget;
         QPushButton* acceptButton = new QPushButton("Accept");
         QPushButton* refuseButton = new QPushButton("Refuse");
@@ -143,44 +143,38 @@ void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsRece
         layout->addWidget(refuseButton);
         actionWidget->setLayout(layout);
 
-        requestsTable->setCellWidget(row, 2, actionWidget); //2 boutons pour la deuxieme colonnes (accept / refuse)
+        requestsTable->setCellWidget(row, 2, actionWidget); // place 2 boutons pour la deuxieme colonnes (accept / refuse) 
 
-        //propriétés des boutons accept et refuse
+        //propriétés des boutons accept et refuse. 
         acceptButton->setProperty("username", requestReceived_name);
         acceptButton->setProperty("type", "received");
         refuseButton->setProperty("username", requestReceived_name);
         refuseButton->setProperty("type", "received");
 
-        //liaison à leur slot
+        // connexion des boutons à leur methode associée
         connect(acceptButton, &QPushButton::clicked, this, &FriendsHandler::acceptFriendRequest);
         connect(refuseButton, &QPushButton::clicked, this, &FriendsHandler::refuseFriendRequest);
         //connect(cancelButton, &QPushButton::clicked, this, &FriendsHandler::refuseRequest);
 
-
-        row++;
+        row++;  //passer à prochaine ligne
     }
 
-    qobject_cast<QVBoxLayout*>(window->layout())->addWidget(requestsTable);
-
     for (const auto& request_sent : requestSentList) {
-        QString requestSentTo = QString::fromStdString(request_sent);
+        QString requestSentTo = QString::fromStdString(request_sent);         // conversion du nom en qtstring 
         requestsTable->setItem(row, 0, new QTableWidgetItem(requestSentTo));  // colonne 0 nom
-        requestsTable->setItem(row, 1, new QTableWidgetItem("Sent"));     // colonne 1 type
+        requestsTable->setItem(row, 1, new QTableWidgetItem("Sent"));         // colonne 1 type (sent)
 
-        // Bouton unique cancel pour annuler la demande
-        QPushButton* cancelButton = new QPushButton("Cancel");
+        QPushButton* cancelButton = new QPushButton("Cancel"); // Bouton unique cancel pour annuler la demande
         
         //proprietes du bouton
         cancelButton->setProperty("username", requestSentTo);
         cancelButton->setProperty("type", "sent");
 
         //connect(cancelButton, &QPushButton::clicked, this, &FriendsHandler::refuseRequest);
-        requestsTable->setCellWidget(row, 2, cancelButton); // colonne 2 : bouton "Cancel"
+        requestsTable->setCellWidget(row, 2, cancelButton); // colonne 2 juste un bouton "Cancel"  , pour effacer la demande envoyée
         row++;
     }
-    
-    // Ajout de la table dans l'interface (layout déjà utilisé par la fenêtre)
-    layout()->addWidget(requestsTable);
+    layout()->addWidget(requestsTable); // Ajout de la table dans l'interface 
 
 }
 
@@ -196,7 +190,7 @@ void FriendsHandler::acceptFriendRequest() {
     db.addFriend(currentUser.toStdString(), requesterPlayer.toStdString());                          // ajout dans la db
     db.deleteRequestFriend(currentUser.toStdString(), requesterPlayer.toStdString());                // retire la requete qui a été traitée
 
-    QMessageBox::information(window, "Request Accepted", "you have accepted the friend request !");
+    QMessageBox::information(this, "Request Accepted", "you have accepted the friend request !");
 
     handleFriendsRequests();
 }
@@ -211,7 +205,7 @@ void FriendsHandler::refuseFriendRequest() {
     QString requesterPlayer = button->property("username").toString();   // recupere le nom de la personne qui a envoyé requete
     
     db.deleteRequestFriend(currentUser.toStdString(), requesterPlayer.toStdString());                // retire la requete qui a été traitée
-    QMessageBox::information(window, "Request Denied", "you have denied the the friend request !");
+    QMessageBox::information(this, "Request Denied", "you have denied the the friend request !");
     showFriendsRequests(db.requestReceivedList(currentUser.toStdString()), db.requestSentList(currentUser.toStdString()));  // mettre à jour affichage des requêtes
 }
 
