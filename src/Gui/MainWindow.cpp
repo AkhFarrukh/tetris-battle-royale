@@ -247,6 +247,13 @@ void MainWindow::setupGameModeScreen() {
 }
 
 
+/**
+ * @brief Va configurer écran de gestion d amis.
+ * 
+ * Ecran créé un bouton de retour au main menu
+ * Et ecran ajouté stackwidget pour pouvoir bien naviguer entre ecrans
+ * 
+ */
 void MainWindow::setupFriendsScreen(){
     friendsScreen = new QWidget(this);
     QVBoxLayout* layout = new QVBoxLayout(friendsScreen);
@@ -869,7 +876,18 @@ void MainWindow::handleMalusBonus(int malusId) {
 }
 
 
-
+/**
+ * @brief Gère l'affichage et la mise à jour du menu d'amis.
+ * 
+ * Cette méthode va nettoyer l'ancien FriendsHandler s'il existe,
+ * Récupère le nombre de demandes d'amis en attente
+ * Crée un nouveau FriendsHandler avec les données actuelles
+ * Gère le layout de l'écran des amis - nouveau layout créé si besoin
+ * Place l'écran des amis dans le stackedWidget
+ * 
+ * @note Réinitialise complètement l'interface des amis à chaque appel
+ * 
+ */
 void MainWindow::handleFriendsMenu() {
     // Supprimera l'ancien friendsHandler s'il existe
     if (friendsHandler) {
@@ -879,15 +897,13 @@ void MainWindow::handleFriendsMenu() {
         }
         friendsHandler->deleteLater();
         friendsHandler = nullptr;
-        
     }
 
     std::vector<QString> friendsList; 
     int requestCount = static_cast<int>(db.requestReceivedList(username).size());  // compte nombre de demandes d ami recues
     
     // Créer le nouveau handler
-    friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), 
-                                      friendsList, requestCount);
+    friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), friendsList, requestCount);
     // pour recuperer le layout deja existant
     QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
     
@@ -895,21 +911,7 @@ void MainWindow::handleFriendsMenu() {
         layout = new QVBoxLayout(friendsScreen);
         friendsScreen->setLayout(layout);
     }
-    /** 
-     else {
-        //nettoyer layout existant
-        QLayoutItem* item;
-        while ((item = layout->takeAt(0)) != nullptr) {
-            if (item->widget() && item->widget() != friendsHandler) {
-                item->widget()->deleteLater();
-            }
-            delete item;
-        }
-    }
-    */
-    
     // Ajouter le frieindshandler
-    //layout->addWidget(friendsHandler);
     layout->insertWidget(0, friendsHandler);
     stackedWidget->setCurrentWidget(friendsScreen);
 }
