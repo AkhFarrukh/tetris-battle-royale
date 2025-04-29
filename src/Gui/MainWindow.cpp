@@ -251,11 +251,13 @@ void MainWindow::setupFriendsScreen(){
     friendsScreen = new QWidget(this);
     QVBoxLayout* layout = new QVBoxLayout(friendsScreen);
 
+    
     QPushButton* backButton = new QPushButton("Back to Menu", this);
     backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
     
     layout->addWidget(backButton);
     connect(backButton, &QPushButton::clicked, this, &MainWindow::showMainMenuScreen);   // connecte bouton "back to menu" pour pouvoir retourner en arriere, au menu
+    
 
     friendsScreen->setLayout(layout);
     stackedWidget->addWidget(friendsScreen);
@@ -871,8 +873,13 @@ void MainWindow::handleMalusBonus(int malusId) {
 void MainWindow::handleFriendsMenu() {
     // Supprimera l'ancien friendsHandler s'il existe
     if (friendsHandler) {
+        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
+        if (layout){
+            layout->removeWidget(friendsHandler);
+        }
         friendsHandler->deleteLater();
-        friendsHandler = nullptr;  
+        friendsHandler = nullptr;
+        
     }
 
     std::vector<QString> friendsList; 
@@ -887,7 +894,9 @@ void MainWindow::handleFriendsMenu() {
     if (!layout) {   // si aucun existe, creer un nouveau
         layout = new QVBoxLayout(friendsScreen);
         friendsScreen->setLayout(layout);
-    } else {
+    }
+    /** 
+     else {
         //nettoyer layout existant
         QLayoutItem* item;
         while ((item = layout->takeAt(0)) != nullptr) {
@@ -897,9 +906,11 @@ void MainWindow::handleFriendsMenu() {
             delete item;
         }
     }
+    */
     
     // Ajouter le frieindshandler
-    layout->addWidget(friendsHandler);
+    //layout->addWidget(friendsHandler);
+    layout->insertWidget(0, friendsHandler);
     stackedWidget->setCurrentWidget(friendsScreen);
 }
 

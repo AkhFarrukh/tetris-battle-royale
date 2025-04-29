@@ -95,11 +95,11 @@ void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsL
     addFriendButton = new QPushButton("Add new friend");
     friendRequestsButton = new QPushButton(QString("Friend requests (%1)").arg(countRequests));
     QPushButton* goBackButton = new QPushButton("Back to Menu");
-    goBackButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
+    //goBackButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
     
     layout->addWidget(addFriendButton);
     layout->addWidget(friendRequestsButton);
-    layout->addWidget(goBackButton);
+    //layout->addWidget(goBackButton);
 
     // Connexions des boutons pour qu'ils realisent action demandée qd on click sur eux
     connect(addFriendButton, &QPushButton::clicked, [this]() {
@@ -112,6 +112,7 @@ void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsL
         handleFriendsRequests();
     });
 
+    /** 
     connect(goBackButton, &QPushButton::clicked, [this]() {
         // Trouve le MainWindow parent en remontant
         QWidget* parent = this;
@@ -123,7 +124,7 @@ void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsL
             QMetaObject::invokeMethod(parent, "showMainMenuScreen");
         }
     });
-
+    */
     friendsListScreen->setLayout(layout);
 }
 
@@ -174,12 +175,17 @@ void FriendsHandler::setupAddFriendScreen() {
 
 
 void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsReceivedList, const std::vector<string>& requestSentList) {
-// Nettoyer l'écran des requêtes (conserve uniquement le titre et bouton back)
+
     QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(requestsScreen->layout());
 
+    if(!layout){
+        layout = new QVBoxLayout(requestsScreen);
+        requestsScreen->setLayout(layout);
+    }
+
     // Supprimer les widgets sauf les 2 premiers (titre et bouton back)
-    while (layout->count() > 2) {
-        QLayoutItem* item = layout->takeAt(2); // Prendre widget à partir de l'index 2
+    while (layout->count() > 1) {
+        QLayoutItem* item = layout->takeAt(1); // Prendre widget à partir de l'index 2
         if (item->widget()) {
             item->widget()->deleteLater();
         }
@@ -242,12 +248,33 @@ void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsRece
         row++;
     }
 
-    // Ajouter la table après le titre (index 1)
     layout->insertWidget(1, requestsTable);
 
     // va redimensionner colonnes
     requestsTable->setColumnWidth(0, 150); // Colonne nom
     requestsTable->setColumnWidth(1, 80);  // Colonne (received / sent)
+
+    bool hasButtonBack = false;
+    for (int i = 0; i < layout->count(); ++i) {
+        if (qobject_cast<QPushButton*>(layout->itemAt(i)->widget()) && 
+            layout->itemAt(i)->widget()->objectName() == "backButton") {
+            hasButtonBack = true;
+            break;
+        }
+    }
+
+    if(!hasButtonBack){
+        QPushButton* backButton = new QPushButton("Back");
+        backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
+        layout->addWidget(backButton);
+
+        connect(backButton, &QPushButton::clicked, [this]() {
+            stackedWidget->setCurrentWidget(friendsListScreen);
+        });
+    }
+
+   
+   
 }
 
 
@@ -264,13 +291,14 @@ void FriendsHandler::setupRequestsScreen() {
     title->setFont(titleFont);
     layout->addWidget(title);
 
+    /** 
     QPushButton* backButton = new QPushButton("Back");   // pour revenir en arriere
     layout->addWidget(backButton);
 
     connect(backButton, &QPushButton::clicked, [this]() {
         stackedWidget->setCurrentWidget(friendsListScreen);    // revenir à l'ecran de la liste d amis
     });
-
+    */
     requestsScreen->setLayout(layout);
 }
 
