@@ -14,8 +14,9 @@
 #include <QLineEdit>
 #include <QVector>
 #include <QMessageBox>
+#include <QStackedWidget>
 
-#include "../Database/database.hpp" //changer en "database.hpp" si probleme
+#include "../Database/database.hpp" 
 #include "../Model/userdatabasemanager.hpp"
 #include <atomic>
 #include <mutex>
@@ -31,6 +32,7 @@ class FriendsHandler: public QWidget {
 
     private:
         QString currentUser; 
+        int countRequests;   // nombre de demande d'amis
         
         QWidget* window;
         QLabel* titleLabel;
@@ -45,20 +47,23 @@ class FriendsHandler: public QWidget {
         QLineEdit* usernameInput; // champs qui va contenir le username recherché
         QListWidget* requestsListWidget;  // Liste des demandes d'amis
 
+        QStackedWidget* stackedWidget;
+        QWidget* friendsListScreen;
+        QWidget* addFriendScreen;
+        QWidget* requestsScreen;
+
+        void setupFriendsListScreen(const std::vector<QString>& friendsList);
+        void setupAddFriendScreen();
+        void setupRequestsScreen();
+
 
     public:
         FriendsHandler(QWidget* parent = nullptr, const QString& currentUser = "", const std::vector<QString>& friendsList = {}, int countRequests = 0);
         ~FriendsHandler() override;
 
-        
-        void searchPlayerName() ;
         void showFriendsRequests(const std::vector<string>& requestsReceivedList, const std::vector<string>& requestSentList);
         
         QWidget* getWindowWidget() const;
-        QTableWidget* getFriendsTableWidget() const;
-        QPushButton* getAddFriendButton() const;
-        QPushButton* getFriendRequestButton() const;
-    
     
     public slots:
         void searchNameButtonClicked();

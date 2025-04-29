@@ -26,8 +26,11 @@
 #include <QInputDialog>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
+#include "../Database/database.hpp" 
 
 extern std::atomic<bool> flag;
+extern Database db;
+
 
 
 MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::ThreadData> threadData)
@@ -866,35 +869,39 @@ void MainWindow::handleMalusBonus(int malusId) {
 
 
 void MainWindow::handleFriendsMenu() {
+    // Supprimera l'ancien friendsHandler s'il existe
     if (friendsHandler) {
-        friendsHandler->deleteLater();   //supprimera l'ancien friendsHandler si il existait
-        friendsHandler = nullptr;    
+        friendsHandler->deleteLater();
+        friendsHandler = nullptr;  
     }
 
-    std::vector<QString> friendsList;  // liste vide d'amis (qui sera remplie apres)
-    int requestCount = static_cast<int>(db.requestReceivedList(username).size()); // Récupère via la db le nombre de demandes d'amis reçues par le user
-
-    friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), friendsList, requestCount);
-
-    QVBoxLayout*layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
-
-    if(layout){
-        while(layout->count() > 2){ // Laisse les 2 derniers éléments (probablement fixes, ex : barre de navigation)
-            QLayoutItem* item = layout->takeAt(0);
-            if (item->widget()) item->widget()->deleteLater();
-            delete item;  
-        }
-        //layout ->insertWidget(0, friendsHandler->getWindowWidget());
-        layout->insertWidget(0, friendsHandler);   // insere tout au dessus le friendshandler
-    } 
-    stackedWidget->setCurrentWidget(friendsScreen); // place dans le stackedWidget
+    std::vector<QString> friendsList; 
+    int requestCount = static_cast<int>(db.requestReceivedList(username).size());  // compte nombre de demandes d ami recues
     
+    // Créer le nouveau handler
+    friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), 
+                                      friendsList, requestCount);
+    // pour recuperer le layout deja existant
+    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
+    
+    if (!layout) {   // si aucun existe, creer un nouveau
+        layout = new QVBoxLayout(friendsScreen);
+        friendsScreen->setLayout(layout);
+    } else {
+        //nettoyer layout existant
+        QLayoutItem* item;
+        while ((item = layout->takeAt(0)) != nullptr) {
+            if (item->widget() && item->widget() != friendsHandler) {
+                item->widget()->deleteLater();
+            }
+            delete item;
+        }
+    }
+    
+    // Ajouter le frieindshandler
+    layout->addWidget(friendsHandler);
+    stackedWidget->setCurrentWidget(friendsScreen);
 }
-
-
-
-
-
 
 
 
