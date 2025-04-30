@@ -51,6 +51,7 @@ MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::Thread
 MainWindow::~MainWindow() {
     flag = true;
     shutdown(sock, SHUT_RD);
+    //close(sock);   // pour bien fermer le socket car sinon soucis reseau à la fermeture de fenetre
     if (threadID) pthread_join(threadID, nullptr);
 }
 
@@ -258,7 +259,6 @@ void MainWindow::setupFriendsScreen(){
     friendsScreen = new QWidget(this);
     QVBoxLayout* layout = new QVBoxLayout(friendsScreen);
 
-    
     QPushButton* backButton = new QPushButton("Back to Menu", this);
     backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
     
@@ -899,11 +899,17 @@ void MainWindow::handleFriendsMenu() {
         friendsHandler = nullptr;
     }
 
-    std::vector<QString> friendsList; 
+    std::vector<std::string> friends = db.friendsList(username);
+    std::vector<QString> qtFriends;
+
+    for(const auto& f: friends) {
+        qtFriends.push_back(QString::fromStdString(f));
+    }
+    
     int requestCount = static_cast<int>(db.requestReceivedList(username).size());  // compte nombre de demandes d ami recues
     
     // Créer le nouveau handler
-    friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), friendsList, requestCount);
+    friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), qtFriends, requestCount);
     // pour recuperer le layout deja existant
     QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
     

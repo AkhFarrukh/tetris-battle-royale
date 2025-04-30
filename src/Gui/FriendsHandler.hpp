@@ -61,6 +61,7 @@ class FriendsHandler: public QWidget {
         FriendsHandler(QWidget* parent = nullptr, const QString& currentUser = "", const std::vector<QString>& friendsList = {}, int countRequests = 0);
         ~FriendsHandler() override;
 
+    
         void showFriendsRequests(const std::vector<string>& requestsReceivedList, const std::vector<string>& requestSentList);
         
         QWidget* getWindowWidget() const;

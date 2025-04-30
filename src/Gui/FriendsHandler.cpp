@@ -29,12 +29,14 @@ FriendsHandler::FriendsHandler(QWidget* parent, const QString& currentUser, cons
     stackedWidget->setCurrentWidget(friendsListScreen);
 }
 
-FriendsHandler::~FriendsHandler() {}
+FriendsHandler::~FriendsHandler() {
+    
+}
 
 
 
 /**
-* @brief Slot appelé quand un user clique sur le bouton de recherche.
+* @brief Slot/méthode appelé quand un user clique sur le bouton de recherche.
 * Ca va verifier l'entrée du user et lancer la recherche
 * 
 */
@@ -52,11 +54,37 @@ void FriendsHandler::searchNameButtonClicked() {
         infoLabel->setText("Please enter a name different from yours! ");
         return;
     }
+
+    // verifier si la personne existe
+    std::string player = usernamePlayer.toStdString();
+    int friendId = db.getUserId(player.c_str());
+    if(friendId == -1){
+        infoLabel->setStyleSheet("color: red;");
+        infoLabel->setText("User not found");
+        return;
+    }
+
+    //verif si deja ami ou requete deja envoyée
+    int requestStatus = db.verifyRequestFriend(currentUser.toStdString(), usernamePlayer.toStdString());
+    if (requestStatus == 1) {
+        infoLabel->setStyleSheet("color: red;");
+        infoLabel->setText("You are already friends!");
+        return;
+    } else if (requestStatus == 2) {
+        infoLabel->setStyleSheet("color: red;");
+        infoLabel->setText("Request already sent!");
+        return;
+    }
+    // envoyer la requetes
+    db.requestFriend(currentUser.toStdString(), usernamePlayer.toStdString());
     infoLabel->setStyleSheet("color: green;");
-    infoLabel->setText("searching player...");
+    infoLabel->setText("Friend request sent!");
+    countRequests = db.getNumberFriendRequestsReceived(currentUser.toStdString());  
+    friendRequestsButton->setText(QString("Friend requests (%1)").arg(countRequests));
+
 
     // Effectuer la recherche après une courte interruption
-    QTimer::singleShot(1000, this, SLOT(handleFriendsRequests()));
+    //QTimer::singleShot(1000, this, SLOT(handleFriendsRequests()));
 }
 
 
@@ -70,10 +98,10 @@ void FriendsHandler::searchNameButtonClicked() {
  * @param friendsList Vecteur qui contient les username des amis à afficher.
  */
 void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsList) {
-    friendsListScreen = new QWidget();  //widget pour ecran qui affichera liste d amis
+    friendsListScreen = new QWidget(this);  //widget pour ecran qui affichera liste d amis
     QVBoxLayout* layout = new QVBoxLayout(friendsListScreen);
 
-    QLabel* titleLabel = new QLabel("Friends list:");
+    QLabel* titleLabel = new QLabel("Friends list:", this);
     QFont titleFont = titleLabel->font();
     titleFont.setBold(true);
     titleFont.setPointSize(14);
@@ -81,7 +109,7 @@ void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsL
     layout->addWidget(titleLabel);
 
     // Tableau des amis (existant)
-    friendsTableWidget = new QTableWidget();
+    friendsTableWidget = new QTableWidget(this);
     friendsTableWidget->setColumnCount(2);
     friendsTableWidget->setRowCount(friendsList.size());
     
@@ -99,9 +127,8 @@ void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsL
     layout->addWidget(friendsTableWidget);
 
     // Boutons
-    addFriendButton = new QPushButton("Add new friend");
-    friendRequestsButton = new QPushButton(QString("Friend requests (%1)").arg(countRequests));
-    QPushButton* goBackButton = new QPushButton("Back to Menu");
+    addFriendButton = new QPushButton("Add new friend", this);
+    friendRequestsButton = new QPushButton(QString("Friend requests (%1)").arg(countRequests), this);
     
     layout->addWidget(addFriendButton);
     layout->addWidget(friendRequestsButton);
@@ -126,28 +153,28 @@ void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsL
  * champs de recherche créé + label d'info, boutons pour lancer recherche et revenir en arrière.
  */
 void FriendsHandler::setupAddFriendScreen() {
-    addFriendScreen = new QWidget();   // nouveau widget
+    addFriendScreen = new QWidget(this);   // nouveau widget
     QVBoxLayout* layout = new QVBoxLayout(addFriendScreen);
 
-    QLabel* title = new QLabel("Add New Friend");  //label pour afficher sous titre
+    QLabel* title = new QLabel("Add New Friend", this);  //label pour afficher sous titre
     QFont titleFont = title->font();
     titleFont.setBold(true);
     titleFont.setPointSize(14);
     title->setFont(titleFont);
     layout->addWidget(title);
 
-    usernameInput = new QLineEdit();   // créé champs pour entrer username
+    usernameInput = new QLineEdit(this);   // créé champs pour entrer username
     usernameInput->setPlaceholderText("Enter player username");
     layout->addWidget(usernameInput);
 
     //label ppur affiche informations (messages)
-    infoLabel = new QLabel();
+    infoLabel = new QLabel(this);
     infoLabel->setStyleSheet("color: green; font-weight: bold;");
     layout->addWidget(infoLabel);
 
     //boutons
-    QPushButton* searchButton = new QPushButton("Search");
-    QPushButton* backButton = new QPushButton("Back");
+    QPushButton* searchButton = new QPushButton("Search", this);
+    QPushButton* backButton = new QPushButton("Back", this);
     
     // placer en horizontal boutons
     QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -189,12 +216,16 @@ void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsRece
     }
     // Supprimer les widgets sauf le 1er  (titre)
     while (layout->count() > 1) {
-        QLayoutItem* item = layout->takeAt(1); // Prendre widget à partir de l'index 2
-        if (item->widget()) { item->widget()->deleteLater();}
-        delete item; //supprime elem de layout
+        QLayoutItem* item = layout->takeAt(1);
+        if (item) {
+            if (QWidget* w = item->widget()) {
+                w->deleteLater();
+            }
+                delete item;  //supprime elem de layout
+        }
     }
     // Créé la table pour pouvoir afficher demandes d amiis
-    QTableWidget* requestsTable = new QTableWidget(requestsReceivedList.size() + requestSentList.size(), 3);
+    QTableWidget* requestsTable = new QTableWidget(requestsReceivedList.size() + requestSentList.size(), 3 , this) ;
     requestsTable->horizontalHeader()->setVisible(false);
     requestsTable->horizontalHeader()->setStretchLastSection(true);
 
@@ -207,9 +238,9 @@ void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsRece
         requestsTable->setItem(row, 1, new QTableWidgetItem("Received"));         // indique que c'est une requete qu on a recue
 
         // Widget avec boutons Accept/Refuse
-        QWidget* actionWidget = new QWidget;
-        QPushButton* acceptButton = new QPushButton("Accept");
-        QPushButton* refuseButton = new QPushButton("Refuse");
+        QWidget* actionWidget = new QWidget(this);
+        QPushButton* acceptButton = new QPushButton("Accept", this);
+        QPushButton* refuseButton = new QPushButton("Refuse", this);
 
         // pour placer boutons accept/refuse de maniere horizontale
         QHBoxLayout* hLayout = new QHBoxLayout(actionWidget);
@@ -237,7 +268,7 @@ void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsRece
         requestsTable->setItem(row, 1, new QTableWidgetItem("Sent"));
 
         //pour annuler demande
-        QPushButton* cancelButton = new QPushButton("Cancel");
+        QPushButton* cancelButton = new QPushButton("Cancel", this);
         cancelButton->setProperty("username", requestSentTo);
         cancelButton->setProperty("type", "sent");
         connect(cancelButton, &QPushButton::clicked, this, &FriendsHandler::refuseFriendRequest);
@@ -260,7 +291,7 @@ void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsRece
         }
     }
     if(!hasButtonBack){   // creation du bouton pour retourner en arriere
-        QPushButton* backButton = new QPushButton("Back");
+        QPushButton* backButton = new QPushButton("Back", this);
         backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
         layout->addWidget(backButton);
         connect(backButton, &QPushButton::clicked, [this]() {
@@ -274,10 +305,10 @@ void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsRece
  * @brief Configure l'écran de gestion des demandes d'amis.
  */
 void FriendsHandler::setupRequestsScreen() {
-    requestsScreen = new QWidget();  // pour l ecran des demandes d'amis
+    requestsScreen = new QWidget(this);  // pour l ecran des demandes d'amis
     QVBoxLayout* layout = new QVBoxLayout(requestsScreen);
 
-    QLabel* title = new QLabel("Friend Requests");
+    QLabel* title = new QLabel("Friend Requests", this);
     QFont titleFont = title->font();
     titleFont.setBold(true);     // active le gras
     titleFont.setPointSize(14);
@@ -309,7 +340,40 @@ void FriendsHandler::acceptFriendRequest() {
 
     QMessageBox::information(this, "Request Accepted", "you have accepted the friend request !");
 
-    handleFriendsRequests();
+    std::vector<std::string> friends = db.friendsList(currentUser.toStdString());
+    std::vector<QString> qtFriends;
+    for (const auto& f : friends) {
+        qtFriends.push_back(QString::fromStdString(f));
+    }
+
+    friendsTableWidget->clearContents();
+    friendsTableWidget->setRowCount(qtFriends.size());
+
+    for(size_t i = 0; i < qtFriends.size(); ++i) {
+        QTableWidgetItem* itemNumber = new QTableWidgetItem(QString::number(i + 1));
+        QTableWidgetItem* itemName = new QTableWidgetItem(qtFriends[i]);
+        friendsTableWidget->setItem(i, 0, itemNumber);
+        friendsTableWidget->setItem(i, 1, itemName);
+    }
+
+    /** 
+    QVBoxLayout* oldLayout = qobject_cast<QVBoxLayout*>(friendsListScreen->layout());
+    if (oldLayout) {
+        QLayoutItem* item;
+        while ((item = oldLayout->takeAt(0)) != nullptr) {
+            delete item->widget();
+            delete item;
+        }
+        delete oldLayout;
+    }
+    */
+
+    //setupFriendsListScreen(qtFriends);
+
+    handleFriendsRequests(); // Rafraîchir aussi les demandes
+    stackedWidget->setCurrentWidget(friendsListScreen);
+    
+
 }
 
 
