@@ -355,27 +355,10 @@ void FriendsHandler::acceptFriendRequest() {
         friendsTableWidget->setItem(i, 0, itemNumber);
         friendsTableWidget->setItem(i, 1, itemName);
     }
-
-    /** 
-    QVBoxLayout* oldLayout = qobject_cast<QVBoxLayout*>(friendsListScreen->layout());
-    if (oldLayout) {
-        QLayoutItem* item;
-        while ((item = oldLayout->takeAt(0)) != nullptr) {
-            delete item->widget();
-            delete item;
-        }
-        delete oldLayout;
-    }
-    */
-
-    //setupFriendsListScreen(qtFriends);
-
     handleFriendsRequests(); // Rafraîchir aussi les demandes
     stackedWidget->setCurrentWidget(friendsListScreen);
-    
 
 }
-
 
 /**
  * @brief refuser demande d ami.
@@ -400,7 +383,6 @@ void FriendsHandler::refuseFriendRequest() {
 }
 
 
-
 /**
 *@brief Gerer les requetes d'amis.
 */
@@ -413,7 +395,6 @@ void FriendsHandler::handleFriendsRequests() {
     // Afficher les demandes d'amis reçues et envoyées dans l'interface graphique
     showFriendsRequests(requests_received_list, requests_sent_list);
 }
-
 
 
 QWidget* FriendsHandler::getWindowWidget() const{

@@ -51,7 +51,6 @@ MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::Thread
 MainWindow::~MainWindow() {
     flag = true;
     shutdown(sock, SHUT_RD);
-    //close(sock);   // pour bien fermer le socket car sinon soucis reseau à la fermeture de fenetre
     if (threadID) pthread_join(threadID, nullptr);
 }
 
