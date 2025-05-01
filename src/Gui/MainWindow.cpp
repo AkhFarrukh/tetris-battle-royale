@@ -12,6 +12,7 @@
 
 // MainWindow.cpp
 #include "MainWindow.hpp"
+#include "FriendsHandler.hpp"
 #include <QPushButton>
 #include <QApplication>
 #include <QLabel>
@@ -25,8 +26,11 @@
 #include <QInputDialog>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
+#include "../Database/database.hpp" 
 
 extern std::atomic<bool> flag;
+extern Database db;
+
 
 
 MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::ThreadData> threadData)
@@ -65,6 +69,7 @@ void MainWindow::setupUI() {
     setupMainMenuScreen();
     setupGameModeScreen();
     setupGameScreens();
+    setupFriendsScreen();
 
     // Ajouter les pages au QStackedWidget
     stackedWidget->addWidget(loginScreen);
@@ -188,7 +193,7 @@ void MainWindow::setupMainMenuScreen() {
     layout->addWidget(leaderboardButton);
 
     connect(playButton, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
-    // connect(friendsButton, &QPushButton::clicked, this, nullptr);
+    connect(friendsButton, &QPushButton::clicked, this, &MainWindow::handleFriendsMenu);
     connect(leaderboardButton, &QPushButton::clicked, this, &MainWindow::showLeaderboardScreen);
 
 
@@ -240,6 +245,30 @@ void MainWindow::setupGameModeScreen() {
     gameModeScreen->setLayout(layout);
     stackedWidget->addWidget(gameModeScreen);
 }
+
+
+/**
+ * @brief Va configurer écran de gestion d amis.
+ * 
+ * Ecran créé un bouton de retour au main menu
+ * Et ecran ajouté stackwidget pour pouvoir bien naviguer entre ecrans
+ * 
+ */
+void MainWindow::setupFriendsScreen(){
+    friendsScreen = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(friendsScreen);
+
+    QPushButton* backButton = new QPushButton("Back to Menu", this);
+    backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
+    
+    layout->addWidget(backButton);
+    connect(backButton, &QPushButton::clicked, this, &MainWindow::showMainMenuScreen);   // connecte bouton "back to menu" pour pouvoir retourner en arriere, au menu
+    
+
+    friendsScreen->setLayout(layout);
+    stackedWidget->addWidget(friendsScreen);
+}
+
 
 void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
     Menu menu;
@@ -499,16 +528,17 @@ void MainWindow::requestRoomList() {
 }
 
 void MainWindow::handleAuth() {
-    QString username = usernameInput->text();
+    QString username_qt = usernameInput->text();   // ++++++++++++++++++++++++++++++++++++++++++++++
+    username = username_qt.toStdString();          //++++++++++++++++++++++++++++++++++++++++++
     QString password = passwordInput->text();
 
-    if (username.isEmpty() || password.isEmpty()) {
+    if (username_qt.isEmpty() || password.isEmpty()) {
         QMessageBox::warning(this, "Erreur", "Veuillez remplir tous les champs.");
         return;
     }
 
     Connexion connexion;
-    std::strncpy(connexion.username, username.toStdString().c_str(), sizeof(connexion.username) - 1);
+    std::strncpy(connexion.username, username.c_str(), sizeof(connexion.username) - 1); // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     std::strncpy(connexion.password, password.toStdString().c_str(), sizeof(connexion.password) - 1);
 
     int size = sizeof(struct Connexion);
@@ -850,6 +880,54 @@ void MainWindow::sendMalusBonus(int malusId, int targetPlayerIndex) {
 }
 
 
+/**
+ * @brief Gère l'affichage et la mise à jour du menu d'amis.
+ * 
+ * Cette méthode va nettoyer l'ancien FriendsHandler s'il existe,
+ * Récupère le nombre de demandes d'amis en attente
+ * Crée un nouveau FriendsHandler avec les données actuelles
+ * Gère le layout de l'écran des amis - nouveau layout créé si besoin
+ * Place l'écran des amis dans le stackedWidget
+ * 
+ * @note Réinitialise complètement l'interface des amis à chaque appel
+ * 
+ */
+void MainWindow::handleFriendsMenu() {
+    // Supprimera l'ancien friendsHandler s'il existe
+    if (friendsHandler) {
+        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
+        if (layout){
+            layout->removeWidget(friendsHandler);
+        }
+        friendsHandler->deleteLater();
+        friendsHandler = nullptr;
+    }
+
+    std::vector<std::string> friends = db.friendsList(username);
+    std::vector<QString> qtFriends;
+
+    for(const auto& f: friends) {
+        qtFriends.push_back(QString::fromStdString(f));
+    }
+    
+    int requestCount = static_cast<int>(db.requestReceivedList(username).size());  // compte nombre de demandes d ami recues
+    
+    // Créer le nouveau handler
+    friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), qtFriends, requestCount);
+    // pour recuperer le layout deja existant
+    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
+    
+    if (!layout) {   // si aucun existe, creer un nouveau
+        layout = new QVBoxLayout(friendsScreen);
+        friendsScreen->setLayout(layout);
+    }
+    // Ajouter le frieindshandler
+    layout->insertWidget(0, friendsHandler);
+    stackedWidget->setCurrentWidget(friendsScreen);
+}
+
+
+
 void MainWindow::showLeaderboardScreen() {
     if (leaderboardScreen) {
         delete leaderboardScreen;
@@ -888,3 +966,6 @@ void MainWindow::showLeaderboardScreen() {
     stackedWidget->addWidget(leaderboardScreen);
     stackedWidget->setCurrentWidget(leaderboardScreen);
 }
+
+
+

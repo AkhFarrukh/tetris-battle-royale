@@ -25,6 +25,8 @@
 #include "playerFunctions.hpp"
 #include "GridQt.hpp"
 #include "userdatabasemanager.hpp"
+#include "FriendsHandler.hpp"
+
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -39,6 +41,7 @@ private slots:
     void handleAuth();
     void setupMainMenuScreen();
     void setupGameModeScreen();
+    void setupFriendsScreen();
     void sendMenuAction(MenuActions action, Modes mode);
     void showModeScreen(const QString& mode);
     void showGameModeScreen();
@@ -52,6 +55,9 @@ private slots:
 
 private:
     int sock;
+    FriendsHandler* friendsHandler = nullptr;
+    std::string username;
+
     void setupUI();
     void setupLoginScreen();
     void setupAuthScreen();
@@ -66,12 +72,13 @@ private:
     static void* threadRoutineQtView(void* arg);
     void handleMalusBonus(int malusId);
     void sendMalusBonus(int malusId, int targetPlayerIndex);
-
+    void handleFriendsMenu();
 
     QWidget* loginScreen = nullptr;
     QWidget* authScreen = nullptr;
     QWidget* mainMenuScreen = nullptr;
     QWidget* gameModeScreen = nullptr;
+    QWidget* friendsScreen = nullptr;
     QWidget* gameScreen = nullptr;
     QWidget* leaderboardScreen = nullptr;
     QLineEdit* usernameInput = nullptr;
