@@ -92,8 +92,10 @@ void MainWindow::setupLoginScreen() {
     loginScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
     auto layout = new QVBoxLayout(loginScreen);
 
-    QLabel *titleLabel = new QLabel("Welcome !", this);
-    layout->addWidget(titleLabel);
+    QLabel *titleLabel = new QLabel("TETRIS ROYALE !", this);
+    titleLabel->setStyleSheet("font-size: 28px; font-weight: bold; color: black;"); // mettre en gras
+    titleLabel->setAlignment(Qt::AlignCenter);  //  Centrer
+    layout->addWidget(titleLabel, 0, Qt::AlignCenter);  // centrer dans layout
 
     QPushButton *loginButton = new QPushButton("Login", this);
     loginButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
@@ -179,7 +181,10 @@ void MainWindow::setupMainMenuScreen() {
     auto layout = new QVBoxLayout(mainMenuScreen);
 
     QLabel *titleLabel = new QLabel("Main Menu", this);
-    layout->addWidget(titleLabel);
+    titleLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: black;"); 
+    titleLabel->setAlignment(Qt::AlignCenter);  
+    layout->addWidget(titleLabel, 0, Qt::AlignCenter);  
+    
 
     QPushButton *playButton = new QPushButton("Play", this);
     playButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
