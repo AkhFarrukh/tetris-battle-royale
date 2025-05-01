@@ -1,6 +1,5 @@
 #include "GridQt.hpp"
 #include <QPainter>
-#include <QDebug>
 #include <QKeyEvent>
 #include "input.hpp"
 
@@ -11,15 +10,8 @@ GridQt::GridQt(QWidget* parent)
 }
 
 void GridQt::renderGames(const std::vector<NetPlayerData>& players) {
-    qDebug() << "[GridQt] renderGames called with" << players.size() << "players";
     if (players.empty()) {
-        qDebug() << "[GridQt] got 0 players, not rendering test anymore";
         return;    
-        // NetPlayerData test;
-        // test.score = 1234;
-        // test.grid.resize(200, Color::blue); // 10x20
-        // currentPlayers = { test };
-        // qDebug() << "Rendering test player";
     } else {
         currentPlayers = players;
     }
@@ -88,7 +80,6 @@ void GridQt::paintEvent(QPaintEvent*) {
 
     for (size_t i = 0; i < currentPlayers.size(); ++i) {
         const auto& player = currentPlayers[i];
-        qDebug() << "Player" << i << "score:" << player.score << "grid size:" << player.grid.size();
         QPoint playerOffset = offset + QPoint(i * (gridWidth + 2) * (blockSize + spacing), 0);
 
         // Draw player score
@@ -178,7 +169,7 @@ void GridQt::paintEvent(QPaintEvent*) {
         if (player.playerId != -1){
             painter.drawText(playerOffset + QPoint(0, 10), QString("Player id: %1").arg(player.playerId));
         }else{
-            painter.drawText(playerOffset + QPoint(0, 10), QString("YOU").arg(player.playerId));
+            painter.drawText(playerOffset + QPoint(0, 10), QString("YOU"));
         }
     }
 }

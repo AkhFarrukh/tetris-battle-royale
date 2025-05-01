@@ -21,7 +21,6 @@
 #include <QMessageBox>
 #include <QScreen>
 #include <QMetaObject>
-#include <QDebug>
 #include <atomic>
 #include <QInputDialog>
 #include <QRegularExpression>
@@ -338,8 +337,6 @@ void MainWindow::showModeScreen(const QString& mode) {
         sendMenuAction(MenuActions::A_JoinRoom, Modes::Duel_);
     } else if (mode == "royal") {
         sendMenuAction(MenuActions::A_JoinRoom, Modes::Royal_);
-    } else {
-        qDebug() << "Mode inconnu: " << mode;
     }
 }
 
@@ -418,8 +415,6 @@ void MainWindow::sendCreateRoom() {
         QMessageBox::critical(this, "Erreur", "Échec de la création de la salle.");
         return;
     }
-
-    qDebug() << "Create room request sent";
 }
 
 void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
@@ -666,7 +661,6 @@ void* MainWindow::threadRoutineQtView(void* arg) {
     }
 
     while (!flag) {
-        std::cout << "realy ?";
         int type, size;
         if (!recvAll(sock, &type, sizeof(int)) || !recvAll(sock, &size, sizeof(int))) {
             perror("Disconnected or error");
