@@ -29,19 +29,29 @@ extern atomic<bool> flag;
 
 class Player {
     public:
+    
         struct ThreadData {
             int socket;
 	        mutex mux;
 	        mutex displayMut;
 	        atomic<bool> userInGame = false;
             atomic<bool> userInLobby;
+            bool isGui = false;
+            void* qtParent = nullptr;
+            std::vector<NetPlayerData> playersData;
 
-        //for the Royal competition mode to track the state of menu that sends maluses
-        atomic<bool> targetPlayerMenu = false; //false if player is on malus menu, true if player is on target player menu
+            RoomInfo roomInfo;
+            bool roomInfoUpdated = false;
+            bool isOwner = false;
 
-        atomic<Modes> gameMode; // to know if player is playing royal competition to use special display function
+        
 
-        atomic<int> clinetPlayerID = -1; // to know the player id of the client player in royal mode
+            //for the Royal competition mode to track the state of menu that sends maluses
+            atomic<bool> targetPlayerMenu = false; //false if player is on malus menu, true if player is on target player menu
+
+            atomic<Modes> gameMode; // to know if player is playing royal competition to use special display function
+
+            atomic<int> clinetPlayerID = -1; // to know the player id of the client player in royal mode
         };
 
         static void* threadRoutineView (void* arg); //Routine qui recoit la grid et l'affiche

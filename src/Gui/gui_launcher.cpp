@@ -1,13 +1,18 @@
+#ifdef border
+#undef border
+#endif
+
 #ifdef scroll
 #undef scroll
 #endif
 
 #include <QApplication>
-#include "MainWindow.hpp"
+#include "gui_launcher.hpp"
 
-int runGuiApp(int argc, char** argv, int sock) {
+int runGuiApp(int argc, char** argv, int sock, std::shared_ptr<Player::ThreadData> threadData) {
     QApplication app(argc, argv);
-    MainWindow window(nullptr, sock);
-    window.show();
+    MainWindow w(nullptr, sock, threadData);
+    threadData->qtParent = &w;
+    w.show();
     return app.exec();
 }

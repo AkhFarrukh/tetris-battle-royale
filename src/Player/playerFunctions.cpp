@@ -101,10 +101,10 @@ void* Player::threadRoutineView (void* arg){
                 int gridSize;
            	    if (!recvAll(sock, &gridSize, sizeof(gridSize))){return nullptr;}
 
-		if (gridSize <= 0 || gridSize > 100000) {  // juste pour detecter quand gridSize devient trop grand
-    			std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
-    			break;
-		}
+                if (gridSize <= 0 || gridSize > 100000) {  // juste pour detecter quand gridSize devient trop grand
+                        std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
+                        break;
+                }
                 player.grid.resize(gridSize);
 
                 if (!recvAll(sock, player.grid.data(), gridSize * sizeof(Color))){return nullptr;}
@@ -120,7 +120,6 @@ void* Player::threadRoutineView (void* arg){
                 render.renderGames(playersData);
             }
             */
-
 
             if (threadData->gameMode == Modes::Royal_){
                 //std::cout<<"Rendering royal games"<<std::endl;
@@ -342,7 +341,7 @@ return 0;
  * @return int 
  */
 
-int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
+int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
     threadData->mux.lock();

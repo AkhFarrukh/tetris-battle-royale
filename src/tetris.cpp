@@ -84,18 +84,17 @@ int main(int argc, char** argv) {
     std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
     //Game loop
     if (argc > 1 && std::string(argv[1]) == "--gui") {
-        threadData->socket = sock;
-        threadData->userInGame = false;
-        threadData->userInLobby = false;
-        auto serverThread = new ServerListenerThread(threadData);
-        serverThread->start();
-        if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
-           perror("Error on thread creation : ");
-           close(sock);
-           return 1;
-        }
-    
-        return runGuiApp(argc, argv, sock);
+        // threadData->socket = sock;
+        // threadData->userInGame = false;
+        // threadData->userInLobby = false;
+        // if (pthread_create(&threadID, nullptr, Player::threadRoutineView, threadData.get()) < 0) {
+        //     perror("Error on thread creation : ");
+        //     close(sock);
+        //     return 1;
+        // }
+
+        threadData->isGui = true;
+        return runGuiApp(argc, argv, sock, threadData);
 
     } else {
         bool playing = false;

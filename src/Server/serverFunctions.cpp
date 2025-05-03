@@ -391,14 +391,20 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
 }
 
 void Server::handleLeftRoom(Server* server, ClientSession& client) {
-  std::shared_ptr<Room> chosenRoom = nullptr;
-  for (auto &r : *server->roomsList) {
-        if (r->getOwnerFd() == client.inRoom) {
+    std::shared_ptr<Room> chosenRoom = nullptr;
+    for (auto &r : *server->roomsList) {
+        if (r->getRoomID() == client.inRoom) {
             chosenRoom = r;
             break;
         }
     }
-    chosenRoom->removePlayer(client.client_fd);
+
+    if (chosenRoom) {
+        chosenRoom->removePlayer(client.client_fd);
+    } else {
+        std::cerr << "ERROR: Tried to leave room, but no matching room for ID " << client.inRoom << std::endl;
+    }
+
     client.inRoom = -1;
 }
 
@@ -588,10 +594,11 @@ void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnlin
  * @param eventQueue ptr for the player's eventQueue in Game
  */
 void Server::handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue){
-    cout<<"MalusBonus received"<<endl;
     MalBonus malusBobo;
 
     if (!recvAll(client.client_fd, &malusBobo, sizeof(MalBonus))){userIsOnline = false;}
+    cout<<"MalusBonus received: "<< malusBobo.malusB << " against :" << malusBobo.target << endl;
+
 
     eventQueue->addEvent(make_shared<MalusBonusEvent>(malusBobo.malusB, malusBobo.target));
 }
