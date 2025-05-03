@@ -19,6 +19,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QCloseEvent>
+#include <QTextEdit>
 #include <QTimer>
 #include <atomic>
 #include "communication.hpp"
@@ -52,11 +53,16 @@ private slots:
     void addMalusButtonsIfRoyal();
     void setGameScreen();
     void showLeaderboardScreen();
+    void showChatScreen();
+    void showfriendsListScreen();
 
 private:
+    QWidget *callerWindow = nullptr;
+    QTextEdit *chatHistory = nullptr;
     int sock;
     FriendsHandler* friendsHandler = nullptr;
     std::string username;
+    int userId_ = -1;
 
     void setupUI();
     void setupLoginScreen();
@@ -73,6 +79,8 @@ private:
     void handleMalusBonus(int malusId);
     void sendMalusBonus(int malusId, int targetPlayerIndex);
     void handleFriendsMenu();
+    void setupFriendsListScreen();
+    void openChatWith(const QString& friendName);
 
     QWidget* loginScreen = nullptr;
     QWidget* authScreen = nullptr;
@@ -88,6 +96,8 @@ private:
     QPushButton* playButton = nullptr;
     QPushButton* handleFriendsButton = nullptr;
     QPushButton* leaderboardButton = nullptr;
+    QWidget *chatScreen = nullptr;
+    QWidget *friendsListScreen = nullptr;
 
     QStackedWidget* stackedWidget = nullptr;
     GridQt* renderQt = nullptr;

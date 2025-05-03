@@ -192,6 +192,21 @@ void MainWindow::setupMainMenuScreen() {
     QPushButton *leaderboardButton = new QPushButton("Leaderboard (Endless Mode)", this);
     leaderboardButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
 
+    QPushButton *chatButton = new QPushButton(this);
+	chatButton->setText(" Chat");
+
+	chatButton->setIcon(QIcon::fromTheme("mail-message-new")); // Peut être remplacé par un chemin QIcon(":/icons/chat.png")
+
+	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setIconSize(QSize(20, 20));
+
+	layout->addWidget(chatButton);
+
+	connect(chatButton, &QPushButton::clicked, [this]() {
+        callerWindow = mainMenuScreen;//new QWidget(this);
+    	stackedWidget->setCurrentWidget(friendsListScreen);
+});
+
     layout->addWidget(playButton);
     layout->addWidget(friendsButton);
     layout->addWidget(leaderboardButton);
@@ -529,7 +544,6 @@ void MainWindow::requestRoomList() {
 
 void MainWindow::handleAuth() {
     QString username_qt = usernameInput->text();   // ++++++++++++++++++++++++++++++++++++++++++++++
-    username = username_qt.toStdString();          //++++++++++++++++++++++++++++++++++++++++++
     QString password = passwordInput->text();
 
     if (username_qt.isEmpty() || password.isEmpty()) {
@@ -538,7 +552,7 @@ void MainWindow::handleAuth() {
     }
 
     Connexion connexion;
-    std::strncpy(connexion.username, username.c_str(), sizeof(connexion.username) - 1); // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    std::strncpy(connexion.username, username_qt.toStdString().c_str(), sizeof(connexion.username) - 1); // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     std::strncpy(connexion.password, password.toStdString().c_str(), sizeof(connexion.password) - 1);
 
     int size = sizeof(struct Connexion);
@@ -608,7 +622,13 @@ void MainWindow::handleAuth() {
     this->threadData->userInLobby = false;
     this->threadData->isGui = true;
     this->threadData->qtParent = this;
-    
+    username = username_qt.toStdString();
+    userId_ = udm.getUserId(username.c_str());
+
+    setupFriendsListScreen();
+    stackedWidget->addWidget(friendsListScreen);
+
+
     pthread_create(&threadID, nullptr, MainWindow::threadRoutineQtView, threadData.get());
 
     //Start periodic UI refresh from threadData
@@ -671,6 +691,12 @@ void* MainWindow::threadRoutineQtView(void* arg) {
         if (type == MessageType::T_Message) {
             Message message;
             if (!recvAll(sock, &message, size)) break;
+            if(!parent->chatHistory)break;
+            QString sender = QString::fromUtf8(message.expediteur);
+            QString msg = QString::fromUtf8(message.message);
+            QMetaObject::invokeMethod(parent->chatHistory, [=]() {
+            parent->chatHistory->append("<b>" + sender + ": </b> " + msg);
+            }, Qt::QueuedConnection);
         }
 
         else if (type == MessageType::T_Exit || type == MessageType::T_ForcedExit) {

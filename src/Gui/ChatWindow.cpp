@@ -18,7 +18,8 @@ void MainWindow::setupFriendsListScreen() {
 
     QListWidget *friendsList = new QListWidget(this);
 
-    std::vector<std::string> friendsVec = udm.friendsList(username_);
+    std::vector<std::string> friendsVec = udm.friendsList(username);
+
     QStringList friends;
     for (const auto& name : friendsVec) {
         friends << QString::fromStdString(name);
@@ -54,6 +55,8 @@ void MainWindow::openChatWith(const QString& friendName) {
     int friendId_ = udm.getUserId(friendName.toStdString().c_str());
 
     udm.conversationOpen(userId_, friendId_);
+    vector<std::string> messagesNoRead = udm.getMessages(friendId_, userId_);
+    udm.deleteMessages(friendId_, userId_);
     QWidget *chatScreen = new QWidget(this);
     auto layout = new QVBoxLayout(chatScreen);
 
@@ -61,9 +64,13 @@ void MainWindow::openChatWith(const QString& friendName) {
     chatTitle->setAlignment(Qt::AlignCenter);
     layout->addWidget(chatTitle);
 
-    QTextEdit *chatHistory = new QTextEdit(this);
+    chatHistory = new QTextEdit(this);
     chatHistory->setReadOnly(true);
     layout->addWidget(chatHistory);
+
+    for (const auto& msg : messagesNoRead) {
+        chatHistory->append("<b>" + friendName + ": </b>" + QString::fromStdString(msg));
+    }
 
     QLineEdit *messageInput = new QLineEdit(this);
     layout->addWidget(messageInput);
@@ -78,7 +85,7 @@ void MainWindow::openChatWith(const QString& friendName) {
             int messageSent = MessageType::T_Message;
             int size_ = sizeof(struct Message);
             Message messageToSent;
-            std::strncpy(messageToSent.expediteur, username_.c_str(), sizeof(messageToSent.expediteur) - 1);
+            std::strncpy(messageToSent.expediteur, username.c_str(), sizeof(messageToSent.expediteur) - 1);
             messageToSent.expediteur[sizeof(messageToSent.expediteur) - 1] =  '\0';
             std::strncpy(messageToSent.message, message.toStdString().c_str(), sizeof(messageToSent.message) - 1);
             messageToSent.message[sizeof(messageToSent.message) - 1] =  '\0';
