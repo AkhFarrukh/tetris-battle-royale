@@ -91,9 +91,10 @@ void FriendsHandler::searchNameButtonClicked() {
 /**
  * @brief Configure l'écran qui montre la liste d' amis.
  *
- * Crée un tableau listant les amis fournis, avec leurs numéros et username.
- * gestion de boutons pour accéder à l'ecran "add friend" et "friend request",
- * et pour revenir au menu principal.
+ * Crée un tableau listant les amis fournis, avec leurs numéros et username 
+ * et option de suppression.
+ * Gestion de boutons pour accéder à l'ecran "add friend","friend request",
+ * pour supprimer un ami de sa liste, et pour revenir au menu principal.
  *
  * @param friendsList Vecteur qui contient les username des amis à afficher.
  */
@@ -110,7 +111,7 @@ void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsL
 
     // Tableau des amis (existant)
     friendsTableWidget = new QTableWidget(this);
-    friendsTableWidget->setColumnCount(2);
+    friendsTableWidget->setColumnCount(3);
     friendsTableWidget->setRowCount(friendsList.size());
     
     //cacche en-tetes de colonnes
@@ -121,8 +122,15 @@ void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsL
     for(size_t i = 0; i < friendsList.size(); ++i) {
         QTableWidgetItem* itemNumber = new QTableWidgetItem(QString::number(i + 1));
         QTableWidgetItem* itemName = new QTableWidgetItem(friendsList[i]);
+
+        QPushButton* deleteButton = new QPushButton("Delete", this);
+        deleteButton->setProperty("username", friendsList[i]);
+        connect(deleteButton, &QPushButton::clicked, this, &FriendsHandler::removeFriend);
+       
         friendsTableWidget->setItem(i, 0, itemNumber);   // col 0  le numero de l ami
         friendsTableWidget->setItem(i, 1, itemName);    // col 1   le username de lami
+        friendsTableWidget->setCellWidget(i, 2, deleteButton);
+
     } 
     layout->addWidget(friendsTableWidget);
 
@@ -352,8 +360,14 @@ void FriendsHandler::acceptFriendRequest() {
     for(size_t i = 0; i < qtFriends.size(); ++i) {
         QTableWidgetItem* itemNumber = new QTableWidgetItem(QString::number(i + 1));
         QTableWidgetItem* itemName = new QTableWidgetItem(qtFriends[i]);
+        QPushButton* deleteButton = new QPushButton("Delete", this);
+        
+        deleteButton->setProperty("username", qtFriends[i]);
+        connect(deleteButton, &QPushButton::clicked, this, &FriendsHandler::removeFriend);
+        
         friendsTableWidget->setItem(i, 0, itemNumber);
         friendsTableWidget->setItem(i, 1, itemName);
+        friendsTableWidget->setCellWidget(i, 2, deleteButton);
     }
     handleFriendsRequests(); // Rafraîchir aussi les demandes
     stackedWidget->setCurrentWidget(friendsListScreen);
@@ -381,6 +395,50 @@ void FriendsHandler::refuseFriendRequest() {
     QMessageBox::information(this, "Request Denied", "you have denied the the friend request !");
     showFriendsRequests(db.requestReceivedList(currentUser.toStdString()), db.requestSentList(currentUser.toStdString()));  // mettre à jour affichage des requêtes
 }
+
+
+
+/**
+ * @brief Supprimer un ami.
+ * 
+ * Le bouton qui a déclenché est recupéré,
+ * Le nom du player à supprimer est récupéré et on l'efface de la db.
+ * on met à jour la liste d'ami et l affichage des amis.
+ */
+void FriendsHandler::removeFriend(){
+    auto* button = qobject_cast<QPushButton*>(sender());
+    if (!button) return;
+
+    QString friendToDelete = button->property("username").toString();   // recupere le nom de la personne qui a envoyé requete
+
+    db.deleteFriend(currentUser.toStdString(), friendToDelete.toStdString());
+
+    // Mise à jour de l'affichage  directement apres la suppression d'un ami
+    std::vector<std::string> friends = db.friendsList(currentUser.toStdString());
+    std::vector<QString> qtFriends;
+    for (const auto& f : friends) {
+        qtFriends.push_back(QString::fromStdString(f));
+    }
+    
+    friendsTableWidget->clearContents();
+    friendsTableWidget->setRowCount(qtFriends.size());
+
+    for(size_t i = 0; i < qtFriends.size(); ++ i){
+        QTableWidgetItem* itemNumber = new QTableWidgetItem(QString::number(i + 1));
+        QTableWidgetItem* itemName = new QTableWidgetItem(qtFriends[i]);
+        QPushButton* deleteButton = new QPushButton("Delete", this);
+        deleteButton->setProperty("username", qtFriends[i]);
+        connect(deleteButton, &QPushButton::clicked, this, &FriendsHandler::removeFriend);
+
+        //les 3 colonnes de l'affichage
+        friendsTableWidget->setItem(i, 0, itemNumber);
+        friendsTableWidget->setItem(i, 1, itemName);
+        friendsTableWidget->setCellWidget(i, 2, deleteButton);
+    
+    }
+    
+}
+
 
 
 /**

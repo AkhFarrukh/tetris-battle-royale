@@ -69,6 +69,7 @@ class FriendsHandler: public QWidget {
         void searchNameButtonClicked();
         void acceptFriendRequest();
         void refuseFriendRequest();
+        void removeFriend();
         void handleFriendsRequests();
 };
 
