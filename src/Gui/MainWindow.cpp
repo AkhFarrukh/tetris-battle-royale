@@ -69,6 +69,7 @@ void MainWindow::setupUI() {
     setupGameModeScreen();
     setupGameScreens();
     setupFriendsScreen();
+    setupFriendsListScreen();
 
     // Ajouter les pages au QStackedWidget
     stackedWidget->addWidget(loginScreen);
@@ -195,17 +196,15 @@ void MainWindow::setupMainMenuScreen() {
     QPushButton *chatButton = new QPushButton(this);
 	chatButton->setText(" Chat");
 
-	chatButton->setIcon(QIcon::fromTheme("mail-message-new")); // Peut être remplacé par un chemin QIcon(":/icons/chat.png")
+	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
 
 	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
 	chatButton->setIconSize(QSize(20, 20));
+    chatButton->setFixedSize(80, 30);
 
 	layout->addWidget(chatButton);
 
-	connect(chatButton, &QPushButton::clicked, [this]() {
-        callerWindow = mainMenuScreen;//new QWidget(this);
-    	stackedWidget->setCurrentWidget(friendsListScreen);
-});
+	connect(chatButton, &QPushButton::clicked, this, &MainWindow::handleChatMenu);
 
     layout->addWidget(playButton);
     layout->addWidget(friendsButton);
@@ -218,7 +217,7 @@ void MainWindow::setupMainMenuScreen() {
 
 
     mainMenuScreen->setLayout(layout);
-    stackedWidget->addWidget(mainMenuScreen); // Important !
+    stackedWidget->addWidget(mainMenuScreen);
 }
 
 void MainWindow::setupGameModeScreen() {
@@ -235,11 +234,26 @@ void MainWindow::setupGameModeScreen() {
     QPushButton *royalButton = new QPushButton("Royal Competition Mode", this);
     QPushButton *backButton = new QPushButton("Retour", this);
 
+    QPushButton *chatButton = new QPushButton(this);
+	chatButton->setText(" Chat");
+
+	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
+
+	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setIconSize(QSize(20, 20));
+    chatButton->setFixedSize(80, 30);
+
+	layout->addWidget(chatButton);
+
     QList<QPushButton*> buttons = {endlessButton, classicButton, duelButton, royalButton, backButton};
     for (auto* btn : buttons) {
         btn->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
         layout->addWidget(btn);
     }
+
+
+
+	connect(chatButton, &QPushButton::clicked, this, &MainWindow::handleChatMenu);
 
     connect(endlessButton, &QPushButton::clicked, this, [this]() {
         showModeScreen("endless");
@@ -286,6 +300,14 @@ void MainWindow::setupFriendsScreen(){
 
     friendsScreen->setLayout(layout);
     stackedWidget->addWidget(friendsScreen);
+}
+
+void MainWindow::setupFriendsListScreen(){
+    friendsListScreen = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(friendsListScreen);
+
+    friendsListScreen->setLayout(layout);
+    stackedWidget->addWidget(friendsListScreen);
 }
 
 
@@ -389,7 +411,18 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
             layout->addWidget(joinBtn);
         }
     }
+    QPushButton *chatButton = new QPushButton(this);
+	chatButton->setText(" Chat");
 
+	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
+
+	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setIconSize(QSize(20, 20));
+    chatButton->setFixedSize(80, 30);
+
+	layout->addWidget(chatButton);
+
+	connect(chatButton, &QPushButton::clicked, this, &MainWindow::handleChatMenu);
     QPushButton* createBtn = new QPushButton("Create Room");
     QPushButton* refreshBtn = new QPushButton("Refresh");
     QPushButton* backBtn = new QPushButton("Back");
@@ -442,6 +475,19 @@ void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
 
     myRoomScreen = new QWidget(this);
     QVBoxLayout* layout = new QVBoxLayout(myRoomScreen);
+
+    QPushButton *chatButton = new QPushButton(this);
+	chatButton->setText(" Chat");
+
+	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
+
+	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setIconSize(QSize(20, 20));
+    chatButton->setFixedSize(80, 30);
+
+	layout->addWidget(chatButton);
+
+	connect(chatButton, &QPushButton::clicked, this, &MainWindow::handleChatMenu);
 
     layout->addWidget(new QLabel(QString("Room ID: %1").arg(room.roomID)));
     layout->addWidget(new QLabel(QString("Players: %1").arg(room.currentPlayersCount)));
@@ -622,11 +668,11 @@ void MainWindow::handleAuth() {
     this->threadData->userInLobby = false;
     this->threadData->isGui = true;
     this->threadData->qtParent = this;
+
     username = username_qt.toStdString();
     userId_ = udm.getUserId(username.c_str());
 
-    setupFriendsListScreen();
-    stackedWidget->addWidget(friendsListScreen);
+
 
 
     pthread_create(&threadID, nullptr, MainWindow::threadRoutineQtView, threadData.get());
@@ -691,11 +737,11 @@ void* MainWindow::threadRoutineQtView(void* arg) {
         if (type == MessageType::T_Message) {
             Message message;
             if (!recvAll(sock, &message, size)) break;
-            if(!parent->chatHistory)break;
+            if(!parent->chatHandler || !parent->chatHandler->getChatHistory())break;
             QString sender = QString::fromUtf8(message.expediteur);
             QString msg = QString::fromUtf8(message.message);
-            QMetaObject::invokeMethod(parent->chatHistory, [=]() {
-            parent->chatHistory->append("<b>" + sender + ": </b> " + msg);
+            QMetaObject::invokeMethod(parent->chatHandler->getChatHistory(), [=]() {
+            parent->chatHandler->getChatHistory()->append("<b>" + sender + ": </b> " + msg);
             }, Qt::QueuedConnection);
         }
 
@@ -952,6 +998,39 @@ void MainWindow::handleFriendsMenu() {
 }
 
 
+void MainWindow::handleChatMenu() {
+    // Supprimera l'ancien friendsHandler s'il existe
+    if (chatHandler) {
+        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsListScreen->layout());
+        if (layout){
+            layout->removeWidget(chatHandler);
+        }
+        chatHandler->deleteLater();
+        chatHandler = nullptr;
+    }
+    std::vector<std::string> friends = db.friendsList(username);
+    std::vector<QString> qtFriends;
+
+    for(const auto& f: friends) {
+        qtFriends.push_back(QString::fromStdString(f));
+    }
+
+    //int requestCount = static_cast<int>(db.requestReceivedList(username).size());  // compte nombre de demandes d ami recues
+    // Créer le nouveau handler
+    QWidget* currentWidget = stackedWidget->currentWidget();
+    chatHandler = new ChatHandler(sock, this, friendsListScreen, QString::fromStdString(username), qtFriends, currentWidget);
+    // pour recuperer le layout deja existant
+    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsListScreen->layout());
+
+    if (!layout) {   // si aucun existe, creer un nouveau
+        layout = new QVBoxLayout(friendsListScreen);
+        friendsListScreen->setLayout(layout);
+    }
+    // Ajouter le frieindshandler
+    layout->insertWidget(0, chatHandler);
+    stackedWidget->setCurrentWidget(friendsListScreen);
+}
+
 
 void MainWindow::showLeaderboardScreen() {
     if (leaderboardScreen) {
@@ -981,7 +1060,18 @@ void MainWindow::showLeaderboardScreen() {
             layout->addWidget(scoreLabel);
         }
     }
+    QPushButton *chatButton = new QPushButton(this);
+	chatButton->setText(" Chat");
 
+	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
+
+	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setIconSize(QSize(20, 20));
+    chatButton->setFixedSize(80, 30);
+
+	layout->addWidget(chatButton);
+
+	connect(chatButton, &QPushButton::clicked, this, &MainWindow::handleChatMenu);
     QPushButton* backBtn = new QPushButton("Back", this);
     backBtn->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;");
     connect(backBtn, &QPushButton::clicked, this, &MainWindow::showMainMenuScreen);
@@ -992,5 +1082,14 @@ void MainWindow::showLeaderboardScreen() {
     stackedWidget->setCurrentWidget(leaderboardScreen);
 }
 
+void MainWindow::showfriendsListScreen() {
+    stackedWidget->setCurrentWidget(friendsListScreen);
+}
 
+void MainWindow::showChatScreen() {
+    stackedWidget->setCurrentWidget(chatScreen);
+}
 
+QStackedWidget* MainWindow::getStackedWidget(){
+  return stackedWidget;
+}

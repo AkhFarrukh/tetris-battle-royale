@@ -27,6 +27,7 @@
 #include "GridQt.hpp"
 #include "userdatabasemanager.hpp"
 #include "FriendsHandler.hpp"
+#include "ChatHandler.hpp"
 
 
 class MainWindow : public QMainWindow {
@@ -35,6 +36,7 @@ class MainWindow : public QMainWindow {
 public:
     explicit MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::ThreadData> threadData);
     ~MainWindow();
+    QStackedWidget* getStackedWidget();
 
 private slots:
     void showLoginScreen();
@@ -56,13 +58,15 @@ private slots:
     void showChatScreen();
     void showfriendsListScreen();
 
+
 private:
     QWidget *callerWindow = nullptr;
     QTextEdit *chatHistory = nullptr;
     int sock;
     FriendsHandler* friendsHandler = nullptr;
+    ChatHandler* chatHandler = nullptr;
     std::string username;
-    int userId_ = -1;
+    int userId_;
 
     void setupUI();
     void setupLoginScreen();
@@ -79,6 +83,7 @@ private:
     void handleMalusBonus(int malusId);
     void sendMalusBonus(int malusId, int targetPlayerIndex);
     void handleFriendsMenu();
+    void handleChatMenu();
     void setupFriendsListScreen();
     void openChatWith(const QString& friendName);
 
