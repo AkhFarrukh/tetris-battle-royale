@@ -409,7 +409,7 @@ void FriendsHandler::removeFriend(){
     auto* button = qobject_cast<QPushButton*>(sender());
     if (!button) return;
 
-    QString friendToDelete = button->property("username").toString();   // recupere le nom de la personne qui a envoyé requete
+    QString friendToDelete = button->property("username").toString();   // recupere le nom de la personne
 
     db.deleteFriend(currentUser.toStdString(), friendToDelete.toStdString());
 
@@ -440,7 +440,6 @@ void FriendsHandler::removeFriend(){
 }
 
 
-
 /**
 *@brief Gerer les requetes d'amis.
 */
@@ -455,9 +454,6 @@ void FriendsHandler::handleFriendsRequests() {
 }
 
 
-QWidget* FriendsHandler::getWindowWidget() const{
-    return window;
-}
 
 
 

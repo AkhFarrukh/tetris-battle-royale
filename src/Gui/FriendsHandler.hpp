@@ -62,8 +62,6 @@ class FriendsHandler: public QWidget {
         ~FriendsHandler() override;
 
         void showFriendsRequests(const std::vector<string>& requestsReceivedList, const std::vector<string>& requestSentList);
-        
-        QWidget* getWindowWidget() const;
     
     public slots:
         void searchNameButtonClicked();
