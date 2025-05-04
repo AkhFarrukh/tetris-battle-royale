@@ -78,7 +78,8 @@ void Database::loadStatements(const std::string statementsFileName){
         if (line.rfind("--", 0) == 0) { 
             // If statement key is not null, put statement as a value to statementKey
             if (!statementKey.empty()) {
-                statements[statementKey] = statement;
+                statement += '\0';
+                statements.insert({statementKey, statement});
             }
             statementKey = line.substr(3); // Remove '-- ' from the comment
             statement.clear();
@@ -86,13 +87,13 @@ void Database::loadStatements(const std::string statementsFileName){
 
         // If the line doesn't start with a double dash, it's part of a statement.
         else {
-            statement += line + "\n";
+            statement += line;
         }
     }
 
     // After the end of the file, load the last statement if one exists.
     if (!statementKey.empty()) {
-        statements[statementKey] = statement;
+        statements.insert({statementKey, statement});
     }
 }
 
@@ -101,20 +102,24 @@ void Database::loadStatements(const std::string statementsFileName){
  * @return a statement corresponding to a particular key
  */
 std::string Database::getStatement(const std::string key){
-    std::cout << statements.at(key) << " -> " << strlen(statements.at(key).c_str()) << std::endl;
-    return statements.at(key);
+    if (statements.contains(key)){
+        std::cout << "I GOT: " << statements.at(key) << std::endl;
+        return statements.at(key);
+    }
+    else{
+        std::cout << "NO KEY = NO VALUE!" << std::endl;
+        throw std::runtime_error("Missing SQL statement for key: " + key);
+    }
 }
-
-
+    
 /**
  * @brief prepare a statement (the resultant statement is found in "&stmt".)
  * to prevent "SQL Injection"
  * @param statement: a statement to prepare
  */
 void Database::prepareStatement(const char* statement){
-    int returnCode = sqlite3_prepare_v2(db, statement, -1, &stmt, nullptr);
-    if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR PREPARING STATEMENT!");
-    std::cout << returnCode << std::endl;
+    int returnCode = sqlite3_prepare_v2(db, statement, 10000, &stmt, nullptr);
+    if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR PREPARING STATEMENT! ");
 }
 
 
@@ -126,8 +131,7 @@ void Database::prepareStatement(const char* statement){
 void Database::bindText(const char* value, int index){
     int returnCode = sqlite3_bind_text(stmt, index, value, static_cast<int>(strlen(value)), SQLITE_STATIC);
     if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR BINDING VALUE!");
-    std::cout << returnCode << std::endl;
-    if (stmt == nullptr) std::cout << "nullptr here" << std::endl;
+    if (stmt == nullptr) std::cout << "stmt nullptr! Bug in prepared stmt." << std::endl;
 }
 
 

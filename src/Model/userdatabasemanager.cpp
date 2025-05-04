@@ -14,12 +14,12 @@ bool UserDatabaseManager::newAccountCreated(const char* username, const char* pa
     // then save login info into database.
     if (isUniqueUsername(username) && isValidUsername(username) && strlen(password) != 0){ 
         // Setup SQL statement and values to be binded
-        const char* statement = database.getStatement("newAccountCreated").c_str();
+        std::string statement = database.getStatement("newAccountCreated");
         std::string plainPassword = password;
         std::string hashedPassword = bcrypt::generateHash(plainPassword);
         
         // Prepare Statement and bind values to "?" symbols in a statement
-        database.prepareStatement(statement);
+        database.prepareStatement(statement.c_str());
         database.bindText(username, 1);
         database.bindText(hashedPassword.c_str(), 2);
 
@@ -51,8 +51,8 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
     bool isCorrect = false;
     if (isValidUsername(username) && strlen(password) != 0){
         // Prepare Statement and bind values to "?" then execute
-        const char* query = database.getStatement("isCorrectLogin").c_str();
-        database.prepareStatement(query);
+        std::string query = database.getStatement("isCorrectLogin");
+        database.prepareStatement(query.c_str());
         database.bindText(username, 1);
         database.execute();
         // If the username exists, get a resulting hash in a database and convert 
@@ -70,8 +70,8 @@ bool UserDatabaseManager::isCorrectLogin(const char* username, const char* passw
 }
 
 void UserDatabaseManager::setLogin(int user_id){
-    const char* query = database.getStatement("setLogin").c_str();;
-    database.prepareStatement(query);
+    std::string query = database.getStatement("setLogin");
+    database.prepareStatement(query.c_str());
     database.bindInt(user_id, 1);
 
     // Execute the statement then destruct the statement
@@ -90,8 +90,8 @@ bool UserDatabaseManager::isLoggedIn(const char* username){
     // Always check the user input first
     if (isValidUsername(username)){
         // Prepare Statement and bind values to "?" symbols in a statement
-        const char* query = database.getStatement("getLogInStatus").c_str();
-        database.prepareStatement(query);
+        std::string query = database.getStatement("getLogInStatus");
+        database.prepareStatement(query.c_str());
         database.bindText(username, 1);
 
         // Execute the statement and get the result (0 or 1)
@@ -117,8 +117,8 @@ bool UserDatabaseManager::isLoggedIn(const char* username){
 int UserDatabaseManager::getUserId(const char* username){
     int userId;
     // Prepare Statement and bind username to "?" symbols in a statement
-    const char* query = database.getStatement("getUserId").c_str();
-    database.prepareStatement(query);
+    std::string query = database.getStatement("getUserId");
+    database.prepareStatement(query.c_str());
     database.bindText(username, 1);
     database.execute(); // Execute the statement
 
@@ -146,8 +146,8 @@ bool UserDatabaseManager::usernameChanged(int userId, const char* newUsername){
     bool usernameChanged = false;
     if (isValidUsername(newUsername) && isUniqueUsername(newUsername)){
         // Prepare Statement and bind new username to a statement
-        const char* query = database.getStatement("changeUsername").c_str();
-        database.prepareStatement(query);
+        std::string query = database.getStatement("changeUsername");
+        database.prepareStatement(query.c_str());
         database.bindText(newUsername, 1);
         database.bindInt(userId, 2);
 
@@ -169,8 +169,8 @@ bool UserDatabaseManager::usernameChanged(int userId, const char* newUsername){
  */
 void UserDatabaseManager::changePassword(int userId, const char* newPassword){
     // Prepare Statement and bind new password to a statement
-    const char* query = database.getStatement("changePassword").c_str();
-    database.prepareStatement(query);
+    std::string query = database.getStatement("changePassword");
+    database.prepareStatement(query.c_str());
     database.bindText(newPassword, 1);
     database.bindInt(userId, 2);
 
@@ -186,8 +186,8 @@ void UserDatabaseManager::changePassword(int userId, const char* newPassword){
  */
 void UserDatabaseManager::logOut(int userId){
     // Prepare Statement and bind user ID  to a statement
-    const char* query = database.getStatement("logOut").c_str();
-    database.prepareStatement(query);
+    std::string query = database.getStatement("logOut");
+    database.prepareStatement(query.c_str());
     database.bindInt(userId, 1);
 
     // Execute the statement then destruct the statement
@@ -202,8 +202,8 @@ void UserDatabaseManager::logOut(int userId){
  */
 void UserDatabaseManager::deleteAccount(int userId){
     // Prepare Statement and bind user ID to a statement
-    const char* query = database.getStatement("deleteAccount").c_str();
-    database.prepareStatement(query);
+    std::string query = database.getStatement("deleteAccount");
+    database.prepareStatement(query.c_str());
     database.bindInt(userId, 1);
 
     // Execute the statement then destruct the statement
@@ -220,8 +220,8 @@ void UserDatabaseManager::deleteAccount(int userId){
  */
 bool UserDatabaseManager::isUniqueUsername(const char* username){
     // Prepare Statement and bind username (to "?" symbol) to a statement
-    const char* query = database.getStatement("isUniqueUsername").c_str();
-    database.prepareStatement(query);
+    std::string query = database.getStatement("isUniqueUsername");
+    database.prepareStatement(query.c_str());
     database.bindText(username, 1);
 
     // Get count result from the column (index = 0 on the most left column)
@@ -272,8 +272,8 @@ bool UserDatabaseManager::isValidUsername(const char* username){
  */
 void UserDatabaseManager::addSession(int userId, int client_fd){
     // Prepare Statement and bind values to a statement
-    const char* query = database.getStatement("addSession").c_str();
-    database.prepareStatement(query);
+    std::string query = database.getStatement("addSession");
+    database.prepareStatement(query.c_str());
     database.bindInt(client_fd, 2);
     database.bindInt(userId, 1);
 
@@ -289,8 +289,8 @@ void UserDatabaseManager::addSession(int userId, int client_fd){
  */
 void UserDatabaseManager::removeSession(int userId){
     // Prepare Statement and bind user ID to a statement
-    const char* query = database.getStatement("removeSession").c_str();
-    database.prepareStatement(query);
+    std::string query = database.getStatement("removeSession");
+    database.prepareStatement(query.c_str());
     database.bindInt(userId, 1);
 
     // Execute the statement then destruct the statement
@@ -300,9 +300,9 @@ void UserDatabaseManager::removeSession(int userId){
 
 
 void UserDatabaseManager::addScore(int userId, int score) {
-    const char* insertQuery = database.getStatement("addScore").c_str();
+    std::string insertQuery = database.getStatement("addScore");
 
-    database.prepareStatement(insertQuery);
+    database.prepareStatement(insertQuery.c_str());
     database.bindInt(userId, 1);
     database.bindInt(score, 2);
     
@@ -317,9 +317,9 @@ void UserDatabaseManager::addScore(int userId, int score) {
 
 std::vector<std::pair<std::string, int>> UserDatabaseManager::getTopScores(int limit) {
     std::vector<std::pair<std::string, int>> topScores;
-    const char* query = database.getStatement("getTopScores").c_str();
+    std::string query = database.getStatement("getTopScores");
 
-    database.prepareStatement(query);
+    database.prepareStatement(query.c_str());
     database.bindInt(limit, 1);
     
     database.execute();
@@ -341,13 +341,13 @@ std::vector<std::string> UserDatabaseManager::getFriendsList(const std::string& 
     std::vector<std::string> friendsList;
 
     // Préparer la requête SQL pour récupérer les amis de l'utilisateur
-    const char* sql = database.getStatement("getFriendsList").c_str();
+    std::string sql = database.getStatement("getFriendsList");
 
     // Préparer la déclaration
-    database.prepareStatement(sql);
+    database.prepareStatement(sql.c_str());
 
     // Binder le nom de l'utilisateur (par exemple, "David")
-    database.bindText(username.c_str(),1);
+    database.bindText(username.c_str(), 1);
 
     database.execute();
 
@@ -366,7 +366,7 @@ std::vector<std::string> UserDatabaseManager::getFriendsList(const std::string& 
 }
 
 void UserDatabaseManager::deleteFriend(const std::string& user, const std::string& friendDelete){
-    std::string sql = database.getStatement("deleteFriend").c_str();
+    std::string sql = database.getStatement("deleteFriend");
     database.prepareStatement(sql.c_str());
 
     database.bindText(user.c_str(), 1);
@@ -378,7 +378,7 @@ void UserDatabaseManager::deleteFriend(const std::string& user, const std::strin
 }
 
 void UserDatabaseManager::addFriend(const std::string& user, const std::string& newFriend){
-    std::string sql = database.getStatement("addFriend").c_str();
+    std::string sql = database.getStatement("addFriend");
     database.prepareStatement(sql.c_str());
 
     database.bindText(user.c_str(), 1);
@@ -391,7 +391,7 @@ void UserDatabaseManager::addFriend(const std::string& user, const std::string& 
 
 int UserDatabaseManager::verifyFriendRequest(const std::string& user, const std::string& newFriend){
     int result = -1; //erreur pas prise en charge
-    std::string sql = database.getStatement("verifyFriendRequest").c_str();
+    std::string sql = database.getStatement("verifyFriendRequest");
     database.prepareStatement(sql.c_str());
 
     database.bindText(newFriend.c_str(), 1);
@@ -419,7 +419,7 @@ int UserDatabaseManager::verifyFriendRequest(const std::string& user, const std:
 }
 
 int UserDatabaseManager::sendFriendRequest(const std::string& user, const std::string& newFriend){
-    std::string sql = database.getStatement("sendFriendRequest").c_str();
+    std::string sql = database.getStatement("sendFriendRequest");
     
     database.prepareStatement(sql.c_str());
     database.bindText(user.c_str(), 1);
@@ -430,7 +430,7 @@ int UserDatabaseManager::sendFriendRequest(const std::string& user, const std::s
 }
 
 void UserDatabaseManager::deleteRequestFriend(const std::string& user, const std::string& friendDelete){
-    std::string sql = database.getStatement("deleteFriendRequest").c_str();
+    std::string sql = database.getStatement("deleteFriendRequest");
     database.prepareStatement(sql.c_str());
 
     database.bindText(user.c_str(), 1);
@@ -443,7 +443,7 @@ void UserDatabaseManager::deleteRequestFriend(const std::string& user, const std
 
 int UserDatabaseManager::getNumberFriendRequestsReceived(const std::string& user){
     int numberRequests = 0;
-    std::string sql = database.getStatement("getNumberFriendRequestsReceived").c_str();
+    std::string sql = database.getStatement("getNumberFriendRequestsReceived");
 
     database.prepareStatement(sql.c_str());
     database.bindText(user.c_str(),1);
@@ -461,10 +461,10 @@ std::vector<std::string> UserDatabaseManager::getReceivedRequestsList(const std:
     std::vector<std::string> friendsList;
 
     // Préparer la requête SQL pour récupérer les amis de l'utilisateur
-    const char* sql = database.getStatement("getReceivedRequestsList").c_str();
+    std::string sql = database.getStatement("getReceivedRequestsList");
 
     // Préparer la déclaration
-    database.prepareStatement(sql);
+    database.prepareStatement(sql.c_str());
 
     // Binder le nom de l'utilisateur (par exemple, "David")
     database.bindText(username.c_str(),1);
@@ -488,10 +488,10 @@ std::vector<std::string> UserDatabaseManager::getSentRequestsList(const std::str
     std::vector<std::string> friendsList;
 
     // Préparer la requête SQL pour récupérer les amis de l'utilisateur
-    const char* sql = database.getStatement("getSentRequestsList").c_str();
+    std::string sql = database.getStatement("getSentRequestsList");
 
     // Préparer la déclaration
-    database.prepareStatement(sql);
+    database.prepareStatement(sql.c_str());
 
     // Binder le nom de l'utilisateur (par exemple, "David")
     database.bindText(username.c_str(),1);
@@ -514,7 +514,7 @@ std::vector<std::string> UserDatabaseManager::getSentRequestsList(const std::str
 
 
 void UserDatabaseManager::openConversation(int user_id, int friend_id){
-    std::string sql = database.getStatement("openConversation").c_str();
+    std::string sql = database.getStatement("openConversation");
 
     database.prepareStatement(sql.c_str());
     database.bindInt(user_id, 1);
@@ -524,7 +524,7 @@ void UserDatabaseManager::openConversation(int user_id, int friend_id){
 }
 
 void UserDatabaseManager::closeConversation(int user_id, int friend_id){
-    std::string sql = database.getStatement("closeConversation").c_str();
+    std::string sql = database.getStatement("closeConversation");
 
     database.prepareStatement(sql.c_str());
     database.bindInt(user_id, 1);
@@ -535,7 +535,7 @@ void UserDatabaseManager::closeConversation(int user_id, int friend_id){
 
 int UserDatabaseManager::getInConversation(int user_id, int friend_id){
     int in_conversation = -1;
-    std::string sql = database.getStatement("getInConversation").c_str();
+    std::string sql = database.getStatement("getInConversation");
 
     database.prepareStatement(sql.c_str());
     database.bindInt(friend_id, 1);
@@ -552,7 +552,7 @@ int UserDatabaseManager::getInConversation(int user_id, int friend_id){
 }
 
 void UserDatabaseManager::addMessage(int sender_id, int receiver_id, const std::string& message) {
-    std::string sql = database.getStatement("addMessage").c_str();
+    std::string sql = database.getStatement("addMessage");
 
     database.prepareStatement(sql.c_str());
     database.bindInt(sender_id, 1);
@@ -563,7 +563,7 @@ void UserDatabaseManager::addMessage(int sender_id, int receiver_id, const std::
 }
 
 void UserDatabaseManager::deleteMessages(int sender_id, int receiver_id) {
-    std::string sql = database.getStatement("deleteMessages").c_str();
+    std::string sql = database.getStatement("deleteMessages");
 
     database.prepareStatement(sql.c_str());
     database.bindInt(sender_id, 1);
@@ -574,8 +574,7 @@ void UserDatabaseManager::deleteMessages(int sender_id, int receiver_id) {
 
 std::vector<std::string> UserDatabaseManager::getMessagesNoRead(int sender_id, int receiver_id) {
     std::vector<std::string> messages;
-    std::string sql = database.getStatement("getMessagesNoRead").c_str();
-
+    std::string sql = database.getStatement("getMessagesNoRead");
 
     database.prepareStatement(sql.c_str());
 
@@ -598,7 +597,7 @@ std::vector<std::string> UserDatabaseManager::getMessagesNoRead(int sender_id, i
 
 int UserDatabaseManager::getNumberMessageNoRead(int user_id, int friend_id){
     int numberRequests = 0;
-    std::string sql = database.getStatement("getNumberMessageNoRead").c_str();
+    std::string sql = database.getStatement("getNumberMessageNoRead");
 
     database.prepareStatement(sql.c_str());
     database.bindInt(friend_id,1);
@@ -614,7 +613,7 @@ int UserDatabaseManager::getNumberMessageNoRead(int user_id, int friend_id){
 }
 
 void UserDatabaseManager::setNotInConversation(int user_id){
-    std::string sql = database.getStatement("setNotInConversation").c_str();
+    std::string sql = database.getStatement("setNotInConversation");
     database.prepareStatement(sql.c_str());
     database.bindInt(user_id,1);
 
@@ -624,9 +623,9 @@ void UserDatabaseManager::setNotInConversation(int user_id){
 
 bool UserDatabaseManager::isUserInSession(int user_id) {
 
-    const char* sql = database.getStatement("isUserInSession").c_str();
+    std::string sql = database.getStatement("isUserInSession");
 
-    database.prepareStatement(sql);
+    database.prepareStatement(sql.c_str());
 	database.bindInt(user_id,1);
 
     database.execute();
@@ -638,8 +637,8 @@ bool UserDatabaseManager::isUserInSession(int user_id) {
 
 void UserDatabaseManager::deleteSession(int user_id){
 
-    const char* sql = database.getStatement("deleteSession").c_str();
-    database.prepareStatement(sql);
+    std::string sql = database.getStatement("deleteSession");
+    database.prepareStatement(sql.c_str());
     database.bindInt(user_id,1);
 
     database.execute();
@@ -648,9 +647,9 @@ void UserDatabaseManager::deleteSession(int user_id){
 
 std::vector<int> UserDatabaseManager::getUserIdSession() {
     std::vector<int> userIds;
-    const char* sql = database.getStatement("getUserIdSession").c_str();
+    std::string sql = database.getStatement("getUserIdSession");
 
-    database.prepareStatement(sql);
+    database.prepareStatement(sql.c_str());
     database.execute();
 
     while (database.getReturnCode() == SQLITE_ROW) {
@@ -666,9 +665,9 @@ std::vector<int> UserDatabaseManager::getUserIdSession() {
 
 int UserDatabaseManager::getUserSocket(int user_id){
     int sockUser;
-    const char* sql = database.getStatement("getUserSocket").c_str();
+    std::string sql = database.getStatement("getUserSocket");
 
-    database.prepareStatement(sql);
+    database.prepareStatement(sql.c_str());
     database.bindInt(user_id, 1);
     database.execute();
 
