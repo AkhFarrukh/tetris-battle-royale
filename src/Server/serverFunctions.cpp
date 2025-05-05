@@ -14,7 +14,7 @@ Server::Server(){
 void Server::broadcastMessage(Message message, bool& userIsOnline) {
     std::string dest(message.destinataire);
     int destId = udbm.getUserId(message.destinataire);
-    int sock = udbm.getSockUser(destId);
+    int sock = udbm.getUserSocket(destId);
     int messageSent = MessageType::T_Message;
     int size_ = sizeof(struct Message);
     if(!sendAll(sock, &messageSent, sizeof(int))){userIsOnline = false;}

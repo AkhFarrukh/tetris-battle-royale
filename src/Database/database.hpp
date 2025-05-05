@@ -6,19 +6,30 @@
 #include <vector>
 #include <iostream>
 #include <string.h>
-
-using namespace std;
+#include <unordered_map>
+#include <fstream>
 
 /**
  * @brief A class for the entire operation of a database including methods for
  * connecting to database, querying, and disconnecting from the database after
  * the end of the program
+ * 
+ * Attention! This class manages the database at the lowest level such as 
+ * preparing statements, bind arguments, execute, get values, etc. 
+ * Any method that wants to manipulate the database SHALL NOT be in this class. 
+ * Instead, it SHALL be in the "UserDatabaseManager" class which has this class 
+ * as an attribute and will use its methods from there.
  */
 class Database{
     private:
         sqlite3 *db;        // A database handle
         int returnCode;
         char* errorMessage;
+
+        // All SQL statements that will be executed in SQLite shall be stored
+        // in this attribute in a form of "unordered_map" (similar to Python dict)
+        // which stores data "key/value" way i.e. we get a value from a key.
+        std::unordered_map<std::string, std::string> statements;
 
     public:
         Database(const char* databaseFileName);
@@ -28,6 +39,9 @@ class Database{
         void setReturnCode(int newReturnCode);
         int  getReturnCode();
 
+        void loadStatements(const std::string statementsFileName);
+        std::string getStatement(const std::string key);
+
         void prepareStatement(const char* statement);
         void bindText(const char* value, int index);
         void bindInt(int value, int index);
@@ -36,26 +50,6 @@ class Database{
 
         int  getIntValueFromColumn(int columnIndex);
         const unsigned char* getTextValueFromColumn(int columnIndex);
-        int getUserId(const char* username);
-        vector<string> friendsList(const string& username);
-        void deleteFriend(const string& user, const string& friendDelete);
-        void addFriend(const string& user, const string& newFriend);
-        int verifyRequestFriend(const string& user, const string& newFriend);
-        int requestFriend(const string& user, const string& newFriend);
-        void deleteRequestFriend(const string& user, const string& newFriend);
-        int getNumberFriendRequestsReceived(const string& user);
-        vector<string> requestReceivedList(const string& username);
-        vector<string> requestSentList(const string& username);
-        void conversationOpen(int user_id, int friend_id);
-        void conversationClose(int user_id, int friend_id);
-        int getInConversation(int user_id, int friend_id);
-        void addMessage(int sender_id, int receiver_id, const std::string& message);
-        void deleteMessages(int sender_id, int receiver_id);
-        std::vector<std::string> getMessages(int sender_id, int receiver_id);
-        int getNumberMessageNoRead(int user_id, int friend_id);
-        void setNotInConversation(int user_id);
-        bool isUserInSession(int user_id);
-        void deleteSession(int user_id);
 };
 
 #endif

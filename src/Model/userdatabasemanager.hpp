@@ -27,8 +27,6 @@ class UserDatabaseManager {
         int  getUserId(const char* username);
         bool usernameChanged(int userId, const char* newUsername);
         void changePassword(int userId, const char* newPassword);
-        void setSendingFileDescriptor(int userId, int fileDescriptor);
-        void setReceivingFileDescriptor(const string& username, int fileDescriptor);
         void logOut(int userId);
         void deleteAccount(int userId);
 
@@ -41,27 +39,29 @@ class UserDatabaseManager {
         void addSession(int userId, int client_fd);
         void removeSession(int userId);
 
-        vector<string> friendsList(const string& username);
-        void deleteFriend(const string& user, const string& friendDelete);
-        void addFriend(const string& user, const string& newFriend);
-        int verifyRequestFriend(const string& user, const string& newFriend);
-        int requestFriend(const string& user, const string& newFriend);
-        void deleteRequestFriend(const string& user, const string& newFriend);
-        int getNumberFriendRequestsReceived(const string& user);
-        vector<string> requestReceivedList(const string& username);
-        vector<string> requestSentList(const string& username);
-        void conversationOpen(int user_id, int friend_id);
-        void conversationClose(int user_id, int friend_id);
+        std::vector<std::string> getFriendsList(const std::string& username);
+        void deleteFriend(const std::string& user, const std::string& friendDelete);
+        void addFriend(const std::string& user, const std::string& newFriend);
+        int verifyFriendRequest(const std::string& user, const std::string& newFriend);
+        int sendFriendRequest(const std::string& user, const std::string& newFriend);
+        void deleteRequestFriend(const std::string& user, const std::string& friendDelete);
+        int getNumberFriendRequestsReceived(const std::string& user);
+        std::vector<std::string> getReceivedRequestsList(const std::string& username);
+        std::vector<std::string> getSentRequestsList(const std::string& username);
+
+        void openConversation(int user_id, int friend_id);
+        void closeConversation(int user_id, int friend_id);
         int getInConversation(int user_id, int friend_id);
         void addMessage(int sender_id, int receiver_id, const std::string& message);
         void deleteMessages(int sender_id, int receiver_id);
-        std::vector<std::string> getMessages(int sender_id, int receiver_id);
+        std::vector<std::string> getMessagesNoRead(int sender_id, int receiver_id);
         int getNumberMessageNoRead(int user_id, int friend_id);
         void setNotInConversation(int user_id);
+
         bool isUserInSession(int user_id);
         void deleteSession(int user_id);
         std::vector<int> getUserIdSession();
-        int getSockUser(int user_id);
+        int getUserSocket(int user_id);
 };
 
 #endif
