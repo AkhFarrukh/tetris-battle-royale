@@ -6,13 +6,17 @@
 #include <functional>
 #include "menu.hpp" // Menu class (rendering part)
 
+
+
+
 class MenuController {
     private:
         struct MenuOption {
-            Menus label; // Label for the menu option
+            Menus menuName;
+            std::vector<MenuOption> options; // Vector to store sub-menus options
             std::function<void()> callback; // Callback function to be executed when the option is selected
         };
-        std::vector<MenuOption> options; // Vector to store menu options
+        
     public:
         // Constructor
         MenuController();
