@@ -98,7 +98,7 @@ void ChatHandler::openChatWith(const QString& friendName) {
     QString message = messageInput->text();
     if (!message.isEmpty()) {
         chatHistory->append("<b>You:</b> " + message);
-        if(udm.getInConversation(userId_, friendId_) == 1){
+        if(this->udm.getInConversation(userId_, friendId_) == 1){
             int messageSent = MessageType::T_Message;
             int size_ = sizeof(struct Message);
             Message messageToSent;
@@ -112,7 +112,7 @@ void ChatHandler::openChatWith(const QString& friendName) {
             if(!sendAll(sock, &size_, sizeof(int)))return;
             if(!sendAll(sock, &messageToSent, sizeof(Message)))return;
         }
-        else udm.addMessage(userId_, friendId_, message.toStdString());
+        else this->udm.addMessage(userId_, friendId_, message.toStdString());
         messageInput->clear();
     }
     });
@@ -123,7 +123,7 @@ void ChatHandler::openChatWith(const QString& friendName) {
     layout->addWidget(backButton);
 
     connect(backButton, &QPushButton::clicked, this, [this, userId_, friendId_]() {
-        udm.conversationClose(userId_, friendId_);
+        this->udm.conversationClose(userId_, friendId_);
         stackedWidget->setCurrentWidget(friendsListScreen);
     });
 

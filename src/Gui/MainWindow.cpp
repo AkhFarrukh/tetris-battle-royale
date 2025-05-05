@@ -28,7 +28,6 @@
 #include "../Database/database.hpp" 
 
 extern std::atomic<bool> flag;
-extern Database db;
 
 
 
@@ -974,14 +973,14 @@ void MainWindow::handleFriendsMenu() {
         friendsHandler = nullptr;
     }
 
-    std::vector<std::string> friends = db.friendsList(username);
+    std::vector<std::string> friends = udm.getFriendsList(username);
     std::vector<QString> qtFriends;
 
     for(const auto& f: friends) {
         qtFriends.push_back(QString::fromStdString(f));
     }
     
-    int requestCount = static_cast<int>(db.requestReceivedList(username).size());  // compte nombre de demandes d ami recues
+    int requestCount = static_cast<int>(udm.getReceivedRequestsList(username).size());  // compte nombre de demandes d ami recues
     
     // Créer le nouveau handler
     friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), qtFriends, requestCount);
@@ -1008,14 +1007,14 @@ void MainWindow::handleChatMenu() {
         chatHandler->deleteLater();
         chatHandler = nullptr;
     }
-    std::vector<std::string> friends = db.friendsList(username);
+    std::vector<std::string> friends = udm.getFriendsList(username);
     std::vector<QString> qtFriends;
 
     for(const auto& f: friends) {
         qtFriends.push_back(QString::fromStdString(f));
     }
 
-    //int requestCount = static_cast<int>(db.requestReceivedList(username).size());  // compte nombre de demandes d ami recues
+    //int requestCount = static_cast<int>(udm.requestReceivedList(username).size());  // compte nombre de demandes d ami recues
     // Créer le nouveau handler
     QWidget* currentWidget = stackedWidget->currentWidget();
     chatHandler = new ChatHandler(sock, this, friendsListScreen, QString::fromStdString(username), qtFriends, currentWidget);

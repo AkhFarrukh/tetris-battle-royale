@@ -49,12 +49,12 @@ class UserDatabaseManager {
         std::vector<std::string> getReceivedRequestsList(const std::string& username);
         std::vector<std::string> getSentRequestsList(const std::string& username);
 
-        void openConversation(int user_id, int friend_id);
-        void closeConversation(int user_id, int friend_id);
+        void conversationOpen(int user_id, int friend_id);
+        void conversationClose(int user_id, int friend_id);
         int getInConversation(int user_id, int friend_id);
         void addMessage(int sender_id, int receiver_id, const std::string& message);
         void deleteMessages(int sender_id, int receiver_id);
-        std::vector<std::string> getMessagesNoRead(int sender_id, int receiver_id);
+        std::vector<std::string> getMessages(int sender_id, int receiver_id);
         int getNumberMessageNoRead(int user_id, int friend_id);
         void setNotInConversation(int user_id);
 

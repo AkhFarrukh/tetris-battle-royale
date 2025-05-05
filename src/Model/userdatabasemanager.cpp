@@ -513,7 +513,7 @@ std::vector<std::string> UserDatabaseManager::getSentRequestsList(const std::str
 }
 
 
-void UserDatabaseManager::openConversation(int user_id, int friend_id){
+void UserDatabaseManager::conversationOpen(int user_id, int friend_id){
     std::string sql = database.getStatement("openConversation");
 
     database.prepareStatement(sql.c_str());
@@ -523,7 +523,7 @@ void UserDatabaseManager::openConversation(int user_id, int friend_id){
     database.destructStatement();
 }
 
-void UserDatabaseManager::closeConversation(int user_id, int friend_id){
+void UserDatabaseManager::conversationClose(int user_id, int friend_id){
     std::string sql = database.getStatement("closeConversation");
 
     database.prepareStatement(sql.c_str());
@@ -572,7 +572,7 @@ void UserDatabaseManager::deleteMessages(int sender_id, int receiver_id) {
     database.destructStatement();
 }
 
-std::vector<std::string> UserDatabaseManager::getMessagesNoRead(int sender_id, int receiver_id) {
+std::vector<std::string> UserDatabaseManager::getMessages(int sender_id, int receiver_id) {
     std::vector<std::string> messages;
     std::string sql = database.getStatement("getMessagesNoRead");
 

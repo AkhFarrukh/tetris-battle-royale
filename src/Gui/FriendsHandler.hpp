@@ -20,11 +20,10 @@
 #include "../Model/userdatabasemanager.hpp"
 #include <atomic>
 #include <mutex>
+#include <string>
 
 
 extern std::mutex interfaceMutex;
-extern Database db;
-extern UserDatabaseManager udm;
 
 class FriendsHandler: public QWidget {
 
@@ -56,12 +55,14 @@ class FriendsHandler: public QWidget {
         void setupAddFriendScreen();
         void setupRequestsScreen();
 
+        UserDatabaseManager udm;
+
 
     public:
         FriendsHandler(QWidget* parent = nullptr, const QString& currentUser = "", const std::vector<QString>& friendsList = {}, int countRequests = 0);   // jsuis obligé de mettre "" car scurrentuser doit etre assigné
         ~FriendsHandler() override;
 
-        void showFriendsRequests(const std::vector<string>& requestsReceivedList, const std::vector<string>& requestSentList);
+        void showFriendsRequests(const std::vector<std::string>& requestsReceivedList, const std::vector<std::string>& requestSentList);
     
     public slots:
         void searchNameButtonClicked();

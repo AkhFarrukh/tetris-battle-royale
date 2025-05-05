@@ -30,8 +30,6 @@
 
 
 extern std::mutex interfaceMutex;
-extern Database db;
-extern UserDatabaseManager udm;
 
 class MainWindow;
 
@@ -53,6 +51,8 @@ class ChatHandler: public QWidget {
 
         void setupFriendsListScreen(const std::vector<QString>& friendsList);
         void openChatWith(const QString& friendName);
+        
+        UserDatabaseManager udm;
 
 
     public:

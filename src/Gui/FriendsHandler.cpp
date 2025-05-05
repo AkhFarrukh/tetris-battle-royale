@@ -57,7 +57,7 @@ void FriendsHandler::searchNameButtonClicked() {
 
     // verifier si la personne existe
     std::string player = usernamePlayer.toStdString();
-    int friendId = db.getUserId(player.c_str());
+    int friendId = this->udm.getUserId(player.c_str());
     if(friendId == -1){
         infoLabel->setStyleSheet("color: red;");
         infoLabel->setText("User not found");
@@ -65,7 +65,7 @@ void FriendsHandler::searchNameButtonClicked() {
     }
 
     //verif si deja ami ou requete deja envoyée
-    int requestStatus = db.verifyRequestFriend(currentUser.toStdString(), usernamePlayer.toStdString());
+    int requestStatus = this->udm.verifyFriendRequest(currentUser.toStdString(), usernamePlayer.toStdString());
     if (requestStatus == 1) {
         infoLabel->setStyleSheet("color: red;");
         infoLabel->setText("You are already friends!");
@@ -76,10 +76,10 @@ void FriendsHandler::searchNameButtonClicked() {
         return;
     }
     // envoyer la requetes
-    db.requestFriend(currentUser.toStdString(), usernamePlayer.toStdString());
+    this->udm.sendFriendRequest(currentUser.toStdString(), usernamePlayer.toStdString());
     infoLabel->setStyleSheet("color: green;");
     infoLabel->setText("Friend request sent!");
-    countRequests = db.getNumberFriendRequestsReceived(currentUser.toStdString());  
+    countRequests = this->udm.getNumberFriendRequestsReceived(currentUser.toStdString());  
     friendRequestsButton->setText(QString("Friend requests (%1)").arg(countRequests));
 
 
@@ -215,7 +215,7 @@ void FriendsHandler::setupAddFriendScreen() {
  * @param requestSentList Liste des requêtes  envoyées
  * 
  */
-void FriendsHandler::showFriendsRequests(const std::vector<string>& requestsReceivedList, const std::vector<string>& requestSentList) {
+void FriendsHandler::showFriendsRequests(const std::vector<std::string>& requestsReceivedList, const std::vector<string>& requestSentList) {
     QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(requestsScreen->layout());
     
     if(!layout){
@@ -343,12 +343,12 @@ void FriendsHandler::acceptFriendRequest() {
         return;  // Si il n est pas valide, on stop
     }
     QString requesterPlayer = button->property("username").toString();   // recupere le nom de la personne qui a envoyé requete
-    db.addFriend(currentUser.toStdString(), requesterPlayer.toStdString());           // ajout dans la db
-    db.deleteRequestFriend(currentUser.toStdString(), requesterPlayer.toStdString());  // retire la requete qui a été traitée
+    this->udm.addFriend(currentUser.toStdString(), requesterPlayer.toStdString());           // ajout dans la db
+    this->udm.deleteRequestFriend(currentUser.toStdString(), requesterPlayer.toStdString());  // retire la requete qui a été traitée
 
     QMessageBox::information(this, "Request Accepted", "you have accepted the friend request !");
 
-    std::vector<std::string> friends = db.friendsList(currentUser.toStdString());
+    std::vector<std::string> friends = this->udm.getFriendsList(currentUser.toStdString());
     std::vector<QString> qtFriends;
     for (const auto& f : friends) {
         qtFriends.push_back(QString::fromStdString(f));
@@ -391,9 +391,9 @@ void FriendsHandler::refuseFriendRequest() {
     }   
     QString requesterPlayer = button->property("username").toString();   // recupere le nom de la personne qui a envoyé requete
     
-    db.deleteRequestFriend(currentUser.toStdString(), requesterPlayer.toStdString());     // retire la requete qui a été traitée
+    this->udm.deleteRequestFriend(currentUser.toStdString(), requesterPlayer.toStdString());     // retire la requete qui a été traitée
     QMessageBox::information(this, "Request Denied", "you have denied the the friend request !");
-    showFriendsRequests(db.requestReceivedList(currentUser.toStdString()), db.requestSentList(currentUser.toStdString()));  // mettre à jour affichage des requêtes
+    showFriendsRequests(this->udm.getReceivedRequestsList(currentUser.toStdString()), this->udm.getSentRequestsList(currentUser.toStdString()));  // mettre à jour affichage des requêtes
 }
 
 
@@ -402,7 +402,7 @@ void FriendsHandler::refuseFriendRequest() {
  * @brief Supprimer un ami.
  * 
  * Le bouton qui a déclenché est recupéré,
- * Le nom du player à supprimer est récupéré et on l'efface de la db.
+ * Le nom du player à supprimer est récupéré et on l'efface de la udm.
  * on met à jour la liste d'ami et l affichage des amis.
  */
 void FriendsHandler::removeFriend(){
@@ -411,10 +411,10 @@ void FriendsHandler::removeFriend(){
 
     QString friendToDelete = button->property("username").toString();   // recupere le nom de la personne
 
-    db.deleteFriend(currentUser.toStdString(), friendToDelete.toStdString());
+    this->udm.deleteFriend(currentUser.toStdString(), friendToDelete.toStdString());
 
     // Mise à jour de l'affichage  directement apres la suppression d'un ami
-    std::vector<std::string> friends = db.friendsList(currentUser.toStdString());
+    std::vector<std::string> friends = this->udm.getFriendsList(currentUser.toStdString());
     std::vector<QString> qtFriends;
     for (const auto& f : friends) {
         qtFriends.push_back(QString::fromStdString(f));
@@ -446,8 +446,8 @@ void FriendsHandler::removeFriend(){
 void FriendsHandler::handleFriendsRequests() {
     
     // Récupérer les demandes reçues et envoyées depuis la base de données
-    std::vector<string> requests_received_list = db.requestReceivedList(currentUser.toStdString());
-    std::vector<string> requests_sent_list = db.requestSentList(currentUser.toStdString());
+    std::vector<string> requests_received_list = this->udm.getReceivedRequestsList(currentUser.toStdString());
+    std::vector<string> requests_sent_list = this->udm.getSentRequestsList(currentUser.toStdString());
 
     // Afficher les demandes d'amis reçues et envoyées dans l'interface graphique
     showFriendsRequests(requests_received_list, requests_sent_list);

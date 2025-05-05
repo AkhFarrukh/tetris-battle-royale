@@ -216,7 +216,7 @@ int InterfaceTerminal::handleMessageBox() {
 void InterfaceTerminal::displayMessageNoRead(const std::string& user, const string& friendName){
     int user_id = udm.getUserId(user.c_str());
     int friend_id = udm.getUserId(friendName.c_str());
-    vector<std::string> messagesNoRead = udm.getMessagesNoRead(friend_id, user_id);
+    vector<std::string> messagesNoRead = udm.getMessages(friend_id, user_id);
     nodelay(stdscr, false);
     printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
     printw("\nDiscussion with %s : \n", friendName.c_str());
@@ -268,7 +268,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
     displayMessageNoRead(user, friendName);
     interfaceMutex.unlock();
     udm.deleteMessages(friend_id, user_id);
-    udm.openConversation(user_id, friend_id);
+    udm.conversationOpen(user_id, friend_id);
     refresh();
     echo();
     curs_set(1);
@@ -289,7 +289,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
         printw("Enter your message : ");
         refresh();
         wgetnstr(stdscr,buffer,1023-friendName.size()-1);
-        if(strlen(buffer)==0){udm.closeConversation(user_id, friend_id); return 0;}
+        if(strlen(buffer)==0){udm.conversationClose(user_id, friend_id); return 0;}
         else{
         ///
         /// MUTEX DEB
@@ -350,7 +350,7 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
     }
     erase();
     refresh();
-    udm.closeConversation(user_id, friend_id);
+    udm.conversationClose(user_id, friend_id);
     return -1;
 }
 
