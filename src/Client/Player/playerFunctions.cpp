@@ -433,31 +433,14 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
  * @return int Integer value for number keys (0-9), or -1 for other keys
  */
 int Player::keyboardActionToInt(KeyboardAction action) {
-    switch(action) {
-        case NUMBER_KEY_0:
-            return 0;
-        case NUMBER_KEY_1:
-            return 1;
-        case NUMBER_KEY_2:
-            return 2;
-        case NUMBER_KEY_3:
-            return 3;
-        case NUMBER_KEY_4:
-            return 4;
-        case NUMBER_KEY_5:
-            return 5;
-        case NUMBER_KEY_6:
-            return 6;
-        case NUMBER_KEY_7:
-            return 7;
-        case NUMBER_KEY_8:
-            return 8;
-        case NUMBER_KEY_9:
-            return 9;
-        default:
-            return -1;
+    if (action >= NUMBER_KEY_0 && action <= NUMBER_KEY_9) {
+        return action - NUMBER_KEY_0 ;  // Convert to 0-9
+    } else {
+        return -1;  // Not a number key
     }
 }
+
+
 
 MalusBonus Player::intToMalusBonus(int malus) {
     //todo reimagine this crap hardcoded thingy

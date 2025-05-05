@@ -6,7 +6,7 @@
 #define KEYBOARDACTION_HPP
 
 enum KeyboardAction {
-    NO_ACTION,
+    NO_ACTION = 0,
     LEFT_DIRECTION_KEY,
     RIGHT_DIRECTION_KEY,
     LEFT_ROTATION_KEY,
@@ -15,6 +15,7 @@ enum KeyboardAction {
     HARD_DROP_KEY,
     EXIT_KEY,
 
+    NUMBER_KEY_0,
     NUMBER_KEY_1,
     NUMBER_KEY_2,
     NUMBER_KEY_3,
@@ -23,8 +24,8 @@ enum KeyboardAction {
     NUMBER_KEY_6,
     NUMBER_KEY_7,
     NUMBER_KEY_8,
-    NUMBER_KEY_9,
-    NUMBER_KEY_0
+    NUMBER_KEY_9
+
 };
 
 #endif //KEYBOARDACTION_HPP
