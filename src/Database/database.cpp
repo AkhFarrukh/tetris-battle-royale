@@ -103,11 +103,10 @@ void Database::loadStatements(const std::string statementsFileName){
  */
 std::string Database::getStatement(const std::string key){
     if (statements.contains(key)){
-        std::cout << "I GOT: " << statements.at(key) << std::endl;
         return statements.at(key);
     }
     else{
-        std::cout << "NO KEY = NO VALUE!" << std::endl;
+        fprintf(stderr, "NO KEY -> NO VALUE!");
         throw std::runtime_error("Missing SQL statement for key: " + key);
     }
 }
@@ -131,7 +130,7 @@ void Database::prepareStatement(const char* statement){
 void Database::bindText(const char* value, int index){
     int returnCode = sqlite3_bind_text(stmt, index, value, static_cast<int>(strlen(value)), SQLITE_STATIC);
     if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR BINDING VALUE!");
-    if (stmt == nullptr) std::cout << "stmt nullptr! Bug in prepared stmt." << std::endl;
+    if (stmt == nullptr) fprintf(stderr, "stmt is nullptr! Bug in prepared stmt.");
 }
 
 
