@@ -56,6 +56,7 @@ int Server::handleClient(int server_fd, struct sockaddr_in& address, size_t addr
         ClientSession new_session;
         new_session.client_fd = client_fd;
         new_session.inRoom = -1;
+        new_session.isSpectating = false;
         clients.push_back(new_session);
         //printf("%s, %s\n", username.c_str(),password.c_str());
         // Create a smart pointer containing data to be passed into thread routine.
@@ -142,7 +143,6 @@ void* Server::threadRoutineClient(void* arg){
     pthread_t threadGamePID;
     if (successfulLogin){
         // Get user ID and insert user into sessions table
-
         server->udbm.setLogin(client.userId);
         server->udbm.addSession(client.userId, client.client_fd);
 
@@ -154,7 +154,7 @@ void* Server::threadRoutineClient(void* arg){
         bool userIsInGame = false;
 
         while (!flagServ && userIsOnline) {
-            //std::cout << "start listening cuh" << std::endl;
+            std::cout << "start listening cuh" << std::endl;
             //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
 
             //To have info on the data received
@@ -219,6 +219,14 @@ void* Server::threadRoutineClient(void* arg){
                 server->handleJoin(server, client, userIsOnline, size, eventQueue);
             }
             /************************************
+            *JOIN AS SPECTATOR
+            */
+            else if (type == MessageType::T_JoinAsSpectator) {
+                client.isSpectating = true;
+                server->handleJoin(server, client, userIsOnline, size, eventQueue);
+            }
+
+            /************************************
             *INPUT INFO
             */
             else if (type == MessageType::T_Input) {
@@ -240,6 +248,19 @@ void* Server::threadRoutineClient(void* arg){
             	}
                 server->broadcastMessage(message, userIsOnline);
             }
+            /************************************
+            *EXIT GAME
+            */
+            else if (type == MessageType::T_Exit) {
+                if (client.isSpectating) {
+                    server->myRoom->removeSpectator(client.client_fd);
+                    client.isSpectating = false;
+                }
+                else {
+                    server->myRoom->removePlayer(client.client_fd);
+                }
+            }
+
             /************************************
             *FORCED EXIT INFO
             */
@@ -348,13 +369,16 @@ void Server::handleForcedExit(Server* server, ClientSession& client){
  * @param eventQueue ptr for the player's eventQueue in Game
  */
 void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnline, int& size, shared_ptr<EventQueue> eventQueue){
-    cout<<"Join received"<<endl;
+    cout << "Join received" << endl;
     int ownerFd;
-    if (!recvAll(client.client_fd, &ownerFd, size)){userIsOnline = false;}
+    if (!recvAll(client.client_fd, &ownerFd, size)) {
+        userIsOnline = false;
+        return;
+    }
 
     std::shared_ptr<Room> chosenRoom = nullptr;
     for (auto &r : *server->roomsList) {
-        cout<<"Listing rooms fd"<<r->getOwnerFd()<<endl;
+        cout << "Listing rooms fd: " << r->getOwnerFd() << endl;
         if (r->getOwnerFd() == ownerFd) {
             chosenRoom = r;
             break;
@@ -363,32 +387,47 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
 
     if (!chosenRoom) {
         std::cout << "No matching room or invalid ownerFd = " << ownerFd << "\n";
+        return;
     }
-    else {
-        if (!chosenRoom->addPlayer(client.client_fd, eventQueue)) {
-            std::cout << "Failed to join room, maybe full or started\n";
+
+    RoomInfo info;
+    info.roomID               = chosenRoom->getRoomID();
+    info.currentPlayersCount  = chosenRoom->getPlayerCount();
+    info.isStarted            = chosenRoom->isStarted();
+    info.mode                 = chosenRoom->getRoomMode();
+
+    client.inRoom = info.roomID;
+    int typeToSend  = MessageType::T_RoomJoinInfo;
+    int sizeToSend  = sizeof(struct RoomInfo);
+
+    if (client.isSpectating) {
+        chosenRoom->addSpectator(client.client_fd);
+        client.isSpectating = true;
+        std::cout << "Client joined room with hostFd as spectator = " << chosenRoom->getOwnerFd() << std::endl;
+    } else {
+        // Player joining
+        bool success = chosenRoom->addPlayer(client.client_fd, eventQueue);
+        if (!success) {
+            std::cerr << "Failed to join as player (maybe full or started).\n";
+            return;
         }
-        else {
-            std::cout << "Client joined room with hostFd = " << chosenRoom->getOwnerFd() << std::endl;
-
-            RoomInfo info;
-            info.roomID               = chosenRoom->getRoomID();
-            info.currentPlayersCount  = chosenRoom->getPlayerCount();
-            info.isStarted            = chosenRoom->isStarted();
-            info.mode                 = chosenRoom->getRoomMode();
-
-            client.inRoom = info.roomID;
-            int typeToSend  = MessageType::T_RoomJoinInfo;
-            int sizeToSend  = sizeof(struct RoomInfo);
-
-            if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
-            if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
-            if (!sendAll(client.client_fd, &info,        sizeof(RoomInfo))){userIsOnline = false;}
-
-            server->myRoom = chosenRoom;
-        }
+        std::cout << "Client joined room with hostFd = " << chosenRoom->getOwnerFd() << std::endl;
     }
+
+    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){ userIsOnline = false; return; }
+    if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){ userIsOnline = false; return; }
+    if (!sendAll(client.client_fd, &info, sizeof(RoomInfo))){ userIsOnline = false; return; }
+
+    if (client.isSpectating && chosenRoom->isStarted()) {
+        int t = MessageType::T_GameStart;
+        int sz = sizeof(int);
+        sendAll(client.client_fd, &t,  sizeof(t));
+        sendAll(client.client_fd, &sz, sizeof(sz));
+    }
+
+    server->myRoom = chosenRoom;
 }
+
 
 void Server::handleLeftRoom(Server* server, ClientSession& client) {
     std::shared_ptr<Room> chosenRoom = nullptr;
@@ -400,13 +439,22 @@ void Server::handleLeftRoom(Server* server, ClientSession& client) {
     }
 
     if (chosenRoom) {
-        chosenRoom->removePlayer(client.client_fd);
+        if (client.isSpectating) {
+            // Remove from spectators
+            chosenRoom->removeSpectator(client.client_fd);
+            std::cout << "Spectator left room " << client.inRoom << std::endl;
+        } else {
+            // Remove from players
+            chosenRoom->removePlayer(client.client_fd);
+            std::cout << "Player left room " << client.inRoom << std::endl;
+        }
     } else {
         std::cerr << "ERROR: Tried to leave room, but no matching room for ID " << client.inRoom << std::endl;
     }
 
     client.inRoom = -1;
 }
+
 
 /**
  * @brief Send again all the info about the room of & to the client
@@ -594,11 +642,10 @@ void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnlin
  * @param eventQueue ptr for the player's eventQueue in Game
  */
 void Server::handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue){
+    cout<<"MalusBonus received"<<endl;
     MalBonus malusBobo;
 
     if (!recvAll(client.client_fd, &malusBobo, sizeof(MalBonus))){userIsOnline = false;}
-    cout<<"MalusBonus received: "<< malusBobo.malusB << " against :" << malusBobo.target << endl;
-
 
     eventQueue->addEvent(make_shared<MalusBonusEvent>(malusBobo.malusB, malusBobo.target));
 }
@@ -614,7 +661,10 @@ void Server::handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<E
     cout<<"Input received"<<endl;
     KeyboardAction action;
     if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))){userIsOnline = false;}
-    eventQueue->addEvent(make_shared<MovementActionEvent>(gameController.getAction(action)));
+    if (!client.isSpectating) {
+        eventQueue->addEvent(make_shared<MovementActionEvent>(gameController.getAction(action)));
+    }
+
 }
 
 /**
@@ -671,7 +721,6 @@ void Server::handleConnexion(Server* server, ClientSession& client, Connexion& c
     // Check if both username and password are correct or not.
     std::string username = connexionData.username;
     std::string password = connexionData.password;
-
     successfulLogin = server->udbm.isCorrectLogin(username.c_str(), password.c_str());
     int typeConnexion;
     int doubleSession;
@@ -698,9 +747,7 @@ void Server::handleRegister(Server* server, ClientSession& client, Connexion& co
         std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
         return;
     }
-    cout << "pseudo: "<<connexionData.username<<" mdp: "<<connexionData.password<<endl;
     bool registered = server->udbm.newAccountCreated(connexionData.username, connexionData.password);
-    cout <<"is registred: "<<registered<<endl;
     if(registered){
         server->notifyAcceptConnexion(server, client, connexionData, successfulLogin);
         if(successfulLogin){

@@ -15,6 +15,7 @@ struct ClientSession{
     std::string username;
     std::string password;
     int inRoom = -1;
+    bool isSpectating;
 };
 /**
 * @brief This struct is used in grouping data to be passed into

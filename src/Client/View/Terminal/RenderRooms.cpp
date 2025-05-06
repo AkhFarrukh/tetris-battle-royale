@@ -49,7 +49,7 @@ void RenderRooms::listRooms(const std::vector<RoomInfo>& roomsInfo, int highligh
         }
     }
 
-    printw("\nUse UP/DOWN to navigate, [ENTER] to select, [r] to refresh, [q] to cancel.\n");
+    printw("\nUse UP/DOWN to navigate, [ENTER] to select, [r] to refresh, [q] to cancel, [s] to spectate\n");
     refresh();
 }
 
@@ -89,6 +89,8 @@ int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms, int& highlightInde
             break;
         case '\n':
             if(rooms.size() > 0)return highlightIndex;
+        case 's':
+            if(rooms.size() > 0)return highlightIndex + (int)rooms.size();
         case 'q':
         case 'Q':
             return -1;
@@ -99,4 +101,34 @@ int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms, int& highlightInde
     }
 
 return -3;
+}
+
+void RenderRooms::spectatorRoom(const RoomInfo& room) {
+    erase();
+    printw("===== Spectator Waiting Room =====\n\n");
+    printw(" Room ID: %d\n",               room.roomID);
+    printw(" Current Players: %d\n",       room.currentPlayersCount);
+    printw(" Game Started: %s\n",
+           room.isStarted ? "YES" : "NO");
+    printw("\n[Instructions]\n");
+    printw(" - Press 'r' to refresh.\n");
+    printw(" - Press 'q' to stop spectating.\n");
+    if (room.isStarted) {
+        printw("\nGame is starting… just sit tight!\n");
+    }
+    refresh();
+}
+
+
+int RenderRooms::handleSpectatorRoom(const RoomInfo& room) {
+    spectatorRoom(room);
+    int ch = getch();
+    switch (ch) {
+        case 'r': case 'R':
+            return -2;
+        case 'q': case 'Q':
+            return -1;
+        default:
+            return 0;
+    }
 }
