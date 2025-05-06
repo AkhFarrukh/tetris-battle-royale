@@ -252,12 +252,14 @@ void* Server::threadRoutineClient(void* arg){
             *EXIT GAME
             */
             else if (type == MessageType::T_Exit) {
-                if (client.isSpectating) {
-                    server->myRoom->removeSpectator(client.client_fd);
-                    client.isSpectating = false;
-                }
-                else {
-                    server->myRoom->removePlayer(client.client_fd);
+                if (server->myRoom) {
+                    if (client.isSpectating) {
+                        server->myRoom->removeSpectator(client.client_fd);
+                        client.isSpectating = false;
+                    }
+                    else {
+                        server->myRoom->removePlayer(client.client_fd);
+                    }
                 }
             }
 
