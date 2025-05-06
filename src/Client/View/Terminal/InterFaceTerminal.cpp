@@ -57,50 +57,9 @@ void InterfaceTerminal::initNcurses() {
  
  void InterfaceTerminal::displayMenu(int selectedOption) const {
     
-    const char* menuOptions[] = { "Play", "Handle friends", "Leaderboard (Endless Mode)" };
-    int numberPossibleOptions = std::size(menuOptions);  //  nombre d'options du menu
-    
-    int width = COLS;   // largeur et hauteur de la windows (via ncurses)
-    int height = LINES;
-    int menuWidth = 40;  // largeur menu principal
-    int menuHeight = 10; // hauteur menu
-
-    // position de depart du menu pour un bon cadrage
-    int startX = (width - menuWidth) / 2;
-    int startY = (height - menuHeight) / 2;
-
-    const char* title = "Welcome to Tetris Royale (Terminal Edition)";
-    int titleLength = strlen(title);
-
-    attron(A_BOLD); // mettre en gras (via ncurses)
-    mvprintw(startY - 8, (width - titleLength) / 2, "%s", title);  // titre Afficher au-dessus du cadre
-    attroff(A_BOLD);
-
-    // creation d'une fenetre pour le menu ( avec un cadre/bordure)
-    WINDOW* menuWindow = newwin(menuHeight, menuWidth, startY, startX);
-    box(menuWindow, 0, 0);  // dessine le cadre
-
-    // Display menu options
-    for (int i = 0; i < numberPossibleOptions; ++i) {
-        if (i == selectedOption) {
-            // met en evidence l'option selectionnée
-            wattron(menuWindow, COLOR_PAIR(9));   // pour activer  mise en blanc de l'option
-            mvwprintw(menuWindow, 3 + i * 2, 2, "-> %d. %s ", i + 1, menuOptions[i]);    // ' * 2 '  pour un avoir espacer un peu plus entre options
-            wattroff(menuWindow, COLOR_PAIR(9)); 
-        } else {
-            mvwprintw(menuWindow, 3 + i*2 , 2, "   %d. %s ", i + 1, menuOptions[i]);
-        }
-    }
-    wrefresh(menuWindow); // Refresh la window
-
-    mvprintw(startY + menuHeight+ 3, (width - 35) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
-    mvprintw(startY + menuHeight + 4, (width - 35) / 2, "Press ENTER to select an action");
-    mvprintw(startY + menuHeight + 5, (width - 35) / 2, "Press 'q' to quit");
-    mvprintw(startY + menuHeight + 6, (width - 35) / 2, "Press 't' to open the chat");
-    
-    refresh();
-    
-    delwin(menuWindow); // detruire pour libererr mememoire
+    vector<string> menuOptions = { "Welcome to Tetris Royale (Terminal Edition)", "Play", "Handle friends", "Leaderboard (Endless Mode)" };
+    Menu menuMain(Menus::MainMenu, menuOptions, COLS, LINES, 40, 10);
+    menuMain.displayMenu(selectedOption); // Affiche le menu principal
 }
 
 
@@ -363,52 +322,10 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
  *@param selectedMode Indice du mode de jeu actuellement sélectionné.
  */
  
- void InterfaceTerminal::displayGameModeMenu(int selectedMode) const {
-    //erase();
-    int width = COLS;   // largeur et hauteur de la windows (via ncurses)
-    int height = LINES;
-    int menuWidth = 50;  // largeur menu principal
-    int menuHeight = 18; // hauteur menu
-
-    // position de depart du menu pour un bon cadrage
-    int startX = (width - menuWidth) / 2;
-    int startY = (height - menuHeight) / 2;
-
-    const char* instruction = "Select a Game Mode:";
-    int instructionLength = strlen(instruction);
-
-    attron(COLOR_PAIR(2) | A_BOLD); //  mettre en vert +  gras (via ncurses) 
-    mvprintw(startY - 5, startX , "%s", instruction);  // titre Afficher au-dessus du cadre
-    attroff(COLOR_PAIR(2) | A_BOLD);
-
-    WINDOW* gameModeWindow = newwin(menuHeight, menuWidth, startY, startX); // fenetre pour afficher les modes de jeu
-    box(gameModeWindow, 0, 0);  // dessine le cadre
-
-    int numberModePossible = std::size(modeNames);   // taille du tableau contenant les modes de jeu
-
-    for (int i = 0; i < numberModePossible; ++i) {
-        if (i == selectedMode) {
-            wattron(gameModeWindow, COLOR_PAIR(9));
-            mvwprintw(gameModeWindow, 3 + i * 3, 2,"-> %d. %s", i + 1, modeNames[i] ) ;
-            wattroff( gameModeWindow, (COLOR_PAIR(9)) );
-        } else {
-            //printw("   %d. %s", i + 1, modeNames[i]);
-            mvwprintw(gameModeWindow, 3 + i * 3, 2, "   %d. %s", i + 1, modeNames[i]);
-        }
-    }
-    wrefresh(gameModeWindow);
-    
-    //printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select a mode\nPress 'q' to quit\n");
-    mvprintw(startY + menuHeight+ 3, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
-    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press ENTER to select an action");
-    mvprintw(startY + menuHeight + 5, (width - 45) / 2, "Press 'q' to quit");
-    
-    if ((user != "")) mvprintw(startY + menuHeight + 6, (width - 45) / 2, "Press 't' to open the message box");
-    //if(!(user==""))printw("Press 't' to open the message box\n");
-    
-    refresh();
-    delwin(gameModeWindow);
-
+ void InterfaceTerminal::displayGameModeMenu(int selectedOption) const {
+    vector<string> menuOptions = { "Select a Game Mode :", "Endless Mode", "Classic Mode", "Duel Mode", "Royal Competition Mode" };
+    Menu menuGameMode(Menus::GameModeMenu, menuOptions, COLS, LINES, 50, 18);
+    menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
 }
 
 
@@ -416,24 +333,10 @@ int InterfaceTerminal::chatWith(const std::string& user, const string& friendNam
 
 
 
-void InterfaceTerminal::displayMultiplayerOption(int selectedMode) const {
-    int action = selectedMode;
-    erase();
-    printw("\n\nNow pick your action:\n");
-    const char* subActions[] = { "Create a room", "Join a room"};
-    for (int j = 0; j < 2; ++j) {
-        if (j == action) {
-            attron(COLOR_PAIR(9));
-            printw("-> %s\n", subActions[j]);
-            attroff(COLOR_PAIR(9));
-        }
-        else {
-            printw("   %s\n", subActions[j]);
-        }
-    }
-
-    printw("\nUse UP/DOWN to select mode, LEFT/RIGHT to pick action.\nPress ENTER to confirm.\nPress 'q' to quit.\n");
-    refresh();
+void InterfaceTerminal::displayMultiplayerOption(int selectedOption) const {
+    vector<string> menuOptions = { "Now pick your action:", "Create a room", "Join a room" };
+    Menu menuGameMode(Menus::JoinCreateMenu, menuOptions, COLS, LINES, 50, 18);
+    menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
 }
 
 
@@ -599,97 +502,18 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
  * @return Retourne 0 si l'utilisateur quitte normalement, ou -1 en cas d'erreur lors de l'ouverture.
  */
  void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> friends) {
-    //erase();
-    
-    int width = COLS;   // Largeur et hauteur de la fenêtre (via ncurses)
-    int height = LINES;
-    int menuWidth = 50;  // Largeur du menu des amis
-    int menuHeight = 20; // Hauteur du menu
 
-    // Position pour centrer le cadre
-    int startX = (width - menuWidth) / 2;
-    int startY = (height - menuHeight - 3) / 2 ;
-
-    const char* title = "Friends list:";
-    attron(COLOR_PAIR(2) | A_BOLD);
-    mvprintw(startY - 2, startX, "%s", title);  // Titre aligné avec le cadre
-    attroff(COLOR_PAIR(2) | A_BOLD);
-
-    // fenêtre pour le menu des amis
-    WINDOW* friendsWindow = newwin(menuHeight, menuWidth, startY, startX);
-    box(friendsWindow, 0, 0);  // Dessiner le cadre
-
-    int numberFriends = friends.size();  // Nombre d'amis
-
-    // pour afficher les amis
-    if (numberFriends == 0) {
-        mvwprintw(friendsWindow, 2, 2, "Empty friends list");
-    } else {
-        for (int i = 0; i < numberFriends; ++i) {
-            if (i == selectedOption) {
-                wattron(friendsWindow, COLOR_PAIR(9));
-                mvwprintw(friendsWindow, 2 + i, 2, "-> %d. %s", i + 1, friends[i].c_str());
-                wattroff(friendsWindow, COLOR_PAIR(9));
-            } else {
-                mvwprintw(friendsWindow, 2 + i, 2, "   %d. %s", i + 1, friends[i].c_str());
-            }
-        }
+    vector<string> menuOptions = { "Friends list:"};
+    for (auto& friend_ : friends) {
+        menuOptions.push_back(friend_);
     }
+    Menu menuGameMode(Menus::FriendsMenu, menuOptions, COLS, LINES, 50, 20);
 
-    // pour ajouter des options en bas du cadre  (car si il y a trop d'amis --> cadre trop petit)
-    int bottomY = menuHeight - 4;
-    if (selectedOption == numberFriends) {
-        wattron(friendsWindow, COLOR_PAIR(9));
-        mvwprintw(friendsWindow, bottomY, 2, "-> Add new friend");
-        wattroff(friendsWindow, COLOR_PAIR(9));
-    }
-    else {
-        mvwprintw(friendsWindow, bottomY, 2, "   Add new friend");
-    }
+    int numberFRR = db.getNumberFriendRequestsReceived(user);
 
-    if (selectedOption == numberFriends + 1) {
-        wattron(friendsWindow, COLOR_PAIR(9));
-        mvwprintw(friendsWindow, bottomY + 2, 2, "-> Friend requests (%d)", udm.getNumberFriendRequestsReceived(user));
-        wattroff(friendsWindow, COLOR_PAIR(9));
-    }
-    else {
-        mvwprintw(friendsWindow, bottomY + 2, 2, "   Friend requests (%d)", udm.getNumberFriendRequestsReceived(user));
-    }
-    wrefresh(friendsWindow);
-
-    // Instructions sous le cadre
-    mvprintw(startY + menuHeight + 2, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");
-    mvprintw(startY + menuHeight + 3, (width - 45) / 2, "Press ENTER to select an option");
-    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press 'd' to delete the friend");
-    mvprintw(startY + menuHeight + 5, (width - 45) / 2, "Press 'q' to quit");
-
-    if ((user != ""))
-        mvprintw(startY + menuHeight + 6, (width - 45) / 2, "Press 't' to open the message box");
-
-    refresh();
-    delwin(friendsWindow);
+    menuGameMode.displayMenu(selectedOption, {}, numberFRR); // Affiche le menu principal
 }
 
-
-
-void InterfaceTerminal::displayFriendOptions(int selectedOption) {
-    /* LA METHODE EST DEFAILLANTE */
-    //erase();
-    //printw("Choose an action to do with :\n\n");
-    //int numberFriendsOptionsPossible = 5;   // taille du tableau contenant les modes de jeu
-//
-    //for (int i = 0; i < numberFriendsOptionsPossible; ++i) {
-    //    if (i == selectedOption) {
-    //        printw("-> %d. %s", i + 1, friendsOptions[i]);
-    //    } else {
-    //        printw("   %d. %s", i + 1, friendsOptions[i]);
-    //    }
-    //    printw("\n");
-    //}
-    //printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    //if(!(user==""))printw("Press 't' to open the message box\n");
-    //refresh();
-}
 
 
 /**
@@ -702,9 +526,6 @@ void InterfaceTerminal::displayFriendOptions(int selectedOption) {
  * - Informe si une demande a déjà été envoyée.
  * - Si le joueur avait déjà envoyé une demande, la demande d'ami est acceptée.
 */
-
-
-
 void InterfaceTerminal::enterName() {
     erase();  // Nettoyer tout l'écran AVANT d'afficher le cadre
 
@@ -821,107 +642,10 @@ void InterfaceTerminal::enterName() {
  * @param requestsReceived Vecteur contenant les noms des utilisateurs qui ont envoyé demande d'ami.
  * @param requestsSent Vecteur contenant noms des utilisateurs à qui une demande d'ami a été envoyée.
  */
-/** 
  void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent) {
-    erase();
-    printw("Requests received :\n\n");
-    int numberRequestsReceived = std::size(requestsReceived);   //taille du tableau contenant les demandes d'amis recues
-    int numberRequestsSent = std::size(requestsSent);   // taille du tableau contenant les demandes d'amis envoyées
-    if(numberRequestsReceived==0) printw("No request received\n");
-    for (int i = 0; i < numberRequestsReceived; ++i) {
-        if (i == selectedOption) {
-            printw("-> %s wants to be your friend !",  requestsReceived[i].c_str());
-        } else {
-            printw("   %s wants to be your friend !",  requestsReceived[i].c_str());
-        }
-        printw("\n");
-    }
-    printw("\nRequests sent :\n\n");
-    if(numberRequestsSent==0) printw("No request sent\n");
-    for (int i = 0; i < numberRequestsSent; ++i) {
-        if (i+numberRequestsReceived == selectedOption) {
-            printw("-> friend request sent to %s ", requestsSent[i].c_str());
-        } else {
-            printw("   friend request sent to %s", requestsSent[i].c_str());
-        }
-        printw("\n");
-    }
-    printw("\nUse UP and DOWN arrow keys to navigate\nPress 'A' to accept the request\nPress 'R' to refuse\nPress 'C' to cancel a sent friend request\nPress 'q' to quit\n");
-    if(!(user==""))printw("Press 't' to open the message box\n");
-    refresh();
-}
-*/
-
- 
- void InterfaceTerminal::displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent) {
-    //erase();
-    int width = 80;
-    int height = 20;
-    int startX = (COLS - width)/ 2;
-    int startY = (LINES - height - 10) / 2;
-
-    // Créer une fenêtre avec un grand cadre
-    WINDOW* requestWindow = newwin(height, width, startY, startX);
-    box(requestWindow, 0, 0);
-
-    // Titre "Requests received" en vert
-    wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
-    mvwprintw(requestWindow, 1, 2, "Requests received:");
-    wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
-
-    int numberRequestsReceived = requestsReceived.size();
-    int numberRequestsSent = requestsSent.size();
-    
-    if (numberRequestsReceived == 0) {
-        mvwprintw(requestWindow, 3, 4, "No request received");
-    } else {
-        for (int i = 0; i < numberRequestsReceived; ++i) {
-            if (i == selectedOption) {
-                wattron(requestWindow, A_REVERSE);
-                mvwprintw(requestWindow, 3 + i, 4, "-> %s wants to be your friend!", requestsReceived[i].c_str());
-                wattroff(requestWindow, A_REVERSE);
-            } else {
-                mvwprintw(requestWindow, 3 + i, 4, "   %s wants to be your friend!", requestsReceived[i].c_str());
-            }
-        }
-    }
-
-    // Titre "Requests sent" en vert
-    wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
-    mvwprintw(requestWindow, 10, 2, "Requests sent:");
-    wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
-
-    if (numberRequestsSent == 0) {
-        mvwprintw(requestWindow, 12, 4, "No request sent");
-    } else {
-        for (int i = 0; i < numberRequestsSent; ++i) {
-            if (i + numberRequestsReceived == selectedOption) {
-                wattron(requestWindow, A_REVERSE);
-                mvwprintw(requestWindow, 12 + i, 4, "-> Friend request sent to %s", requestsSent[i].c_str());
-                wattroff(requestWindow, A_REVERSE);
-            } else {
-                mvwprintw(requestWindow, 12 + i, 4, "   Friend request sent to %s", requestsSent[i].c_str());
-            }
-        }
-    }
-
-    wrefresh(requestWindow);
-    
-    //Instructions sous le cadre
-    mvprintw(startY + height + 1, (COLS - 50) / 2, "Use UP and DOWN arrow keys to navigate");
-    mvprintw(startY + height + 2, (COLS - 50) / 2, "Press 'A' to accept the request");
-    mvprintw(startY + height + 3, (COLS - 50) / 2, "Press 'R' to refuse");
-    mvprintw(startY + height + 4, (COLS - 50) / 2, "Press 'C' to cancel a sent friend request");
-    mvprintw(startY + height + 5, (COLS - 50) / 2, "Press 'q' to quit");
-    if ((user != ""))
-        mvprintw(startY + height + 6, (COLS - 50) / 2, "Press 't' to open the message box");
-    
-
-    refresh();
-    delwin(requestWindow);
-    //erase();
-
-    
+    vector<string> menuOptions = { "Received requests", "Sent requests" };
+    Menu menuGameMode(Menus::FriendRequestMenu, menuOptions, COLS, LINES, 80, 20);
+    menuGameMode.displayFriendRequestsMenu(selectedOption, requestsReceived, requestsSent); // Affiche le menu principal    
 }
 
 
@@ -1085,55 +809,9 @@ int InterfaceTerminal::handleFriends() {
  */
  
  void InterfaceTerminal::displayConnexionOption(int selectedOption) {
-    //erase();
-    int width = COLS;   // largeur et hauteur de la windows (via ncurses)
-    int height = LINES;
-    int menuWidth = 60;  // largeur menu principal
-    int menuHeight = 12; // hauteur menu
-
-    // position de depart du menu pour un bon cadrage
-    int startX = (width - menuWidth) / 2;
-    int startY = (height - menuHeight) / 2;
-
-    WINDOW* connexionOptions_window = newwin(menuHeight, menuWidth, startY, startX);
-    box(connexionOptions_window, 0, 0);  // Dessiner le cadre
-
-    // Affichage du titre "TETRIS ROYAL" centré au-dessus du menu
-    const char* title = "----- TETRIS ROYAL -----";
-    int title_Xpos = (width - strlen(title) - 1) / 2;  // Calculer la position pour centrer le titre
-    int title_Ypos = startY - 10;
-    attron(COLOR_PAIR(2) | A_BOLD);
-    mvprintw(title_Ypos, title_Xpos, title);  // Afficher le titre à la position calculée
-    attroff(COLOR_PAIR(2) | A_BOLD);
-    
-    const char* connexionOptions[] = {"Log in", "Register",};
-    
-    mvwprintw(connexionOptions_window, 1, 2, "Log in or Register here:");
-    
-    for (int i = 0; i < std::size(connexionOptions); ++i) {
-        
-        if (i == selectedOption) {
-            wattron(connexionOptions_window, COLOR_PAIR(9));
-            mvwprintw(connexionOptions_window, 5 + i*3, 2 , "-> %s",  connexionOptions[i]);
-            wattroff(connexionOptions_window, COLOR_PAIR(9));
-        } else {
-            mvwprintw(connexionOptions_window, 5 + i * 3, 2, "   %s",  connexionOptions[i]);
-        }
-    }
-
-    wrefresh(connexionOptions_window);
-    //printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select an option\nPress 'q' to quit\n");
-    //if(!(user==""))printw("Press 't' to open the message box\n");
-
-    mvprintw(startY + menuHeight+ 2, (width - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
-    mvprintw(startY + menuHeight + 3, (width - 45) / 2, "Press ENTER to select an action");
-    mvprintw(startY + menuHeight + 4, (width - 45) / 2, "Press 'q' to quit");
-
-
-    if ((user != "")) mvprintw(startY + menuHeight + 5, (width - 35) / 2, "Press 't' to open the message box");
-    refresh();
-
-    delwin(connexionOptions_window);
+    vector<string> menuOptions = { "----- TETRIS ROYAL -----", "Log in", "Register" };
+    Menu menuGameMode(Menus::LoginMenu, menuOptions, COLS, LINES, 60, 12);
+    menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
 }
 
 
@@ -1570,7 +1248,6 @@ int InterfaceTerminal::handleFriendsOptionSelection(const string friendName) {
 
     while (!flag) {
         erase();
-        displayFriendOptions(selectedOption);
 
         int ch = getch();    // récupère l'entrée utilisateur
         switch (ch) {
@@ -1666,48 +1343,13 @@ int InterfaceTerminal::start() {
    return -2;
 }
 
+/**
+ * @brief Cette méthode affiche le leaderboard
+ * 
+ */
 void InterfaceTerminal::displayLeaderboard() {
-    erase();
-    refresh();
-    while (!flag) {
-        // Définition des dimensions et positions du cadre
-        int width = COLS;
-        int height = LINES;
-        int boxWidth = 50;
-        int boxHeight = 12;
-        int startX = (width - boxWidth) / 2;
-        int startY = (height - boxHeight) / 2;
-
-        // Création de la fenêtre pour afficher le leaderboard
-        WINDOW *leaderboardWin = newwin(boxHeight, boxWidth, startY, startX);
-        box(leaderboardWin, 0, 0);
-
-        // Affichage du titre centré
-        attron(COLOR_PAIR(2) | A_BOLD);
-        mvprintw(startY - 2, startX + (boxWidth - 43) / 2, "🏆 Leaderboard: Top Endless Mode Players 🏆");
-        attroff(COLOR_PAIR(2) | A_BOLD);
-
-        // Récupération des scores
-        std::vector<std::pair<std::string, int>> scores = udm.getTopScores(5);
-
-        if (scores.empty()) {
-            mvwprintw(leaderboardWin, 3, 2, "No scores recorded yet.");
-        } else {
-            for (size_t i = 0; i < scores.size(); i++) {
-                mvwprintw(leaderboardWin, 3 + i, 2, "%d. %-15s - %d points", i + 1, scores[i].first.c_str(), scores[i].second);
-            }
-        }
-
-        // Instruction pour quitter
-        mvprintw(startY + boxHeight + 1, startX, "Press 'q' to return to menu...");
-        wrefresh(leaderboardWin);
-
-        int ch = getch();
-        if (ch == 'q' || ch == 'Q') {
-            delwin(leaderboardWin);
-            break;
-        }
-        napms(100);  // Petite pause pour éviter une consommation CPU excessive
-    }
-    refresh();
+    std::vector<std::pair<std::string, int>> scores = udm.getTopScores(5);
+    vector<string> menuOptions = { "Leaderboard: Top Endless Mode Players" };
+    Menu menuGameMode(Menus::LeaderboardMenu, menuOptions, COLS, LINES, 50, 12);
+    menuGameMode.displayMenu(0, scores); // Affiche le menu principal
 }

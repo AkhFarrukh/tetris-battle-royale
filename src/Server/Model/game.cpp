@@ -87,9 +87,7 @@ void Game::run() {
         //cout<<"Starting game loop"<<endl;
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsedTimeDropEvent = now - chronoDropEvent;
-        cout<<"Checking timing for players"<<endl;
         int time = 250;
-        cout<<"Before chrono"<<endl;
         if (elapsedTimeDropEvent > std::chrono::milliseconds(time)) {
             //cout<<"chrono"<<endl;
             for (int p = 0; p < (int)players.size(); p++) {
@@ -122,21 +120,17 @@ void Game::run() {
                         }
                         else{players[p].skipTiming++;}
                     }
-                    cout<<"soft dropping"<<endl;
             }
             chronoDropEvent = now;
         }
 
         updateGame();
-        //cout<<"Updated"<<endl;
         if(broadcastGame() == false)
         {
             perror("Error while broadcasting the game : ");
             isRunning = false;
         }
-        //cout<<"Broadcasted"<<endl;
         checkGameOver();
-        //cout<<"CheckGameOver"<<endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
@@ -300,43 +294,12 @@ void Game::handleMalusBonusEvent(std::shared_ptr<Event> e, int playerHimself) {
         break;
     }
 }
-        //if bonus
-        //players[p].slowed = true;``
-
-        //if malus
-        //int target = moveEvt->getTarget();
-        //players[target].blocked = true;
-
 
 /**
- * @brief Handles timer drop events.
- *
- * This function processes timer drop events by casting the event to a
- * TimerDropEvent. If the event is successfully cast, it attempts to move the
- * active figure down. If the movement fails, the figure is placed on the grid,
- * line completion is checked, and a new figure is generated. If the new figure
- * cannot spawn, the game ends.
- *
- * @param event The event to be handled.
-
-
-void Game::handleTimerDropEvent(std::shared_ptr<Event> event) {
-    auto timerEvt = std::dynamic_pointer_cast<TimerDropEvent>(event);
-    if (!timerEvt) {
-        return;
-    }
-
-    for (int p = 0; p < (int)players.size(); p++) {
-        if (!players[p].isGameOver) {
-            bool canDrop = players[p].movement.setMouvement(Action::SOFT_DROP);
-            if (!canDrop) {
-                placePieceOnBoard(p);
-            }
-        }
-    }
-}
+ * @brief Method to place the piece on the board.
+ * 
+ * @param p index of the playerState
  */
-
 void Game::placePieceOnBoard(int p) {
     auto &ps = players[p];
 
@@ -374,6 +337,10 @@ void Game::placePieceOnBoard(int p) {
     }
 }
 
+/**
+ * @brief Method to stop the game
+ * 
+ */
 void Game::stop() {
     for (auto &ps : players) {
         if (ps.isGameOver){
@@ -393,14 +360,6 @@ void Game::stop() {
     }
     isRunning = false;
 }
-
-
-/*
-void Game::checkInput() {
-    gameController->getAction();
-}
-*/
-
 
 /**
  *@brief arrête le jeu si il est "terminé".
@@ -426,7 +385,12 @@ void Game::checkGameOver() {
     } 
 }
 
-
+/**
+ * @brief Will be called when a player sends a malus
+ * 
+ * @param targetID playerID of the targeted player
+ * @param playerID playerID of the player sending the malus
+ */
 void Game::handleMalus(int targetID, int playerID) {
     if (gameMode == Modes::Duel_) {
         auto selectedMode = dynamic_pointer_cast<Duel>(mode);
@@ -443,6 +407,13 @@ void Game::handleMalus(int targetID, int playerID) {
 
 }
 
+/**
+ * @brief Choose a random target player for the malus.
+ * 
+ * @param playerId playerId of the player who is using the malus
+ * @param numPlayers number of players in the game
+ * @return int : playerId of the target player
+ */
 int findTarget(int playerId, int numPlayers) {
     if (numPlayers <= 1) {
         throw invalid_argument("Not enough players to find a target.");
@@ -452,9 +423,9 @@ int findTarget(int playerId, int numPlayers) {
     do {
         target = rand() % numPlayers;  // Génère un nombre entre 0 et numPlayers - 1
     } while (target == playerId);      // Continue tant que la cible est le joueur lui-même
-
     return target;
 }
+
 /**
  *@brief gestion de la complétion des lignes.
  * vérification de chaque ligne de la grille pour savoir si elle est complète.
@@ -492,21 +463,13 @@ void Game::handleLineCompletion(int p) {
 }
 
 
-/*
-Color Game::getBlockColor(Coordinates cell) {
-    Color blockColor = activeFigure->getMovingFigureBlockColor(cell);
-    if (blockColor == Color::nullcolor) {
-        blockColor = grid->getBlockColor(cell.x, cell.y);
-    }
-    if (isGridHidden) {
-        return Color::white; //Afin que le joueur soit aveuglé (malus du mode Royal Competition)
-    }
-    return blockColor;
-}
-*/
-
-
-
+/**
+ * @brief The method will send the game data to all players.
+ * 
+ * @param endGame boolean to indicate if the game is over.
+ * @return true if no error is raised
+ * @return false if there's an error when sending the data
+ */
 bool Game::broadcastGame(bool endGame) {
     std::vector<NetPlayerData> netArray;
 

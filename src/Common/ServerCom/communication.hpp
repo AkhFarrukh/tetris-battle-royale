@@ -42,7 +42,7 @@ enum MenuActions{
     A_ForceStart
 };
 
-struct Menu{
+struct MenuMessage{
     MenuActions action;
     Modes mode;
 };

@@ -3,15 +3,13 @@
 
 #include <iostream>
 #include "game.hpp"
-#include "MenuGameMode.hpp"
-#include "MenuGameModeController.hpp"
-#include "../Database/database.hpp" //changer en "database.hpp" si probleme
-#include "../Model/userdatabasemanager.hpp"
+#include "database.hpp" //changer en "database.hpp" si probleme
+#include "userdatabasemanager.hpp"
 #include "Chat.hpp"
 #include <unistd.h>
 #include <mutex>
 #include <atomic>
-
+#include "menu.hpp"
 
 extern std::mutex interfaceMutex;
 

@@ -1,11 +1,9 @@
 #include "playerFunctions.hpp"
-#include "input.hpp"
-#include <fcntl.h>
 
 
 void Player::affichageMessage(Message& message){
     nodelay(stdscr, false);
-    interfaceMutex.lock();
+    //interfaceMutex.lock(); //TEMPORARY SO IT COMPILES, DOESNT WORK BC I REMOVED THE GLOBAL VAR
     refresh();
     curs_set(0);
     int currentLine = LINES-1;
@@ -32,7 +30,7 @@ void Player::affichageMessage(Message& message){
     printw("Enter your message : ");
     refresh();
     curs_set(1);
-    interfaceMutex.unlock();
+    //interfaceMutex.unlock(); //TEMPORARY SO IT COMPILES, DOESNT WORK BC I REMOVED THE GLOBAL VAR
 }
 
 
@@ -49,11 +47,10 @@ void* Player::threadRoutineView (void* arg){
     Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
     int sock = threadData->socket;
     RenderEngineNcurses render;
-    while (!flag) {
-        threadData->mux.lock();
+    while (keepRunning) {
+
         bool inGame = threadData->userInGame;
-        threadData->mux.unlock();
-        //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
+
         //To have info on the data received
         int type;
         int size;
@@ -64,26 +61,22 @@ void* Player::threadRoutineView (void* arg){
         //Client disconnected or error
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
             perror("Client disconnected : ");
-            threadData->mux.lock();
             threadData->userInGame = false; // Stop the loop
-            threadData->mux.unlock();
-            flag = true;
+            keepRunning = false;
             break;
         }
         else if(type == MessageType::T_Message){
             Message message;
             if (!recvAll(sock, &message, size)) {
-                perror("Error on receiving message");
-                flag = true;
+                perror("Error on receiving room");
+                keepRunning = false;
                 break;
             }
             affichageMessage(message);
         }
         else if(type == MessageType::T_Exit){
-            threadData->mux.lock();
             threadData->userInGame = false;
             threadData->userInLobby = false;
-            threadData->mux.unlock();
             napms(300);
             continue;
         }
@@ -112,17 +105,8 @@ void* Player::threadRoutineView (void* arg){
                 playersData.push_back(player);
             }
 
-            //std::cout<<"Rendered games"<<std::endl;
-            
-            /*
-            }
-            else {
-                render.renderGames(playersData);
-            }
-            */
 
             if (threadData->gameMode == Modes::Royal_){
-                //std::cout<<"Rendering royal games"<<std::endl;
                 threadData->displayMut.lock();
                 render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
                 threadData->displayMut.unlock();
@@ -145,15 +129,15 @@ void* Player::threadRoutineView (void* arg){
 
         }
         if (type == MessageType::T_ForcedExit){
-            flag = true;
+            keepRunning = false;
             napms(300);
             break;
         }
         else if (type == MessageType::T_GameStart) {
-            threadData->mux.lock();
+
             threadData->userInGame = true;
             threadData->userInLobby = true;
-            threadData->mux.unlock();
+
             continue;
         }
         else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {
@@ -161,64 +145,61 @@ void* Player::threadRoutineView (void* arg){
             RoomInfo info;
             if (!recvAll(sock, &info, size)) {
                 perror("Error on receiving room");
-                flag = true;
+                keepRunning = false;
                 break;
             }
             int flags = fcntl(sock, F_GETFL, 0);
             fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 
             int act = 0;
-            while (!flag) {
+            while (keepRunning) {
                 threadData->displayMut.lock();
                 act = renderR.handleMyRoom(info);
                 threadData->displayMut.unlock();
 
                 if (act == 1 && type == MessageType::T_RoomInfo) {
                     int sendType = MessageType::T_Menu;
-                    int sendSize = sizeof(Menu);
-                    Menu menu;
-                    menu.action = MenuActions::A_ForceStart;
+                    int sendSize = sizeof(MenuMessage);
+                    MenuMessage MenuMessage;
+                    MenuMessage.action = MenuActions::A_ForceStart;
 
-                    if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
-                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
-                    if(!sendAll(sock, &menu, sizeof(Menu))){flag = true; break;}
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                    if(!sendAll(sock, &MenuMessage, sizeof(MenuMessage))){keepRunning = false; break;}
 
                 } else if (act == -2) {
                     if(type == MessageType::T_RoomInfo){
                         int sendType = MessageType::T_Refresh;
                         int sendSize = sizeof(int);
 
-                        if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
-                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
                         break;
                     }
                     else{
                         int sendType = MessageType::T_RoomJoinRefresh;
                         int sendSize = sizeof(int);
 
-                        if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
-                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
+                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
                         break;
                     }
                 } else if (act == -1) {
                     if(type == MessageType::T_RoomInfo){
                         int sendType = MessageType::T_RoomDeleted;
                         int sendSize = sizeof(int);
-                        if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
-                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
-                        threadData->mux.lock();
+                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
                         threadData->userInLobby = false;
-                        threadData->mux.unlock();
                         break;
                     }
                     else{
                         int sendType = MessageType::T_LeftRoom;
                         int sendSize = sizeof(int);
-                        if(!sendAll(sock, &sendType, sizeof(sendType))){flag = true; break;}
-                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){flag = true; break;}
-                        threadData->mux.lock();
+                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
                         threadData->userInLobby = false;
-                        threadData->mux.unlock();
+
                         break;
                     }
                 }
@@ -229,33 +210,26 @@ void* Player::threadRoutineView (void* arg){
                 int bytesReceivedType = recv(sock, &messageType, sizeof(int), MSG_DONTWAIT);
 
                 if (bytesReceivedType > 0) {
-                    //printf("yuyyuyuu\n");
                     recv(sock, &messageSize, sizeof(int), 0);
 
                     if (messageType == MessageType::T_GameStart) {
-                        threadData->mux.lock();
                         threadData->userInGame = true;
-                        threadData->mux.unlock();
                         break;
                     }
                     else if(messageType == MessageType::T_ForcedExit){
-                        threadData->mux.lock();
                         threadData->userInGame = false;
                         threadData->userInLobby = false;
-                        threadData->mux.unlock();
-                        flag = true;
+                        keepRunning = false;
                         break;
                     }
                     else if(messageType == MessageType::T_Exit){
-                        threadData->mux.lock();
                         threadData->userInGame = false;
                         threadData->userInLobby = false;
-                        threadData->mux.unlock();
                         break;
                     }
                 } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
                     perror("Socket error");
-                    flag = true; break;
+                    keepRunning = false; break;
                 }
                 usleep(500);
             }
@@ -268,16 +242,16 @@ void* Player::threadRoutineView (void* arg){
             std::vector<RoomInfo> roomsInfo;
             roomsInfo.resize(size);
             if (!recvAll(sock, roomsInfo.data(), size *sizeof(RoomInfo)))
-            {flag = true; break;}
+            {keepRunning = false; break;}
             Modes mode;
             int size;
-            if(!recvAll(sock, &mode, sizeof(int))){flag = true; break;}
-            if(!recvAll(sock, &size, sizeof(int))){flag = true;break;}
+            if(!recvAll(sock, &mode, sizeof(int))){keepRunning = false; break;}
+            if(!recvAll(sock, &size, sizeof(int))){keepRunning = false;break;}
             clear();
             refresh();
             int index;
             int highlightIndex = 0;
-            while (!flag) {
+            while (keepRunning) {
                 threadData->displayMut.lock();
                 index = renderR.handleListRooms(roomsInfo, highlightIndex);
                 threadData->displayMut.unlock();
@@ -290,40 +264,38 @@ void* Player::threadRoutineView (void* arg){
                     int sizeToSend = sizeof(int);
                     int fd = roomsInfo[index].roomID;
 
-                    if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {flag = true; break;}
-                    if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {flag = true; break;}
-                    if (!sendAll(sock, &fd, sizeof(int))) {flag = true; break;}
-                    threadData->mux.lock();
+                    if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {keepRunning = false; break;}
+                    if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {keepRunning = false; break;}
+                    if (!sendAll(sock, &fd, sizeof(int))) {keepRunning = false; break;}
                     threadData->userInLobby = true;
-                    threadData->mux.unlock();
                     break;
                 }
                 if (index == -2) {
                     int type = MessageType::T_Menu;
-                    int size = sizeof(Menu);
-                    Menu menu;
-                    menu.mode = mode;
-                    menu.action = MenuActions::A_JoinRoom;
+                    int size = sizeof(MenuMessage);
+                    MenuMessage MenuMessage;
+                    MenuMessage.mode = mode;
+                    MenuMessage.action = MenuActions::A_JoinRoom;
 
 
                     if(sendAll(sock, &type, sizeof(int)) == false){
-                        perror("Error sending menu info : ");
-                        flag = true; break;
+                        perror("Error sending MenuMessage info : ");
+                        keepRunning = false; break;
                     }
                     if(sendAll(sock, &size, sizeof(int)) == false){
-                        perror("Error sending menu info : ");
-                        flag = true; break;
+                        perror("Error sending MenuMessage info : ");
+                        keepRunning = false; break;
                     }
-                    if(sendAll(sock, &menu, sizeof(Menu)) == false){
-                        perror("Error sending menu info : ");
-                        flag = true; break;
+                    if(sendAll(sock, &MenuMessage, sizeof(MenuMessage)) == false){
+                        perror("Error sending MenuMessage info : ");
+                        keepRunning = false; break;
                     }
                     break;
                 }
                 if (index == -1) {
-                    threadData->mux.lock();
+
                     threadData->userInLobby = false;
-                    threadData->mux.unlock();
+
                     break;
                 }
             }
@@ -344,14 +316,12 @@ return 0;
 int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
-    threadData->mux.lock();
     bool inLobby = threadData->userInLobby;
-    threadData->mux.unlock();
-    while (!flag && inLobby) {
-        threadData->mux.lock();
+    while (keepRunning && inLobby) {
+
         bool keepRunning = threadData->userInGame;
         inLobby = threadData->userInLobby;
-        threadData->mux.unlock();
+
         if (!keepRunning && !inLobby) {
             break;
         }
@@ -362,10 +332,8 @@ int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
         threadData->displayMut.unlock();
         if(currentAction != KeyboardAction::NO_ACTION){
             if(currentAction == KeyboardAction::EXIT_KEY) {
-                threadData->mux.lock();
                 threadData->userInLobby = false;
                 threadData->userInGame = false;
-                threadData->mux.unlock();
             }
 
             int numberKey = keyboardActionToInt(currentAction);
@@ -373,24 +341,23 @@ int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
                 if (threadData->targetPlayerMenu) {
                     // if player choses target player for malus
                     chosenPlayer = numberKey;
-                    threadData->mux.lock();
                     threadData->targetPlayerMenu = false;
-                    threadData->mux.unlock();
                     //send a malus
                     int type = MessageType::T_MalusBonus;
                     int size = sizeof(MalBonus);
                     MalBonus currentMalBonus;
                     currentMalBonus.malusB = intToMalusBonus(chosenMalus);
                     currentMalBonus.target = chosenPlayer;// todo choose playerid and check  if it is not player himeself on server
-                    if (!sendAll(threadData->socket, &type, sizeof(int))) { flag = true; break;}
-                    if (!sendAll(threadData->socket, &size, sizeof(int))) { flag = true; break;}
-                    if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) { flag = true; break;}
+                    if (!sendAll(threadData->socket, &type, sizeof(int))) { keepRunning = false; break;}
+                    if (!sendAll(threadData->socket, &size, sizeof(int))) { keepRunning = false; break;}
+                    if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) { keepRunning = false; break;}
                     chosenMalus = 0; chosenPlayer = 0;
                 } else {
                     // if player choses malus or bonus
                     //todo perform energy price check (on the server probably)
                     chosenMalus = numberKey;
                     if (chosenMalus == 6 or chosenMalus == 7) {
+                        //todo check if it is possible to change int to malusbonus earlier
                         // if malus is bonus, no need for target player
                         //send a bonus
                         chosenPlayer = threadData->clinetPlayerID; // to himself
@@ -399,15 +366,13 @@ int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
                         MalBonus currentMalBonus;
                         currentMalBonus.malusB = intToMalusBonus(chosenMalus);
                         currentMalBonus.target = chosenPlayer;
-                        if (!sendAll(threadData->socket, &type, sizeof(int))) {flag = true; break;}
-                        if (!sendAll(threadData->socket, &size, sizeof(int))) {flag = true; break;}
-                        if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) {flag = true; break;}
+                        if (!sendAll(threadData->socket, &type, sizeof(int))) {keepRunning = false; break;}
+                        if (!sendAll(threadData->socket, &size, sizeof(int))) {keepRunning = false; break;}
+                        if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) {keepRunning = false; break;}
                         chosenMalus = 0; chosenPlayer = 0;
                     }else {
                         // if malus is malus, player needs to choose target player
-                        threadData->mux.lock();
                         threadData->targetPlayerMenu = true;
-                        threadData->mux.unlock();
                     }
                 }
             }
@@ -416,9 +381,9 @@ int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
                 int size = sizeof(InputMessage);
                 InputMessage inputMessage;
                 inputMessage.input = currentAction;
-                if (!sendAll(threadData->socket, &type, sizeof(int))) { flag = true; break;}
-                if (!sendAll(threadData->socket, &size, sizeof(int))) { flag = true; break;}
-                if (!sendAll(threadData->socket, &inputMessage, sizeof(InputMessage))) { flag = true; break;}
+                if (!sendAll(threadData->socket, &type, sizeof(int))) { keepRunning = false; break;}
+                if (!sendAll(threadData->socket, &size, sizeof(int))) { keepRunning = false; break;}
+                if (!sendAll(threadData->socket, &inputMessage, sizeof(InputMessage))) { keepRunning = false; break;}
             }
         }}
     }

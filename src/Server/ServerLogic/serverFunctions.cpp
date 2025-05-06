@@ -167,35 +167,35 @@ void* Server::threadRoutineClient(void* arg){
             if (!recvAll(client.client_fd, &size, sizeof(int))){userIsOnline = false;}
 
             /************************************
-            *MENU INFO
+            *MenuMessage INFO
             */
             if(type == MessageType::T_Menu){
-                std::cout << "Menu" << std::endl;
-                Menu menu;
-                if (!recvAll(client.client_fd, &menu, sizeof(Menu))){userIsOnline = false;}
+                std::cout << "MenuMessage" << std::endl;
+                MenuMessage MenuMessage;
+                if (!recvAll(client.client_fd, &MenuMessage, sizeof(MenuMessage))){userIsOnline = false;}
 
                 /************************************
                 *PLAY ENDLESS INFO
                 */
-                else if (menu.action == MenuActions::A_Play) {
-                    if (menu.mode == Modes::Endless_){
+                else if (MenuMessage.action == MenuActions::A_Play) {
+                    if (MenuMessage.mode == Modes::Endless_){
                         server->handlePlay(server, client, userIsOnline, eventQueue, threadGameData);
                     }   
                 }
                 /************************************
                 *CREATE ROOM INFO
                 */
-                else if (menu.action == MenuActions::A_CreateRoom) {
-                    server->handleCreateRoom(server, client, userIsOnline, menu, eventQueue);
+                else if (MenuMessage.action == MenuActions::A_CreateRoom) {
+                    server->handleCreateRoom(server, client, userIsOnline, MenuMessage, eventQueue);
                 }
                 /************************************
                 *GET ROOM INFO
                 */
-                else if (menu.action == MenuActions::A_JoinRoom) {
-                    server->handleGetRoom(server, client, userIsOnline, menu);
+                else if (MenuMessage.action == MenuActions::A_JoinRoom) {
+                    server->handleGetRoom(server, client, userIsOnline, MenuMessage);
                 }
 
-                else if (menu.action == MenuActions::A_ForceStart) {
+                else if (MenuMessage.action == MenuActions::A_ForceStart) {
                     server->handleForceStart(server, client, userIsOnline, threadGamePID);
                 }
             }
@@ -469,14 +469,14 @@ void Server::handleForceStart(Server* server, ClientSession& client, bool& userI
  * @param server ptr to server
  * @param client ClientSession struct
  * @param userIsOnline bool handling the listening loop, true if connected to the serv
- * @param menu Menu struct containing the gameMode choosed  by the client
+ * @param MenuMessage MenuMessage struct containing the gameMode choosed  by the client
  */
-void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu){
+void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOnline, MenuMessage& MenuMessage){
     cout<<"JoinRoom received"<<endl;
     std::vector<RoomInfo> filteredRooms;
     auto allRooms = server->roomsList;
     for (auto& r : *allRooms) {
-        if (r->getRoomMode() == menu.mode) {
+        if (r->getRoomMode() == MenuMessage.mode) {
             RoomInfo info;
             info.roomID = r->getRoomID();
             info.currentPlayersCount = r->getPlayerCount();
@@ -491,7 +491,7 @@ void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOn
     if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
     if (!sendAll(client.client_fd, &nbRooms, sizeof(nbRooms))){userIsOnline = false;}
     if (!sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo))){userIsOnline = false;}
-    int type = menu.mode;
+    int type = MenuMessage.mode;
     int size = sizeof(int);
     sendAll(client.client_fd, &type,  sizeof(type));
     sendAll(client.client_fd, &size,  sizeof(size));
@@ -503,12 +503,12 @@ void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOn
  * @param server ptr to server
  * @param client ClientSession struct
  * @param userIsOnline bool handling the listening loop, true if connected to the serv
- * @param menu Menu struct containing the gameMode choosed  by the client
+ * @param MenuMessage MenuMessage struct containing the gameMode choosed  by the client
  * @param eventQueue ptr for the player's eventQueue in Game
  */
-void Server::handleCreateRoom(Server* server, ClientSession& client, bool& userIsOnline, Menu& menu, shared_ptr<EventQueue> eventQueue){
+void Server::handleCreateRoom(Server* server, ClientSession& client, bool& userIsOnline, MenuMessage& MenuMessage, shared_ptr<EventQueue> eventQueue){
     std::cout<<"Received CreateRoom"<<std::endl;
-    auto r = std::make_shared<Room>(client.client_fd, menu.mode, eventQueue);
+    auto r = std::make_shared<Room>(client.client_fd, MenuMessage.mode, eventQueue);
     auto allRoom = server->roomsList;
     server->myRoom = r;
     allRoom->push_back(r);
