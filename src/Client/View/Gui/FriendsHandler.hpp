@@ -16,8 +16,8 @@
 #include <QMessageBox>
 #include <QStackedWidget>
 
-#include "../Database/database.hpp" 
-#include "../Model/userdatabasemanager.hpp"
+#include "database.hpp" 
+#include "userdatabasemanager.hpp"
 #include <atomic>
 #include <mutex>
 #include <string>
