@@ -77,7 +77,8 @@ int Tetris::runTetris(int argc, char** argv) {
     //Game loop
     if (argc > 1 && std::string(argv[1]) == "--gui") 
     {
-        return runGuiApp(argc, argv);
+        threadData->isGui = true;
+        return runGuiApp(argc, argv, socketServer, threadData);
     } 
     else 
     {
