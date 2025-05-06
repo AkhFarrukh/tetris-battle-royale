@@ -179,7 +179,7 @@ void MainWindow::setupMainMenuScreen() {
     mainMenuScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
     auto layout = new QVBoxLayout(mainMenuScreen);
 
-    QLabel *titleLabel = new QLabel("Main Menu", this);
+    QLabel *titleLabel = new QLabel("Main MenuMessage", this);
     titleLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: black;"); 
     titleLabel->setAlignment(Qt::AlignCenter);  
     layout->addWidget(titleLabel, 0, Qt::AlignCenter);  
@@ -290,7 +290,7 @@ void MainWindow::setupFriendsScreen(){
     friendsScreen = new QWidget(this);
     QVBoxLayout* layout = new QVBoxLayout(friendsScreen);
 
-    QPushButton* backButton = new QPushButton("Back to Menu", this);
+    QPushButton* backButton = new QPushButton("Back to MenuMessage", this);
     backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
     
     layout->addWidget(backButton);
@@ -311,7 +311,7 @@ void MainWindow::setupFriendsListScreen(){
 
 
 void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
-    Menu menu;
+    MenuMessage menu;
     menu.action = action;
     menu.mode = mode;
     threadData->mux.lock();
@@ -329,11 +329,11 @@ void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
     }
     
     int type = MessageType::T_Menu;
-    int size = sizeof(Menu);
+    int size = sizeof(MenuMessage);
     
     if (!sendAll(sock, &type, sizeof(type)) ||
         !sendAll(sock, &size, sizeof(size)) ||
-        !sendAll(sock, &menu, sizeof(Menu))) {
+        !sendAll(sock, &menu, sizeof(MenuMessage))) {
         QMessageBox::critical(this, "Erreur", "Échec de l'envoi du menu.");
         return;
     }    
@@ -449,16 +449,16 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
 }
 
 void MainWindow::sendCreateRoom() {
-    Menu menu;
+    MenuMessage menu;
     menu.mode = threadData->gameMode;
     menu.action = MenuActions::A_CreateRoom;
 
     int type = MessageType::T_Menu;
-    int size = sizeof(Menu);
+    int size = sizeof(MenuMessage);
 
     if (!sendAll(sock, &type, sizeof(type)) ||
         !sendAll(sock, &size, sizeof(size)) ||
-        !sendAll(sock, &menu, sizeof(Menu))) {
+        !sendAll(sock, &menu, sizeof(MenuMessage))) {
         QMessageBox::critical(this, "Erreur", "Échec de la création de la salle.");
         return;
     }
@@ -525,14 +525,14 @@ void MainWindow::joinRoom(int roomID) {
 }
 
 void MainWindow::sendForceStart() {
-    Menu menu;
+    MenuMessage menu;
     menu.action = MenuActions::A_ForceStart;
     // menu.mode = threadData->gameMode;
     int type = MessageType::T_Menu;
-    int size = sizeof(Menu);
+    int size = sizeof(MenuMessage);
     sendAll(sock, &type, sizeof(int));
     sendAll(sock, &size, sizeof(int));
-    sendAll(sock, &menu, sizeof(Menu));
+    sendAll(sock, &menu, sizeof(MenuMessage));
 }
 
 void MainWindow::sendLeaveRoom() {
@@ -576,15 +576,15 @@ void MainWindow::requestRoomUpdate() {
 }
 
 void MainWindow::requestRoomList() {
-    Menu menu;
+    MenuMessage menu;
     menu.mode = threadData->gameMode;
     menu.action = MenuActions::A_JoinRoom;
 
     int type = MessageType::T_Menu;
-    int size = sizeof(Menu);
+    int size = sizeof(MenuMessage);
     sendAll(sock, &type, sizeof(int));
     sendAll(sock, &size, sizeof(int));
-    sendAll(sock, &menu, sizeof(Menu));
+    sendAll(sock, &menu, sizeof(MenuMessage));
 }
 
 void MainWindow::handleAuth() {

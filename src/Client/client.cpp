@@ -10,13 +10,12 @@ void handleSigint(int sig)
     keepRunning = false;
 }
 
-int main ()
+int main (int argc, char** argv)
 {
     signal(SIGINT, handleSigint);
 
     unique_ptr<Tetris> tetris = make_unique<Tetris>();
-    char ** argv;
-    tetris->runTetris(0, argv);
+    tetris->runTetris(argc, argv);
     
     return 0;
 }
