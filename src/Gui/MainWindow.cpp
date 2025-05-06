@@ -745,20 +745,36 @@ void* MainWindow::threadRoutineQtView(void* arg) {
         }
 
         else if (type == MessageType::T_Exit || type == MessageType::T_ForcedExit) {
+        //    if (type == MessageType::T_ForcedExit) {
+        //        threadData->mux.lock();
+        //        threadData->userInGame = false;
+        //        threadData->userInLobby = false;
+        //        threadData->mux.unlock();
+        //        flag = true;
+        //        break;
+        //    } else {
+        //        // ibrahim irhamni
+        //        threadData->mux.lock();
+        //        threadData->userInGame = false;
+        //        threadData->userInLobby = false;
+        //        threadData->mux.unlock();
+        //        continue;
+        //    }
+            threadData->mux.lock();
+            threadData->userInGame = false;
+            threadData->userInLobby = false;
+            threadData->mux.unlock();
+
+            QMetaObject::invokeMethod(
+                static_cast<QObject*>(parent),
+                [parent]() {
+                    parent->showMainMenuScreen();
+                }
+            );
+
             if (type == MessageType::T_ForcedExit) {
-                threadData->mux.lock();
-                threadData->userInGame = false;
-                threadData->userInLobby = false;
-                threadData->mux.unlock();
                 flag = true;
                 break;
-            } else {
-                // ibrahim irhamni
-                threadData->mux.lock();
-                threadData->userInGame = false;
-                threadData->userInLobby = false;
-                threadData->mux.unlock();
-                continue;
             }
         
         }
