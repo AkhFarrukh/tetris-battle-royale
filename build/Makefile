@@ -5,7 +5,11 @@ CLIENT_TARGET := ../tetris.exe
 
 # Dossiers sources et objets
 SRC_DIR = ../src
+SRC_SERVER_DIR = $(SRC_DIR)/Server $(SRC_DIR)/Common
+SRC_CLIENT_DIR = $(SRC_DIR)/Client $(SRC_DIR)/Common
+SRC_GUI_DIR = $(SRC_DIR)/Client/View/Gui
 BUILD_DIR = ../build
+BUILD_GUI_DIR = $(BUILD_DIR)/Client/View/Gui
 LIB_DIR = ../lib
 NCURSES_DIR = $(LIB_DIR)/ncurses-install
 SQLITE_DIR = $(LIB_DIR)/sqlite-install
@@ -62,12 +66,15 @@ export LD_LIBRARY_PATH := $(LIB_DIR):$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LD_L
 
 # Compilateur
 CXX = g++
-# ajout à la fin de -fPIC car ca beugait sur WSL2
-COMMON_CXXFLAGS = -I$(SRC_DIR)/Component -I$(SRC_DIR)/Player -I$(SRC_DIR)/Controller -I$(SRC_DIR)/Model -I$(SRC_DIR)/View -I$(SRC_DIR)/Database -I$(SRC_DIR)/Server -I$(SRC_DIR)/Gui $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g -fPIC
+COMMON_CXXFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
+# Include directories
+INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d)
+COMMON_CXXFLAGS += $(foreach dir,$(INCLUDE_DIRS),-I$(dir))
+COMMON_CXXFLAGS += $(QT_CXXFLAGS)
 
 # Sources
-SERVER_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -name "tetris.cpp" ! -path "$(SRC_DIR)/Gui/*")
-CLIENT_SRCS = $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -name "server.cpp")
+SERVER_SRCS = $(foreach dir,$(SRC_SERVER_DIR),$(shell find $(dir) -type f -name "*.cpp"))
+CLIENT_SRCS = $(foreach dir,$(SRC_CLIENT_DIR),$(shell find $(dir) -type f -name "*.cpp"))
 
 # Objet principaux
 SERVER_OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SERVER_SRCS))
@@ -75,8 +82,8 @@ CLIENT_OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(CLIENT_SRCS))
 
 # --- AUTOMOC ---
 # Détection des fichiers .hpp avec Q_OBJECT
-MOC_HEADERS := $(shell grep -l Q_OBJECT $(SRC_DIR)/Gui/*.hpp 2>/dev/null)
-MOC_CPP := $(patsubst $(SRC_DIR)/Gui/%.hpp, $(BUILD_DIR)/Gui/moc_%.cpp, $(MOC_HEADERS))
+MOC_HEADERS := $(shell grep -l Q_OBJECT $(SRC_GUI_DIR)/*.hpp 2>/dev/null)
+MOC_CPP := $(patsubst $(SRC_GUI_DIR)/%.hpp, $(BUILD_GUI_DIR)/moc_%.cpp, $(MOC_HEADERS))
 MOC_OBJS := $(patsubst %.cpp, %.o, $(MOC_CPP))
 
 CLIENT_OBJS += $(MOC_OBJS)
@@ -99,17 +106,17 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(COMMON_CXXFLAGS) $(QT_CXXFLAGS) -c $< -o $@
 
 # --- MOC generation ---
-$(BUILD_DIR)/Gui/moc_%.cpp: $(SRC_DIR)/Gui/%.hpp
+$(BUILD_GUI_DIR)/moc_%.cpp: $(SRC_GUI_DIR)/%.hpp
 	@mkdir -p $(dir $@)
 	$(MOC) $(QT_CXXFLAGS) $< -o $@
 
 # --- Compile MOC files ---
-$(BUILD_DIR)/Gui/%.o: $(BUILD_DIR)/Gui/%.cpp
+$(BUILD_GUI_DIR)/%.o: $(BUILD_GUI_DIR)/%.cpp
 	$(CXX) $(COMMON_CXXFLAGS) $(QT_CXXFLAGS) -c $< -o $@
 
 # --- CLEAN ---
 clean:
-	rm -rf $(BUILD_DIR)/*.o $(BUILD_DIR)/*/*.o $(BUILD_DIR)/Gui/moc_*.cpp $(SERVER_TARGET) $(CLIENT_TARGET)
+	rm -rf $(SERVER_OBJS)/*.o $(CLIENT_OBJS)/*.o $(BUILD_GUI_DIR)/moc_*.cpp $(BUILD_GUI_DIR)/moc_*.o $(SERVER_TARGET) $(CLIENT_TARGET)
 
 run: all
 	LD_LIBRARY_PATH=$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LIB_DIR):$$LD_LIBRARY_PATH ./$(CLIENT_TARGET)

@@ -1,0 +1,52 @@
+//
+// Created by farrukh on 27/02/25.
+//
+
+#ifndef RENDERENGINENCURSES_HPP
+#define RENDERENGINENCURSES_HPP
+
+#include <ncurses.h>
+#include <ncurses.h>
+#include <memory>
+#include "GameController.hpp"
+#include "playerData.hpp"
+
+using namespace std;
+
+class Game;
+
+class RenderEngineNcurses {
+private:
+    static int applyColor(Color blockColor);
+
+public:
+    void renderGame(std::shared_ptr<NetPlayerData> player, Coordinates offset);
+    void renderGame(const NetPlayerData& player, Coordinates offset);
+
+    void printBlock(Color blockColor, Coordinates offset, Coordinates currentCoordinates);
+
+    void printEndgameMessage(const NetPlayerData &player, Coordinates offset);
+
+    void highlightGridBorders(Coordinates offset);
+
+    void renderGame(std::shared_ptr<NetPlayerData> player);
+
+    int getClientPlayerIndex(const vector<NetPlayerData> &players, bool targetPlayerMenu);
+
+    void drawTitleWithBorder(Coordinates offset, string title);
+
+    void drawMalusMenu(const NetPlayerData &playerClient, int numberOfPlayers);
+
+    void drawPlayerSelectionMenu(const vector<NetPlayerData> &players, int numberOfPlayers);
+
+    void renderGamesRoyal(const vector<NetPlayerData> &players, bool targetPlayerMenu);
+
+    void renderGames(const vector<std::shared_ptr<NetPlayerData>> &players);
+    void renderGames(const vector<NetPlayerData> &players);
+    static void printGameOver();
+
+};
+
+
+
+#endif //RENDERENGINENCURSES_HPP
