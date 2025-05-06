@@ -350,77 +350,42 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
         bool keepRunning = threadData->userInGame;
         inLobby = threadData->userInLobby;
 
-        if (!keepRunning && !inLobby) {
-            break;
-        }
-        else if(inLobby && !keepRunning)continue;
+        if (!keepRunning && !inLobby) {break;
+        } else if(inLobby && !keepRunning) continue;
         else{
-          threadData->displayMut.lock();
-        KeyboardAction currentAction = Input::getKeyboardInput();
-        threadData->displayMut.unlock();
-        if(currentAction != KeyboardAction::NO_ACTION){
-            if(currentAction == KeyboardAction::EXIT_KEY) {
-                //todo idk if it is possible to use sendMessage function here
-                int msgType = MessageType::T_Exit;
-                int msgSize = 0;
-                sendAll(threadData->socket, &msgType, sizeof(msgType));
-                sendAll(threadData->socket, &msgSize, sizeof(msgSize));
-
-                threadData->userInLobby = false;
-                threadData->userInGame = false;
-                threadData->isSpectator = false;
-            }
-
-            int numberKey = keyboardActionToInt(currentAction);
-            if (numberKey != -1 and threadData->gameMode == Modes::Royal_) {
-                if (threadData->targetPlayerMenu) {
-                    // if player choses target player for malus
-                    chosenPlayer = numberKey;
-                    threadData->targetPlayerMenu = false;
-                    //send a malus
-                    MalBonus currentMalBonus;
-                    currentMalBonus.malusB = intToMalusBonus(chosenMalus);
-                    currentMalBonus.target = chosenPlayer;// todo choose playerid and check  if it is not player himeself on server
-                    if (!sendMessage(threadData->socket, MessageType::T_MalusBonus, currentMalBonus)) {
-                        perror("Error sending malusbonus message");
+            threadData->displayMut.lock();
+            KeyboardAction currentAction = Input::getKeyboardInput();
+            threadData->displayMut.unlock();
+            if(currentAction != KeyboardAction::NO_ACTION){
+                if(currentAction == KeyboardAction::EXIT_KEY) {
+                    //todo idk if it is possible to use sendMessage function here
+                    if (!sendExitMessage(threadData)) {
                         keepRunning = false;
                         break;
                     }
-                    chosenMalus = 0; chosenPlayer = 0;
-                } else {
-                    // if player choses malus or bonus
-                    //todo perform energy price check (on the server probably)
-                    chosenMalus = numberKey;
-                    if (chosenMalus == 6 or chosenMalus == 7) {
-                        //todo check if it is possible to change int to malusbonus earlier
-                        // if malus is bonus, no need for target player
-                        //send a bonus
-                        chosenPlayer = threadData->clinetPlayerID; // to himself
-                        MalBonus currentMalBonus;
-                        currentMalBonus.malusB = intToMalusBonus(chosenMalus);
-                        currentMalBonus.target = chosenPlayer;
-                        if (!sendMessage(threadData->socket, MessageType::T_MalusBonus, currentMalBonus)) {
-                            perror("Error sending malusbonus message");
-                            keepRunning = false;
-                            break;
-                        }
-                        chosenMalus = 0; chosenPlayer = 0;
-                    }else {
-                        // if malus is malus, player needs to choose target player
-                        threadData->targetPlayerMenu = true;
+                    threadData->userInLobby = false;
+                    threadData->userInGame = false;
+                    threadData->isSpectator = false;
+                }
+
+                int numberKey = keyboardActionToInt(currentAction);
+                if (numberKey != -1 and threadData->gameMode == Modes::Royal_) {
+                    if (!handleMalBonMessageSending(threadData, numberKey, chosenPlayer, chosenMalus)) {
+                        keepRunning = false;
+                        break;
+                    }
+                }
+                else {
+                    InputMessage inputMessage;
+                    inputMessage.input = currentAction;
+                    if (!sendMessage(threadData->socket, MessageType::T_Input, inputMessage)) {
+                        perror("Error sending input message");
+                        keepRunning = false;
+                        break;
                     }
                 }
             }
-            else {
-                InputMessage inputMessage;
-                inputMessage.input = currentAction;
-                if (!sendMessage(threadData->socket, MessageType::T_Input, inputMessage)) {
-                    perror("Error sending input message");
-                    keepRunning = false;
-                    break;
-                }
-            }
-        }}
+        }
     }
     return 0;
 }
@@ -446,6 +411,58 @@ bool Player::sendMessage(int socket, int messageType, const T& messageData) {
     return true;
 }
 
+bool Player::sendExitMessage(shared_ptr<ThreadData> threadData) {
+    int msgType = MessageType::T_Exit;
+    int msgSize = 0;
+    if (!sendAll(threadData->socket, &msgType, sizeof(msgType))){return false;}
+    if (!sendAll(threadData->socket, &msgSize, sizeof(msgSize))){return false;}
+    return true;
+}
+
+bool Player::handleMalBonMessageSending(shared_ptr<ThreadData> threadData,
+                                                 int numberKey,
+                                                 int& chosenPlayer,
+                                                 int& chosenMalus
+    ) {
+    if (threadData->targetPlayerMenu) {
+        // if player choses target player for malus
+        chosenPlayer = numberKey;
+        threadData->targetPlayerMenu = false;
+        //send a malus
+        MalBonus currentMalBonus;
+        currentMalBonus.malusB = intToMalusBonus(chosenMalus);
+        currentMalBonus.target = chosenPlayer;// todo choose playerid and check  if it is not player himeself on server
+        if (!sendMessage(threadData->socket, MessageType::T_MalusBonus, currentMalBonus)) {
+            perror("Error sending malusbonus message");
+            return false;
+        }
+        chosenMalus = 0; chosenPlayer = 0;
+    } else {
+        // if player choses malus or bonus
+        //todo perform energy price check (on the server probably)
+        chosenMalus = numberKey;
+        if (chosenMalus == 6 or chosenMalus == 7) {
+            //todo check if it is possible to change int to malusbonus earlier
+            // if malus is bonus, no need for target player
+            //send a bonus
+            chosenPlayer = threadData->clinetPlayerID; // to himself
+            MalBonus currentMalBonus;
+            currentMalBonus.malusB = intToMalusBonus(chosenMalus);
+            currentMalBonus.target = chosenPlayer;
+            if (!sendMessage(threadData->socket, MessageType::T_MalusBonus, currentMalBonus)) {
+                perror("Error sending malusbonus message");
+                return false;
+            }
+            chosenMalus = 0; chosenPlayer = 0;
+        }else {
+            // if malus is malus, player needs to choose target player
+            threadData->targetPlayerMenu = true;
+        }
+    }
+    return true;
+}
+
+
 /**
  * @brief Convert keyboard action to integer value
  *
@@ -459,6 +476,8 @@ int Player::keyboardActionToInt(KeyboardAction action) {
         return -1;  // Not a number key
     }
 }
+
+
 
 
 

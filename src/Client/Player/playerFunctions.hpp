@@ -61,6 +61,11 @@ class Player {
         template<class T>
         static bool sendMessage(int socket, int messageType, const T &messageData);
 
+        static bool sendExitMessage(shared_ptr<ThreadData> threadData);
+
+        static bool handleMalBonMessageSending(shared_ptr<ThreadData> threadData, int numberKey, int &chosenPlayer,
+                                               int &chosenMalus);
+
         static int keyboardActionToInt(KeyboardAction action);
         static void affichageMessage(Message& message);
         static MalusBonus intToMalusBonus(int malus);
