@@ -411,6 +411,13 @@ bool Player::sendMessage(int socket, int messageType, const T& messageData) {
     return true;
 }
 
+
+/**
+ * @brief Send exit message to the server
+ *
+ * @param threadData ThreadData containing socket and player information
+ * @return bool Success status of the operation
+ */
 bool Player::sendExitMessage(shared_ptr<ThreadData> threadData) {
     int msgType = MessageType::T_Exit;
     int msgSize = 0;
@@ -419,8 +426,39 @@ bool Player::sendExitMessage(shared_ptr<ThreadData> threadData) {
     return true;
 }
 
+
+/**
+ * @brief Send malus or bonus message to the server
+ *
+ * @param chosenMalus Reference to store the chosen malus
+ * @param chosenPlayer Reference to store the chosen player
+ * @param socket Socket to send the message on
+ * @return bool Success status of the operation
+ */
+bool Player::sendMalBonMessage(int& chosenMalus, int& chosenPlayer, int socket) {
+    MalBonus currentMalBonus;
+    currentMalBonus.malusB = intToMalusBonus(chosenMalus);
+    currentMalBonus.target = chosenPlayer;// todo choose playerid and check  if it is not player himeself on server
+    if (!sendMessage(socket, MessageType::T_MalusBonus, currentMalBonus)) {
+        perror("Error sending malusbonus message");
+        return false;
+    }
+    chosenMalus = 0; chosenPlayer = 0;
+    return true;
+}
+
+
+/**
+ * @brief Handle sending malus or bonus messages to the server
+ *
+ * @param threadData ThreadData containing socket and player information
+ * @param numberKey The key pressed by the player (0-9)
+ * @param chosenPlayer Reference to store the chosen player
+ * @param chosenMalus Reference to store the chosen malus
+ * @return bool Success status of the operation
+ */
 bool Player::handleMalBonMessageSending(shared_ptr<ThreadData> threadData,
-                                                 int numberKey,
+                                                 int& numberKey,
                                                  int& chosenPlayer,
                                                  int& chosenMalus
     ) {
@@ -429,14 +467,9 @@ bool Player::handleMalBonMessageSending(shared_ptr<ThreadData> threadData,
         chosenPlayer = numberKey;
         threadData->targetPlayerMenu = false;
         //send a malus
-        MalBonus currentMalBonus;
-        currentMalBonus.malusB = intToMalusBonus(chosenMalus);
-        currentMalBonus.target = chosenPlayer;// todo choose playerid and check  if it is not player himeself on server
-        if (!sendMessage(threadData->socket, MessageType::T_MalusBonus, currentMalBonus)) {
-            perror("Error sending malusbonus message");
+        if (!sendMalBonMessage(chosenMalus, chosenPlayer, threadData->socket)) {
             return false;
         }
-        chosenMalus = 0; chosenPlayer = 0;
     } else {
         // if player choses malus or bonus
         //todo perform energy price check (on the server probably)
@@ -446,14 +479,9 @@ bool Player::handleMalBonMessageSending(shared_ptr<ThreadData> threadData,
             // if malus is bonus, no need for target player
             //send a bonus
             chosenPlayer = threadData->clinetPlayerID; // to himself
-            MalBonus currentMalBonus;
-            currentMalBonus.malusB = intToMalusBonus(chosenMalus);
-            currentMalBonus.target = chosenPlayer;
-            if (!sendMessage(threadData->socket, MessageType::T_MalusBonus, currentMalBonus)) {
-                perror("Error sending malusbonus message");
+            if (!sendMalBonMessage(chosenMalus, chosenPlayer, threadData->socket)) {
                 return false;
             }
-            chosenMalus = 0; chosenPlayer = 0;
         }else {
             // if malus is malus, player needs to choose target player
             threadData->targetPlayerMenu = true;

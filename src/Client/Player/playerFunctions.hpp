@@ -63,7 +63,9 @@ class Player {
 
         static bool sendExitMessage(shared_ptr<ThreadData> threadData);
 
-        static bool handleMalBonMessageSending(shared_ptr<ThreadData> threadData, int numberKey, int &chosenPlayer,
+        static bool sendMalBonMessage(int &chosenMalus, int &chosenPlayer, int socket);
+
+        static bool handleMalBonMessageSending(shared_ptr<ThreadData> threadData, int &numberKey, int &chosenPlayer,
                                                int &chosenMalus);
 
         static int keyboardActionToInt(KeyboardAction action);
