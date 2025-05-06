@@ -768,7 +768,13 @@ void* MainWindow::threadRoutineQtView(void* arg) {
             QMetaObject::invokeMethod(
                 static_cast<QObject*>(parent),
                 [parent]() {
-                    parent->showMainMenuScreen();
+                    QMessageBox::StandardButton reply;
+                    reply = QMessageBox::question(parent, "Game Over", 
+                            "Game has ended. Return to the main menu?",
+                            QMessageBox::Yes | QMessageBox::No);
+                    if (reply == QMessageBox::Yes) {
+                        parent->showMainMenuScreen();
+                    }
                 }
             );
 
