@@ -360,16 +360,15 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
         threadData->displayMut.unlock();
         if(currentAction != KeyboardAction::NO_ACTION){
             if(currentAction == KeyboardAction::EXIT_KEY) {
+                //todo idk if it is possible to use sendMessage function here
                 int msgType = MessageType::T_Exit;
                 int msgSize = 0;
                 sendAll(threadData->socket, &msgType, sizeof(msgType));
                 sendAll(threadData->socket, &msgSize, sizeof(msgSize));
-                threadData->mux.lock();
+
                 threadData->userInLobby = false;
                 threadData->userInGame = false;
                 threadData->isSpectator = false;
-                threadData->mux.unlock();
-
             }
 
             int numberKey = keyboardActionToInt(currentAction);
@@ -379,14 +378,14 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                     chosenPlayer = numberKey;
                     threadData->targetPlayerMenu = false;
                     //send a malus
-                    int type = MessageType::T_MalusBonus;
-                    int size = sizeof(MalBonus);
                     MalBonus currentMalBonus;
                     currentMalBonus.malusB = intToMalusBonus(chosenMalus);
                     currentMalBonus.target = chosenPlayer;// todo choose playerid and check  if it is not player himeself on server
-                    if (!sendAll(threadData->socket, &type, sizeof(int))) { keepRunning = false; break;}
-                    if (!sendAll(threadData->socket, &size, sizeof(int))) { keepRunning = false; break;}
-                    if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) { keepRunning = false; break;}
+                    if (!sendMessage(threadData->socket, MessageType::T_MalusBonus, currentMalBonus)) {
+                        perror("Error sending malusbonus message");
+                        keepRunning = false;
+                        break;
+                    }
                     chosenMalus = 0; chosenPlayer = 0;
                 } else {
                     // if player choses malus or bonus
@@ -397,14 +396,14 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                         // if malus is bonus, no need for target player
                         //send a bonus
                         chosenPlayer = threadData->clinetPlayerID; // to himself
-                        int type = MessageType::T_MalusBonus;
-                        int size = sizeof(MalBonus);
                         MalBonus currentMalBonus;
                         currentMalBonus.malusB = intToMalusBonus(chosenMalus);
                         currentMalBonus.target = chosenPlayer;
-                        if (!sendAll(threadData->socket, &type, sizeof(int))) {keepRunning = false; break;}
-                        if (!sendAll(threadData->socket, &size, sizeof(int))) {keepRunning = false; break;}
-                        if (!sendAll(threadData->socket, &currentMalBonus, sizeof(MalBonus))) {keepRunning = false; break;}
+                        if (!sendMessage(threadData->socket, MessageType::T_MalusBonus, currentMalBonus)) {
+                            perror("Error sending malusbonus message");
+                            keepRunning = false;
+                            break;
+                        }
                         chosenMalus = 0; chosenPlayer = 0;
                     }else {
                         // if malus is malus, player needs to choose target player
@@ -413,13 +412,13 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                 }
             }
             else {
-                int type = MessageType::T_Input;
-                int size = sizeof(InputMessage);
                 InputMessage inputMessage;
                 inputMessage.input = currentAction;
-                if (!sendAll(threadData->socket, &type, sizeof(int))) { keepRunning = false; break;}
-                if (!sendAll(threadData->socket, &size, sizeof(int))) { keepRunning = false; break;}
-                if (!sendAll(threadData->socket, &inputMessage, sizeof(InputMessage))) { keepRunning = false; break;}
+                if (!sendMessage(threadData->socket, MessageType::T_Input, inputMessage)) {
+                    perror("Error sending input message");
+                    keepRunning = false;
+                    break;
+                }
             }
         }}
     }
@@ -427,6 +426,25 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
 }
 
 
+
+
+/**
+ * @brief Generic function to send a message to the server
+ *
+ * @tparam T Type of message data to send
+ * @param socket Socket to send the message on
+ * @param messageType Type of message (MessageType enum)
+ * @param messageData data of certain type or struct to send
+ * @return bool Success status of the send operation
+ */
+template<typename T>
+bool Player::sendMessage(int socket, int messageType, const T& messageData) {
+    int dataSize = sizeof(T);
+    if (!sendAll(socket, &messageType, sizeof(int))) { return false;}
+    if (!sendAll(socket, &dataSize, sizeof(int))) { return false;}
+    if (!sendAll(socket, &messageData, dataSize)) { return false;}
+    return true;
+}
 
 /**
  * @brief Convert keyboard action to integer value

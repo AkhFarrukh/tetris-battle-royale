@@ -58,6 +58,9 @@ class Player {
 
         static void* threadRoutineView (void* arg); //Routine qui recoit la grid et l'affiche
         static int sendInput (std::shared_ptr<Player::ThreadData> threadData); //Envoie les inputs au server
+        template<class T>
+        static bool sendMessage(int socket, int messageType, const T &messageData);
+
         static int keyboardActionToInt(KeyboardAction action);
         static void affichageMessage(Message& message);
         static MalusBonus intToMalusBonus(int malus);
