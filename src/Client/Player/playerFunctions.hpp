@@ -58,6 +58,8 @@ class Player {
 
         static void* threadRoutineView (void* arg); //Routine qui recoit la grid et l'affiche
         static int sendInput (std::shared_ptr<Player::ThreadData> threadData); //Envoie les inputs au server
+        static bool roomHandler(int sock, ThreadData *threadData, int size, int type);
+
         template<class T>
         static bool sendMessage(int socket, int messageType, const T &messageData);
 

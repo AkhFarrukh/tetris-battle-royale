@@ -141,121 +141,10 @@ void* Player::threadRoutineView (void* arg){
             continue;
         }
         else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {
-            RenderRooms renderR;
-            RoomInfo info;
-            if (!recvAll(sock, &info, size)) {
-                perror("Error on receiving room");
-                keepRunning = false;
+            //todo obpnoehibjgqebjgje
+            if (!roomHandler(sock, threadData, size, type)) {
                 break;
             }
-            int flags = fcntl(sock, F_GETFL, 0);
-            fcntl(sock, F_SETFL, flags | O_NONBLOCK);
-
-            int act = 0;
-            while (keepRunning) {
-                if (threadData->isSpectator) {
-                    // ─── Spectator Waiting Room ───────────────────────
-                    int act = renderR.handleSpectatorRoom(info);
-                    if (act == -2) {
-                        int msg = MessageType::T_Refresh, sz = sizeof(int);
-                        sendAll(sock, &msg,  sizeof(msg));
-                        sendAll(sock, &sz,   sizeof(sz));
-                    }
-                    else if (act == -1) {
-                        // Go back to room list
-                        int sendType = MessageType::T_LeftRoom;
-                        int sendSize = sizeof(int);
-                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = true; break;}
-                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = true; break;}
-        
-                        threadData->mux.lock();
-                        threadData->isSpectator = false;
-                        threadData->mux.unlock();
-                        break;
-                    }
-                }
-                else {
-                    // ─── Player Lobby ───────────────────────────────────
-                    int act = renderR.handleMyRoom(info);
-
-                    if (act == 1 && type == MessageType::T_RoomInfo) {
-                        int sendType = MessageType::T_Menu;
-                        int sendSize = sizeof(MenuMessage);
-                        MenuMessage MenuMessage;
-                        MenuMessage.action = MenuActions::A_ForceStart;
-
-                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                        if(!sendAll(sock, &MenuMessage, sizeof(MenuMessage))){keepRunning = false; break;}
-
-                    } else if (act == -2) {
-                        if(type == MessageType::T_RoomInfo){
-                            int sendType = MessageType::T_Refresh;
-                            int sendSize = sizeof(int);
-
-                            if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                            if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                            break;
-                        }
-                        else{
-                            int sendType = MessageType::T_RoomJoinRefresh;
-                            int sendSize = sizeof(int);
-
-                            if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                            if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                            break;
-                        }
-                    } else if (act == -1) {
-                        if(type == MessageType::T_RoomInfo){
-                            int sendType = MessageType::T_RoomDeleted;
-                            int sendSize = sizeof(int);
-                            if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                            if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                            threadData->userInLobby = false;
-                            break;
-                        }
-                        else{
-                            int sendType = MessageType::T_LeftRoom;
-                            int sendSize = sizeof(int);
-                            if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                            if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                            threadData->userInLobby = false;
-
-                            break;
-                        }
-                    }
-                }
-                int messageType;
-                int messageSize;
-
-                int bytesReceivedType = recv(sock, &messageType, sizeof(int), MSG_DONTWAIT);
-
-                if (bytesReceivedType > 0) {
-                    recv(sock, &messageSize, sizeof(int), 0);
-
-                    if (messageType == MessageType::T_GameStart) {
-                        threadData->userInGame = true;
-                        break;
-                    }
-                    else if(messageType == MessageType::T_ForcedExit){
-                        threadData->userInGame = false;
-                        threadData->userInLobby = false;
-                        keepRunning = false;
-                        break;
-                    }
-                    else if(messageType == MessageType::T_Exit){
-                        threadData->userInGame = false;
-                        threadData->userInLobby = false;
-                        break;
-                    }
-                } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
-                    perror("Socket error");
-                    keepRunning = false; break;
-                }
-                usleep(500);
-            }
-
-            fcntl(sock, F_SETFL, flags);
          }
 
         else if (type == MessageType::T_RoomsInfo){
@@ -390,6 +279,127 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     return 0;
 }
 
+
+bool Player::roomHandler(int sock,
+                        ThreadData* threadData,
+                        int size,
+                        int type
+    ) {
+    RenderRooms renderR;
+    RoomInfo info;
+    if (!recvAll(sock, &info, size)) {
+        perror("Error on receiving room");
+        keepRunning = false;
+        return false;;
+    }
+    int flags = fcntl(sock, F_GETFL, 0);
+    fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+
+    int act = 0;
+    while (keepRunning) {
+        if (threadData->isSpectator) {
+            // ─── Spectator Waiting Room ───────────────────────
+            int act = renderR.handleSpectatorRoom(info);
+            if (act == -2) {
+                int msg = MessageType::T_Refresh, sz = sizeof(int);
+                sendAll(sock, &msg,  sizeof(msg));
+                sendAll(sock, &sz,   sizeof(sz));
+            }
+            else if (act == -1) {
+                // Go back to room list
+                int sendType = MessageType::T_LeftRoom;
+                int sendSize = sizeof(int);
+                if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = true; break;}
+                if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = true; break;}
+
+                threadData->isSpectator = false;
+                break;
+            }
+        }
+        else {
+            // ─── Player Lobby ───────────────────────────────────
+            int act = renderR.handleMyRoom(info);
+
+            if (act == 1 && type == MessageType::T_RoomInfo) {
+                int sendType = MessageType::T_Menu;
+                int sendSize = sizeof(MenuMessage);
+                MenuMessage MenuMessage;
+                MenuMessage.action = MenuActions::A_ForceStart;
+
+                if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                if(!sendAll(sock, &MenuMessage, sizeof(MenuMessage))){keepRunning = false; break;}
+
+            } else if (act == -2) {
+                if(type == MessageType::T_RoomInfo){
+                    int sendType = MessageType::T_Refresh;
+                    int sendSize = sizeof(int);
+
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                    break;
+                }
+                else{
+                    int sendType = MessageType::T_RoomJoinRefresh;
+                    int sendSize = sizeof(int);
+
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                    break;
+                }
+            } else if (act == -1) {
+                if(type == MessageType::T_RoomInfo){
+                    int sendType = MessageType::T_RoomDeleted;
+                    int sendSize = sizeof(int);
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                    threadData->userInLobby = false;
+                    break;
+                }
+                else{
+                    int sendType = MessageType::T_LeftRoom;
+                    int sendSize = sizeof(int);
+                    if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                    threadData->userInLobby = false;
+
+                    break;
+                }
+            }
+        }
+        int messageType;
+        int messageSize;
+
+        int bytesReceivedType = recv(sock, &messageType, sizeof(int), MSG_DONTWAIT);
+
+        if (bytesReceivedType > 0) {
+            recv(sock, &messageSize, sizeof(int), 0);
+
+            if (messageType == MessageType::T_GameStart) {
+                threadData->userInGame = true;
+                break;
+            }
+            else if(messageType == MessageType::T_ForcedExit){
+                threadData->userInGame = false;
+                threadData->userInLobby = false;
+                keepRunning = false;
+                break;
+            }
+            else if(messageType == MessageType::T_Exit){
+                threadData->userInGame = false;
+                threadData->userInLobby = false;
+                break;
+            }
+        } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
+            perror("Socket error");
+            keepRunning = false; break;
+        }
+        usleep(500);
+    }
+
+    fcntl(sock, F_SETFL, flags);
+    return true;
+}
 
 
 
