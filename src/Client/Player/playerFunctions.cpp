@@ -48,10 +48,9 @@ void* Player::threadRoutineView (void* arg){
     int sock = threadData->socket;
     RenderEngineNcurses render;
     while (keepRunning) {
-        threadData->mux.lock();
+
         bool inGame = threadData->userInGame;
-        threadData->mux.unlock();
-        //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
+
         //To have info on the data received
         int type;
         int size;
@@ -62,9 +61,7 @@ void* Player::threadRoutineView (void* arg){
         //Client disconnected or error
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
             perror("Client disconnected : ");
-            threadData->mux.lock();
             threadData->userInGame = false; // Stop the loop
-            threadData->mux.unlock();
             keepRunning = false;
             break;
         }
@@ -78,10 +75,8 @@ void* Player::threadRoutineView (void* arg){
             affichageMessage(message);
         }
         else if(type == MessageType::T_Exit){
-            threadData->mux.lock();
             threadData->userInGame = false;
             threadData->userInLobby = false;
-            threadData->mux.unlock();
             napms(300);
             continue;
         }
@@ -110,18 +105,8 @@ void* Player::threadRoutineView (void* arg){
                 playersData.push_back(player);
             }
 
-            //std::cout<<"Rendered games"<<std::endl;
-            
-            /*
-            }
-            else {
-                render.renderGames(playersData);
-            }
-            */
-
 
             if (threadData->gameMode == Modes::Royal_){
-                //std::cout<<"Rendering royal games"<<std::endl;
                 threadData->displayMut.lock();
                 render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
                 threadData->displayMut.unlock();
@@ -149,10 +134,10 @@ void* Player::threadRoutineView (void* arg){
             break;
         }
         else if (type == MessageType::T_GameStart) {
-            threadData->mux.lock();
+
             threadData->userInGame = true;
             threadData->userInLobby = true;
-            threadData->mux.unlock();
+
             continue;
         }
         else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {
@@ -205,9 +190,7 @@ void* Player::threadRoutineView (void* arg){
                         int sendSize = sizeof(int);
                         if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
                         if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                        threadData->mux.lock();
                         threadData->userInLobby = false;
-                        threadData->mux.unlock();
                         break;
                     }
                     else{
@@ -215,9 +198,8 @@ void* Player::threadRoutineView (void* arg){
                         int sendSize = sizeof(int);
                         if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
                         if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                        threadData->mux.lock();
                         threadData->userInLobby = false;
-                        threadData->mux.unlock();
+
                         break;
                     }
                 }
@@ -228,28 +210,21 @@ void* Player::threadRoutineView (void* arg){
                 int bytesReceivedType = recv(sock, &messageType, sizeof(int), MSG_DONTWAIT);
 
                 if (bytesReceivedType > 0) {
-                    //printf("yuyyuyuu\n");
                     recv(sock, &messageSize, sizeof(int), 0);
 
                     if (messageType == MessageType::T_GameStart) {
-                        threadData->mux.lock();
                         threadData->userInGame = true;
-                        threadData->mux.unlock();
                         break;
                     }
                     else if(messageType == MessageType::T_ForcedExit){
-                        threadData->mux.lock();
                         threadData->userInGame = false;
                         threadData->userInLobby = false;
-                        threadData->mux.unlock();
                         keepRunning = false;
                         break;
                     }
                     else if(messageType == MessageType::T_Exit){
-                        threadData->mux.lock();
                         threadData->userInGame = false;
                         threadData->userInLobby = false;
-                        threadData->mux.unlock();
                         break;
                     }
                 } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
@@ -292,9 +267,7 @@ void* Player::threadRoutineView (void* arg){
                     if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {keepRunning = false; break;}
                     if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {keepRunning = false; break;}
                     if (!sendAll(sock, &fd, sizeof(int))) {keepRunning = false; break;}
-                    threadData->mux.lock();
                     threadData->userInLobby = true;
-                    threadData->mux.unlock();
                     break;
                 }
                 if (index == -2) {
@@ -320,9 +293,9 @@ void* Player::threadRoutineView (void* arg){
                     break;
                 }
                 if (index == -1) {
-                    threadData->mux.lock();
+
                     threadData->userInLobby = false;
-                    threadData->mux.unlock();
+
                     break;
                 }
             }
@@ -343,14 +316,12 @@ return 0;
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
-    threadData->mux.lock();
     bool inLobby = threadData->userInLobby;
-    threadData->mux.unlock();
     while (keepRunning && inLobby) {
-        threadData->mux.lock();
+
         bool keepRunning = threadData->userInGame;
         inLobby = threadData->userInLobby;
-        threadData->mux.unlock();
+
         if (!keepRunning && !inLobby) {
             break;
         }
@@ -361,10 +332,8 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
         threadData->displayMut.unlock();
         if(currentAction != KeyboardAction::NO_ACTION){
             if(currentAction == KeyboardAction::EXIT_KEY) {
-                threadData->mux.lock();
                 threadData->userInLobby = false;
                 threadData->userInGame = false;
-                threadData->mux.unlock();
             }
 
             int numberKey = keyboardActionToInt(currentAction);
@@ -372,9 +341,7 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                 if (threadData->targetPlayerMenu) {
                     // if player choses target player for malus
                     chosenPlayer = numberKey;
-                    threadData->mux.lock();
                     threadData->targetPlayerMenu = false;
-                    threadData->mux.unlock();
                     //send a malus
                     int type = MessageType::T_MalusBonus;
                     int size = sizeof(MalBonus);
@@ -390,6 +357,7 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                     //todo perform energy price check (on the server probably)
                     chosenMalus = numberKey;
                     if (chosenMalus == 6 or chosenMalus == 7) {
+                        //todo check if it is possible to change int to malusbonus earlier
                         // if malus is bonus, no need for target player
                         //send a bonus
                         chosenPlayer = threadData->clinetPlayerID; // to himself
@@ -404,9 +372,7 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                         chosenMalus = 0; chosenPlayer = 0;
                     }else {
                         // if malus is malus, player needs to choose target player
-                        threadData->mux.lock();
                         threadData->targetPlayerMenu = true;
-                        threadData->mux.unlock();
                     }
                 }
             }
@@ -433,31 +399,14 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
  * @return int Integer value for number keys (0-9), or -1 for other keys
  */
 int Player::keyboardActionToInt(KeyboardAction action) {
-    switch(action) {
-        case NUMBER_KEY_0:
-            return 0;
-        case NUMBER_KEY_1:
-            return 1;
-        case NUMBER_KEY_2:
-            return 2;
-        case NUMBER_KEY_3:
-            return 3;
-        case NUMBER_KEY_4:
-            return 4;
-        case NUMBER_KEY_5:
-            return 5;
-        case NUMBER_KEY_6:
-            return 6;
-        case NUMBER_KEY_7:
-            return 7;
-        case NUMBER_KEY_8:
-            return 8;
-        case NUMBER_KEY_9:
-            return 9;
-        default:
-            return -1;
+    if (action >= NUMBER_KEY_0 && action <= NUMBER_KEY_9) {
+        return action - NUMBER_KEY_0 ;  // Convert to 0-9
+    } else {
+        return -1;  // Not a number key
     }
 }
+
+
 
 MalusBonus Player::intToMalusBonus(int malus) {
     //todo reimagine this crap hardcoded thingy
