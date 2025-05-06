@@ -14,7 +14,7 @@
 #include <csignal>      //sigint
 #include <cstdlib>
 
-#include "Gui/gui_launcher.hpp"
+#include "gui_launcher.hpp"
 
 using namespace std;
 

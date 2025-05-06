@@ -509,7 +509,7 @@ int InterfaceTerminal::handleGameModeSelection(int& selectedMode) {
     }
     Menu menuGameMode(Menus::FriendsMenu, menuOptions, COLS, LINES, 50, 20);
 
-    int numberFRR = db.getNumberFriendRequestsReceived(user);
+    int numberFRR = udm.getNumberFriendRequestsReceived(user);
 
     menuGameMode.displayMenu(selectedOption, {}, numberFRR); // Affiche le menu principal
 }
