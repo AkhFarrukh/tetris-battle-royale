@@ -462,6 +462,11 @@ void Game::handleLineCompletion(int p) {
     }
 }
 
+void Game::setSpectators(const std::vector<int>* spectPtrs) {
+    spectatorFdsPtr = spectPtrs;
+}
+
+
 
 /**
  * @brief The method will send the game data to all players.
@@ -508,30 +513,50 @@ bool Game::broadcastGame(bool endGame) {
     //Envoie toutes les infos nécessaire à l'affichage à chaque joueur
     for (auto &ps : players) {
         if(ps.isInGame){
-            std::cout << "[broadcastGame] Sending data to fd=" << ps.fd << " size=" << netArray.size() << std::endl;
             int sock = ps.fd;
             if (sock <= 0) continue;
 
-            netArray[ps.playerId].playerId = -1;
+        netArray[ps.playerId].playerId = -1;
 
-            int type = MessageType::T_PlayerData;
-            if(endGame)type = MessageType::T_EndGame;
-            if (!sendAll(sock, &type, sizeof(type))){return false;}
-            int size = static_cast<int>(netArray.size());
-            if (!sendAll(sock, &size, sizeof(size))){return false;}
+        int type = MessageType::T_PlayerData;
+        if(endGame)type = MessageType::T_EndGame;
+        if (!sendAll(sock, &type, sizeof(type))){return false;}
+        int size = static_cast<int>(netArray.size());
+        if (!sendAll(sock, &size, sizeof(size))){return false;}
 
-            for (auto& player : netArray) {
-                if (!sendAll(sock, &player.playerId, sizeof(player.playerId))) {return false;}
-                if (!sendAll(sock, &player.isGameOver, sizeof(player.isGameOver))) {return false;}
-                if (!sendAll(sock, &player.linesCleared, sizeof(player.linesCleared))) {return false;}
-                if (!sendAll(sock, &player.score, sizeof(player.score))) {return false;}
-                if (!sendAll(sock, &player.nrg, sizeof(player.nrg))) {return false;}
-            
-                int gridSize = static_cast<int>(player.grid.size());
-                if (!sendAll(sock, &gridSize, sizeof(gridSize))) {return false;}
-                if (!sendAll(sock, player.grid.data(), gridSize * sizeof(Color))) {return false;}
+        for (auto& player : netArray) {
+            if (!sendAll(sock, &player.playerId, sizeof(player.playerId))) {return false;}
+            if (!sendAll(sock, &player.isGameOver, sizeof(player.isGameOver))) {return false;}
+            if (!sendAll(sock, &player.linesCleared, sizeof(player.linesCleared))) {return false;}
+            if (!sendAll(sock, &player.score, sizeof(player.score))) {return false;}
+            if (!sendAll(sock, &player.nrg, sizeof(player.nrg))) {return false;}
+        
+            int gridSize = static_cast<int>(player.grid.size());
+            if (!sendAll(sock, &gridSize, sizeof(gridSize))) {return false;}
+            if (!sendAll(sock, player.grid.data(), gridSize * sizeof(Color))) {return false;}
+        }
+        //cout << "Sent netplayerdatda to " << sock << endl;
+        netArray[ps.playerId].playerId = ps.playerId;
+        }
+    }
+    if (spectatorFdsPtr) {
+        for (int sock : *spectatorFdsPtr) {
+            std::cout << "[broadcastGame] Sending data to fd=" << sock << std::endl;
+            if (sock <= 0) return true;
+            int type = endGame ? MessageType::T_EndGame : MessageType::T_PlayerData;
+            if (!sendAll(sock, &type, sizeof(type)))    return false;
+            int count = (int)netArray.size();
+            if (!sendAll(sock, &count, sizeof(count)))  return false;
+            for (auto &pl : netArray) {
+                if (!sendAll(sock, &pl.playerId,    sizeof(pl.playerId)))    return false;
+                if (!sendAll(sock, &pl.isGameOver,  sizeof(pl.isGameOver)))  return false;
+                if (!sendAll(sock, &pl.linesCleared,sizeof(pl.linesCleared)))return false;
+                if (!sendAll(sock, &pl.score,       sizeof(pl.score)))       return false;
+                if (!sendAll(sock, &pl.nrg,         sizeof(pl.nrg)))         return false;
+                int gridSize = (int)pl.grid.size();
+                if (!sendAll(sock, &gridSize, sizeof(gridSize)))             return false;
+                if (!sendAll(sock, pl.grid.data(), gridSize * sizeof(Color)))return false;
             }
-            netArray[ps.playerId].playerId = ps.playerId;
         }
     }
     return true;

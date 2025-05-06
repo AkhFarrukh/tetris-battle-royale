@@ -153,57 +153,78 @@ void* Player::threadRoutineView (void* arg){
 
             int act = 0;
             while (keepRunning) {
-                threadData->displayMut.lock();
-                act = renderR.handleMyRoom(info);
-                threadData->displayMut.unlock();
-
-                if (act == 1 && type == MessageType::T_RoomInfo) {
-                    int sendType = MessageType::T_Menu;
-                    int sendSize = sizeof(MenuMessage);
-                    MenuMessage MenuMessage;
-                    MenuMessage.action = MenuActions::A_ForceStart;
-
-                    if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                    if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                    if(!sendAll(sock, &MenuMessage, sizeof(MenuMessage))){keepRunning = false; break;}
-
-                } else if (act == -2) {
-                    if(type == MessageType::T_RoomInfo){
-                        int sendType = MessageType::T_Refresh;
-                        int sendSize = sizeof(int);
-
-                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                        break;
+                if (threadData->isSpectator) {
+                    // ─── Spectator Waiting Room ───────────────────────
+                    int act = renderR.handleSpectatorRoom(info);
+                    if (act == -2) {
+                        int msg = MessageType::T_Refresh, sz = sizeof(int);
+                        sendAll(sock, &msg,  sizeof(msg));
+                        sendAll(sock, &sz,   sizeof(sz));
                     }
-                    else{
-                        int sendType = MessageType::T_RoomJoinRefresh;
-                        int sendSize = sizeof(int);
-
-                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                        break;
-                    }
-                } else if (act == -1) {
-                    if(type == MessageType::T_RoomInfo){
-                        int sendType = MessageType::T_RoomDeleted;
-                        int sendSize = sizeof(int);
-                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                        threadData->userInLobby = false;
-                        break;
-                    }
-                    else{
+                    else if (act == -1) {
+                        // Go back to room list
                         int sendType = MessageType::T_LeftRoom;
                         int sendSize = sizeof(int);
-                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                        threadData->userInLobby = false;
-
+                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = true; break;}
+                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = true; break;}
+        
+                        threadData->mux.lock();
+                        threadData->isSpectator = false;
+                        threadData->mux.unlock();
                         break;
                     }
                 }
+                else {
+                    // ─── Player Lobby ───────────────────────────────────
+                    int act = renderR.handleMyRoom(info);
 
+                    if (act == 1 && type == MessageType::T_RoomInfo) {
+                        int sendType = MessageType::T_Menu;
+                        int sendSize = sizeof(MenuMessage);
+                        MenuMessage MenuMessage;
+                        MenuMessage.action = MenuActions::A_ForceStart;
+
+                        if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                        if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                        if(!sendAll(sock, &MenuMessage, sizeof(MenuMessage))){keepRunning = false; break;}
+
+                    } else if (act == -2) {
+                        if(type == MessageType::T_RoomInfo){
+                            int sendType = MessageType::T_Refresh;
+                            int sendSize = sizeof(int);
+
+                            if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                            if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                            break;
+                        }
+                        else{
+                            int sendType = MessageType::T_RoomJoinRefresh;
+                            int sendSize = sizeof(int);
+
+                            if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                            if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                            break;
+                        }
+                    } else if (act == -1) {
+                        if(type == MessageType::T_RoomInfo){
+                            int sendType = MessageType::T_RoomDeleted;
+                            int sendSize = sizeof(int);
+                            if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                            if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                            threadData->userInLobby = false;
+                            break;
+                        }
+                        else{
+                            int sendType = MessageType::T_LeftRoom;
+                            int sendSize = sizeof(int);
+                            if(!sendAll(sock, &sendType, sizeof(sendType))){keepRunning = false; break;}
+                            if(!sendAll(sock, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
+                            threadData->userInLobby = false;
+
+                            break;
+                        }
+                    }
+                }
                 int messageType;
                 int messageSize;
 
@@ -258,16 +279,23 @@ void* Player::threadRoutineView (void* arg){
                 if (index == -3) {
                     continue;
                 }
-                if ((index != -2) && (index != -1)) {
-                    int chosenIndex = index;
-                    int typeToSend = MessageType::T_Join;
+                if (index >= 0) {
+                    size_t N = roomsInfo.size();
+                    bool isSpectator = index >= (int)N;
+                    int roomIdx = isSpectator ? index - N : index;
+                    int typeToSend = isSpectator
+                        ? MessageType::T_JoinAsSpectator
+                        : MessageType::T_Join;
                     int sizeToSend = sizeof(int);
-                    int fd = roomsInfo[index].roomID;
+                    int fd = roomsInfo[roomIdx].roomID;
 
                     if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {keepRunning = false; break;}
                     if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {keepRunning = false; break;}
                     if (!sendAll(sock, &fd, sizeof(int))) {keepRunning = false; break;}
+                    threadData->mux.lock();
+                    threadData->isSpectator = isSpectator;
                     threadData->userInLobby = true;
+                    threadData->mux.unlock();
                     break;
                 }
                 if (index == -2) {
@@ -313,7 +341,7 @@ return 0;
  * @return int 
  */
 
-int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
+int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
     bool inLobby = threadData->userInLobby;
@@ -332,8 +360,16 @@ int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
         threadData->displayMut.unlock();
         if(currentAction != KeyboardAction::NO_ACTION){
             if(currentAction == KeyboardAction::EXIT_KEY) {
+                int msgType = MessageType::T_Exit;
+                int msgSize = 0;
+                sendAll(threadData->socket, &msgType, sizeof(msgType));
+                sendAll(threadData->socket, &msgSize, sizeof(msgSize));
+                threadData->mux.lock();
                 threadData->userInLobby = false;
                 threadData->userInGame = false;
+                threadData->isSpectator = false;
+                threadData->mux.unlock();
+
             }
 
             int numberKey = keyboardActionToInt(currentAction);
@@ -405,6 +441,7 @@ int Player::keyboardActionToInt(KeyboardAction action) {
         return -1;  // Not a number key
     }
 }
+
 
 
 MalusBonus Player::intToMalusBonus(int malus) {

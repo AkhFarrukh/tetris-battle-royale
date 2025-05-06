@@ -75,7 +75,8 @@ enum MessageType {
     T_Join,
     T_RoomDeleted,
     T_GameStart,
-    T_LeftRoom
+    T_LeftRoom, 
+    T_JoinAsSpectator
 };
 
 struct RoomInfo {

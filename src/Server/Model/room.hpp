@@ -68,6 +68,10 @@ public:
 
     std::shared_ptr<Game> launchGame();
 
+    bool addSpectator(int spectatorFd);
+    bool removeSpectator(int spectatorFd);
+    
+
     // The game object (once started)
     std::shared_ptr<Game> gamePtr;
 
@@ -87,6 +91,8 @@ private:
 
     std::vector<ThreadGameData> playersThread;
     std::vector<int> playerFds;  // store FDs or IDs for each joined player
+    std::vector<int> spectatorFds;
+
 
     // If you want concurrency around addPlayer, etc.
     mutable std::mutex mtx;

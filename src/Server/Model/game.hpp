@@ -43,6 +43,7 @@ public:
     
     Color getBlockColor(Coordinates cell);
     bool broadcastGame(bool endGame = false);
+    void setSpectators(const std::vector<int>* spectPtrs);
 
 
 private:
@@ -55,6 +56,7 @@ private:
     shared_ptr<Mode> mode;
     int numPlayers_;
     UserDatabaseManager udbm;
+    const std::vector<int>* spectatorFdsPtr = nullptr;
 
 
 

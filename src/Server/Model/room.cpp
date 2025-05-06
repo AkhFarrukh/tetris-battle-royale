@@ -97,6 +97,7 @@ std::shared_ptr<Game> Room::launchGame() {
     matchStarted = true;
     int numPlayers = (int)playerFds.size();
     gamePtr = std::make_shared<Game>(std::vector<ThreadGameData>(playersThread), int(numPlayers), gameMode);
+    gamePtr->setSpectators(&spectatorFds);
     return gamePtr;
     cout<<"Created gamePtr"<<endl;
 }
@@ -109,6 +110,11 @@ void Room::broadcastGameStart() {
         sendAll(fd, &type,  sizeof(type));
         sendAll(fd, &size,  sizeof(size));
     }
+    for (int fd : spectatorFds) {
+        sendAll(fd, &type,  sizeof(type));
+        sendAll(fd, &size,  sizeof(size));
+    }
+
     cout<<"Gamestrartmsg sent successfully"<<endl;
 }
 
@@ -120,5 +126,34 @@ void Room::broadcastDeleteRoom() {
         sendAll(fd, &type,  sizeof(type));
         sendAll(fd, &size,  sizeof(size));
     }
+    for (int fd : spectatorFds) {
+        sendAll(fd, &type,  sizeof(type));
+        sendAll(fd, &size,  sizeof(size));
+    }
 }
+
+bool Room::addSpectator(int spectatorFd) {
+    std::unique_lock<std::mutex> lock(mtx);
+    spectatorFds.push_back(spectatorFd);
+}
+
+bool Room::removeSpectator(int spectatorFd) {
+    std::unique_lock<std::mutex> lock(mtx);
+
+    spectatorFds.erase(
+        std::remove(spectatorFds.begin(), spectatorFds.end(), spectatorFd),
+        spectatorFds.end()
+    );
+
+    playersThread.erase(
+        std::remove_if(playersThread.begin(), playersThread.end(),
+            [&](const ThreadGameData& t) { return t.client_fd == spectatorFd; }),
+        playersThread.end()
+    );
+    cv.notify_all();
+
+}
+
+
+
 // Room::void deleteRoom(){}

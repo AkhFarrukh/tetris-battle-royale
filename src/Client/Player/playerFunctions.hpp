@@ -37,6 +37,7 @@ class Player {
 	        mutex displayMut;
 	        atomic<bool> userInGame = false;
             atomic<bool> userInLobby;
+            atomic<bool> isSpectator = false;
             bool isGui = false;
             void* qtParent = nullptr;
             std::vector<NetPlayerData> playersData;
