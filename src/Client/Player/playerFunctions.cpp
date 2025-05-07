@@ -1,5 +1,7 @@
 #include "playerFunctions.hpp"
 
+#include <utility>
+
 
 void Player::affichageMessage(Message& message){
     nodelay(stdscr, false);
@@ -223,6 +225,7 @@ void* Player::threadRoutineView (void* arg){
 return 0;
 }
 
+
 /**
  * @brief Capture the inputs and send it to the server
  * 
@@ -265,11 +268,7 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
                     }
                 }
                 else {
-                    InputMessage inputMessage;
-                    inputMessage.input = currentAction;
-                    if (!sendMessageWData(threadData->socket, MessageType::T_Input, inputMessage)) {
-                        perror("Error sending input message");
-                        keepRunning = false;
+                    if (!handleStandardInput(threadData, currentAction)) {
                         break;
                     }
                 }
@@ -278,6 +277,19 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     }
     return 0;
 }
+
+bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData, KeyboardAction action) {
+    InputMessage inputMessage;
+    inputMessage.input = action;
+    if (!sendMessageWData(threadData->socket, MessageType::T_Input, inputMessage)) {
+        perror("Error sending input message");
+        keepRunning = false;
+        return false;
+    }
+    return true;
+}
+
+
 
 
 /**
@@ -295,7 +307,7 @@ bool Player::roomJoinInfoHandler(int socket,
                         int messageType) {
     int flags; // todo idk what it does
     //Setup and receive room info
-    if (!setupRoomSession(socket, threadData, messageSize, messageType, flags)) {
+    if (!setupRoomSession(socket, threadData, messageSize, flags)) {
         return false;
     }
 
@@ -305,7 +317,17 @@ bool Player::roomJoinInfoHandler(int socket,
 
 
 
-bool Player::setupRoomSession(int socket, ThreadData* threadData, int messageSize, int messageType, int& flags) {
+/**
+ * @brief Setup the room session and receive room information
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @param messageSize Size of the message received
+
+ * @param flags Socket flags to be set
+ * @return bool Success status of the operation
+ */
+bool Player::setupRoomSession(int socket, ThreadData* threadData, int messageSize, int& flags) {
     RoomInfo info;
     if (!recvAll(socket, &info, messageSize)) {
         perror("Error on receiving room");
@@ -318,6 +340,15 @@ bool Player::setupRoomSession(int socket, ThreadData* threadData, int messageSiz
     return true;
 }
 
+/**
+ * @brief Process room interactions and handle user actions
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @param messageType Type of the message received
+ * @param flags Socket flags to be set
+ * @return bool Success status of the operation
+ */
 bool Player::processRoomInteractions(int socket, ThreadData* threadData, int messageType, int& flags) {
     while (keepRunning) {
         // Handle user actions in room
@@ -338,7 +369,14 @@ bool Player::processRoomInteractions(int socket, ThreadData* threadData, int mes
     return true;
 }
 
-
+/**
+ * @brief Handle user actions in the room based on the message type
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @param messageType Type of the message received
+ * @return bool Success status of the operation
+ */
 bool Player::handleRoomUserActions(int socket, ThreadData* threadData, int messageType) {
     RenderRooms renderR; //room renderer function
     int action; //todo rename and fix its magic values
@@ -354,6 +392,15 @@ bool Player::handleRoomUserActions(int socket, ThreadData* threadData, int messa
     }
 }
 
+
+/**
+ * @brief Handle actions for spectators in the waiting room
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @param action Action performed by the spectator
+ * @return bool Success status of the operation
+ */
 bool Player::handleSpectatorActions(int socket, ThreadData *threadData, int action){
     //todo actions are magic numbers
     if (action == -2) {
@@ -373,6 +420,16 @@ bool Player::handleSpectatorActions(int socket, ThreadData *threadData, int acti
     return true;
 }
 
+
+/**
+ * @brief Handle actions for players in the lobby
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @param action Action performed by the player
+ * @param messageType Type of the message received
+ * @return bool Success status of the operation
+ */
 bool Player::handlePlayerActions(int socket, ThreadData* threadData, int action, int messageType) {
     if (action == 1 && messageType == MessageType::T_RoomInfo) {
         // force start
@@ -408,7 +465,13 @@ bool Player::handlePlayerActions(int socket, ThreadData* threadData, int action,
     return true;
 }
 
-
+/**
+ * @brief Check for server messages about starting or exiting the game
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @return bool Success status of the operation
+ */
 bool Player::checkForServerMessages(int socket, ThreadData* threadData) {
     int receivedMessageType;
     int receivedMessageSize;
@@ -439,11 +502,9 @@ bool Player::checkForServerMessages(int socket, ThreadData* threadData) {
 }
 
 
-
 /**
  * @brief Generic function to send a message without data to the server
  *
- * @tparam T Type of message data to send
  * @param socket Socket to send the message on
  * @param messageType Type of message (MessageType enum)
  * @return bool Success status of the send operation
@@ -481,11 +542,7 @@ bool Player::sendMessageWData(int socket, int messageType, const T& messageData)
  * @return bool Success status of the operation
  */
 bool Player::sendExitMessage(shared_ptr<ThreadData> threadData) {
-    int msgType = MessageType::T_Exit;
-    int msgSize = 0;
-    if (!sendAll(threadData->socket, &msgType, sizeof(msgType))){return false;}
-    if (!sendAll(threadData->socket, &msgSize, sizeof(msgSize))){return false;}
-    return true;
+    return sendMessage(threadData->socket, MessageType::T_Exit);
 }
 
 
