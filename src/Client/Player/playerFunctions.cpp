@@ -238,6 +238,8 @@ int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
     int chosenPlayer = 0;
     bool inLobby = threadData->userInLobby;
 
+
+
     while (keepRunning && inLobby) {
         bool keepRunning = threadData->userInGame;
         inLobby = threadData->userInLobby;
@@ -247,8 +249,8 @@ int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
         } else if(inLobby && !keepRunning) {
             continue;
         } else {
-            if (!processUserInput(threadData, chosenMalus, chosenPlayer)) {
-                return 0;
+            if (!processUserInput(threadData, chosenMalus, chosenPlayer, keepRunning)) {
+                break;
             }
         }
     }
@@ -257,7 +259,8 @@ int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
 
 bool Player::processUserInput(std::shared_ptr<Player::ThreadData> threadData,
                              int& chosenMalus,
-                             int& chosenPlayer) {
+                             int& chosenPlayer,
+                             bool& keepRunningLocal) {
     threadData->displayMut.lock();
     KeyboardAction currentAction = Input::getKeyboardInput();
     threadData->displayMut.unlock();
@@ -267,18 +270,18 @@ bool Player::processUserInput(std::shared_ptr<Player::ThreadData> threadData,
     }
 
     if(currentAction == KeyboardAction::EXIT_KEY) {
-        return handleExitAction(threadData);
+        return handleExitAction(threadData, keepRunningLocal);
     }
 
     int numberKey = keyboardActionToInt(currentAction);
     if (numberKey != -1 && threadData->gameMode == Modes::Royal_) {
-        return handleRoyalModeMalusBonusInput(threadData, numberKey, chosenPlayer, chosenMalus);
+        return handleRoyalModeMalusBonusInput(threadData, numberKey, chosenPlayer, chosenMalus, keepRunningLocal);
     } else {
-        return handleStandardInput(threadData, currentAction);
+        return handleStandardInput(threadData, currentAction, keepRunningLocal);
     }
 }
 
-bool Player::handleExitAction(std::shared_ptr<Player::ThreadData> threadData) {
+bool Player::handleExitAction(std::shared_ptr<Player::ThreadData> threadData, bool& keepRunningLocal) {
     if (!sendExitMessage(threadData)) {
         keepRunning = false;
         return false;
@@ -286,10 +289,10 @@ bool Player::handleExitAction(std::shared_ptr<Player::ThreadData> threadData) {
     threadData->userInLobby = false;
     threadData->userInGame = false;
     threadData->isSpectator = false;
-    return true;
+    return false;
 }
 
-bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData, KeyboardAction action) {
+bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData, KeyboardAction action, bool& keepRunningLocal) {
     InputMessage inputMessage;
     inputMessage.input = action;
     if (!sendMessageWData(threadData->socket, MessageType::T_Input, inputMessage)) {
@@ -303,7 +306,8 @@ bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData,
 bool Player::handleRoyalModeMalusBonusInput(std::shared_ptr<Player::ThreadData> threadData,
                                  int numberKey,
                                  int& chosenPlayer,
-                                 int& chosenMalus) {
+                                 int& chosenMalus,
+                                 bool& keepRunningLocal) {
     if (!handleMalBonMessageSending(threadData, numberKey, chosenPlayer, chosenMalus)) {
         keepRunning = false;
         return false;
