@@ -58,9 +58,20 @@ class Player {
 
         static void* threadRoutineView (void* arg); //Routine qui recoit la grid et l'affiche
         static int sendInput (std::shared_ptr<Player::ThreadData> threadData); //Envoie les inputs au server
+        static bool processUserInput(std::shared_ptr<Player::ThreadData> threadData, int &chosenMalus, int &chosenPlayer);
+
+        static bool handleExitAction(std::shared_ptr<Player::ThreadData> threadData);
+
+        static bool handleStandardInput(std::shared_ptr<Player::ThreadData> threadData, KeyboardAction action);
+
+        static bool handleRoyalModeMalusBonusInput(std::shared_ptr<Player::ThreadData> threadData, int numberKey,
+                                                   int &chosenPlayer,
+                                                   int &chosenMalus);
+
         static bool roomJoinInfoHandler(int socket, ThreadData *threadData, int messageSize, int messageType);
 
-        static bool setupRoomSession(int socket, ThreadData *threadData, int messageSize, int messageType, int &flags);
+
+        static bool setupRoomSession(int socket, ThreadData *threadData, int messageSize, int &flags);
 
         static bool processRoomInteractions(int socket, ThreadData *threadData, int messageType, int &flags);
 
