@@ -385,7 +385,62 @@ void MainWindow::showGameModeScreen() {
     stackedWidget->setCurrentWidget(gameModeScreen);
 }
 
+void MainWindow::spectateRoom(int roomID) {
+    int type   = MessageType::T_JoinAsSpectator;
+    int size   = sizeof(int);
+    sendAll(sock, &type,   sizeof(type));
+    sendAll(sock, &size,   sizeof(size));
+    sendAll(sock, &roomID, sizeof(roomID));
+    threadData->isSpectator = true;
+}
+
+void MainWindow::setupSpectatorWaitingScreen(int roomID) {
+    std::cout << "thread data in specDis" << threadData->isSpectator << endl;
+    if (spectatorWaitingScreen) {
+        delete spectatorWaitingScreen;
+        stackedWidget->removeWidget(spectatorWaitingScreen);
+        spectatorWaitingScreen = nullptr;
+    }
+
+    spectatorWaitingScreen = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(spectatorWaitingScreen);
+
+    QPushButton *chatButton = new QPushButton(this);
+	chatButton->setText(" Chat");
+
+	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
+
+	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setIconSize(QSize(20, 20));
+    chatButton->setFixedSize(80, 30);
+
+	layout->addWidget(chatButton);
+
+	connect(chatButton, &QPushButton::clicked, this, &MainWindow::handleChatMenu);
+
+    // Room ID Label
+    QLabel* roomLabel = new QLabel(QString("Spectating Room %1").arg(roomID), this);
+    layout->addWidget(roomLabel, 0, Qt::AlignCenter);
+
+    QPushButton* refreshBtn = new QPushButton("Refresh");
+    QPushButton* leaveBtn = new QPushButton("Leave Spectation", this);
+
+    connect(refreshBtn, &QPushButton::clicked, this, [this]() {
+        requestRoomUpdate(); // define this
+    });
+    connect(leaveBtn, &QPushButton::clicked, this, [this]() {
+        sendLeaveRoom();
+    });
+    
+    layout->addWidget(refreshBtn);
+    layout->addWidget(leaveBtn);
+
+    stackedWidget->addWidget(spectatorWaitingScreen);
+    stackedWidget->setCurrentWidget(spectatorWaitingScreen);
+}
+
 void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
+    std::cout << "thread data in listscreen" << threadData->isSpectator << endl;
     if (roomListScreen) delete roomListScreen;
 
     roomListScreen = new QWidget(this);
@@ -397,17 +452,33 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
         layout->addWidget(new QLabel("No rooms available."));
     } else {
         for (const auto& r : roomsInfo) {
-            QString text = QString("RoomID: %1 | Players: %2 | Started: %3")
-                .arg(r.roomID)
-                .arg(r.currentPlayersCount)
-                .arg(r.isStarted ? "YES" : "NO");
-            QPushButton* joinBtn = new QPushButton(text, this);
+            auto* row = new QWidget(this);
+            auto* rowLayout = new QHBoxLayout(row);
 
+            // 1) Room label
+            QString text = QString("Room %1 | Players: %2 | Started: %3")
+                               .arg(r.roomID)
+                               .arg(r.currentPlayersCount)
+                               .arg(r.isStarted ? "YES" : "NO");
+            auto* roomLabel = new QLabel(text, this);
+            rowLayout->addWidget(roomLabel);
+
+            // 2) Join button
+            auto* joinBtn = new QPushButton("Join", this);
+            rowLayout->addWidget(joinBtn);
             connect(joinBtn, &QPushButton::clicked, [this, r]() {
                 joinRoom(r.roomID);
             });
 
-            layout->addWidget(joinBtn);
+            // 3) Spectate button
+            auto* specBtn = new QPushButton("Spectate", this);
+            rowLayout->addWidget(specBtn);
+            connect(specBtn, &QPushButton::clicked, [this, r]() {
+                spectateRoom(r.roomID);
+            });
+            rowLayout->addStretch();
+
+            layout->addWidget(row);
         }
     }
     QPushButton *chatButton = new QPushButton(this);
@@ -470,6 +541,7 @@ void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
         delete myRoomScreen;
         myRoomScreen = nullptr;
     }
+    std::cout << "thread data in roomscreen" << threadData->isSpectator << endl;
     
 
     myRoomScreen = new QWidget(this);
@@ -763,6 +835,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
             threadData->mux.lock();
             threadData->userInGame = false;
             threadData->userInLobby = false;
+            threadData->isSpectator = false;
             threadData->mux.unlock();
 
             QMetaObject::invokeMethod(
@@ -839,13 +912,25 @@ void* MainWindow::threadRoutineQtView(void* arg) {
             threadData->roomInfoUpdated = true;
             threadData->isOwner = (type == MessageType::T_RoomInfo);
             threadData->mux.unlock();
-
-            QMetaObject::invokeMethod(
-                static_cast<QObject*>(parent),
-                [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
-                    parent->setupMyRoomScreen(info, isOwner);
-                }
-            );
+            std::cout << "thread data before sending" << threadData->isSpectator << endl;
+            if (threadData->isSpectator == 1) {
+                QMetaObject::invokeMethod(
+                    static_cast<QObject*>(parent),
+                    [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
+                        parent->setupSpectatorWaitingScreen(info.roomID);
+                    }
+                );
+            }
+            else {
+                QMetaObject::invokeMethod(
+                    std::cout << "sent anyway" << threadData->isSpectator << endl;
+                    static_cast<QObject*>(parent),
+                    [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
+                        parent->setupMyRoomScreen(info, isOwner);
+                    }
+                );
+            }
+            
         }
 
         else if (type == MessageType::T_RoomsInfo) {

@@ -57,6 +57,8 @@ private slots:
     void showLeaderboardScreen();
     void showChatScreen();
     void showfriendsListScreen();
+    void spectateRoom(int roomID);
+    void setupSpectatorWaitingScreen(int roomID);
 
 
 private:
@@ -97,6 +99,7 @@ private:
     QLineEdit* usernameInput = nullptr;
     QLineEdit* passwordInput = nullptr;
     QLineEdit* confirmPasswordInput = nullptr;
+    QWidget* spectatorWaitingScreen = nullptr;
 
     QPushButton* playButton = nullptr;
     QPushButton* handleFriendsButton = nullptr;
