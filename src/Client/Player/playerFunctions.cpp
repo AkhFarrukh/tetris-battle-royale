@@ -233,66 +233,52 @@ return 0;
  * @return int 
  */
 
-int Player::sendInput(std::shared_ptr<Player::ThreadData> threadData) {
+int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
     bool inLobby = threadData->userInLobby;
-
-
-
     while (keepRunning && inLobby) {
+
         bool keepRunning = threadData->userInGame;
         inLobby = threadData->userInLobby;
 
-        if (!keepRunning && !inLobby) {
-            break;
-        } else if(inLobby && !keepRunning) {
-            continue;
-        } else {
-            if (!processUserInput(threadData, chosenMalus, chosenPlayer, keepRunning)) {
-                break;
+        if (!keepRunning && !inLobby) {break;
+        } else if(inLobby && !keepRunning) continue;
+        else{
+            threadData->displayMut.lock();
+            KeyboardAction currentAction = Input::getKeyboardInput();
+            threadData->displayMut.unlock();
+            if(currentAction != KeyboardAction::NO_ACTION){
+                if(currentAction == KeyboardAction::EXIT_KEY) {
+                    //todo idk if it is possible to use sendMessage function here
+                    if (!sendExitMessage(threadData)) {
+                        keepRunning = false;
+                        break;
+                    }
+                    threadData->userInLobby = false;
+                    threadData->userInGame = false;
+                    threadData->isSpectator = false;
+                }
+
+                int numberKey = keyboardActionToInt(currentAction);
+                if (numberKey != -1 and threadData->gameMode == Modes::Royal_) {
+                    if (!handleMalBonMessageSending(threadData, numberKey, chosenPlayer, chosenMalus)) {
+                        keepRunning = false;
+                        break;
+                    }
+                }
+                else {
+                    if (!handleStandardInput(threadData, currentAction)) {
+                        break;
+                    }
+                }
             }
         }
     }
     return 0;
 }
 
-bool Player::processUserInput(std::shared_ptr<Player::ThreadData> threadData,
-                             int& chosenMalus,
-                             int& chosenPlayer,
-                             bool& keepRunningLocal) {
-    threadData->displayMut.lock();
-    KeyboardAction currentAction = Input::getKeyboardInput();
-    threadData->displayMut.unlock();
-
-    if(currentAction == KeyboardAction::NO_ACTION) {
-        return true; //while loop continues in sendInput
-    }
-
-    if(currentAction == KeyboardAction::EXIT_KEY) {
-        return handleExitAction(threadData, keepRunningLocal);
-    }
-
-    int numberKey = keyboardActionToInt(currentAction);
-    if (numberKey != -1 && threadData->gameMode == Modes::Royal_) {
-        return handleRoyalModeMalusBonusInput(threadData, numberKey, chosenPlayer, chosenMalus, keepRunningLocal);
-    } else {
-        return handleStandardInput(threadData, currentAction, keepRunningLocal);
-    }
-}
-
-bool Player::handleExitAction(std::shared_ptr<Player::ThreadData> threadData, bool& keepRunningLocal) {
-    if (!sendExitMessage(threadData)) {
-        keepRunning = false;
-        return false;
-    }
-    threadData->userInLobby = false;
-    threadData->userInGame = false;
-    threadData->isSpectator = false;
-    return false;
-}
-
-bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData, KeyboardAction action, bool& keepRunningLocal) {
+bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData, KeyboardAction action) {
     InputMessage inputMessage;
     inputMessage.input = action;
     if (!sendMessageWData(threadData->socket, MessageType::T_Input, inputMessage)) {
@@ -303,17 +289,7 @@ bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData,
     return true;
 }
 
-bool Player::handleRoyalModeMalusBonusInput(std::shared_ptr<Player::ThreadData> threadData,
-                                 int numberKey,
-                                 int& chosenPlayer,
-                                 int& chosenMalus,
-                                 bool& keepRunningLocal) {
-    if (!handleMalBonMessageSending(threadData, numberKey, chosenPlayer, chosenMalus)) {
-        keepRunning = false;
-        return false;
-    }
-    return true;
-}
+
 
 
 /**
