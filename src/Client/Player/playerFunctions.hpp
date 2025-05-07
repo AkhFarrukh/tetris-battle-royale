@@ -60,6 +60,16 @@ class Player {
         static int sendInput (std::shared_ptr<Player::ThreadData> threadData); //Envoie les inputs au server
         static bool handleStandardInput(std::shared_ptr<Player::ThreadData> threadData, KeyboardAction action);
 
+        static bool roomJoinHandler(int socket, ThreadData *threadData, int messageSize);
+
+        static bool handleRoomsSelection(int socket, ThreadData *threadData, std::vector<RoomInfo> &roomsInfo,
+                                         RenderRooms &renderR,
+                                         Modes mode);
+
+        static bool handleJoinRoom(int socket, ThreadData *threadData, std::vector<RoomInfo> &roomsInfo, int index);
+
+        static bool sendMessageToMenu(int socket, Modes mode);
+
 
         static bool roomJoinInfoHandler(int socket, ThreadData *threadData, int messageSize, int messageType);
 
@@ -70,9 +80,9 @@ class Player {
 
         static bool handleRoomUserActions(int socket, ThreadData *threadData, int messageType);
 
-        static bool handleSpectatorActions(int socket, ThreadData *threadData, int action);
+        static bool handleRoomSpectatorActions(int socket, ThreadData *threadData, int action);
 
-        static bool handlePlayerActions(int socket, ThreadData *threadData, int action, int messageType);
+        static bool handleRoomPlayerActions(int socket, ThreadData *threadData, int action, int messageType);
 
         static bool checkForServerMessages(int socket, ThreadData *threadData);
 

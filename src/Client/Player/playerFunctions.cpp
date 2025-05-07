@@ -143,87 +143,21 @@ void* Player::threadRoutineView (void* arg){
             continue;
         }
         else if (messageType == MessageType::T_RoomInfo || messageType == MessageType::T_RoomJoinInfo) {
-            //todo obpnoehibjgqebjgje
             if (!roomJoinInfoHandler(sock, threadData, messageSize, messageType)) {
                 break;
             }
          }
-
         else if (messageType == MessageType::T_RoomsInfo){
-            RenderRooms renderR;
-            std::vector<RoomInfo> roomsInfo;
-            roomsInfo.resize(messageSize);
-            if (!recvAll(sock, roomsInfo.data(), messageSize *sizeof(RoomInfo)))
-            {keepRunning = false; break;}
-            Modes mode;
-            int size;
-            if(!recvAll(sock, &mode, sizeof(int))){keepRunning = false; break;}
-            if(!recvAll(sock, &size, sizeof(int))){keepRunning = false;break;}
-            clear();
-            refresh();
-            int index;
-            int highlightIndex = 0;
-            while (keepRunning) {
-                threadData->displayMut.lock();
-                index = renderR.handleListRooms(roomsInfo, highlightIndex);
-                threadData->displayMut.unlock();
-                if (index == -3) {
-                    continue;
-                }
-                if (index >= 0) {
-                    size_t N = roomsInfo.size();
-                    bool isSpectator = index >= (int)N;
-                    int roomIdx = isSpectator ? index - N : index;
-                    int typeToSend = isSpectator
-                        ? MessageType::T_JoinAsSpectator
-                        : MessageType::T_Join;
-                    int sizeToSend = sizeof(int);
-                    int fd = roomsInfo[roomIdx].roomID;
-
-                    if (!sendAll(sock, &typeToSend, sizeof(typeToSend))) {keepRunning = false; break;}
-                    if (!sendAll(sock, &sizeToSend, sizeof(sizeToSend))) {keepRunning = false; break;}
-                    if (!sendAll(sock, &fd, sizeof(int))) {keepRunning = false; break;}
-                    threadData->mux.lock();
-                    threadData->isSpectator = isSpectator;
-                    threadData->userInLobby = true;
-                    threadData->mux.unlock();
-                    break;
-                }
-                if (index == -2) {
-                    int type = MessageType::T_Menu;
-                    int size = sizeof(MenuMessage);
-                    MenuMessage MenuMessage;
-                    MenuMessage.mode = mode;
-                    MenuMessage.action = MenuActions::A_JoinRoom;
-
-
-                    if(sendAll(sock, &type, sizeof(int)) == false){
-                        perror("Error sending MenuMessage info : ");
-                        keepRunning = false; break;
-                    }
-                    if(sendAll(sock, &size, sizeof(int)) == false){
-                        perror("Error sending MenuMessage info : ");
-                        keepRunning = false; break;
-                    }
-                    if(sendAll(sock, &MenuMessage, sizeof(MenuMessage)) == false){
-                        perror("Error sending MenuMessage info : ");
-                        keepRunning = false; break;
-                    }
-                    break;
-                }
-                if (index == -1) {
-
-                    threadData->userInLobby = false;
-
-                    break;
-                }
+            if (!roomJoinHandler(sock, threadData, messageSize)) {
+                break;
             }
-
         }
     }
 
 return 0;
 }
+
+
 
 
 /**
@@ -289,6 +223,116 @@ bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData,
     return true;
 }
 
+bool Player::roomJoinHandler(int socket, ThreadData* threadData, int messageSize) {
+    RenderRooms renderR;
+    std::vector<RoomInfo> roomsInfo;
+    roomsInfo.resize(messageSize);
+    if (!recvAll(socket, roomsInfo.data(), messageSize *sizeof(RoomInfo))) {
+        keepRunning = false;
+        return false;
+    }
+
+    Modes mode;
+    int size;
+    if(!recvAll(socket, &mode, sizeof(int))) {
+        keepRunning = false;
+        return false;
+    }
+    if(!recvAll(socket, &size, sizeof(int))) {
+        keepRunning = false;
+        return false;
+    }
+
+    clear();
+    refresh();
+
+    return handleRoomsSelection(socket, threadData, roomsInfo, renderR, mode);
+}
+
+
+bool Player::handleRoomsSelection(int socket, ThreadData* threadData,
+                                  std::vector<RoomInfo>& roomsInfo,
+                                  RenderRooms& renderR,
+                                  Modes mode) {
+    int index;
+    int highlightIndex = 0;
+
+    while (keepRunning) {
+        threadData->displayMut.lock();
+        index = renderR.handleListRooms(roomsInfo, highlightIndex);
+        threadData->displayMut.unlock();
+
+        if (index == -3) {
+            continue;
+        }
+        if (index >= 0) {
+            return handleJoinRoom(socket, threadData, roomsInfo, index);
+        }
+        if (index == -2) {
+            return sendMessageToMenu(socket, mode);
+        }
+        if (index == -1) {
+            threadData->userInLobby = false;
+            return true;
+        }
+    }
+
+    return true;
+}
+
+
+bool Player::handleJoinRoom(int socket, ThreadData* threadData, std::vector<RoomInfo>& roomsInfo, int index) {
+    size_t N = roomsInfo.size();
+    bool isSpectator = index >= (int)N;
+    int roomIdx = isSpectator ? index - N : index;
+    int typeToSend = isSpectator ? MessageType::T_JoinAsSpectator : MessageType::T_Join;
+    int sizeToSend = sizeof(int);
+    int fd = roomsInfo[roomIdx].roomID;
+
+    if (!sendAll(socket, &typeToSend, sizeof(typeToSend))) {
+        keepRunning = false;
+        return false;
+    }
+    if (!sendAll(socket, &sizeToSend, sizeof(sizeToSend))) {
+        keepRunning = false;
+        return false;
+    }
+    if (!sendAll(socket, &fd, sizeof(int))) {
+        keepRunning = false;
+        return false;
+    }
+
+    threadData->mux.lock();
+    threadData->isSpectator = isSpectator;
+    threadData->userInLobby = true;
+    threadData->mux.unlock();
+    return true;
+}
+
+bool Player::sendMessageToMenu(int socket, Modes mode) {
+    int type = MessageType::T_Menu;
+    int size = sizeof(MenuMessage);
+    MenuMessage menuMessage;
+    menuMessage.mode = mode;
+    menuMessage.action = MenuActions::A_JoinRoom;
+
+    if(!sendAll(socket, &type, sizeof(int))) {
+        perror("Error sending MenuMessage info : ");
+        keepRunning = false;
+        return false;
+    }
+    if(!sendAll(socket, &size, sizeof(int))) {
+        perror("Error sending MenuMessage info : ");
+        keepRunning = false;
+        return false;
+    }
+    if(!sendAll(socket, &menuMessage, sizeof(menuMessage))) {
+        perror("Error sending MenuMessage info : ");
+        keepRunning = false;
+        return false;
+    }
+    return true;
+}
 
 
 
@@ -384,11 +428,11 @@ bool Player::handleRoomUserActions(int socket, ThreadData* threadData, int messa
     if (threadData->isSpectator) {
         // ─── Spectator Waiting Room ───────────────────────
         action = renderR.handleSpectatorRoom(threadData->roomInfo);
-        return handleSpectatorActions(socket, threadData, action);
+        return handleRoomSpectatorActions(socket, threadData, action);
     } else {
         // ─── Player Lobby ───────────────────────────────────
         action = renderR.handleMyRoom(threadData->roomInfo);
-        return handlePlayerActions(socket, threadData, action, messageType);
+        return handleRoomPlayerActions(socket, threadData, action, messageType);
     }
 }
 
@@ -401,7 +445,7 @@ bool Player::handleRoomUserActions(int socket, ThreadData* threadData, int messa
  * @param action Action performed by the spectator
  * @return bool Success status of the operation
  */
-bool Player::handleSpectatorActions(int socket, ThreadData *threadData, int action){
+bool Player::handleRoomSpectatorActions(int socket, ThreadData *threadData, int action){
     //todo actions are magic numbers
     if (action == -2) {
         // player refreshes
@@ -430,7 +474,7 @@ bool Player::handleSpectatorActions(int socket, ThreadData *threadData, int acti
  * @param messageType Type of the message received
  * @return bool Success status of the operation
  */
-bool Player::handlePlayerActions(int socket, ThreadData* threadData, int action, int messageType) {
+bool Player::handleRoomPlayerActions(int socket, ThreadData* threadData, int action, int messageType) {
     if (action == 1 && messageType == MessageType::T_RoomInfo) {
         // force start
         MenuMessage menuMessage;
