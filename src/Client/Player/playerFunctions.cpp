@@ -142,7 +142,7 @@ void* Player::threadRoutineView (void* arg){
         }
         else if (messageType == MessageType::T_RoomInfo || messageType == MessageType::T_RoomJoinInfo) {
             //todo obpnoehibjgqebjgje
-            if (!roomHandler(sock, threadData, messageSize, messageType)) {
+            if (!roomJoinInfoHandler(sock, threadData, messageSize, messageType)) {
                 break;
             }
          }
@@ -280,110 +280,161 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
 }
 
 
-bool Player::roomHandler(int socket,
+/**
+ * @brief Handle the room join information and process user actions
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @param messageSize Size of the message received
+ * @param messageType Type of the message received
+ * @return bool Success status of the operation
+ */
+bool Player::roomJoinInfoHandler(int socket,
                         ThreadData* threadData,
                         int messageSize,
-                        int messageType
-    ) {
-    RenderRooms renderR;
+                        int messageType) {
+    int flags; // todo idk what it does
+    //Setup and receive room info
+    if (!setupRoomSession(socket, threadData, messageSize, messageType, flags)) {
+        return false;
+    }
+
+    // Process room interactions in while loop
+    return processRoomInteractions(socket, threadData, messageType, flags);
+}
+
+
+
+bool Player::setupRoomSession(int socket, ThreadData* threadData, int messageSize, int messageType, int& flags) {
     RoomInfo info;
     if (!recvAll(socket, &info, messageSize)) {
         perror("Error on receiving room");
         keepRunning = false;
-        return false;;
+        return false;
     }
-    int flags = fcntl(socket, F_GETFL, 0);
+    threadData->roomInfo = info;
+    flags = fcntl(socket, F_GETFL, 0);
     fcntl(socket, F_SETFL, flags | O_NONBLOCK);
+    return true;
+}
 
-    int act = 0;
+bool Player::processRoomInteractions(int socket, ThreadData* threadData, int messageType, int& flags) {
     while (keepRunning) {
-        if (threadData->isSpectator) {
-            // ─── Spectator Waiting Room ───────────────────────
-            int act = renderR.handleSpectatorRoom(info);
-            if (act == -2) {
-                int msg = MessageType::T_Refresh, sz = sizeof(int);
-                if (!sendMessage(socket, msg)) {
-                    //todo maybe keepRunning = false; break;
-                }
-                sendAll(socket, &msg,  sizeof(msg));
-                sendAll(socket, &sz,   sizeof(sz));
-            }
-            else if (act == -1) {
-                // Go back to room list
-                if (!sendMessage(socket, MessageType::T_LeftRoom)) {
-                    keepRunning = true;
-                    break;
-                }
-                threadData->isSpectator = false;
-                break;
-            }
+        // Handle user actions in room
+        if (!handleRoomUserActions(socket, threadData, messageType)) {
+            break;
         }
-        else {
-            // ─── Player Lobby ───────────────────────────────────
-            int act = renderR.handleMyRoom(info); //todo what is this name and its magic values?
 
-            if (act == 1 && messageType == MessageType::T_RoomInfo) {
-                MenuMessage menuMessage;
-                menuMessage.action = MenuActions::A_ForceStart;
-                if (!sendMessageWData(socket, MessageType::T_Menu, menuMessage)) {
-                    keepRunning = false;
-                    break;
-                }
-
-            } else if (act == -2) {
-                int sendMessageType = (messageType == MessageType::T_RoomInfo) ?
-                                      MessageType::T_Refresh :
-                                      MessageType::T_RoomJoinRefresh;
-                if (!sendMessage(socket, sendMessageType)){
-                    keepRunning = false;
-                    break;
-                }
-                break;
-            } else if (act == -1) {
-                int data = 0; // Empty data
-                int sendMessageType = (messageType == MessageType::T_RoomInfo) ?
-                              MessageType::T_RoomDeleted :
-                              MessageType::T_LeftRoom;
-
-                if (!sendMessage(socket, sendMessageType)) {
-                    keepRunning = false;
-                    break;
-                }
-                threadData->userInLobby = false;
-                break;
-            }
+        // Check for server messages
+        if (!checkForServerMessages(socket, threadData)) {
+            break;
         }
-        int recivedMessageType;
-        int recivedMessageSize;
 
-        int bytesReceivedType = recv(socket, &recivedMessageType, sizeof(int), MSG_DONTWAIT);
-
-        if (bytesReceivedType > 0) {
-            recv(socket, &recivedMessageSize, sizeof(int), 0);
-
-            if (recivedMessageType == MessageType::T_GameStart) {
-                threadData->userInGame = true;
-                break;
-            }
-            else if(recivedMessageType == MessageType::T_ForcedExit){
-                threadData->userInGame = false;
-                threadData->userInLobby = false;
-                keepRunning = false;
-                break;
-            }
-            else if(recivedMessageType == MessageType::T_Exit){
-                threadData->userInGame = false;
-                threadData->userInLobby = false;
-                break;
-            }
-        } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
-            perror("Socket error");
-            keepRunning = false; break;
-        }
         usleep(500);
     }
 
+    // Restore socket flags
     fcntl(socket, F_SETFL, flags);
+    return true;
+}
+
+
+bool Player::handleRoomUserActions(int socket, ThreadData* threadData, int messageType) {
+    RenderRooms renderR; //room renderer function
+    int action; //todo rename and fix its magic values
+
+    if (threadData->isSpectator) {
+        // ─── Spectator Waiting Room ───────────────────────
+        action = renderR.handleSpectatorRoom(threadData->roomInfo);
+        return handleSpectatorActions(socket, threadData, action);
+    } else {
+        // ─── Player Lobby ───────────────────────────────────
+        action = renderR.handleMyRoom(threadData->roomInfo);
+        return handlePlayerActions(socket, threadData, action, messageType);
+    }
+}
+
+bool Player::handleSpectatorActions(int socket, ThreadData *threadData, int action){
+    //todo actions are magic numbers
+    if (action == -2) {
+        // player refreshes
+        if (!sendMessage(socket, MessageType::T_Refresh)) {
+            //todo maybe keepRunning = false; break;
+        }
+    } else if (action == -1) {
+        // Go back to room list
+        if (!sendMessage(socket, MessageType::T_LeftRoom)) {
+            keepRunning = true;
+            return false;
+        }
+        threadData->isSpectator = false;
+        return false;
+    }
+    return true;
+}
+
+bool Player::handlePlayerActions(int socket, ThreadData* threadData, int action, int messageType) {
+    if (action == 1 && messageType == MessageType::T_RoomInfo) {
+        // force start
+        MenuMessage menuMessage;
+        menuMessage.action = MenuActions::A_ForceStart;
+        if (!sendMessageWData(socket, MessageType::T_Menu, menuMessage)) {
+            keepRunning = false;
+            return false;
+        }
+
+    } else if (action == -2) {
+        // refresh
+        int msgType = (messageType == MessageType::T_RoomInfo) ?
+                      MessageType::T_Refresh :
+                      MessageType::T_RoomJoinRefresh;
+        if (!sendMessage(socket, msgType)) {
+            keepRunning = false;
+            return false;
+        }
+        return false;
+    } else if (action == -1) {
+        // exit
+        int msgType = (messageType == MessageType::T_RoomInfo) ?
+                      MessageType::T_RoomDeleted :
+                      MessageType::T_LeftRoom;
+        if (!sendMessage(socket, msgType)) {
+            keepRunning = false;
+            return false;
+        }
+        threadData->userInLobby = false;
+        return false;
+    }
+    return true;
+}
+
+
+bool Player::checkForServerMessages(int socket, ThreadData* threadData) {
+    int receivedMessageType;
+    int receivedMessageSize;
+    int bytesReceivedType = recv(socket, &receivedMessageType, sizeof(int), MSG_DONTWAIT);
+    if (bytesReceivedType > 0) {
+        recv(socket, &receivedMessageSize, sizeof(int), 0);
+
+        if (receivedMessageType == MessageType::T_GameStart) {
+            threadData->userInGame = true;
+            return false;
+        } else if (receivedMessageType == MessageType::T_ForcedExit) {
+            threadData->userInGame = false;
+            threadData->userInLobby = false;
+            keepRunning = false;
+            return false;
+        } else if (receivedMessageType == MessageType::T_Exit) {
+            threadData->userInGame = false;
+            threadData->userInLobby = false;
+            return false;
+        }
+    } else if (bytesReceivedType == -1 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
+        perror("Socket error");
+        keepRunning = false;
+        return false;
+    }
+
     return true;
 }
 
