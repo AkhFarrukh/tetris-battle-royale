@@ -11,19 +11,32 @@ This project includes 1 main component :
 ## Usage
 ### Installing needed librairies
 
-A classic librarie giving an API made for developing textual user interface, as asked we created a set-up bash script that allow the tester to run install the lib without sudo privilege!
+This project uses ncurses, SQLite3 and Qt6. If you don't have 
+them installed, you can set them up locally for Debian-based machines with the following script.
 
 Set-up command :
 ```
-./build/ncurses-setup.sh
+./build/setup.sh
+```
+
+
+### `serever` Program
+Run dedicated server :
+```
+./server.exe
 ```
 
 
 ### `tetris` Program
 
-Command format :
+Run game in terminal mode :
 ```
 ./tetris.exe
+```
+
+Run game in GUI mode :
+```
+./tetris.exe --gui
 ```
 
 ## Folder Structure
