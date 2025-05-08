@@ -1,3 +1,6 @@
+#ifndef GUICONTROLLEUR_HPP
+#define GUICONTROLLEUR_HPP
+
 #include <iostream>
 #include "FriendsHandler.hpp"
 #include "ChatHandler.hpp"
@@ -47,3 +50,5 @@ public:
     guiControlleur(int sock, std::shared_ptr<Player::ThreadData> threadData);
     ~guiControlleur();
 };
+
+#endif // GUICONTROLLEUR_HPP

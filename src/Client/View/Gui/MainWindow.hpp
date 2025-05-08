@@ -28,7 +28,9 @@
 #include "FriendsHandler.hpp"
 #include "ChatHandler.hpp"
 #include "guiControlleur.hpp"
+
 #include <memory>
+
 
 
 class MainWindow : public QMainWindow {
