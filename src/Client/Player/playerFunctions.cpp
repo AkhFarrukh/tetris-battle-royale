@@ -50,9 +50,7 @@ void* Player::threadRoutineView (void* arg){
     int sock = threadData->socket;
     RenderEngineNcurses render;
     while (keepRunning) {
-
         bool inGame = threadData->userInGame;
-
         //To have info on the data received
         int messageType;
         int messageSize;
@@ -83,52 +81,10 @@ void* Player::threadRoutineView (void* arg){
             continue;
         }
         else if(messageType == MessageType::T_PlayerData || messageType == MessageType::T_EndGame){
-            vector<NetPlayerData> playersData;
-            for (int i = 0; i < messageSize; ++i) {
-                NetPlayerData player;
-                /* NEED ERROR HANDLING */
-                if (!recvAll(sock, &player.playerId, sizeof(player.playerId))){return nullptr;}
-                if (!recvAll(sock, &player.isGameOver, sizeof(player.isGameOver))){return nullptr;}
-                if (!recvAll(sock, &player.linesCleared, sizeof(player.linesCleared))){return nullptr;}
-                if (!recvAll(sock, &player.score, sizeof(player.score))){return nullptr;}
-                if (!recvAll(sock, &player.nrg, sizeof(player.nrg))) {return nullptr;}
-
-                int gridSize;
-           	    if (!recvAll(sock, &gridSize, sizeof(gridSize))){return nullptr;}
-
-                if (gridSize <= 0 || gridSize > 100000) {  // juste pour detecter quand gridSize devient trop grand
-                        std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
-                        break;
-                }
-                player.grid.resize(gridSize);
-
-                if (!recvAll(sock, player.grid.data(), gridSize * sizeof(Color))){return nullptr;}
-                if(messageType == MessageType::T_EndGame)player.endGame = true;
-                playersData.push_back(player);
+            if (!handlePlayerDataEndgameMessage(sock, threadData, messageSize, messageType, render)) {
+                keepRunning = false;
+                break;
             }
-
-
-            if (threadData->gameMode == Modes::Royal_){
-                threadData->displayMut.lock();
-                render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
-                threadData->displayMut.unlock();
-
-                // Find which player is the client (ID == -1)
-                int clientPlayerIndex = -1;
-                for (size_t i = 0; i < playersData.size(); ++i) {
-                    if (playersData.at(i).playerId == -1) {
-                        clientPlayerIndex = i;
-                        threadData->clinetPlayerID = i; // Store the index
-                        break;
-                    }
-                }
-            } else {
-                // Render the regular games grid for endless, classic and duel modes
-                threadData->displayMut.lock();
-                render.renderGames(playersData);
-                threadData->displayMut.unlock();
-            }
-
         }
         if (messageType == MessageType::T_ForcedExit){
             keepRunning = false;
@@ -136,10 +92,8 @@ void* Player::threadRoutineView (void* arg){
             break;
         }
         else if (messageType == MessageType::T_GameStart) {
-
             threadData->userInGame = true;
             threadData->userInLobby = true;
-
             continue;
         }
         else if (messageType == MessageType::T_RoomInfo || messageType == MessageType::T_RoomJoinInfo) {
@@ -153,7 +107,6 @@ void* Player::threadRoutineView (void* arg){
             }
         }
     }
-
 return 0;
 }
 
@@ -166,7 +119,6 @@ return 0;
  * @param threadData containing socket & bool for the loop
  * @return int 
  */
-
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
@@ -212,6 +164,14 @@ int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     return 0;
 }
 
+
+/**
+ * @brief Handle standard input actions and send them to the server
+ *
+ * @param threadData ThreadData containing socket and player information
+ * @param action KeyboardAction to handle
+ * @return bool Success status of the operation
+ */
 bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData, KeyboardAction action) {
     InputMessage inputMessage;
     inputMessage.input = action;
@@ -223,6 +183,91 @@ bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData,
     return true;
 }
 
+
+/**
+ * @brief Handle player data and endgame messages
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @param messageSize Size of the message received
+ * @param messageType Type of the message received
+ * @param render RenderEngineNcurses object for rendering
+ * @return bool Success status of the operation
+ */
+bool Player::handlePlayerDataEndgameMessage(int socket, ThreadData* threadData, int messageSize, int messageType, RenderEngineNcurses& render) {
+    vector<NetPlayerData> playersData;
+    if (!receivePlayersData(socket, messageSize, messageType, playersData)) {
+        return false;
+    }
+    if (threadData->gameMode == Modes::Royal_){
+        threadData->displayMut.lock();
+        render.renderGamesRoyal(playersData, threadData->targetPlayerMenu);
+        threadData->displayMut.unlock();
+
+        // Find which player is the client (ID == -1)
+        int clientPlayerIndex = -1;
+        for (size_t i = 0; i < playersData.size(); ++i) {
+            if (playersData.at(i).playerId == -1) {
+                clientPlayerIndex = i;
+                threadData->clinetPlayerID = i; // Store the index
+                break;
+            }
+        }
+    } else {
+        // Render the regular games grid for endless, classic and duel modes
+        threadData->displayMut.lock();
+        render.renderGames(playersData);
+        threadData->displayMut.unlock();
+    }
+
+    return true;
+}
+
+
+/**
+ * @brief Receive player data from the server
+ *
+ * @param socket Socket to communicate with the server
+ * @param messageSize Size of the message received
+ * @param messageType Type of the message received
+ * @param playersData Vector to store the received player data
+ * @return bool Success status of the operation
+ */
+bool Player::receivePlayersData(int socket, int messageSize, int messageType, std::vector<NetPlayerData>& playersData) {
+    for (int i = 0; i < messageSize; ++i) {
+        NetPlayerData player;
+        if (!recvAll(socket, &player.playerId, sizeof(player.playerId))){return false;}
+        if (!recvAll(socket, &player.isGameOver, sizeof(player.isGameOver))){return false;}
+        if (!recvAll(socket, &player.linesCleared, sizeof(player.linesCleared))){return false;}
+        if (!recvAll(socket, &player.score, sizeof(player.score))){return false;}
+        if (!recvAll(socket, &player.nrg, sizeof(player.nrg))) {return false;}
+
+        int gridSize;
+        if (!recvAll(socket, &gridSize, sizeof(gridSize))){return false;}
+
+        if (gridSize <= 0 || gridSize > 100000) {  // juste pour detecter quand gridSize devient trop grand
+            std::cerr << "Error: Invalid gridSize received: " << gridSize << std::endl;
+            return false;
+        }
+        player.grid.resize(gridSize);
+
+        if (!recvAll(socket, player.grid.data(), gridSize * sizeof(Color))){return false;}
+        if(messageType == MessageType::T_EndGame)player.endGame = true;
+        playersData.push_back(player);
+    }
+
+    return true;
+}
+
+
+/**
+ * @brief Handle the room join process and display available rooms
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @param messageSize Size of the message received
+ * @return bool Success status of the operation
+ */
 bool Player::roomJoinHandler(int socket, ThreadData* threadData, int messageSize) {
     RenderRooms renderR;
     std::vector<RoomInfo> roomsInfo;
@@ -250,6 +295,16 @@ bool Player::roomJoinHandler(int socket, ThreadData* threadData, int messageSize
 }
 
 
+/**
+ * @brief Handle the selection of rooms and user actions
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @param roomsInfo Vector of available rooms
+ * @param renderR RenderRooms object for rendering
+ * @param mode Game mode (Royal, Endless, etc.)
+ * @return bool Success status of the operation
+ */
 bool Player::handleRoomsSelection(int socket, ThreadData* threadData,
                                   std::vector<RoomInfo>& roomsInfo,
                                   RenderRooms& renderR,
@@ -281,6 +336,16 @@ bool Player::handleRoomsSelection(int socket, ThreadData* threadData,
 }
 
 
+
+/**
+ * @brief Handle the joining of a room and send the necessary information to the server
+ *
+ * @param socket Socket to communicate with the server
+ * @param threadData ThreadData containing socket and player information
+ * @param roomsInfo Vector of available rooms
+ * @param index Index of the selected room
+ * @return bool Success status of the operation
+ */
 bool Player::handleJoinRoom(int socket, ThreadData* threadData, std::vector<RoomInfo>& roomsInfo, int index) {
     size_t N = roomsInfo.size();
     bool isSpectator = index >= (int)N;
@@ -309,6 +374,14 @@ bool Player::handleJoinRoom(int socket, ThreadData* threadData, std::vector<Room
     return true;
 }
 
+
+/**
+ * @brief Send a message to the menu with the specified mode
+ *
+ * @param socket Socket to communicate with the server
+ * @param mode Game mode (Royal, Endless, etc.)
+ * @return bool Success status of the operation
+ */
 bool Player::sendMessageToMenu(int socket, Modes mode) {
     int type = MessageType::T_Menu;
     int size = sizeof(MenuMessage);
@@ -671,9 +744,13 @@ int Player::keyboardActionToInt(KeyboardAction action) {
 
 
 
-
+/**
+ * @brief Convert integer value to MalusBonus enum
+ *
+ * @param malus Integer value representing a malus or bonus
+ * @return MalusBonus Corresponding MalusBonus enum value
+ */
 MalusBonus Player::intToMalusBonus(int malus) {
-    //todo reimagine this crap hardcoded thingy
     switch(malus) {
         case 1:
             return MalusIncreaseFallSpeed;

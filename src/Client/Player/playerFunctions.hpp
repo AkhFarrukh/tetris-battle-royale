@@ -60,6 +60,11 @@ class Player {
         static int sendInput (std::shared_ptr<Player::ThreadData> threadData); //Envoie les inputs au server
         static bool handleStandardInput(std::shared_ptr<Player::ThreadData> threadData, KeyboardAction action);
 
+        static bool handlePlayerDataEndgameMessage(int socket, ThreadData *threadData, int messageSize, int messageType,
+                                            RenderEngineNcurses &render);
+
+        static bool receivePlayersData(int socket, int messageSize, int messageType, std::vector<NetPlayerData> &playersData);
+
         static bool roomJoinHandler(int socket, ThreadData *threadData, int messageSize);
 
         static bool handleRoomsSelection(int socket, ThreadData *threadData, std::vector<RoomInfo> &roomsInfo,

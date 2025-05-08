@@ -923,7 +923,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
             }
             else {
                 QMetaObject::invokeMethod(
-                    std::cout << "sent anyway" << threadData->isSpectator << endl;
+                    //std::cout << "sent anyway" << threadData->isSpectator << endl;
                     static_cast<QObject*>(parent),
                     [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
                         parent->setupMyRoomScreen(info, isOwner);
