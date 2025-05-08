@@ -232,9 +232,9 @@ node_bcrypt(const char *key, size_t key_len, const char *salt, char *encrypted)
 	/* Setting up S-Boxes and Subkeys */
 	Blowfish_initstate(&state);
 	Blowfish_expandstate(&state, csalt, salt_len,
-		(u_int8_t *) key, key_len);
+		(u_int8_t *) key, static_cast<u_int16_t>(key_len));
 	for (k = 0; k < rounds; k++) {
-		Blowfish_expand0state(&state, (u_int8_t *) key, key_len);
+		Blowfish_expand0state(&state, (u_int8_t *) key, static_cast<u_int16_t>(key_len));
 		Blowfish_expand0state(&state, csalt, salt_len);
 	}
 
@@ -326,7 +326,7 @@ std::string bcrypt::generateHash(const std::string &password, unsigned int round
 	
     arc4random_buf(seed, 16);
 
-    bcrypt_gensalt('b', rounds, seed, salt);
+    bcrypt_gensalt('b', static_cast<u_int8_t>(rounds), seed, salt);
 
     std::string hash(61, '\0');
     node_bcrypt(password.c_str(), password.size(), salt, &hash[0]);

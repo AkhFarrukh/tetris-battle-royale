@@ -16,6 +16,8 @@ struct ClientSession{
     std::string password;
     int inRoom = -1;
     bool isSpectating;
+
+    ~ClientSession() noexcept __attribute__((noinline)) = default;
 };
 /**
 * @brief This struct is used in grouping data to be passed into

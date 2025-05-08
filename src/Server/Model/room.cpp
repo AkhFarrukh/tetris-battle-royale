@@ -135,6 +135,7 @@ void Room::broadcastDeleteRoom() {
 bool Room::addSpectator(int spectatorFd) {
     std::unique_lock<std::mutex> lock(mtx);
     spectatorFds.push_back(spectatorFd);
+    return true;
 }
 
 bool Room::removeSpectator(int spectatorFd) {
@@ -151,9 +152,6 @@ bool Room::removeSpectator(int spectatorFd) {
         playersThread.end()
     );
     cv.notify_all();
+    return true;
 
 }
-
-
-
-// Room::void deleteRoom(){}

@@ -664,7 +664,7 @@ std::vector<int> UserDatabaseManager::getUserIdSession() {
 }
 
 int UserDatabaseManager::getUserSocket(int user_id){
-    int sockUser;
+    int sockUser = -1;
     std::string sql = database.getStatement("getUserSocket");
 
     database.prepareStatement(sql.c_str());

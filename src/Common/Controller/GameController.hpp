@@ -29,6 +29,7 @@ private:
     std::mutex queueMutex;
 public:
     GameController();
+    ~GameController() noexcept __attribute__((noinline)) = default;
     void startGameInput() {input.start();}
     void stopGameInput() {input.stop();}
     Action getAction(KeyboardAction in);
@@ -41,12 +42,6 @@ public:
     // Setters
     void setControlsBlocked(bool isBlocked) { controlsBlocked = isBlocked; }
     void setControlsInverted(bool isInverted) { controlsInverted = isInverted; }
-    /*
-    int getGameScore();
-    int getGameNumberOfBrokenLines();
-    Color getBlockColor(Coordinates cell);
-    */
-    void renderGame();
     void printGameOver();
 
 };

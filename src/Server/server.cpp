@@ -19,32 +19,30 @@ Server server;
 int server_sock = -1;
 
 void handle_sigint(int sig) {
-    flagServ = true;
-    std::vector<int> clients = server.udbm.getUserIdSession();
-    for(const auto& clientId:clients){
-        server.udbm.logOut(clientId);//on marque la personne comme deconnecté
-        server.udbm.setNotInConversation(clientId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
-                                                                                    //comme telle
-        int sock_client = server.udbm.getUserSocket(clientId);
-        int exitType = MessageType::T_ForcedExit;
-        int size_ = sizeof(int);
-        int bytesSentType = sendAll(sock_client, &exitType, sizeof(int));
-        int bytesSentSize = sendAll(sock_client, &size_, sizeof(int));
-    while(server.udbm.isUserInSession(clientId)){
-        server.udbm.deleteSession(clientId);}
+    if (sig == SIGINT) {
+        cout << "Server shutting down..." << endl;
+        flagServ = true;
+        std::vector<int> clients = server.udbm.getUserIdSession();
+        for(const auto& clientId:clients){
+            server.udbm.logOut(clientId);//on marque la personne comme deconnecté
+            server.udbm.setNotInConversation(clientId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+                                                                                        //comme telle
+            int sock_client = server.udbm.getUserSocket(clientId);
+            int exitType = MessageType::T_ForcedExit;
+            int size_ = sizeof(int);
+            sendAll(sock_client, &exitType, sizeof(int));
+            sendAll(sock_client, &size_, sizeof(int));
+        while(server.udbm.isUserInSession(clientId)){
+            server.udbm.deleteSession(clientId);}
+        }
+        napms(100);
+        if(server_sock != -1){close(server_sock); server_sock = -1;}
     }
-    napms(100);
-    if(server_sock != -1){close(server_sock); server_sock = -1;}
-    //signal(SIGINT, SIG_DFL);
-    //raise(SIGINT);
 }
 
 
 int main () {
     signal(SIGINT, handle_sigint);
-    /**************************************************************
-    *LAUNCH THE SERVER
-    **************************************************************/
     cout << "Launching server..." << endl;
 
     //Create socket and return fd val
@@ -73,11 +71,7 @@ int main () {
             perror("Error while listening : ");
             return 1;}
     }
-
-    /**************************************************************
-    *HANDLE THE CLIENT
-    **************************************************************/
-
+    //Handle client
     auto rooms = std::make_shared<std::vector<std::shared_ptr<Room>>>();
 
     if (server.handleClient(server_fd, address, addressLen) <= -1){

@@ -151,7 +151,6 @@ void* Server::threadRoutineClient(void* arg){
         // Using bool "UserIsOnline" for better readability of while loop
 
         bool userIsOnline = true;
-        bool userIsInGame = false;
 
         while (!flagServ && userIsOnline) {
             std::cout << "start listening cuh" << std::endl;
@@ -746,10 +745,10 @@ void Server::notifySuccessfulLogin(Server* server, ClientSession& client, Connex
         flagConnexion = false;
     }
     int size_ = sizeof(int);
-    int bytesSentType = sendAll(client.client_fd, &typeConnexion, sizeof(int));
-    int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
-    bytesSentType = sendAll(client.client_fd, &doubleSession, sizeof(int));
-    bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+    sendAll(client.client_fd, &typeConnexion, sizeof(int));
+    sendAll(client.client_fd, &size_, sizeof(int));
+    sendAll(client.client_fd, &doubleSession, sizeof(int));
+    sendAll(client.client_fd, &size_, sizeof(int));
 }
 
 /**
@@ -830,8 +829,8 @@ void Server::handleRegister(Server* server, ClientSession& client, Connexion& co
 void Server::notifyRefusedLogin(ClientSession& client){
     int type_ = MessageType::T_RefuseConnexion;
     int size_ = sizeof(int);
-    int bytesSentType = sendAll(client.client_fd, &type_, sizeof(int));
-    int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+    sendAll(client.client_fd, &type_, sizeof(int));
+    sendAll(client.client_fd, &size_, sizeof(int));
 }
 
 /**
@@ -845,7 +844,7 @@ void Server::notifyRefusedLogin(ClientSession& client){
 void Server::notifyAcceptConnexion(Server* server, ClientSession& client, Connexion& connexionData, bool& successfulLogin){
     int typeRegister = MessageType::T_AcceptConnexion;
     int size_ = sizeof(int);
-    int bytesSentType = sendAll(client.client_fd, &typeRegister, sizeof(int));
-    int bytesSentSize = sendAll(client.client_fd, &size_, sizeof(int));
+    sendAll(client.client_fd, &typeRegister, sizeof(int));
+    sendAll(client.client_fd, &size_, sizeof(int));
     successfulLogin = server->udbm.isCorrectLogin(connexionData.username, connexionData.password);
 }

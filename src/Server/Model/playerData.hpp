@@ -44,6 +44,8 @@ struct PlayerState {
         : playerId(pid),
           movement(Action::NONE, nullptr),
           gameData(0, 0, false, gameMode){}  
+
+    ~PlayerState() noexcept __attribute__((noinline)) = default;
 };
 
 struct NetPlayerData {

@@ -8,7 +8,6 @@ GameController::GameController() {}
 
 
 Action GameController::getAction(KeyboardAction in) {
-	std::cout << "Input received: " << static_cast<int>(in) << std::endl;
     bool controlsBlocked = areControlsBlocked();
     bool controlsInverted = areControlsInverted();
     Action action = Action::NONE;
@@ -73,33 +72,10 @@ Action GameController::getAction(KeyboardAction in) {
     }
 	std::lock_guard<std::mutex> lock(queueMutex);
     eventQueue->addEvent(make_shared<MovementActionEvent>(action));
-	std::cout << "Event queued: " << static_cast<int>(action) << std::endl;
+	return Action::NONE;
 }
 
 void GameController::applyMalusBonus(MalusBonus malBon, int target) {
     std::lock_guard<std::mutex> lock(queueMutex);
     eventQueue->addEvent(std::make_shared<MalusBonusEvent>(malBon, target));
 }
-
-/*
-int GameController::getGameScore() {
-    return game->getGameScore();
-}
-
-int GameController::getGameNumberOfBrokenLines() {
-    return game->getGameNumberOfBrokenLines();
-}
-
-Color GameController::getBlockColor(Coordinates cell) {
-    return game->getBlockColor(cell);
-}
-*/
-/*
-void GameController::renderGame() {
-    RenderEngineNcurses::renderGame(game);
-}
-
-void GameController::printGameOver() {
-    RenderEngineNcurses::printGameOver();
-}
-*/

@@ -41,26 +41,22 @@ public:
     void run();
     void stop();
     
-    Color getBlockColor(Coordinates cell);
     bool broadcastGame(bool endGame = false);
     void setSpectators(const std::vector<int>* spectPtrs);
 
 
 private:
 
-    std::shared_ptr<ClientSession> clientSes;
+    bool isRunning;
+    int numPlayers_;
     Modes gameMode;
+    std::shared_ptr<ClientSession> clientSes;
     std::vector<PlayerState> players;
     FigureGenerator figureGenerator;
-    bool isRunning;
     shared_ptr<Mode> mode;
-    int numPlayers_;
+    
     UserDatabaseManager udbm;
     const std::vector<int>* spectatorFdsPtr = nullptr;
-
-
-
-    void checkInput();
 
     void updateGame();
 
@@ -68,16 +64,11 @@ private:
     void handleMalusBonusEvent(std::shared_ptr<Event> e, int p);
     void handleMalus(int targetID, int playerID);
 
-    void renderGame();
     int  applyColor(Color blockColor);
     void checkGameOver();
     void handleLineCompletion(int p);
 
     void placePieceOnBoard(int p);
-    
-
-
-
 };
 
 #endif // GAME_HPP

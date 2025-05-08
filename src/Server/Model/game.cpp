@@ -17,13 +17,13 @@ const int GRID_WIDTH = 10;
 #define BLOCK_1X1_PRICE             1
 
 Game::Game(){
+    isRunning = false;
+    numPlayers_ = 0;
     gameMode = Modes::NONE_;
+    clientSes = nullptr;
     players = vector<PlayerState> ();
     figureGenerator = FigureGenerator();
-    isRunning = false;
     mode = make_shared<Mode>();
-    numPlayers_ = 0;
-    clientSes = nullptr;
 }
 Game::Game(std::vector<ThreadGameData> playersData, int numPlayers, Modes gameMode, std::shared_ptr<ClientSession> clientSession)
     :   isRunning(false),

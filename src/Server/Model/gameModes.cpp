@@ -113,7 +113,7 @@ void RoyalCompetition::malusThunder(PlayerState& player) {
   cout << "malusThunder" << endl;
   int GRID_HEIGHT = 20;
   int GRID_WIDTH = 10;
-  srand(time(nullptr));
+  srand(static_cast<unsigned int>(time(nullptr)));
   int columnTargeted = rand() % GRID_WIDTH; //Va choisir une colonne ou la foudre va s'abattre.
   int thunderPositionLine = 0; //Commence tout en haut.
   while (player.grid->isLocationFree({columnTargeted, thunderPositionLine})) { //Fait chuter la foudre(couleur blanche) et stop au lieu d'impact

@@ -11,7 +11,6 @@
 #include <thread>
 #include "communication.hpp"
 
-static int globalRoomCounter = 0;
 class Game; // Forward declaration
 
 // Forward declarations

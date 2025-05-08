@@ -11,7 +11,7 @@ void arc4random_buf(void *buf, size_t nbytes)
 {
 
     for( size_t n = 0; n < nbytes; ++ n)
-        ((char*)(buf))[n] = rand() %256;
+        ((char*)(buf))[n] = static_cast<char>(rand() %256);
 }
 
 inline
