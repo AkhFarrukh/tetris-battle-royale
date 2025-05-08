@@ -4,7 +4,7 @@
 
 Room::Room(){}
 
-Room::Room(int sockHoster, Modes mode, std::shared_ptr<EventQueue> hostEventQueue)
+Room::Room(int sockHoster, Modes mode, std::shared_ptr<EventQueue> hostEventQueue, int maxPlayersInRoom)
     : sockHoster(sockHoster),
       gameMode(mode),
       matchStarted(false),
@@ -16,7 +16,7 @@ Room::Room(int sockHoster, Modes mode, std::shared_ptr<EventQueue> hostEventQueu
     }
     if (mode == Modes::Royal_ or mode == Modes::Classic_){
         minPlayers = 3;
-        maxPlayers = 9;
+        maxPlayers = maxPlayersInRoom;
     }
     gamePtr = nullptr;
     playerFds.push_back(sockHoster);

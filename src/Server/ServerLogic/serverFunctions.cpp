@@ -606,7 +606,7 @@ void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOn
  */
 void Server::handleCreateRoom(Server* server, ClientSession& client, bool& userIsOnline, MenuMessage& MenuMessage, shared_ptr<EventQueue> eventQueue){
     std::cout<<"Received CreateRoom"<<std::endl;
-    auto r = std::make_shared<Room>(client.client_fd, MenuMessage.mode, eventQueue);
+    auto r = std::make_shared<Room>(client.client_fd, MenuMessage.mode, eventQueue, MenuMessage.maxPlayers);
     auto allRoom = server->roomsList;
     server->myRoom = r;
     allRoom->push_back(r);

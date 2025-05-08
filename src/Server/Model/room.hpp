@@ -28,7 +28,7 @@ public:
      * @param minPlayers Minimum number of players required to start (3).
      * @param maxPlayers Maximum number of players in the room (9).
      */
-    Room(int sockHoster, Modes mode, std::shared_ptr<EventQueue> hostEventQueue);
+    Room(int sockHoster, Modes mode, std::shared_ptr<EventQueue> hostEventQueue, int maxPlayers);
     Room();
 
     ~Room();

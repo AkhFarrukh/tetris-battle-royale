@@ -45,6 +45,7 @@ enum MenuActions{
 struct MenuMessage{
     MenuActions action;
     Modes mode;
+    int maxPlayers;
 };
 
 
@@ -104,6 +105,7 @@ struct RoomInfo {
     int currentPlayersCount;
     bool isStarted;
     Modes mode;
+    int maxPlayers;
 };
 
 /**
