@@ -166,7 +166,7 @@ void guiControlleur::handleAuth(const QString& username, const QString& password
 void* guiControlleur::threadRoutineQtView(void* arg) {
     Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
     int sock = threadData->socket;
-    auto* parent = static_cast<guiControlleur*>(threadData->qtParent);
+    MainWindow* mw = static_cast<MainWindow*>(threadData->qtParent);
 
     while (threadData->socket == 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -183,12 +183,17 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
         if (type == MessageType::T_Message) {
             Message message;
             if (!recvAll(sock, &message, size)) break;
-            if(!parent->chatHandler || !parent->chatHandler->getChatHistory())break;
+            MainWindow* mw = static_cast<MainWindow*>(threadData->qtParent);
+            if (!mw->chatHandler || !mw->chatHandler->getChatHistory()) break;
             QString sender = QString::fromUtf8(message.expediteur);
             QString msg = QString::fromUtf8(message.message);
-            QMetaObject::invokeMethod(parent->chatHandler->getChatHistory(), [=]() {
-            parent->chatHandler->getChatHistory()->append("<b>" + sender + ": </b> " + msg);
-            }, Qt::QueuedConnection);
+            QMetaObject::invokeMethod(
+                mw->chatHandler->getChatHistory(),
+                [=]() {
+                    mw->chatHandler->getChatHistory()->append("<b>" + sender + ": </b> " + msg);
+                },
+                Qt::QueuedConnection
+            );            
         }
 
         else if (type == MessageType::T_Exit || type == MessageType::T_ForcedExit) {
@@ -270,14 +275,17 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
             threadData->isOwner = (type == MessageType::T_RoomInfo);
             threadData->mux.unlock();
             std::cout << "thread data before sending" << threadData->isSpectator << endl;
-            if (threadData->isSpectator == 1) {
-                QMetaObject::invokeMethod(
-                    static_cast<QObject*>(parent),
-                    [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
-                        parent->setupSpectatorWaitingScreen(info.roomID);
+            QMetaObject::invokeMethod(
+                static_cast<QObject*>(mw),
+                [info, isOwner = (type == MessageType::T_RoomInfo), mw, threadData]() {
+                    if (threadData->isSpectator == 1) {
+                        mw->setupSpectatorWaitingScreen(info.roomID);
+                    } else {
+                        mw->setupMyRoomScreen(info, isOwner);
                     }
-                );
-            }
+                },
+                Qt::QueuedConnection
+            );
             else {
                 std::cout << "sent anyway" << threadData->isSpectator << endl;
                 QMetaObject::invokeMethod(               

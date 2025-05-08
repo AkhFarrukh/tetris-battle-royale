@@ -24,7 +24,8 @@
 extern std::atomic<bool> flag;
 
 
-class guiControlleur{
+class guiControlleur : public QObject {
+    Q_OBJECT
 private:
     int sock;
     std::shared_ptr<Player::ThreadData> threadData;

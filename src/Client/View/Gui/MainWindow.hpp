@@ -44,6 +44,7 @@ public:
     void showGameOverPopup();
     void setGameScreen();
     void addMalusButtonsIfRoyal();
+    void setupSpectatorWaitingScreen(int roomID);
 
 private slots:
     void showLoginScreen();
@@ -60,15 +61,14 @@ private slots:
     void showLeaderboardScreen();
     void showChatScreen();
     void showfriendsListScreen();
-    void setupSpectatorWaitingScreen(int roomID);
 
 
 private:
     QWidget *callerWindow = nullptr;
     QTextEdit *chatHistory = nullptr;
     int sock;
-    // FriendsHandler* friendsHandler = nullptr;
-    // ChatHandler* chatHandler = nullptr;
+    FriendsHandler* friendsHandler = nullptr;
+    ChatHandler* chatHandler = nullptr;
     std::string username;
     int userId_;
 
