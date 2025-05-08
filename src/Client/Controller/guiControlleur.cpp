@@ -1,7 +1,7 @@
 #include "guiControlleur.hpp"
 
 guiControlleur::guiControlleur(int sock, std::shared_ptr<Player::ThreadData> threadData)
-    : sock(sock), threadData(threadData) {}
+    : QObject(), sock(sock), threadData(threadData) {}
 
 guiControlleur::~guiControlleur(){}
 
@@ -286,15 +286,15 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
                 },
                 Qt::QueuedConnection
             );
-            else {
-                std::cout << "sent anyway" << threadData->isSpectator << endl;
-                QMetaObject::invokeMethod(               
-                    static_cast<QObject*>(parent),
-                    [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
-                        parent->setupMyRoomScreen(info, isOwner);
-                    }
-                );
-            }
+            // else {
+            //     std::cout << "sent anyway" << threadData->isSpectator << endl;
+            //     QMetaObject::invokeMethod(               
+            //         static_cast<QObject*>(parent),
+            //         [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
+            //             parent->setupMyRoomScreen(info, isOwner);
+            //         }
+            //     );
+            // }
             
         }
 
@@ -307,12 +307,13 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
             if (!recvAll(sock, &modeSize, sizeof(int))) break;
 
             QMetaObject::invokeMethod(
-                static_cast<QObject*>(parent),
-                [rooms, parent]() {
-                    parent->setupRoomListScreen(rooms);
-                }
+                static_cast<QObject*>(mw),
+                [rooms, mw]() {
+                    mw->setupRoomListScreen(rooms);
+                },
+                Qt::QueuedConnection
             );
-        }
+                    }
 
         else {
             std::cerr << "[QtView] Unhandled type: " << type << std::endl;

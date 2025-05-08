@@ -26,24 +26,14 @@ extern std::atomic<bool> flag;
 
 class guiControlleur : public QObject {
     Q_OBJECT
+
 private:
     int sock;
     std::shared_ptr<Player::ThreadData> threadData;
     pthread_t threadID;
-    void sendCreateRoom();
-    void joinRoom(int roomID);
-    void sendForceStart();
-    void sendLeaveRoom();
-    void requestRoomUpdate();
-    void requestRoomList();
-    void handleAuth(const QString& username, const QString& password, bool isRegister, const QString& confirmPassword = "", bool isRegisterMode = false);
+
     static void* threadRoutineQtView(void* arg);
-    void handleMalusBonus(int malusId);
-    void sendMalusBonus(int malusId, int targetPlayerIndex);
-    void handleFriendsMenu();
-    void handleChatMenu();
-    void sendMenuAction(MenuActions action, Modes mode);
-    void spectateRoom(int roomID);
+    
     
     FriendsHandler* friendsHandler = nullptr;
     ChatHandler* chatHandler = nullptr;
@@ -51,6 +41,18 @@ private:
 public:
     guiControlleur(int sock, std::shared_ptr<Player::ThreadData> threadData);
     ~guiControlleur();
+    void handleAuth(const QString& username, const QString& password, bool isRegister, const QString& confirmPassword = "", bool isRegisterMode = false);
+    void sendCreateRoom();
+    void joinRoom(int roomID);
+    void sendForceStart();
+    void sendLeaveRoom();
+    void requestRoomUpdate();
+    void requestRoomList();
+    void handleMalusBonus(int malusId);
+    void sendMalusBonus(int malusId, int targetPlayerIndex);
+    void sendMenuAction(MenuActions action, Modes mode);
+    void spectateRoom(int roomID);
+
 };
 
 #endif // GUICONTROLLEUR_HPP

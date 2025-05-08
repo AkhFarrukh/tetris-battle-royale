@@ -32,7 +32,7 @@ extern std::atomic<bool> flag;
 
 
 MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::ThreadData> threadData)
-    : QMainWindow(parent), sock(sock), threadData(threadData) {
+: QMainWindow(parent), sock(sock), threadData(threadData){
 
     setupUI();
     resize(600, 500);
@@ -169,7 +169,7 @@ void MainWindow::handleAuth() {
     }
 
 
-    controller->handleAuth(username, password, isRegisterMode, confirmPassword, isRegisterMode, myRoomScreen);
+    controller->handleAuth(username, password, isRegisterMode, confirmPassword, isRegisterMode);
     
     //Start periodic UI refresh from threadData
     auto timer = new QTimer(nullptr);
@@ -387,13 +387,13 @@ void MainWindow::updateGameScreen() {
 
 void MainWindow::showModeScreen(const QString& mode) {
     if (mode == "endless") {
-        sendMenuAction(MenuActions::A_Play, Modes::Endless_);
+        controller->sendMenuAction(MenuActions::A_Play, Modes::Endless_);
     } else if (mode == "classic") {
-        sendMenuAction(MenuActions::A_JoinRoom, Modes::Classic_);
+        controller->sendMenuAction(MenuActions::A_JoinRoom, Modes::Classic_);
     } else if (mode == "duel") {
-        sendMenuAction(MenuActions::A_JoinRoom, Modes::Duel_);
+        controller->sendMenuAction(MenuActions::A_JoinRoom, Modes::Duel_);
     } else if (mode == "royal") {
-        sendMenuAction(MenuActions::A_JoinRoom, Modes::Royal_);
+        controller->sendMenuAction(MenuActions::A_JoinRoom, Modes::Royal_);
     }
 }
 
@@ -438,10 +438,16 @@ void MainWindow::setupSpectatorWaitingScreen(int roomID) {
     QPushButton* leaveBtn = new QPushButton("Leave Spectation", this);
 
     connect(refreshBtn, &QPushButton::clicked, this, [this]() {
-        requestRoomUpdate(); // define this
+        controller->requestRoomUpdate(); // define this
     });
     connect(leaveBtn, &QPushButton::clicked, this, [this]() {
-        sendLeaveRoom(myRoomScreen, stackedWidget);
+        controller->sendLeaveRoom();
+        if (myRoomScreen) {
+            stackedWidget->removeWidget(myRoomScreen);
+            delete myRoomScreen;
+            myRoomScreen = nullptr;
+        }
+
     });
     
     layout->addWidget(refreshBtn);
@@ -479,14 +485,14 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
             auto* joinBtn = new QPushButton("Join", this);
             rowLayout->addWidget(joinBtn);
             connect(joinBtn, &QPushButton::clicked, [this, r]() {
-                joinRoom(r.roomID);
+                controller->joinRoom(r.roomID);
             });
 
             // 3) Spectate button
             auto* specBtn = new QPushButton("Spectate", this);
             rowLayout->addWidget(specBtn);
             connect(specBtn, &QPushButton::clicked, [this, r]() {
-                spectateRoom(r.roomID);
+                controller->spectateRoom(r.roomID);
             });
             rowLayout->addStretch();
 
@@ -514,15 +520,15 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
 
     // Handle create
     connect(createBtn, &QPushButton::clicked, this, [this]() {
-        sendCreateRoom();
+        controller->sendCreateRoom();
     });
 
     // Keep existing
-    connect(refreshBtn, &QPushButton::clicked, this, &MainWindow::requestRoomList);
+    connect(refreshBtn, &QPushButton::clicked, controller, &guiControlleur::requestRoomList);
     connect(backBtn, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
 
     connect(refreshBtn, &QPushButton::clicked, this, [this]() {
-        requestRoomList();  // define this to re-fetch rooms from server
+        controller->requestRoomList();  // define this to re-fetch rooms from server
     });
 
     connect(backBtn, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
@@ -570,15 +576,15 @@ void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
     layout->addWidget(leaveBtn);
 
     connect(forceStartBtn, &QPushButton::clicked, this, [this]() {
-        sendForceStart(); // define this
+        controller->sendForceStart(); // define this
     });
 
     connect(refreshBtn, &QPushButton::clicked, this, [this]() {
-        requestRoomUpdate(); // define this
+        controller->requestRoomUpdate(); // define this
     });
 
     connect(leaveBtn, &QPushButton::clicked, this, [this]() {
-        sendLeaveRoom();
+        controller->sendLeaveRoom();
         if (myRoomScreen) {
             stackedWidget->removeWidget(myRoomScreen);
             delete myRoomScreen;
@@ -611,7 +617,7 @@ void MainWindow::addMalusButtonsIfRoyal() {
             malusBonusLayout->addWidget(btn);
 
             connect(btn, &QPushButton::clicked, this, [this, i]() {
-                handleMalusBonus(i + 1);
+                controller->handleMalusBonus(i + 1);
             });
         }
 

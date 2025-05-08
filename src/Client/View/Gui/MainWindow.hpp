@@ -45,6 +45,10 @@ public:
     void setGameScreen();
     void addMalusButtonsIfRoyal();
     void setupSpectatorWaitingScreen(int roomID);
+    FriendsHandler* friendsHandler = nullptr;
+    ChatHandler* chatHandler = nullptr;
+    void setupMyRoomScreen(const RoomInfo& room, bool isOwner);
+    void setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo);
 
 private slots:
     void showLoginScreen();
@@ -61,25 +65,24 @@ private slots:
     void showLeaderboardScreen();
     void showChatScreen();
     void showfriendsListScreen();
+    
 
 
 private:
     QWidget *callerWindow = nullptr;
     QTextEdit *chatHistory = nullptr;
     int sock;
-    FriendsHandler* friendsHandler = nullptr;
-    ChatHandler* chatHandler = nullptr;
     std::string username;
     int userId_;
 
     void setupUI();
     void setupLoginScreen();
     void setupAuthScreen();
-    void setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo);
-    void setupMyRoomScreen(const RoomInfo& room, bool isOwner);
+    void handleFriendsMenu();
     void setupFriendsListScreen();
     void handleAuth();
     void openChatWith(const QString& friendName);
+    void handleChatMenu();
 
     QWidget* loginScreen = nullptr;
     QWidget* authScreen = nullptr;
@@ -104,7 +107,7 @@ private:
 
     bool isRegisterMode = false;
 
-    // std::shared_ptr<Player::ThreadData> threadData;
+    std::shared_ptr<Player::ThreadData> threadData;
     pthread_t threadID;
 
     UserDatabaseManager udm;
