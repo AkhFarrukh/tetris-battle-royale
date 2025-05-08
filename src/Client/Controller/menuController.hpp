@@ -20,6 +20,7 @@ class MenuController {
         };
         bool runningMenu;
         MenuOption allMenus; 
+        MenuOption currentMenu; // Current menu being displayed
         vector<int> selectedOptions; // Vector to store the selected options for each menu
         
     public:
