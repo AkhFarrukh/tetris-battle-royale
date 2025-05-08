@@ -38,7 +38,7 @@ void MenuController::handleMenu() {
                 }
                 break;
             case KEY_DOWN:
-                if (selectedOptions.back() < currentMenu->options.size() - 1) {
+                if (selectedOptions.back() < static_cast<int>(currentMenu->options.size() - 1)) {
                     selectedOptions.back()++; // Move down in the menu
                 }
                 break;
@@ -72,7 +72,7 @@ void MenuController::displayMenu() {
 
 void MenuController::updateCurrentMenu() {
     currentMenu = make_shared<MenuOption>(allMenus);
-    for (int sub = 0; sub < selectedOptions.size() - 1; sub++) {
+    for (int sub = 0; sub < static_cast<int>(selectedOptions.size() - 1); sub++) {
         currentMenu = currentMenu->options[selectedOptions[sub]];
     }
     return;

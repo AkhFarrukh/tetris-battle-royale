@@ -65,7 +65,7 @@ class MenuController {
         MenuController(InterfaceTerminal interfaceTerminal);
 
         // Destructor
-        ~MenuController() = default;
+        ~MenuController() noexcept __attribute_noinline__ =  default;
 
         void handleMenu();
         void updateCurrentMenu();

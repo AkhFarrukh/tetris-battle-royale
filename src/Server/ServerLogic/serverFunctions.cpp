@@ -154,8 +154,6 @@ void* Server::threadRoutineClient(void* arg){
 
         while (!flagServ && userIsOnline) {
             std::cout << "start listening cuh" << std::endl;
-            //int bytesReceived = recv(client.client_fd, buffer, sizeof(buffer), 0);
-
             //To have info on the data received
             int type = {0};
             int size = {0};
@@ -165,31 +163,23 @@ void* Server::threadRoutineClient(void* arg){
             if (!recvAll(client.client_fd, &type, sizeof(int))){userIsOnline = false;}
             if (!recvAll(client.client_fd, &size, sizeof(int))){userIsOnline = false;}
 
-            /************************************
-            *MenuMessage INFO
-            */
+            //MenuMessage INFO
             if(type == MessageType::T_Menu){
                 std::cout << "MenuMessage" << std::endl;
                 MenuMessage MenuMessage;
                 if (!recvAll(client.client_fd, &MenuMessage, sizeof(MenuMessage))){userIsOnline = false;}
 
-                /************************************
-                *PLAY ENDLESS INFO
-                */
+                //PLAY ENDLESS INFO
                 else if (MenuMessage.action == MenuActions::A_Play) {
                     if (MenuMessage.mode == Modes::Endless_){
                         server->handlePlay(server, client, userIsOnline, eventQueue, threadGameData);
                     }   
                 }
-                /************************************
-                *CREATE ROOM INFO
-                */
+                //CREATE ROOM INFO
                 else if (MenuMessage.action == MenuActions::A_CreateRoom) {
                     server->handleCreateRoom(server, client, userIsOnline, MenuMessage, eventQueue);
                 }
-                /************************************
-                *GET ROOM INFO
-                */
+                //GET ROOM INFO
                 else if (MenuMessage.action == MenuActions::A_JoinRoom) {
                     server->handleGetRoom(server, client, userIsOnline, MenuMessage);
                 }
@@ -198,9 +188,7 @@ void* Server::threadRoutineClient(void* arg){
                     server->handleForceStart(server, client, userIsOnline, threadGamePID);
                 }
             }
-            /************************************
-            *REFRESH INFO
-            */
+            //REFRESH INFO
             else if (type == MessageType::T_Refresh || type == MessageType::T_RoomJoinRefresh){
                 bool owner = (type == MessageType::T_Refresh);
                 server->handleRefresh(server, client, userIsOnline, owner);
@@ -211,15 +199,11 @@ void* Server::threadRoutineClient(void* arg){
             else if (type == MessageType::T_RoomDeleted){
                 server->handleDeleteRoom(server, client);
             }
-            /************************************
-            *JOIN ROOM
-            */
+            //JOIN ROOM
             else if (type == MessageType::T_Join) {
                 server->handleJoin(server, client, userIsOnline, size, eventQueue);
             }
-            /************************************
-            *JOIN AS SPECTATOR
-            */
+            //JOIN AS SPECTATOR
             else if (type == MessageType::T_JoinAsSpectator) {
                 client.isSpectating = true;
                 server->handleJoin(server, client, userIsOnline, size, eventQueue);
@@ -271,17 +255,11 @@ void* Server::threadRoutineClient(void* arg){
                 sendAll(friendSock, &sz, sizeof(sz));
                 sendAll(friendSock, &notice, sz);
             }
-            
-
-            /************************************
-            *INPUT INFO
-            */
+            //INPUT INFO
             else if (type == MessageType::T_Input) {
                 server->handleInput(client, userIsOnline, eventQueue, gameController);
             }
-            /************************************
-            *MALUS BONUS INFO
-            */
+            //MALUS BONUS INFO
             else if (type == MessageType::T_MalusBonus) {
                 cout<<"tamer"<<endl;
                 server->handleMalusBonus(client, userIsOnline, eventQueue);
@@ -295,9 +273,7 @@ void* Server::threadRoutineClient(void* arg){
             	}
                 server->broadcastMessage(message, userIsOnline);
             }
-            /************************************
-            *EXIT GAME
-            */
+            //EXIT GAME
             else if (type == MessageType::T_Exit) {
                 if (server->myRoom) {
                     if (client.isSpectating) {
@@ -309,18 +285,10 @@ void* Server::threadRoutineClient(void* arg){
                     }
                 }
             }
-
-            /************************************
-            *FORCED EXIT INFO
-            */
+            //FORCED EXIT INFO
             else if (type == MessageType::T_ForcedExit){
                 server->handleForcedExit(server, client);
             }
-            /*if (!userIsOnline){
-                // EXIT PROPREMENT DU SERV SI DECO //
-                printf("ici\n");
-                server->handleDisconnect(server, client, threadGamePID);
-            }*/
         }
     }
     else {
@@ -328,14 +296,6 @@ void* Server::threadRoutineClient(void* arg){
     }
     return nullptr;
 }
-
-
-
-/************************************************************************************
- *                                                                                  *
- *                  METHODS HANDLING MESSAGES FROM THE CLIENT                       *
- *                                                                                  *
- ***********************************************************************************/
 
 /**
  * @brief Routine avec Game() qui tourne
@@ -670,7 +630,7 @@ void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnlin
     sendAll(client.client_fd, &size,  sizeof(size));
     napms(355);
 
-    std::shared_ptr<ClientSession> clientSession = std::make_shared<ClientSession>(client);
+    std::shared_ptr<ClientSession> clientSession = std::shared_ptr<ClientSession>(&client);
     std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_, clientSession);
     
     auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
@@ -814,12 +774,6 @@ void Server::handleRegister(Server* server, ClientSession& client, Connexion& co
         server->notifyRefusedLogin(client);
     }
 }
-
-/************************************************************************************
- *                                                                                  *
- *                  METHODS HANDLING LOGIN OF THE CLIENT                            *
- *                                                                                  *
- ***********************************************************************************/
 
 /**
  * @brief Will send to the client RefuseConnexion message

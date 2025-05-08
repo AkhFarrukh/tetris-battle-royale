@@ -28,8 +28,8 @@ void Tetris::exitTetris() {
         }
     int exitType = MessageType::T_ForcedExit;
     int size_ = sizeof(int);
-    int bytesSentType = sendAll(socketServer, &exitType, sizeof(int));
-    int bytesSentSize = sendAll(socketServer, &size_, sizeof(int));
+    sendAll(socketServer, &exitType, sizeof(int));
+    sendAll(socketServer, &size_, sizeof(int));
     }
 }
 
@@ -105,8 +105,8 @@ int Tetris::runTetris(int argc, char** argv) {
                 //Quit game
                 int exitType = MessageType::T_ForcedExit;
                 int size_ = sizeof(int);
-                int bytesSentType = sendAll(socketServer, &exitType, sizeof(int));
-                int bytesSentSize = sendAll(socketServer, &size_, sizeof(int));
+                sendAll(socketServer, &exitType, sizeof(int));
+                sendAll(socketServer, &size_, sizeof(int));
                 isInGame = false;
             }
             else{
@@ -194,10 +194,13 @@ int Tetris::runTetris(int argc, char** argv) {
         keypad(stdscr, false);
         curs_set(1);
         nodelay(stdscr, false);
-        system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
+        int ret = system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
+        if (WIFEXITED(ret) == -1) {
+            std::cout << "stty echo failed" << std::endl;
+        }
         close(socketServer); // Fermer le socket après utilisation
         std::string command = "clear";
-        int result = system(command.c_str());
+        system(command.c_str());
         return 0;
 
     }
@@ -227,10 +230,13 @@ int Tetris::authentification(std::vector<std::string> &dataConnexion, std::share
         keypad(stdscr, false);
         curs_set(1);
         nodelay(stdscr, false);
-        system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
+        int ret = system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
+        if (WIFEXITED(ret) == -1) {
+            std::cout << "stty echo failed" << std::endl;
+        }
         close(socketServer);         // Fermer le socket après utilisation
         std::string command = "clear";
-        int result = system(command.c_str());
+        system(command.c_str());
         return 0;
     }
     retFlag = false;
