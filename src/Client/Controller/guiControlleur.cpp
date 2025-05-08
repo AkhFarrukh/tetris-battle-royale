@@ -1,7 +1,7 @@
 #include "guiControlleur.hpp"
 
 guiControlleur::guiControlleur(int sock, std::shared_ptr<Player::ThreadData> threadData)
-    : QObject(), sock(sock), threadData(threadData) {}
+    :  sock(sock), threadData(threadData) {}
 
 guiControlleur::~guiControlleur(){}
 

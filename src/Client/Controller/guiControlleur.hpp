@@ -24,8 +24,7 @@
 extern std::atomic<bool> flag;
 
 
-class guiControlleur : public QObject {
-    Q_OBJECT
+class guiControlleur{
 
 private:
     int sock;

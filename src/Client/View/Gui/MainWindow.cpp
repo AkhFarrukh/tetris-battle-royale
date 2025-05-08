@@ -524,7 +524,11 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
     });
 
     // Keep existing
-    connect(refreshBtn, &QPushButton::clicked, controller, &guiControlleur::requestRoomList);
+    // connect(refreshBtn, &QPushButton::clicked, controller, &guiControlleur::requestRoomList);
+    connect(refreshBtn, &QPushButton::clicked, this, [=]() {
+        controller->requestRoomList();
+    });
+    
     connect(backBtn, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
 
     connect(refreshBtn, &QPushButton::clicked, this, [this]() {
