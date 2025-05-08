@@ -53,6 +53,22 @@ struct Connexion{
     char password[32];
 };
 
+
+struct FriendsList {
+    int   count;
+    char  names[50][32];
+};
+
+struct InvitedFriend {
+    char friendUsername[32];
+};
+
+struct RoomInvitation {
+    char inviterUsername[32];
+    int  roomId;
+    int  mode;
+};
+
 enum MessageType {
     T_Message,
     T_Input,
@@ -76,7 +92,11 @@ enum MessageType {
     T_RoomDeleted,
     T_GameStart,
     T_LeftRoom, 
-    T_JoinAsSpectator
+    T_JoinAsSpectator,
+    T_FriendsListRequest,
+    T_FriendsListResponse,
+    T_InvitedFriend,
+    T_RoomInvitation
 };
 
 struct RoomInfo {

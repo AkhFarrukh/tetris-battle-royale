@@ -226,6 +226,54 @@ void* Server::threadRoutineClient(void* arg){
                 server->handleJoin(server, client, userIsOnline, size, eventQueue);
             }
 
+            else if (type == MessageType::T_FriendsListRequest) {
+                auto allFriends = server->udbm.getFriendsList(client.username);
+            
+                FriendsList payload{};
+                for (auto& f : allFriends) {
+                    if (payload.count >= 50) break;  
+                    int   fid = server->udbm.getUserId(f.c_str());
+                    if (server->udbm.isUserInSession(fid)) {
+                        std::strncpy(payload.names[payload.count], f.c_str(), 31);
+                        payload.names[payload.count][31] = '\0';
+                        ++payload.count;
+                    }
+                }
+            
+                int replyType = MessageType::T_FriendsListResponse;
+                int replySize = sizeof(FriendsList);
+                sendAll(client.client_fd, &replyType, sizeof(replyType));
+                sendAll(client.client_fd, &replySize, sizeof(replySize));
+                sendAll(client.client_fd, &payload,   replySize);
+            }
+
+            else if (type == MessageType::T_InvitedFriend) {
+                InvitedFriend req;
+                if (!recvAll(client.client_fd, &req, sizeof(req))) {
+                    userIsOnline = false;
+                    break;
+                }
+            
+                int friendId   = server->udbm.getUserId(req.friendUsername);
+                int friendSock = server->udbm.getUserSocket(friendId);
+                if (friendSock <= 0) continue;
+            
+                RoomInvitation notice;
+                std::strncpy(notice.inviterUsername,
+                             client.username.c_str(),
+                             sizeof(notice.inviterUsername)-1);
+                notice.inviterUsername[31] = '\0';
+                notice.roomId = client.inRoom;
+                notice.mode   = server->myRoom->getRoomMode();
+            
+                int t = MessageType::T_RoomInvitation;
+                int sz = sizeof(notice);
+                sendAll(friendSock, &t,  sizeof(t));
+                sendAll(friendSock, &sz, sizeof(sz));
+                sendAll(friendSock, &notice, sz);
+            }
+            
+
             /************************************
             *INPUT INFO
             */

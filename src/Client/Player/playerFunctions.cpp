@@ -742,8 +742,6 @@ int Player::keyboardActionToInt(KeyboardAction action) {
 }
 
 
-
-
 /**
  * @brief Convert integer value to MalusBonus enum
  *
