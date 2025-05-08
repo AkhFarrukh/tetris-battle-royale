@@ -105,7 +105,7 @@ void* Server::threadRoutineClient(void* arg){
     ThreadGameData threadGameData;
     GameController gameController;
     Server* server = threadData->serverInstance;
-    ClientSession& client = threadData->client;
+    shared_ptr<ClientSession> client = shared_ptr<ClientSession>(&(threadData->client));
     server->lockThread = true;
     server->cv.notify_one();
 
@@ -118,8 +118,8 @@ void* Server::threadRoutineClient(void* arg){
     while(flagConnexion){
         int type;
         int size;
-        if(!recvAll(client.client_fd, &type, sizeof(int))){return nullptr;};
-        if(!recvAll(client.client_fd, &size, sizeof(int))){return nullptr;};
+        if(!recvAll(client->client_fd, &type, sizeof(int))){return nullptr;};
+        if(!recvAll(client->client_fd, &size, sizeof(int))){return nullptr;};
         Connexion connexionData;
         if(type == MessageType::T_Connexion && size == sizeof(struct Connexion)){
             server->handleConnexion(server, client, connexionData, size, successfulLogin, flagConnexion);
@@ -143,8 +143,8 @@ void* Server::threadRoutineClient(void* arg){
     pthread_t threadGamePID;
     if (successfulLogin){
         // Get user ID and insert user into sessions table
-        server->udbm.setLogin(client.userId);
-        server->udbm.addSession(client.userId, client.client_fd);
+        server->udbm.setLogin(client->userId);
+        server->udbm.addSession(client->userId, client->client_fd);
 
 
         // Keep looking for any message sent by the user to the server
@@ -160,14 +160,14 @@ void* Server::threadRoutineClient(void* arg){
 
 
             //Receiving info from client
-            if (!recvAll(client.client_fd, &type, sizeof(int))){userIsOnline = false;}
-            if (!recvAll(client.client_fd, &size, sizeof(int))){userIsOnline = false;}
+            if (!recvAll(client->client_fd, &type, sizeof(int))){userIsOnline = false;}
+            if (!recvAll(client->client_fd, &size, sizeof(int))){userIsOnline = false;}
 
             //MenuMessage INFO
             if(type == MessageType::T_Menu){
                 std::cout << "MenuMessage" << std::endl;
                 MenuMessage MenuMessage;
-                if (!recvAll(client.client_fd, &MenuMessage, sizeof(MenuMessage))){userIsOnline = false;}
+                if (!recvAll(client->client_fd, &MenuMessage, sizeof(MenuMessage))){userIsOnline = false;}
 
                 //PLAY ENDLESS INFO
                 else if (MenuMessage.action == MenuActions::A_Play) {
@@ -205,12 +205,12 @@ void* Server::threadRoutineClient(void* arg){
             }
             //JOIN AS SPECTATOR
             else if (type == MessageType::T_JoinAsSpectator) {
-                client.isSpectating = true;
+                client->isSpectating = true;
                 server->handleJoin(server, client, userIsOnline, size, eventQueue);
             }
 
             else if (type == MessageType::T_FriendsListRequest) {
-                auto allFriends = server->udbm.getFriendsList(client.username);
+                auto allFriends = server->udbm.getFriendsList(client->username);
             
                 FriendsList payload{};
                 for (auto& f : allFriends) {
@@ -225,14 +225,14 @@ void* Server::threadRoutineClient(void* arg){
             
                 int replyType = MessageType::T_FriendsListResponse;
                 int replySize = sizeof(FriendsList);
-                sendAll(client.client_fd, &replyType, sizeof(replyType));
-                sendAll(client.client_fd, &replySize, sizeof(replySize));
-                sendAll(client.client_fd, &payload,   replySize);
+                sendAll(client->client_fd, &replyType, sizeof(replyType));
+                sendAll(client->client_fd, &replySize, sizeof(replySize));
+                sendAll(client->client_fd, &payload,   replySize);
             }
 
             else if (type == MessageType::T_InvitedFriend) {
                 InvitedFriend req;
-                if (!recvAll(client.client_fd, &req, sizeof(req))) {
+                if (!recvAll(client->client_fd, &req, sizeof(req))) {
                     userIsOnline = false;
                     break;
                 }
@@ -243,10 +243,10 @@ void* Server::threadRoutineClient(void* arg){
             
                 RoomInvitation notice;
                 std::strncpy(notice.inviterUsername,
-                             client.username.c_str(),
+                             client->username.c_str(),
                              sizeof(notice.inviterUsername)-1);
                 notice.inviterUsername[31] = '\0';
-                notice.roomId = client.inRoom;
+                notice.roomId = client->inRoom;
                 notice.mode   = server->myRoom->getRoomMode();
             
                 int t = MessageType::T_RoomInvitation;
@@ -266,7 +266,7 @@ void* Server::threadRoutineClient(void* arg){
             }
 			else if(type == MessageType::T_Message){
                 Message message;
-            	if (!recvAll(client.client_fd, &message, size)) {
+            	if (!recvAll(client->client_fd, &message, size)) {
                 	perror("Error on receiving room");
                 	userIsOnline = false;
                 	break;
@@ -276,12 +276,12 @@ void* Server::threadRoutineClient(void* arg){
             //EXIT GAME
             else if (type == MessageType::T_Exit) {
                 if (server->myRoom) {
-                    if (client.isSpectating) {
-                        server->myRoom->removeSpectator(client.client_fd);
-                        client.isSpectating = false;
+                    if (client->isSpectating) {
+                        server->myRoom->removeSpectator(client->client_fd);
+                        client->isSpectating = false;
                     }
                     else {
-                        server->myRoom->removePlayer(client.client_fd);
+                        server->myRoom->removePlayer(client->client_fd);
                     }
                 }
             }
@@ -321,20 +321,20 @@ void* Server::threadRoutineGame(void* arg){
  * @param client ClientSession containing all the client infos
  * @param threadGamePID PID of the thread containing the game of the player, if he hasn't ended yet
  */
-void Server::handleDisconnect(Server* server, ClientSession& client, pthread_t& threadGamePID){
-    std::cout << "Client déconnecté : " << client.client_fd << std::endl;
-    close(client.client_fd);
+void Server::handleDisconnect(Server* server, shared_ptr<ClientSession> client, pthread_t& threadGamePID){
+    std::cout << "Client déconnecté : " << client->client_fd << std::endl;
+    close(client->client_fd);
     pthread_cancel(threadGamePID);
-        while(server->udbm.isLoggedIn(client.username.c_str())){
-      	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
-        server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+        while(server->udbm.isLoggedIn(client->username.c_str())){
+      	server->udbm.logOut(client->userId);} //on marque la personne comme deconnecté
+        server->udbm.setNotInConversation(client->userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
                                                                                              //comme telle
-      	while(server->udbm.isUserInSession(client.userId)){
-      		server->udbm.deleteSession(client.userId);}
+      	while(server->udbm.isUserInSession(client->userId)){
+      		server->udbm.deleteSession(client->userId);}
     server->clientMutex.lock();
     auto it = std::find_if(server->clients.begin(), server->clients.end(),
-                           [&client](const ClientSession& c) {
-                           return c.client_fd == client.client_fd;
+                           [client](const ClientSession& c) {
+                           return c.client_fd == client->client_fd;
                            });
     if (it != server->clients.end()) {
         server->clients.erase(it);
@@ -348,19 +348,19 @@ void Server::handleDisconnect(Server* server, ClientSession& client, pthread_t& 
  * @param server ptr to server
  * @param client ClientSession struct
  */
-void Server::handleForcedExit(Server* server, ClientSession& client){
-    std::cout << "Client déconnecté : " << client.client_fd << std::endl;
-    close(client.client_fd);
-    while(server->udbm.isLoggedIn(client.username.c_str())){
-  	server->udbm.logOut(client.userId);} //on marque la personne comme deconnecté
-    server->udbm.setNotInConversation(client.userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
+void Server::handleForcedExit(Server* server, shared_ptr<ClientSession> client){
+    std::cout << "Client déconnecté : " << client->client_fd << std::endl;
+    close(client->client_fd);
+    while(server->udbm.isLoggedIn(client->username.c_str())){
+  	server->udbm.logOut(client->userId);} //on marque la personne comme deconnecté
+    server->udbm.setNotInConversation(client->userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
                                                                                              //comme telle
-  	while(server->udbm.isUserInSession(client.userId)){
-  		server->udbm.deleteSession(client.userId);}
+  	while(server->udbm.isUserInSession(client->userId)){
+  		server->udbm.deleteSession(client->userId);}
     server->clientMutex.lock();
     auto it = std::find_if(server->clients.begin(), server->clients.end(),
-                           [&client](const ClientSession& c) {
-                           return c.client_fd == client.client_fd;
+                           [client](const ClientSession& c) {
+                           return c.client_fd == client->client_fd;
                            });
     if (it != server->clients.end()) {
         server->clients.erase(it);
@@ -377,10 +377,10 @@ void Server::handleForcedExit(Server* server, ClientSession& client){
  * @param size size of the message to receive
  * @param eventQueue ptr for the player's eventQueue in Game
  */
-void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnline, int& size, shared_ptr<EventQueue> eventQueue){
+void Server::handleJoin(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, int& size, shared_ptr<EventQueue> eventQueue){
     cout << "Join received" << endl;
     int ownerFd;
-    if (!recvAll(client.client_fd, &ownerFd, size)) {
+    if (!recvAll(client->client_fd, &ownerFd, size)) {
         userIsOnline = false;
         return;
     }
@@ -405,17 +405,17 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
     info.isStarted            = chosenRoom->isStarted();
     info.mode                 = chosenRoom->getRoomMode();
 
-    client.inRoom = info.roomID;
+    client->inRoom = info.roomID;
     int typeToSend  = MessageType::T_RoomJoinInfo;
     int sizeToSend  = sizeof(struct RoomInfo);
 
-    if (client.isSpectating) {
-        chosenRoom->addSpectator(client.client_fd);
-        client.isSpectating = true;
+    if (client->isSpectating) {
+        chosenRoom->addSpectator(client->client_fd);
+        client->isSpectating = true;
         std::cout << "Client joined room with hostFd as spectator = " << chosenRoom->getOwnerFd() << std::endl;
     } else {
         // Player joining
-        bool success = chosenRoom->addPlayer(client.client_fd, eventQueue);
+        bool success = chosenRoom->addPlayer(client->client_fd, eventQueue);
         if (!success) {
             std::cerr << "Failed to join as player (maybe full or started).\n";
             return;
@@ -423,45 +423,45 @@ void Server::handleJoin(Server* server, ClientSession& client, bool& userIsOnlin
         std::cout << "Client joined room with hostFd = " << chosenRoom->getOwnerFd() << std::endl;
     }
 
-    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){ userIsOnline = false; return; }
-    if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){ userIsOnline = false; return; }
-    if (!sendAll(client.client_fd, &info, sizeof(RoomInfo))){ userIsOnline = false; return; }
+    if (!sendAll(client->client_fd, &typeToSend, sizeof(typeToSend))){ userIsOnline = false; return; }
+    if (!sendAll(client->client_fd, &sizeToSend, sizeof(sizeToSend))){ userIsOnline = false; return; }
+    if (!sendAll(client->client_fd, &info, sizeof(RoomInfo))){ userIsOnline = false; return; }
 
-    if (client.isSpectating && chosenRoom->isStarted()) {
+    if (client->isSpectating && chosenRoom->isStarted()) {
         int t = MessageType::T_GameStart;
         int sz = sizeof(int);
-        sendAll(client.client_fd, &t,  sizeof(t));
-        sendAll(client.client_fd, &sz, sizeof(sz));
+        sendAll(client->client_fd, &t,  sizeof(t));
+        sendAll(client->client_fd, &sz, sizeof(sz));
     }
 
     server->myRoom = chosenRoom;
 }
 
 
-void Server::handleLeftRoom(Server* server, ClientSession& client) {
+void Server::handleLeftRoom(Server* server, shared_ptr<ClientSession> client) {
     std::shared_ptr<Room> chosenRoom = nullptr;
     for (auto &r : *server->roomsList) {
-        if (r->getRoomID() == client.inRoom) {
+        if (r->getRoomID() == client->inRoom) {
             chosenRoom = r;
             break;
         }
     }
 
     if (chosenRoom) {
-        if (client.isSpectating) {
+        if (client->isSpectating) {
             // Remove from spectators
-            chosenRoom->removeSpectator(client.client_fd);
-            std::cout << "Spectator left room " << client.inRoom << std::endl;
+            chosenRoom->removeSpectator(client->client_fd);
+            std::cout << "Spectator left room " << client->inRoom << std::endl;
         } else {
             // Remove from players
-            chosenRoom->removePlayer(client.client_fd);
-            std::cout << "Player left room " << client.inRoom << std::endl;
+            chosenRoom->removePlayer(client->client_fd);
+            std::cout << "Player left room " << client->inRoom << std::endl;
         }
     } else {
-        std::cerr << "ERROR: Tried to leave room, but no matching room for ID " << client.inRoom << std::endl;
+        std::cerr << "ERROR: Tried to leave room, but no matching room for ID " << client->inRoom << std::endl;
     }
 
-    client.inRoom = -1;
+    client->inRoom = -1;
 }
 
 
@@ -472,11 +472,11 @@ void Server::handleLeftRoom(Server* server, ClientSession& client) {
  * @param client ClientSession struct
  * @param userIsOnline bool handling the listening loop, true if connected to the serv 
  */
-void Server::handleRefresh(Server* server, ClientSession& client, bool& userIsOnline, bool& owner){
+void Server::handleRefresh(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, bool& owner){
     cout<<"Refresh received"<<endl;
      std::shared_ptr<Room> chosenRoom = nullptr;
      for (auto &r : *server->roomsList) {
-        if (r->getOwnerFd() == client.inRoom) {
+        if (r->getOwnerFd() == client->inRoom) {
             chosenRoom = r;
             break;
         }
@@ -491,15 +491,15 @@ void Server::handleRefresh(Server* server, ClientSession& client, bool& userIsOn
     if(!owner)typeToSend = MessageType::T_RoomJoinInfo;
     int sizeToSend = sizeof(struct RoomInfo);
 
-    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
-    if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
-    if (!sendAll(client.client_fd, &info, sizeof(RoomInfo))){userIsOnline = false;}
+    if (!sendAll(client->client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
+    if (!sendAll(client->client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
+    if (!sendAll(client->client_fd, &info, sizeof(RoomInfo))){userIsOnline = false;}
 }
 
-void Server::handleForceStart(Server* server, ClientSession& client, bool& userIsOnline, pthread_t& threadGamePID){
+void Server::handleForceStart(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, pthread_t& threadGamePID){
     std::shared_ptr<Room> room = nullptr;
      for (auto &r : *server->roomsList) {
-        if (r->getOwnerFd() == client.inRoom) {
+        if (r->getOwnerFd() == client->inRoom) {
             room = r;
             break;
         }
@@ -513,8 +513,8 @@ void Server::handleForceStart(Server* server, ClientSession& client, bool& userI
 
     if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
             perror("Error on thread creation for game : ");
-            server->udbm.removeSession(client.userId);
-            close(client.client_fd);
+            server->udbm.removeSession(client->userId);
+            close(client->client_fd);
             userIsOnline = false; // Stop the loop
         }
     }
@@ -528,7 +528,7 @@ void Server::handleForceStart(Server* server, ClientSession& client, bool& userI
  * @param userIsOnline bool handling the listening loop, true if connected to the serv
  * @param MenuMessage MenuMessage struct containing the gameMode choosed  by the client
  */
-void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOnline, MenuMessage& MenuMessage){
+void Server::handleGetRoom(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, MenuMessage& MenuMessage){
     cout<<"JoinRoom received"<<endl;
     std::vector<RoomInfo> filteredRooms;
     auto allRooms = server->roomsList;
@@ -545,13 +545,13 @@ void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOn
 
     MessageType typeToSend = MessageType::T_RoomsInfo;
     int nbRooms = (int)filteredRooms.size();
-    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
-    if (!sendAll(client.client_fd, &nbRooms, sizeof(nbRooms))){userIsOnline = false;}
-    if (!sendAll(client.client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo))){userIsOnline = false;}
+    if (!sendAll(client->client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
+    if (!sendAll(client->client_fd, &nbRooms, sizeof(nbRooms))){userIsOnline = false;}
+    if (!sendAll(client->client_fd, filteredRooms.data(), nbRooms * sizeof(RoomInfo))){userIsOnline = false;}
     int type = MenuMessage.mode;
     int size = sizeof(int);
-    sendAll(client.client_fd, &type,  sizeof(type));
-    sendAll(client.client_fd, &size,  sizeof(size));
+    sendAll(client->client_fd, &type,  sizeof(type));
+    sendAll(client->client_fd, &size,  sizeof(size));
 }
 
 /**
@@ -563,30 +563,30 @@ void Server::handleGetRoom(Server* server, ClientSession& client, bool& userIsOn
  * @param MenuMessage MenuMessage struct containing the gameMode choosed  by the client
  * @param eventQueue ptr for the player's eventQueue in Game
  */
-void Server::handleCreateRoom(Server* server, ClientSession& client, bool& userIsOnline, MenuMessage& MenuMessage, shared_ptr<EventQueue> eventQueue){
+void Server::handleCreateRoom(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, MenuMessage& MenuMessage, shared_ptr<EventQueue> eventQueue){
     std::cout<<"Received CreateRoom"<<std::endl;
-    auto r = std::make_shared<Room>(client.client_fd, MenuMessage.mode, eventQueue, MenuMessage.maxPlayers);
+    auto r = std::make_shared<Room>(client->client_fd, MenuMessage.mode, eventQueue, MenuMessage.maxPlayers);
     auto allRoom = server->roomsList;
     server->myRoom = r;
     allRoom->push_back(r);
-    std::cout << "Created new room with host fd=" << client.client_fd << std::endl;
+    std::cout << "Created new room with host fd=" << client->client_fd << std::endl;
     RoomInfo info;
     info.roomID = r->getRoomID();
     info.currentPlayersCount = r->getPlayerCount();
     info.isStarted = r->isStarted();
-    client.inRoom = info.roomID;
+    client->inRoom = info.roomID;
     int typeToSend = MessageType::T_RoomInfo;
     int sizeToSend = sizeof(RoomInfo);
-    if (!sendAll(client.client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
-    if (!sendAll(client.client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
-    if (!sendAll(client.client_fd, &info, sizeToSend)){userIsOnline = false;}
+    if (!sendAll(client->client_fd, &typeToSend, sizeof(typeToSend))){userIsOnline = false;}
+    if (!sendAll(client->client_fd, &sizeToSend, sizeof(sizeToSend))){userIsOnline = false;}
+    if (!sendAll(client->client_fd, &info, sizeToSend)){userIsOnline = false;}
 }
 
-void Server::handleDeleteRoom(Server* server, ClientSession& client) {
+void Server::handleDeleteRoom(Server* server, shared_ptr<ClientSession> client) {
     std::cout << "Received DeleteRoom" << std::endl;
     std::shared_ptr<Room> room = nullptr;
      for (auto &r : *server->roomsList) {
-        if (r->getOwnerFd() == client.client_fd) {
+        if (r->getOwnerFd() == client->client_fd) {
             room = r;
             break;
         }
@@ -604,7 +604,7 @@ void Server::handleDeleteRoom(Server* server, ClientSession& client) {
         );
         server->myRoom.reset();
     }
-    client.inRoom = -1;
+    client->inRoom = -1;
 }
 
 /**
@@ -616,29 +616,28 @@ void Server::handleDeleteRoom(Server* server, ClientSession& client) {
  * @param eventQueue ptr for the player's eventQueue in Game
  * @param threadGameData data that willbe passed to the game's thread, containing all player & game infos
  */
-void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, ThreadGameData& threadGameData){
+void Server::handlePlay(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, ThreadGameData& threadGameData){
     std::cout << "Client wants Endless mode\n";
 
-    threadGameData.client_fd = client.client_fd;
+    threadGameData.client_fd = client->client_fd;
     threadGameData.eventQueue = eventQueue;
     std::vector<ThreadGameData> data;
     data.push_back(threadGameData);
 
     int type = MessageType::T_GameStart;
     int size = sizeof(int);
-    sendAll(client.client_fd, &type,  sizeof(type));
-    sendAll(client.client_fd, &size,  sizeof(size));
+    sendAll(client->client_fd, &type,  sizeof(type));
+    sendAll(client->client_fd, &size,  sizeof(size));
     napms(355);
 
-    std::shared_ptr<ClientSession> clientSession = std::shared_ptr<ClientSession>(&client);
-    std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_, clientSession);
+    std::shared_ptr<Game> soloGame = std::make_shared<Game>(data, 1, Modes::Endless_, client);
     
     auto* gamePtrWrapper = new shared_ptr<Game> (soloGame);
     pthread_t threadGamePID;
     if (pthread_create(&threadGamePID, nullptr, threadRoutineGame, gamePtrWrapper) < 0) {
         perror("Error on thread creation for game : ");
-        server->udbm.removeSession(client.userId);
-        close(client.client_fd);
+        server->udbm.removeSession(client->userId);
+        close(client->client_fd);
         userIsOnline = false; // Stop the loop
     }
 }
@@ -650,11 +649,11 @@ void Server::handlePlay(Server* server, ClientSession& client, bool& userIsOnlin
  * @param userIsOnline bool handling the listening loop, true if connected to the serv
  * @param eventQueue ptr for the player's eventQueue in Game
  */
-void Server::handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue){
+void Server::handleMalusBonus(shared_ptr<ClientSession> client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue){
     cout<<"MalusBonus received"<<endl;
     MalBonus malusBobo;
 
-    if (!recvAll(client.client_fd, &malusBobo, sizeof(MalBonus))){userIsOnline = false;}
+    if (!recvAll(client->client_fd, &malusBobo, sizeof(MalBonus))){userIsOnline = false;}
 
     eventQueue->addEvent(make_shared<MalusBonusEvent>(malusBobo.malusB, malusBobo.target));
 }
@@ -666,11 +665,11 @@ void Server::handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_
  * @param eventQueue ptr for the player's eventQueue in Game
  * @param gameController 
  */
-void Server::handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, GameController& gameController){
+void Server::handleInput(shared_ptr<ClientSession> client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, GameController& gameController){
     cout<<"Input received"<<endl;
     KeyboardAction action;
-    if (!recvAll(client.client_fd, &action, sizeof(KeyboardAction))){userIsOnline = false;}
-    if (!client.isSpectating) {
+    if (!recvAll(client->client_fd, &action, sizeof(KeyboardAction))){userIsOnline = false;}
+    if (!client->isSpectating) {
         eventQueue->addEvent(make_shared<MovementActionEvent>(gameController.getAction(action)));
     }
 
@@ -688,7 +687,7 @@ void Server::handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<E
  * @param doubleSession 
  * @param flagConnexion 
  */
-void Server::notifySuccessfulLogin(Server* server, ClientSession& client, Connexion& connexionData, string& username, 
+void Server::notifySuccessfulLogin(Server* server, shared_ptr<ClientSession> client, Connexion& connexionData, string& username, 
                                         bool& successfulLogin, int& typeConnexion, int& doubleSession, bool& flagConnexion){
     typeConnexion = MessageType::T_AcceptConnexion;
     int user_id = server->udbm.getUserId(username.c_str());
@@ -699,16 +698,16 @@ void Server::notifySuccessfulLogin(Server* server, ClientSession& client, Connex
     }
     else{
         doubleSession = MessageType::T_AcceptConnexion;
-        client.userId = user_id;
-        client.username = connexionData.username;
-        client.password = connexionData.password;
+        client->userId = user_id;
+        client->username = connexionData.username;
+        client->password = connexionData.password;
         flagConnexion = false;
     }
     int size_ = sizeof(int);
-    sendAll(client.client_fd, &typeConnexion, sizeof(int));
-    sendAll(client.client_fd, &size_, sizeof(int));
-    sendAll(client.client_fd, &doubleSession, sizeof(int));
-    sendAll(client.client_fd, &size_, sizeof(int));
+    sendAll(client->client_fd, &typeConnexion, sizeof(int));
+    sendAll(client->client_fd, &size_, sizeof(int));
+    sendAll(client->client_fd, &doubleSession, sizeof(int));
+    sendAll(client->client_fd, &size_, sizeof(int));
 }
 
 /**
@@ -721,8 +720,8 @@ void Server::notifySuccessfulLogin(Server* server, ClientSession& client, Connex
  * @param successfulLogin bool set to true or false depending on login issue
  * @param flagConnexion 
  */
-void Server::handleConnexion(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion){
-    if(!recvAll(client.client_fd, &connexionData, size)){
+void Server::handleConnexion(Server* server, shared_ptr<ClientSession> client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion){
+    if(!recvAll(client->client_fd, &connexionData, size)){
         std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
         return;
     }
@@ -751,8 +750,8 @@ void Server::handleConnexion(Server* server, ClientSession& client, Connexion& c
  * @param successfulLogin bool set to true or false depending on login issue
  * @param flagConnexion 
  */
-void Server::handleRegister(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion){
-    if(!recvAll(client.client_fd, &connexionData, size)){
+void Server::handleRegister(Server* server, shared_ptr<ClientSession> client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion){
+    if(!recvAll(client->client_fd, &connexionData, size)){
         std::cout << "Erreur lors de l'envoie des confidentials" << std::endl;
         return;
     }
@@ -761,9 +760,9 @@ void Server::handleRegister(Server* server, ClientSession& client, Connexion& co
         server->notifyAcceptConnexion(server, client, connexionData, successfulLogin);
         if(successfulLogin){
             server->notifyAcceptConnexion(server, client, connexionData, successfulLogin);
-            client.userId = server->udbm.getUserId(connexionData.username);
-            client.username = connexionData.username;
-            client.password = connexionData.password;
+            client->userId = server->udbm.getUserId(connexionData.username);
+            client->username = connexionData.username;
+            client->password = connexionData.password;
             flagConnexion = false;
            }
         else{
@@ -780,11 +779,11 @@ void Server::handleRegister(Server* server, ClientSession& client, Connexion& co
  * 
  * @param client ClientSession struct
  */
-void Server::notifyRefusedLogin(ClientSession& client){
+void Server::notifyRefusedLogin(shared_ptr<ClientSession> client){
     int type_ = MessageType::T_RefuseConnexion;
     int size_ = sizeof(int);
-    sendAll(client.client_fd, &type_, sizeof(int));
-    sendAll(client.client_fd, &size_, sizeof(int));
+    sendAll(client->client_fd, &type_, sizeof(int));
+    sendAll(client->client_fd, &size_, sizeof(int));
 }
 
 /**
@@ -795,10 +794,10 @@ void Server::notifyRefusedLogin(ClientSession& client){
  * @param connexionData Connexion struct, containing info bout connexion
  * @param successfulLogin bool set to true or false depending on login issue
  */
-void Server::notifyAcceptConnexion(Server* server, ClientSession& client, Connexion& connexionData, bool& successfulLogin){
+void Server::notifyAcceptConnexion(Server* server, shared_ptr<ClientSession> client, Connexion& connexionData, bool& successfulLogin){
     int typeRegister = MessageType::T_AcceptConnexion;
     int size_ = sizeof(int);
-    sendAll(client.client_fd, &typeRegister, sizeof(int));
-    sendAll(client.client_fd, &size_, sizeof(int));
+    sendAll(client->client_fd, &typeRegister, sizeof(int));
+    sendAll(client->client_fd, &size_, sizeof(int));
     successfulLogin = server->udbm.isCorrectLogin(connexionData.username, connexionData.password);
 }
