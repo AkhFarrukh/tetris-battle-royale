@@ -18,6 +18,10 @@ enum class Menus {
     FriendRequestMenu,
     FriendsMenu,
 
+    LaunchEndless,
+    LaunchClassic,
+    LaunchDuel,
+    LaunchRoyalCompetition,
 };
 
 

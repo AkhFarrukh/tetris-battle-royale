@@ -33,6 +33,7 @@ class InterfaceTerminal {
     ~InterfaceTerminal();
 
     void initNcurses();
+    void display(int selectedOption, Menus menuChoosen);
     void displayMenu(int selectedOption) const;
     void displayConnexionOption(int selectedOption);
     vector<std::string> handleConnexionOption();
