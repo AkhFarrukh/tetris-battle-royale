@@ -1,6 +1,5 @@
 #include "guiControlleur.hpp"
 
-
 guiControlleur::guiControlleur(int sock, std::shared_ptr<Player::ThreadData> threadData)
     : sock(sock), threadData(threadData) {}
 
@@ -249,14 +248,16 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
             threadData->userInLobby = true;
             threadData->mux.unlock();
 
+            auto* mw = static_cast<MainWindow*>(threadData->qtParent);
             QMetaObject::invokeMethod(
-                static_cast<QObject*>(parent),
-                [parent]() {
-                    parent->addMalusButtonsIfRoyal();
-                    parent->setGameScreen();
-                }
+                mw,
+                [mw]() {
+                    mw->setGameScreen();
+                    mw->addMalusButtonsIfRoyal();
+                },
+                Qt::QueuedConnection
             );
-            
+                        
         }
 
         else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {

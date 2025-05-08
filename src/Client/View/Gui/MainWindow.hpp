@@ -28,8 +28,9 @@
 #include "FriendsHandler.hpp"
 #include "ChatHandler.hpp"
 #include "guiControlleur.hpp"
-
 #include <memory>
+
+class guiControlleur;  // ✅ forward declaration
 
 
 
@@ -40,6 +41,9 @@ public:
     explicit MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::ThreadData> threadData);
     ~MainWindow();
     QStackedWidget* getStackedWidget();
+    void showGameOverPopup();
+    void setGameScreen();
+    void addMalusButtonsIfRoyal();
 
 private slots:
     void showLoginScreen();
@@ -53,7 +57,6 @@ private slots:
     void closeEvent(QCloseEvent *event) override;
     void setupGameScreens();
     void updateGameScreen();
-    void setGameScreen();
     void showLeaderboardScreen();
     void showChatScreen();
     void showfriendsListScreen();
@@ -77,7 +80,6 @@ private:
     void setupFriendsListScreen();
     void handleAuth();
     void openChatWith(const QString& friendName);
-    void showGameOverPopup();
 
     QWidget* loginScreen = nullptr;
     QWidget* authScreen = nullptr;

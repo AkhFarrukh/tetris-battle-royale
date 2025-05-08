@@ -20,6 +20,7 @@
 #include <QMainWindow>
 #include "MainWindow.hpp"
 
+
 extern std::atomic<bool> flag;
 
 
