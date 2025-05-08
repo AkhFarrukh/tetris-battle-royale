@@ -39,6 +39,8 @@ MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::Thread
     move(QGuiApplication::primaryScreen()->geometry().center() - frameGeometry().center());
 
     controller = new guiControlleur(sock, threadData);
+    threadData->qtParent = this;
+    
     auto timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::updateGameScreen);
     timer->start(100);
@@ -186,8 +188,8 @@ void MainWindow::handleAuth() {
     });
     timer->start(100);
     
-    passwordInput->clear();
-    confirmPasswordInput->clear();
+    // passwordInput->clear();
+    // confirmPasswordInput->clear();
     showMainMenuScreen();
 
 }
@@ -213,11 +215,18 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::showAuthScreen() {
-    if (authScreen) {
-        stackedWidget->removeWidget(authScreen);
-        authScreen->deleteLater(); // évite les fuites mémoire
-        authScreen = nullptr;
-    }
+    // if (authScreen) {
+    //     stackedWidget->removeWidget(authScreen);
+    //     authScreen->deleteLater(); // évite les fuites mémoire
+    //     authScreen = nullptr;
+    // }
+
+    stackedWidget->setCurrentWidget(authScreen);
+
+    if (usernameInput) usernameInput->clear();
+    if (passwordInput) passwordInput->clear();
+    if (confirmPasswordInput) confirmPasswordInput->clear();
+
 
     setupAuthScreen();
     stackedWidget->addWidget(authScreen);

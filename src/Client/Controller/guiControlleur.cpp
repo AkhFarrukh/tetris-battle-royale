@@ -154,7 +154,7 @@ void guiControlleur::handleAuth(const QString& username, const QString& password
     this->threadData->userInGame = false;
     this->threadData->userInLobby = false;
     this->threadData->isGui = true;
-    this->threadData->qtParent = this;
+    // this->threadData->qtParent = this;
 
     pthread_create(&threadID, nullptr, guiControlleur::threadRoutineQtView, threadData.get());
 
@@ -167,6 +167,7 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
     Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
     int sock = threadData->socket;
     MainWindow* mw = static_cast<MainWindow*>(threadData->qtParent);
+    if (!mw) return nullptr;
 
     while (threadData->socket == 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -183,7 +184,6 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
         if (type == MessageType::T_Message) {
             Message message;
             if (!recvAll(sock, &message, size)) break;
-            MainWindow* mw = static_cast<MainWindow*>(threadData->qtParent);
             if (!mw->chatHandler || !mw->chatHandler->getChatHistory()) break;
             QString sender = QString::fromUtf8(message.expediteur);
             QString msg = QString::fromUtf8(message.message);
@@ -203,14 +203,17 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
             threadData->isSpectator = false;
             threadData->mux.unlock();
             
-            QMetaObject::invokeMethod(
-                static_cast<QObject*>(threadData->qtParent),
-                []() {
-                    auto* mw = static_cast<MainWindow*>(qApp->activeWindow());
-                    if (mw) mw->showGameOverPopup();
-                }
-            );            
-
+            MainWindow* mw = static_cast<MainWindow*>(threadData->qtParent);
+            if (mw) {
+                QMetaObject::invokeMethod(
+                    mw,
+                    [mw]() {
+                        mw->showGameOverPopup();
+                    },
+                    Qt::QueuedConnection
+                );
+            }
+            
             if (type == MessageType::T_ForcedExit) {
                 flag = true;
                 break;
@@ -253,16 +256,27 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
             threadData->userInLobby = true;
             threadData->mux.unlock();
 
-            auto* mw = static_cast<MainWindow*>(threadData->qtParent);
-            QMetaObject::invokeMethod(
-                mw,
-                [mw]() {
-                    mw->setGameScreen();
-                    mw->addMalusButtonsIfRoyal();
-                },
-                Qt::QueuedConnection
-            );
-                        
+            // auto* mw = static_cast<MainWindow*>(threadData->qtParent);
+            // QMetaObject::invokeMethod(
+            //     mw,
+            //     [mw]() {
+            //         mw->setGameScreen();
+            //         mw->addMalusButtonsIfRoyal();
+            //     },
+            //     Qt::QueuedConnection
+            // );
+
+            MainWindow* mw = static_cast<MainWindow*>(threadData->qtParent);
+            if (mw) {
+                QMetaObject::invokeMethod(
+                    mw,
+                    [mw]() {
+                        mw->setGameScreen();
+                        mw->addMalusButtonsIfRoyal();
+            },
+                    Qt::QueuedConnection
+                );
+            }                     
         }
 
         else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {
