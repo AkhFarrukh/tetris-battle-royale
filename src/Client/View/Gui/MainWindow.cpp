@@ -415,7 +415,7 @@ void MainWindow::showGameModeScreen() {
     stackedWidget->setCurrentWidget(gameModeScreen);
 }
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 void MainWindow::spectateRoom(int roomID) {
     int type   = MessageType::T_JoinAsSpectator;
     int size   = sizeof(int);
@@ -432,8 +432,8 @@ void MainWindow::spectateRoom(int roomID) {
 }
 
 
-=======
->>>>>>> feature/gui-clean
+//=======
+//>>>>>>> feature/gui-clean
 void MainWindow::setupSpectatorWaitingScreen(int roomID) {
     std::cout << "thread data in specDis" << threadData->isSpectator << endl;
     if (spectatorWaitingScreen) {
@@ -629,7 +629,7 @@ void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
     stackedWidget->setCurrentWidget(myRoomScreen);
 }
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 void MainWindow::joinRoom(int roomID) {
     int type = MessageType::T_Join;
     int size = sizeof(int);
@@ -701,7 +701,7 @@ void MainWindow::requestRoomList() {
     sendAll(sock, &menu, sizeof(MenuMessage));
 }
 
-void MainWindow::handleAuth() {
+/*void MainWindow::handleAuth() {
     QString username_qt = usernameInput->text();   // ++++++++++++++++++++++++++++++++++++++++++++++
     QString password = passwordInput->text();
 
@@ -813,9 +813,9 @@ void MainWindow::handleAuth() {
     // Connexion réussie !
     // QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
     showMainMenuScreen();
-}
+}*/
 
-void MainWindow::closeEvent(QCloseEvent *event) {
+/*void MainWindow::closeEvent(QCloseEvent *event) {
     if (threadData && threadData->isOwner) {
         int roomDeletedType = MessageType::T_RoomDeleted;
         int size_ = sizeof(int);
@@ -828,7 +828,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     int bytesSentType = sendAll(sock, &exitType, sizeof(int));
     int bytesSentSize = sendAll(sock, &size_, sizeof(int));
     event->accept();
-}
+}*/
 
 void* MainWindow::threadRoutineQtView(void* arg) {
     Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
@@ -1001,8 +1001,8 @@ void* MainWindow::threadRoutineQtView(void* arg) {
     return nullptr;
 }
 
-=======
->>>>>>> feature/gui-clean
+//=======
+//>>>>>>> feature/gui-clean
 void MainWindow::addMalusButtonsIfRoyal() {
     if (threadData && threadData->gameMode == Modes::Royal_ && gameScreen) {
         QHBoxLayout* malusBonusLayout = new QHBoxLayout();

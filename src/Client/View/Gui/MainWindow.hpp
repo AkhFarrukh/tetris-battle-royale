@@ -65,6 +65,14 @@ private slots:
     void showLeaderboardScreen();
     void showChatScreen();
     void showfriendsListScreen();
+    void sendForceStart();
+    void sendLeaveRoom();
+    void joinRoom(int roomID);
+    void requestRoomUpdate();
+    void spectateRoom(int roomID);
+    void requestRoomList();
+
+    void* threadRoutineQtView(void* arg);
     
 
 
