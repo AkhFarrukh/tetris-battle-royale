@@ -9,33 +9,38 @@
 
 using namespace std;
 
-
+struct MenuOption {
+    Menus menuName;
+    std::vector<MenuOption> options; // Vector to store sub-menus options
+    std::function<void()> callback; // Callback function to be executed when the option is selected
+};
 
 class MenuController {
     private:
-        struct MenuOption {
-            Menus menuName;
-            std::vector<MenuOption> options; // Vector to store sub-menus options
-            std::function<void()> callback; // Callback function to be executed when the option is selected
-        };
+        
+        InterfaceTerminal interfaceTerminal;
         bool runningMenu;
         MenuOption allMenus; 
         MenuOption currentMenu; // Current menu being displayed
         vector<int> selectedOptions; // Vector to store the selected options for each menu
+
+        
         
     public:
+        
         // Constructor
-        MenuController();
+        MenuController(InterfaceTerminal interfaceTerminal);
 
         // Destructor
         ~MenuController() = default;
 
         void handleMenu();
+        void updateCurrentMenu();
 
         void handleKeyQ();
         void handleKeyEnter();
         
-        void displayMenu() const;
+        void displayMenu();
 
 
 };

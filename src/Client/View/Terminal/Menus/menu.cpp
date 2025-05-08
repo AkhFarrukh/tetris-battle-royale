@@ -12,12 +12,12 @@ Menu::Menu(Menus menuName_, vector<string> menuOptions_, int windowWidth_, int w
  * 
  * @param optionHovered option qui est "surlignée"
  */
-void Menu::displayMenu(int optionHovered, std::vector<std::pair<std::string, int>> scores, int numberFRR)
+void Menu::displayMenu(int optHov, std::vector<std::pair<std::string, int>> scores, int numberFRR)
 {
 
     // Correction optionHovered
-    optionHovered = optionHovered + 1;
-    
+    int optionHovered = optHov + 1;
+
     // position de depart du menu pour un bon cadrage
     int startX = (windowWidth - menuWidth) / 2;
     int startY = (windowHeight - menuHeight) / 2;

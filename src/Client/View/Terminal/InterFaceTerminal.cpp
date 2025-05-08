@@ -45,7 +45,68 @@ void InterfaceTerminal::initNcurses() {
 }
 
 
+void InterfaceTerminal::display(int selectedOption, Menus menuChoosen) {
+    vector<string> menuOptionssss;
+    switch (menuChoosen)
+    {
+        case Menus::MainMenu:
+        {
+            vector<string> menuOptions = { "Welcome to Tetris Royale (Terminal Edition)", "Play", "Handle friends", "Leaderboard (Endless Mode)" };
+            Menu menuMain(Menus::MainMenu, menuOptions, COLS, LINES, 40, 10);
+            menuMain.displayMenu(selectedOption); // Affiche le menu principal
+            break;
+        }
+        case Menus::GameModeMenu:
+        {
+            vector<string> menuOptions = { "Select a Game Mode :", "Endless Mode", "Classic Mode", "Duel Mode", "Royal Competition Mode" };
+            Menu menuGameMode(Menus::GameModeMenu, menuOptions, COLS, LINES, 50, 18);
+            menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
+            break;
+        }
+        case Menus::JoinCreateMenu:
+        {
+            vector<string> menuOptions = { "Now pick your action:", "Create a room", "Join a room" };
+            Menu menuGameMode(Menus::JoinCreateMenu, menuOptions, COLS, LINES, 50, 18);
+            menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
+            break;
+        }
+        case Menus::FriendsMenu:
+        {
+            vector<string> friendsList = udm.getFriendsList(user);
+            displayFriendsMenu(selectedOption, friendsList); // Affiche le menu des amis
+            break;
+        }
+        case Menus::FriendRequestMenu:
+        {
+            vector<string> menuOptions = { "Friend Requests", "Received requests", "Sent requests" };
+            vector<string> requestsReceived = udm.getReceivedRequestsList(user);
+            vector<string> requestsSent = udm.getSentRequestsList(user);
+            Menu menuFriendRequest(Menus::FriendRequestMenu, menuOptions, COLS, LINES, 50, 18);
+            menuFriendRequest.displayFriendRequestsMenu(selectedOption, requestsReceived, requestsSent); // Affiche le menu des demandes
+        }
+        case Menus::LeaderboardMenu:
+        {
+            std::vector<std::pair<std::string, int>> scores = udm.getTopScores(5);
+            vector<string> menuOptions = { "Leaderboard: Top Endless Mode Players" };
+            Menu menuGameMode(Menus::LeaderboardMenu, menuOptions, COLS, LINES, 50, 12);
+            menuGameMode.displayMenu(0, scores); // Affiche le menu principal
+            break;
+        }
+        case Menus::LoginMenu:
+        {
+            vector<string> menuOptions = { "----- TETRIS ROYAL -----", "Log in", "Register" };
+            Menu menuGameMode(Menus::LoginMenu, menuOptions, COLS, LINES, 60, 12);
+            menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
+            break;
+        }
+        default:
+        {
+            printw("Invalid menu choice");
+            break;
+        }
+    }
 
+}
 /**
  *@brief Affiche le menu principal et l'option sélectionnée.
  * 

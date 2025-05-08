@@ -15,6 +15,7 @@
 #include <cstdlib>
 
 #include "gui_launcher.hpp"
+#include "menuController.hpp"
 
 using namespace std;
 

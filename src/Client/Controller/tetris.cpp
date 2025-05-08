@@ -92,7 +92,15 @@ int Tetris::runTetris(int argc, char** argv) {
             return retVal;
         while(isInGame && keepRunning){
             //Getting the selected MenuMessage in terminal
-            int selectedMode = terminal.start();
+            //int selectedMode = terminal.start();
+            int selectedMode = 0;
+            MenuController menuController (terminal);
+            menuController.handleMenu();
+
+
+
+
+            
             if (selectedMode == -1){
                 //Quit game
                 int exitType = MessageType::T_ForcedExit;
