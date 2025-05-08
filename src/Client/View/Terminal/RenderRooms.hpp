@@ -3,7 +3,6 @@
 
 #include "ServerData.hpp"
 #include "communication.hpp"
-#include "playerFunctions.hpp"
 #include <ncurses.h>
 #include <memory>
 #include <vector>

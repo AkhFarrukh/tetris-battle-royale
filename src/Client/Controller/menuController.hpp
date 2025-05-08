@@ -5,7 +5,9 @@
 #include <vector>
 #include <functional>
 #include "menu.hpp" // Menu class (rendering part)
+#include "InterFaceTerminal.hpp"
 
+using namespace std;
 
 
 
@@ -16,18 +18,22 @@ class MenuController {
             std::vector<MenuOption> options; // Vector to store sub-menus options
             std::function<void()> callback; // Callback function to be executed when the option is selected
         };
+        bool runningMenu;
+        MenuOption allMenus; 
+        vector<int> selectedOptions; // Vector to store the selected options for each menu
         
     public:
         // Constructor
         MenuController();
 
         // Destructor
-        ~MenuController();
+        ~MenuController() = default;
 
-        // Adds a menu option with a label and a callback function
-        void addOption(const std::string& label, const std::function<void()>& callback);
+        void handleMenu();
 
-        // Displays the menu and handles user input
+        void handleKeyQ();
+        void handleKeyEnter();
+        
         void displayMenu() const;
 
 
