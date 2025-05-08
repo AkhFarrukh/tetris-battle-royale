@@ -6,22 +6,55 @@
 #include <functional>
 #include "menu.hpp" // Menu class (rendering part)
 #include "InterFaceTerminal.hpp"
+#include <memory>
 
 using namespace std;
 
-struct MenuOption {
-    Menus menuName;
-    std::vector<MenuOption> options; // Vector to store sub-menus options
-    std::function<void()> callback; // Callback function to be executed when the option is selected
-};
+
+
+
 
 class MenuController {
     private:
+        struct MenuOption {
+            Menus menuName;
+            std::vector<std::shared_ptr<MenuOption>> options;
+            std::function<void()> callback;
         
+            MenuOption() = default;
+            MenuOption(Menus name, std::vector<std::shared_ptr<MenuOption>> opts, std::function<void()> cb)
+                : menuName(name), options(opts), callback(cb) {}
+        
+            // Copy constructor
+            // Constructeur de copie profond
+            MenuOption(const MenuOption& other)
+            : menuName(other.menuName), callback(other.callback) {
+                options.reserve(other.options.size());
+                for (const auto& opt : other.options) {
+                    options.push_back(std::make_shared<MenuOption>(*opt)); // deep copy
+                }
+            }
+
+            // Opérateur d’affectation profond
+            MenuOption& operator=(const MenuOption& other) {
+                if (this != &other) {
+                    menuName = other.menuName;
+                    callback = other.callback;
+                    options.clear();
+                    options.reserve(other.options.size());
+                    for (const auto& opt : other.options) {
+                        options.push_back(std::make_shared<MenuOption>(*opt)); // deep copy
+                    }
+                }
+                return *this;
+            }
+
+        };
+
         InterfaceTerminal interfaceTerminal;
         bool runningMenu;
         MenuOption allMenus; 
-        MenuOption currentMenu; // Current menu being displayed
+        shared_ptr<MenuOption> currentMenu; // Current menu being displayed
         vector<int> selectedOptions; // Vector to store the selected options for each menu
 
         
