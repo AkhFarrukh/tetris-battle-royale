@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::Thread
     resize(600, 500);
     move(QGuiApplication::primaryScreen()->geometry().center() - frameGeometry().center());
 
-
+    controller = new guiControlleur(sock, threadData);
     auto timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::updateGameScreen);
     timer->start(100);
@@ -158,8 +158,58 @@ void MainWindow::setupAuthScreen() {
     authScreen->setLayout(layout);
 }
 
+void MainWindow::handleAuth() {
+    QString username = usernameInput->text();
+    QString password = passwordInput->text();
+    QString confirmPassword = confirmPasswordInput ? confirmPasswordInput->text() : "";
+
+    if (username.isEmpty() || password.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Please fill in all fields.");
+        return;
+    }
+
+
+    controller->handleAuth(username, password, isRegisterMode, confirmPassword, isRegisterMode, myRoomScreen);
+    
+    //Start periodic UI refresh from threadData
+    auto timer = new QTimer(nullptr);
+    connect(timer, &QTimer::timeout, this, [this]() {
+        std::lock_guard<std::mutex> lock(threadData->mux);
+        if (threadData->roomInfoUpdated) {
+            threadData->roomInfoUpdated = false;
+            setupMyRoomScreen(threadData->roomInfo, threadData->isOwner);
+        }
+        if (threadData->userInGame) {
+            renderQt->renderGames(threadData->playersData);
+            stackedWidget->setCurrentWidget(gameScreen);
+        }
+    });
+    timer->start(100);
+    
+    passwordInput->clear();
+    confirmPasswordInput->clear();
+    showMainMenuScreen();
+
+}
+
+
 void MainWindow::showLoginScreen() {
     stackedWidget->setCurrentWidget(loginScreen);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    if (threadData && threadData->isOwner) {
+        int roomDeletedType = MessageType::T_RoomDeleted;
+        int size_ = sizeof(int);
+        sendAll(sock, &roomDeletedType, sizeof(int));
+        sendAll(sock, &size_, sizeof(int));
+    }
+
+    int exitType = MessageType::T_ForcedExit;
+    int size_ = sizeof(int);
+    int bytesSentType = sendAll(sock, &exitType, sizeof(int));
+    int bytesSentSize = sendAll(sock, &size_, sizeof(int));
+    event->accept();
 }
 
 void MainWindow::showAuthScreen() {
@@ -310,35 +360,6 @@ void MainWindow::setupFriendsListScreen(){
 }
 
 
-void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
-    MenuMessage menu;
-    menu.action = action;
-    menu.mode = mode;
-    threadData->mux.lock();
-    threadData->socket = sock;
-    threadData->gameMode = mode;
-    threadData->isGui = true;
-    threadData->qtParent = this;
-    threadData->userInGame = false;   // <-- will be set to true by threadRoutineView
-    threadData->userInLobby = true;
-    threadData->mux.unlock();
-
-
-    if (!threadID) {
-        pthread_create(&threadID, nullptr, MainWindow::threadRoutineQtView, threadData.get());
-    }
-    
-    int type = MessageType::T_Menu;
-    int size = sizeof(MenuMessage);
-    
-    if (!sendAll(sock, &type, sizeof(type)) ||
-        !sendAll(sock, &size, sizeof(size)) ||
-        !sendAll(sock, &menu, sizeof(MenuMessage))) {
-        QMessageBox::critical(this, "Erreur", "Échec de l'envoi du menu.");
-        return;
-    }    
-}
-
 void MainWindow::setGameScreen() {
     stackedWidget->setCurrentWidget(gameScreen);
 }
@@ -385,15 +406,6 @@ void MainWindow::showGameModeScreen() {
     stackedWidget->setCurrentWidget(gameModeScreen);
 }
 
-void MainWindow::spectateRoom(int roomID) {
-    int type   = MessageType::T_JoinAsSpectator;
-    int size   = sizeof(int);
-    sendAll(sock, &type,   sizeof(type));
-    sendAll(sock, &size,   sizeof(size));
-    sendAll(sock, &roomID, sizeof(roomID));
-    threadData->isSpectator = true;
-}
-
 void MainWindow::setupSpectatorWaitingScreen(int roomID) {
     std::cout << "thread data in specDis" << threadData->isSpectator << endl;
     if (spectatorWaitingScreen) {
@@ -429,7 +441,7 @@ void MainWindow::setupSpectatorWaitingScreen(int roomID) {
         requestRoomUpdate(); // define this
     });
     connect(leaveBtn, &QPushButton::clicked, this, [this]() {
-        sendLeaveRoom();
+        sendLeaveRoom(myRoomScreen, stackedWidget);
     });
     
     layout->addWidget(refreshBtn);
@@ -519,21 +531,6 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
     stackedWidget->setCurrentWidget(roomListScreen);
 }
 
-void MainWindow::sendCreateRoom() {
-    MenuMessage menu;
-    menu.mode = threadData->gameMode;
-    menu.action = MenuActions::A_CreateRoom;
-
-    int type = MessageType::T_Menu;
-    int size = sizeof(MenuMessage);
-
-    if (!sendAll(sock, &type, sizeof(type)) ||
-        !sendAll(sock, &size, sizeof(size)) ||
-        !sendAll(sock, &menu, sizeof(MenuMessage))) {
-        QMessageBox::critical(this, "Erreur", "Échec de la création de la salle.");
-        return;
-    }
-}
 
 void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
     if (myRoomScreen) {
@@ -581,384 +578,17 @@ void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
     });
 
     connect(leaveBtn, &QPushButton::clicked, this, [this]() {
-        sendLeaveRoom(); // define this
+        sendLeaveRoom();
+        if (myRoomScreen) {
+            stackedWidget->removeWidget(myRoomScreen);
+            delete myRoomScreen;
+            myRoomScreen = nullptr;
+        }
+
     });
 
     stackedWidget->addWidget(myRoomScreen);
     stackedWidget->setCurrentWidget(myRoomScreen);
-}
-
-void MainWindow::joinRoom(int roomID) {
-    int type = MessageType::T_Join;
-    int size = sizeof(int);
-    sendAll(sock, &type, sizeof(int));
-    sendAll(sock, &size, sizeof(int));
-    sendAll(sock, &roomID, sizeof(int));
-}
-
-void MainWindow::sendForceStart() {
-    MenuMessage menu;
-    menu.action = MenuActions::A_ForceStart;
-    // menu.mode = threadData->gameMode;
-    int type = MessageType::T_Menu;
-    int size = sizeof(MenuMessage);
-    sendAll(sock, &type, sizeof(int));
-    sendAll(sock, &size, sizeof(int));
-    sendAll(sock, &menu, sizeof(MenuMessage));
-}
-
-void MainWindow::sendLeaveRoom() {
-    int type;
-    int size = sizeof(int);
-
-    if (threadData->isOwner) {
-        type = MessageType::T_RoomDeleted;
-    } else {
-        type = MessageType::T_LeftRoom;
-    }
-
-    if (!sendAll(sock, &type, sizeof(int)) ||
-        !sendAll(sock, &size, sizeof(int))) {
-        QMessageBox::critical(this, "Error", "Failed to leave room.");
-        return;
-    }
-
-    // Remove room screen UI
-    if (myRoomScreen) {
-        stackedWidget->removeWidget(myRoomScreen);
-        delete myRoomScreen;
-        myRoomScreen = nullptr;
-    }
-
-    threadData->mux.lock();
-    threadData->userInLobby = false;
-    threadData->roomInfoUpdated = false;
-    threadData->isOwner = false;
-    threadData->mux.unlock();
-
-    requestRoomList();
-}
-
-
-void MainWindow::requestRoomUpdate() {
-    int type = MessageType::T_Refresh;
-    int size = sizeof(int);
-    sendAll(sock, &type, sizeof(int));
-    sendAll(sock, &size, sizeof(int));
-}
-
-void MainWindow::requestRoomList() {
-    MenuMessage menu;
-    menu.mode = threadData->gameMode;
-    menu.action = MenuActions::A_JoinRoom;
-
-    int type = MessageType::T_Menu;
-    int size = sizeof(MenuMessage);
-    sendAll(sock, &type, sizeof(int));
-    sendAll(sock, &size, sizeof(int));
-    sendAll(sock, &menu, sizeof(MenuMessage));
-}
-
-void MainWindow::handleAuth() {
-    QString username_qt = usernameInput->text();   // ++++++++++++++++++++++++++++++++++++++++++++++
-    QString password = passwordInput->text();
-
-    if (username_qt.isEmpty() || password.isEmpty()) {
-        QMessageBox::warning(this, "Erreur", "Veuillez remplir tous les champs.");
-        return;
-    }
-
-    Connexion connexion;
-    std::strncpy(connexion.username, username_qt.toStdString().c_str(), sizeof(connexion.username) - 1); // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    std::strncpy(connexion.password, password.toStdString().c_str(), sizeof(connexion.password) - 1);
-
-    int size = sizeof(struct Connexion);
-
-    if (isRegisterMode) {
-        // Vérifie la confirmation du mot de passe
-        QString confirmPassword = confirmPasswordInput->text();
-        if (password != confirmPassword) {
-            QMessageBox::warning(this, "Erreur", "Les mots de passe ne correspondent pas.");
-            passwordInput->clear();
-            confirmPasswordInput->clear();
-            return;
-        }
-
-        // Envoi d'une demande d'inscription
-        int type = MessageType::T_Register;
-        sendAll(sock, &type, sizeof(int));
-        sendAll(sock, &size, sizeof(int));
-        sendAll(sock, &connexion, sizeof(Connexion));
-
-        int typeResponse, sizeResponse;
-        if (!recvAll(sock, &typeResponse, sizeof(int)) || !recvAll(sock, &sizeResponse, sizeof(int))) {
-            QMessageBox::critical(this, "Erreur", "Erreur de communication avec le serveur.");
-            return;
-        }
-
-        if (typeResponse != MessageType::T_AcceptConnexion) {
-            QMessageBox::warning(this, "Erreur", "Échec de l'inscription. Essayez un autre nom.");
-            return;
-        }
-
-    } else {
-        // Connexion simple
-        int type = MessageType::T_Connexion;
-        sendAll(sock, &type, sizeof(int));
-        sendAll(sock, &size, sizeof(int));
-        sendAll(sock, &connexion, sizeof(Connexion));
-
-        int typeResponse, sizeResponse;
-        if (!recvAll(sock, &typeResponse, sizeof(int)) || !recvAll(sock, &sizeResponse, sizeof(int))) {
-            QMessageBox::critical(this, "Erreur", "Erreur de communication avec le serveur.");
-            return;
-        }
-
-        if (typeResponse != MessageType::T_AcceptConnexion) {
-            QMessageBox::warning(this, "Erreur", "Nom d'utilisateur ou mot de passe incorrect.");
-            return;
-        }
-    }
-
-    // Vérifie une double session dans tous les cas après connexion
-    int doubleSession;
-    int size_;
-    if (!recvAll(sock, &doubleSession, sizeof(int)) || !recvAll(sock, &size_, sizeof(int))) {
-        QMessageBox::critical(this, "Erreur", "Erreur lors de la vérification de session.");
-        return;
-    }
-
-    if (doubleSession == MessageType::T_RefuseConnexion) {
-        QMessageBox::warning(this, "Erreur", "Vous êtes déjà connecté sur une autre session.");
-        return;
-    }
-
-    this->threadData->socket = sock;
-    this->threadData->gameMode = Modes::Endless_; //this just a default mode, it will be overwritten later...
-    this->threadData->userInGame = false;
-    this->threadData->userInLobby = false;
-    this->threadData->isGui = true;
-    this->threadData->qtParent = this;
-
-    username = username_qt.toStdString();
-    userId_ = udm.getUserId(username.c_str());
-
-
-
-
-    pthread_create(&threadID, nullptr, MainWindow::threadRoutineQtView, threadData.get());
-
-    //Start periodic UI refresh from threadData
-    auto timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, [this]() {
-        std::lock_guard<std::mutex> lock(threadData->mux);
-
-        // std::cout << "-------------timer----------------" << endl;
-
-        if (threadData->roomInfoUpdated) {
-            threadData->roomInfoUpdated = false;
-            setupMyRoomScreen(threadData->roomInfo, threadData->isOwner);
-        }
-
-        if (threadData->userInGame) {
-            renderQt->renderGames(threadData->playersData);
-            stackedWidget->setCurrentWidget(gameScreen);
-        }
-    });
-    timer->start(100); // every 100ms
-
-
-    // Connexion réussie !
-    // QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
-    showMainMenuScreen();
-}
-
-void MainWindow::closeEvent(QCloseEvent *event) {
-    if (threadData && threadData->isOwner) {
-        int roomDeletedType = MessageType::T_RoomDeleted;
-        int size_ = sizeof(int);
-        sendAll(sock, &roomDeletedType, sizeof(int));
-        sendAll(sock, &size_, sizeof(int));
-    }
-
-    int exitType = MessageType::T_ForcedExit;
-    int size_ = sizeof(int);
-    int bytesSentType = sendAll(sock, &exitType, sizeof(int));
-    int bytesSentSize = sendAll(sock, &size_, sizeof(int));
-    event->accept();
-}
-
-void* MainWindow::threadRoutineQtView(void* arg) {
-    Player::ThreadData* threadData = static_cast<Player::ThreadData*>(arg);
-    int sock = threadData->socket;
-    auto* parent = static_cast<MainWindow*>(threadData->qtParent);
-
-    while (threadData->socket == 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-
-    while (!flag) {
-        int type, size;
-        if (!recvAll(sock, &type, sizeof(int)) || !recvAll(sock, &size, sizeof(int))) {
-            perror("Disconnected or error");
-            flag = true;
-            break;
-        }
-
-        if (type == MessageType::T_Message) {
-            Message message;
-            if (!recvAll(sock, &message, size)) break;
-            if(!parent->chatHandler || !parent->chatHandler->getChatHistory())break;
-            QString sender = QString::fromUtf8(message.expediteur);
-            QString msg = QString::fromUtf8(message.message);
-            QMetaObject::invokeMethod(parent->chatHandler->getChatHistory(), [=]() {
-            parent->chatHandler->getChatHistory()->append("<b>" + sender + ": </b> " + msg);
-            }, Qt::QueuedConnection);
-        }
-
-        else if (type == MessageType::T_Exit || type == MessageType::T_ForcedExit) {
-        //    if (type == MessageType::T_ForcedExit) {
-        //        threadData->mux.lock();
-        //        threadData->userInGame = false;
-        //        threadData->userInLobby = false;
-        //        threadData->mux.unlock();
-        //        flag = true;
-        //        break;
-        //    } else {
-        //        // ibrahim irhamni
-        //        threadData->mux.lock();
-        //        threadData->userInGame = false;
-        //        threadData->userInLobby = false;
-        //        threadData->mux.unlock();
-        //        continue;
-        //    }
-            threadData->mux.lock();
-            threadData->userInGame = false;
-            threadData->userInLobby = false;
-            threadData->isSpectator = false;
-            threadData->mux.unlock();
-
-            QMetaObject::invokeMethod(
-                static_cast<QObject*>(parent),
-                [parent]() {
-                    QMessageBox::StandardButton reply;
-                    reply = QMessageBox::question(parent, "Game Over", 
-                            "Game has ended. Return to the main menu?",
-                            QMessageBox::Yes | QMessageBox::No);
-                    if (reply == QMessageBox::Yes) {
-                        parent->showMainMenuScreen();
-                    }
-                }
-            );
-
-            if (type == MessageType::T_ForcedExit) {
-                flag = true;
-                break;
-            }
-        
-        }
-
-        else if (type == MessageType::T_PlayerData || type == MessageType::T_EndGame) {
-            std::vector<NetPlayerData> playersData;
-            for (int i = 0; i < size; ++i) {
-                NetPlayerData player;
-                if (!recvAll(sock, &player.playerId, sizeof(player.playerId))) return nullptr;
-                if (!recvAll(sock, &player.isGameOver, sizeof(player.isGameOver))) return nullptr;
-                if (!recvAll(sock, &player.linesCleared, sizeof(player.linesCleared))) return nullptr;
-                if (!recvAll(sock, &player.score, sizeof(player.score))) return nullptr;
-                if (!recvAll(sock, &player.nrg, sizeof(player.nrg))) return nullptr;
-                int gridSize;
-                if (!recvAll(sock, &gridSize, sizeof(gridSize)) || gridSize < 0 || gridSize > 100000) break;
-                player.grid.resize(gridSize);
-                if (!recvAll(sock, player.grid.data(), gridSize * sizeof(Color))) return nullptr;
-                if (type == MessageType::T_EndGame) player.endGame = true;
-                playersData.push_back(player);
-            }
-
-            std::lock_guard<std::mutex> lock(threadData->mux);
-            threadData->playersData = std::move(playersData);
-            // threadData->clinetPlayerID = -1; 
-            for (size_t i = 0; i < playersData.size(); ++i) {
-                if (playersData.at(i).playerId == -1) {
-                    threadData->clinetPlayerID = i;
-                    break;
-                }
-            }            
-        }
-
-        else if (type == MessageType::T_GameStart) {
-            std::cout << "t_gamgestart recived correctly" << endl;
-            threadData->mux.lock();
-            threadData->userInGame = true;
-            threadData->userInLobby = true;
-            threadData->mux.unlock();
-
-            QMetaObject::invokeMethod(
-                static_cast<QObject*>(parent),
-                [parent]() {
-                    parent->addMalusButtonsIfRoyal();
-                    parent->setGameScreen();
-                }
-            );
-            
-        }
-
-        else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {
-            RoomInfo info;
-            if (!recvAll(sock, &info, size)) break;
-
-            threadData->mux.lock();
-            threadData->roomInfo = info;
-            threadData->roomInfoUpdated = true;
-            threadData->isOwner = (type == MessageType::T_RoomInfo);
-            threadData->mux.unlock();
-            std::cout << "thread data before sending" << threadData->isSpectator << endl;
-            if (threadData->isSpectator == 1) {
-                QMetaObject::invokeMethod(
-                    static_cast<QObject*>(parent),
-                    [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
-                        parent->setupSpectatorWaitingScreen(info.roomID);
-                    }
-                );
-            }
-            else {
-                std::cout << "sent anyway" << threadData->isSpectator << endl;
-                QMetaObject::invokeMethod(               
-                    static_cast<QObject*>(parent),
-                    [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
-                        parent->setupMyRoomScreen(info, isOwner);
-                    }
-                );
-            }
-            
-        }
-
-        else if (type == MessageType::T_RoomsInfo) {
-            std::vector<RoomInfo> rooms(size);
-            if (!recvAll(sock, rooms.data(), size * sizeof(RoomInfo))) break;
-
-            int modeInt, modeSize;
-            if (!recvAll(sock, &modeInt, sizeof(int))) break;
-            if (!recvAll(sock, &modeSize, sizeof(int))) break;
-
-            QMetaObject::invokeMethod(
-                static_cast<QObject*>(parent),
-                [rooms, parent]() {
-                    parent->setupRoomListScreen(rooms);
-                }
-            );
-        }
-
-        else {
-            std::cerr << "[QtView] Unhandled type: " << type << std::endl;
-            char buffer[1024];
-            recv(sock, buffer, std::min(size, 1024), 0);
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
-    }
-
-    return nullptr;
 }
 
 void MainWindow::addMalusButtonsIfRoyal() {
@@ -992,70 +622,15 @@ void MainWindow::addMalusButtonsIfRoyal() {
     }
 }
 
-
-void MainWindow::handleMalusBonus(int malusId) {
-    static int chosenMalus = 0;
-    static int chosenPlayer = 0;
-
-    chosenMalus = malusId;
-
-    if (chosenMalus == 6 || chosenMalus == 7) {
-        int myself = -1;
-        for (size_t i = 0; i < threadData->playersData.size(); ++i) {
-            if (threadData->playersData[i].playerId == -1) {
-                myself = static_cast<int>(i);
-                break;
-            }
-        }
-        if (myself == -1) return;
-
-        sendMalusBonus(chosenMalus, myself);
-        chosenMalus = 0;
-        chosenPlayer = 0;
-    } else {
-
-        QStringList playerOptions;
-        std::vector<int> playerIndices;
-        for (size_t i = 0; i < threadData->playersData.size(); ++i) {
-            if (threadData->playersData[i].playerId != -1) {
-                playerOptions.push_back(QString::number(i));
-                playerIndices.push_back(static_cast<int>(i));
-            }
-        }
-
-        bool ok = false;
-        QString chosen = QInputDialog::getItem(this, "Select Target", "Choose target:", playerOptions, 0, false, &ok);
-
-        if (!ok || chosen.isEmpty()) {
-            return;
-        }
-
-        int selected = chosen.toInt();
-        chosenPlayer = selected;
-
-        sendMalusBonus(chosenMalus, chosenPlayer);
-
-        chosenMalus = 0;
-        chosenPlayer = 0;
+void MainWindow::showGameOverPopup() {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Game Over", 
+            "Game has ended. Return to the main menu?",
+            QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        showMainMenuScreen();
     }
 }
-
-
-void MainWindow::sendMalusBonus(int malusId, int targetPlayerIndex) {
-    MalBonus mb;
-    mb.malusB = Player::intToMalusBonus(malusId);
-    mb.target = targetPlayerIndex;
-
-    int type = MessageType::T_MalusBonus;
-    int size = sizeof(MalBonus);
-
-    if (!sendAll(sock, &type, sizeof(int)) ||
-        !sendAll(sock, &size, sizeof(int)) ||
-        !sendAll(sock, &mb, sizeof(MalBonus))) {
-        QMessageBox::critical(this, "Error", "Failed to send malus/bonus.");
-    }
-}
-
 
 /**
  * @brief Gère l'affichage et la mise à jour du menu d'amis.
@@ -1102,7 +677,6 @@ void MainWindow::handleFriendsMenu() {
     layout->insertWidget(0, friendsHandler);
     stackedWidget->setCurrentWidget(friendsScreen);
 }
-
 
 void MainWindow::handleChatMenu() {
     // Supprimera l'ancien friendsHandler s'il existe

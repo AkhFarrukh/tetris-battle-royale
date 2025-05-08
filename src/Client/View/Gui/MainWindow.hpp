@@ -25,9 +25,10 @@
 #include "communication.hpp"
 #include "playerFunctions.hpp"
 #include "GridQt.hpp"
-#include "userdatabasemanager.hpp"
 #include "FriendsHandler.hpp"
 #include "ChatHandler.hpp"
+#include "guiControlleur.hpp"
+#include <memory>
 
 
 class MainWindow : public QMainWindow {
@@ -41,23 +42,19 @@ public:
 private slots:
     void showLoginScreen();
     void showAuthScreen();
-    void handleAuth();
     void setupMainMenuScreen();
     void setupGameModeScreen();
     void setupFriendsScreen();
-    void sendMenuAction(MenuActions action, Modes mode);
     void showModeScreen(const QString& mode);
     void showGameModeScreen();
     void showMainMenuScreen();
     void closeEvent(QCloseEvent *event) override;
     void setupGameScreens();
     void updateGameScreen();
-    void addMalusButtonsIfRoyal();
     void setGameScreen();
     void showLeaderboardScreen();
     void showChatScreen();
     void showfriendsListScreen();
-    void spectateRoom(int roomID);
     void setupSpectatorWaitingScreen(int roomID);
 
 
@@ -65,8 +62,8 @@ private:
     QWidget *callerWindow = nullptr;
     QTextEdit *chatHistory = nullptr;
     int sock;
-    FriendsHandler* friendsHandler = nullptr;
-    ChatHandler* chatHandler = nullptr;
+    // FriendsHandler* friendsHandler = nullptr;
+    // ChatHandler* chatHandler = nullptr;
     std::string username;
     int userId_;
 
@@ -75,19 +72,10 @@ private:
     void setupAuthScreen();
     void setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo);
     void setupMyRoomScreen(const RoomInfo& room, bool isOwner);
-    void joinRoom(int roomID);
-    void sendForceStart();
-    void sendLeaveRoom();
-    void requestRoomUpdate();
-    void requestRoomList();
-    void sendCreateRoom();
-    static void* threadRoutineQtView(void* arg);
-    void handleMalusBonus(int malusId);
-    void sendMalusBonus(int malusId, int targetPlayerIndex);
-    void handleFriendsMenu();
-    void handleChatMenu();
     void setupFriendsListScreen();
+    void handleAuth();
     void openChatWith(const QString& friendName);
+    void showGameOverPopup();
 
     QWidget* loginScreen = nullptr;
     QWidget* authScreen = nullptr;
@@ -112,11 +100,11 @@ private:
 
     bool isRegisterMode = false;
 
-    std::shared_ptr<Player::ThreadData> threadData;
+    // std::shared_ptr<Player::ThreadData> threadData;
     pthread_t threadID;
 
-    Database db{"./tetris.db"};
     UserDatabaseManager udm;
+    guiControlleur* controller;
 
     QWidget* roomListScreen = nullptr;
     QWidget* myRoomScreen = nullptr;
