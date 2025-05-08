@@ -215,17 +215,17 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::showAuthScreen() {
-    // if (authScreen) {
-    //     stackedWidget->removeWidget(authScreen);
-    //     authScreen->deleteLater(); // évite les fuites mémoire
-    //     authScreen = nullptr;
-    // }
+    if (authScreen) {
+        stackedWidget->removeWidget(authScreen);
+        authScreen->deleteLater(); // évite les fuites mémoire
+        authScreen = nullptr;
+    }
 
-    stackedWidget->setCurrentWidget(authScreen);
+    // stackedWidget->setCurrentWidget(authScreen);
 
-    if (usernameInput) usernameInput->clear();
-    if (passwordInput) passwordInput->clear();
-    if (confirmPasswordInput) confirmPasswordInput->clear();
+    // if (usernameInput) usernameInput->clear();
+    // if (passwordInput) passwordInput->clear();
+    // if (confirmPasswordInput) confirmPasswordInput->clear();
 
 
     setupAuthScreen();
