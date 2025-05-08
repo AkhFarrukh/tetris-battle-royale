@@ -132,3 +132,43 @@ int RenderRooms::handleSpectatorRoom(const RoomInfo& room) {
             return 0;
     }
 }
+
+void RenderRooms::displaySMP(int highlightIndex) {
+    for (int i = 3; i < 10; i++) {
+        if (i == highlightIndex) {
+            attron(A_STANDOUT);
+            printw("-> %d", i);
+            attroff(A_STANDOUT);
+        } else {
+            printw("   %d", i);
+        }
+    }
+}
+
+int RenderRooms::selectMaxPlayers() {
+    int highlightIndex = 0;
+    while(true) {
+        int ch = getch();
+        switch (ch) {
+            case KEY_UP:
+                if (highlightIndex > 3) {
+                    highlightIndex--;
+                }
+                break;
+            case KEY_DOWN:
+                if (highlightIndex < 9) {
+                    highlightIndex++;
+                }
+                break;
+            case '\n':
+                return highlightIndex;
+            case 'q':
+            case 'Q':
+                return -1;
+            default:
+                return -3;
+        }
+    }
+    
+    
+}

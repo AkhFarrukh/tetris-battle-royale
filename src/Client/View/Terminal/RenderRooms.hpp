@@ -18,6 +18,8 @@ class RenderRooms {
         int handleMyRoom(const RoomInfo room);
         void spectatorRoom(const RoomInfo& room);
         int handleSpectatorRoom(const RoomInfo& room);
+        int selectMaxPlayers();
+        void displaySMP(int highlight);
 
 
 };

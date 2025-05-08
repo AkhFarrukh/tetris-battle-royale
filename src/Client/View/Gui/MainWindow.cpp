@@ -391,8 +391,15 @@ void MainWindow::spectateRoom(int roomID) {
     sendAll(sock, &type,   sizeof(type));
     sendAll(sock, &size,   sizeof(size));
     sendAll(sock, &roomID, sizeof(roomID));
-    threadData->isSpectator = true;
+
+    {
+        std::lock_guard<std::mutex> lk(threadData->mux);
+        threadData->isSpectator = true;
+    }
+    
+    setupSpectatorWaitingScreen(roomID);
 }
+
 
 void MainWindow::setupSpectatorWaitingScreen(int roomID) {
     std::cout << "thread data in specDis" << threadData->isSpectator << endl;
@@ -903,34 +910,32 @@ void* MainWindow::threadRoutineQtView(void* arg) {
             
         }
 
-        else if (type == MessageType::T_RoomInfo || type == MessageType::T_RoomJoinInfo) {
+        if (type == MessageType::T_RoomInfo) {
+            // this is the *host*’s view
             RoomInfo info;
-            if (!recvAll(sock, &info, size)) break;
-
-            threadData->mux.lock();
-            threadData->roomInfo = info;
-            threadData->roomInfoUpdated = true;
-            threadData->isOwner = (type == MessageType::T_RoomInfo);
-            threadData->mux.unlock();
-            std::cout << "thread data before sending" << threadData->isSpectator << endl;
-            if (threadData->isSpectator == 1) {
-                QMetaObject::invokeMethod(
-                    static_cast<QObject*>(parent),
-                    [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
-                        parent->setupSpectatorWaitingScreen(info.roomID);
-                    }
-                );
+            recvAll(sock, &info, size);
+            QMetaObject::invokeMethod(parent, [=]() {
+              parent->setupMyRoomScreen(info, /*isOwner=*/true);
+            });
+        }
+        else if (type == MessageType::T_RoomJoinInfo) {
+            // this is when *anyone* joins (player or spectator)
+            RoomInfo info;
+            recvAll(sock, &info, size);
+        
+            // safely grab the spectator flag
+            bool spect = false;
+            {
+              std::lock_guard<std::mutex> lk(threadData->mux);
+              spect = threadData->isSpectator;
             }
-            else {
-                std::cout << "sent anyway" << threadData->isSpectator << endl;
-                QMetaObject::invokeMethod(               
-                    static_cast<QObject*>(parent),
-                    [info, isOwner = (type == MessageType::T_RoomInfo), parent]() {
-                        parent->setupMyRoomScreen(info, isOwner);
-                    }
-                );
-            }
-            
+        
+            QMetaObject::invokeMethod(parent, [=]() {
+              if (spect)
+                parent->setupSpectatorWaitingScreen(info.roomID);
+              else
+                parent->setupMyRoomScreen(info, /*isOwner=*/false);
+            });
         }
 
         else if (type == MessageType::T_RoomsInfo) {
