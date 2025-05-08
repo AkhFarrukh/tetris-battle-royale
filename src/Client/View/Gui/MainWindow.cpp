@@ -32,13 +32,15 @@ extern std::atomic<bool> flag;
 
 
 MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::ThreadData> threadData)
-    : QMainWindow(parent), sock(sock), threadData(threadData) {
+: QMainWindow(parent), sock(sock), threadData(threadData){
 
     setupUI();
     resize(600, 500);
     move(QGuiApplication::primaryScreen()->geometry().center() - frameGeometry().center());
 
-
+    controller = new guiControlleur(sock, threadData);
+    threadData->qtParent = this;
+    
     auto timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::updateGameScreen);
     timer->start(100);
@@ -158,8 +160,58 @@ void MainWindow::setupAuthScreen() {
     authScreen->setLayout(layout);
 }
 
+void MainWindow::handleAuth() {
+    QString username = usernameInput->text();
+    QString password = passwordInput->text();
+    QString confirmPassword = confirmPasswordInput ? confirmPasswordInput->text() : "";
+
+    if (username.isEmpty() || password.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Please fill in all fields.");
+        return;
+    }
+
+
+    controller->handleAuth(username, password, isRegisterMode, confirmPassword, isRegisterMode);
+    
+    //Start periodic UI refresh from threadData
+    auto timer = new QTimer(nullptr);
+    connect(timer, &QTimer::timeout, this, [this]() {
+        std::lock_guard<std::mutex> lock(threadData->mux);
+        if (threadData->roomInfoUpdated) {
+            threadData->roomInfoUpdated = false;
+            setupMyRoomScreen(threadData->roomInfo, threadData->isOwner);
+        }
+        if (threadData->userInGame) {
+            renderQt->renderGames(threadData->playersData);
+            stackedWidget->setCurrentWidget(gameScreen);
+        }
+    });
+    timer->start(100);
+    
+    // passwordInput->clear();
+    // confirmPasswordInput->clear();
+    showMainMenuScreen();
+
+}
+
+
 void MainWindow::showLoginScreen() {
     stackedWidget->setCurrentWidget(loginScreen);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    if (threadData && threadData->isOwner) {
+        int roomDeletedType = MessageType::T_RoomDeleted;
+        int size_ = sizeof(int);
+        sendAll(sock, &roomDeletedType, sizeof(int));
+        sendAll(sock, &size_, sizeof(int));
+    }
+
+    int exitType = MessageType::T_ForcedExit;
+    int size_ = sizeof(int);
+    int bytesSentType = sendAll(sock, &exitType, sizeof(int));
+    int bytesSentSize = sendAll(sock, &size_, sizeof(int));
+    event->accept();
 }
 
 void MainWindow::showAuthScreen() {
@@ -168,6 +220,13 @@ void MainWindow::showAuthScreen() {
         authScreen->deleteLater(); // évite les fuites mémoire
         authScreen = nullptr;
     }
+
+    // stackedWidget->setCurrentWidget(authScreen);
+
+    // if (usernameInput) usernameInput->clear();
+    // if (passwordInput) passwordInput->clear();
+    // if (confirmPasswordInput) confirmPasswordInput->clear();
+
 
     setupAuthScreen();
     stackedWidget->addWidget(authScreen);
@@ -310,35 +369,6 @@ void MainWindow::setupFriendsListScreen(){
 }
 
 
-void MainWindow::sendMenuAction(MenuActions action, Modes mode) {
-    MenuMessage menu;
-    menu.action = action;
-    menu.mode = mode;
-    threadData->mux.lock();
-    threadData->socket = sock;
-    threadData->gameMode = mode;
-    threadData->isGui = true;
-    threadData->qtParent = this;
-    threadData->userInGame = false;   // <-- will be set to true by threadRoutineView
-    threadData->userInLobby = true;
-    threadData->mux.unlock();
-
-
-    if (!threadID) {
-        pthread_create(&threadID, nullptr, MainWindow::threadRoutineQtView, threadData.get());
-    }
-    
-    int type = MessageType::T_Menu;
-    int size = sizeof(MenuMessage);
-    
-    if (!sendAll(sock, &type, sizeof(type)) ||
-        !sendAll(sock, &size, sizeof(size)) ||
-        !sendAll(sock, &menu, sizeof(MenuMessage))) {
-        QMessageBox::critical(this, "Erreur", "Échec de l'envoi du menu.");
-        return;
-    }    
-}
-
 void MainWindow::setGameScreen() {
     stackedWidget->setCurrentWidget(gameScreen);
 }
@@ -366,13 +396,13 @@ void MainWindow::updateGameScreen() {
 
 void MainWindow::showModeScreen(const QString& mode) {
     if (mode == "endless") {
-        sendMenuAction(MenuActions::A_Play, Modes::Endless_);
+        controller->sendMenuAction(MenuActions::A_Play, Modes::Endless_);
     } else if (mode == "classic") {
-        sendMenuAction(MenuActions::A_JoinRoom, Modes::Classic_);
+        controller->sendMenuAction(MenuActions::A_JoinRoom, Modes::Classic_);
     } else if (mode == "duel") {
-        sendMenuAction(MenuActions::A_JoinRoom, Modes::Duel_);
+        controller->sendMenuAction(MenuActions::A_JoinRoom, Modes::Duel_);
     } else if (mode == "royal") {
-        sendMenuAction(MenuActions::A_JoinRoom, Modes::Royal_);
+        controller->sendMenuAction(MenuActions::A_JoinRoom, Modes::Royal_);
     }
 }
 
@@ -385,6 +415,7 @@ void MainWindow::showGameModeScreen() {
     stackedWidget->setCurrentWidget(gameModeScreen);
 }
 
+<<<<<<< HEAD
 void MainWindow::spectateRoom(int roomID) {
     int type   = MessageType::T_JoinAsSpectator;
     int size   = sizeof(int);
@@ -401,6 +432,8 @@ void MainWindow::spectateRoom(int roomID) {
 }
 
 
+=======
+>>>>>>> feature/gui-clean
 void MainWindow::setupSpectatorWaitingScreen(int roomID) {
     std::cout << "thread data in specDis" << threadData->isSpectator << endl;
     if (spectatorWaitingScreen) {
@@ -433,10 +466,16 @@ void MainWindow::setupSpectatorWaitingScreen(int roomID) {
     QPushButton* leaveBtn = new QPushButton("Leave Spectation", this);
 
     connect(refreshBtn, &QPushButton::clicked, this, [this]() {
-        requestRoomUpdate(); // define this
+        controller->requestRoomUpdate(); // define this
     });
     connect(leaveBtn, &QPushButton::clicked, this, [this]() {
-        sendLeaveRoom();
+        controller->sendLeaveRoom();
+        if (myRoomScreen) {
+            stackedWidget->removeWidget(myRoomScreen);
+            delete myRoomScreen;
+            myRoomScreen = nullptr;
+        }
+
     });
     
     layout->addWidget(refreshBtn);
@@ -474,14 +513,14 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
             auto* joinBtn = new QPushButton("Join", this);
             rowLayout->addWidget(joinBtn);
             connect(joinBtn, &QPushButton::clicked, [this, r]() {
-                joinRoom(r.roomID);
+                controller->joinRoom(r.roomID);
             });
 
             // 3) Spectate button
             auto* specBtn = new QPushButton("Spectate", this);
             rowLayout->addWidget(specBtn);
             connect(specBtn, &QPushButton::clicked, [this, r]() {
-                spectateRoom(r.roomID);
+                controller->spectateRoom(r.roomID);
             });
             rowLayout->addStretch();
 
@@ -509,15 +548,19 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
 
     // Handle create
     connect(createBtn, &QPushButton::clicked, this, [this]() {
-        sendCreateRoom();
+        controller->sendCreateRoom();
     });
 
     // Keep existing
-    connect(refreshBtn, &QPushButton::clicked, this, &MainWindow::requestRoomList);
+    // connect(refreshBtn, &QPushButton::clicked, controller, &guiControlleur::requestRoomList);
+    connect(refreshBtn, &QPushButton::clicked, this, [=]() {
+        controller->requestRoomList();
+    });
+    
     connect(backBtn, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
 
     connect(refreshBtn, &QPushButton::clicked, this, [this]() {
-        requestRoomList();  // define this to re-fetch rooms from server
+        controller->requestRoomList();  // define this to re-fetch rooms from server
     });
 
     connect(backBtn, &QPushButton::clicked, this, &MainWindow::showGameModeScreen);
@@ -526,21 +569,6 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
     stackedWidget->setCurrentWidget(roomListScreen);
 }
 
-void MainWindow::sendCreateRoom() {
-    MenuMessage menu;
-    menu.mode = threadData->gameMode;
-    menu.action = MenuActions::A_CreateRoom;
-
-    int type = MessageType::T_Menu;
-    int size = sizeof(MenuMessage);
-
-    if (!sendAll(sock, &type, sizeof(type)) ||
-        !sendAll(sock, &size, sizeof(size)) ||
-        !sendAll(sock, &menu, sizeof(MenuMessage))) {
-        QMessageBox::critical(this, "Erreur", "Échec de la création de la salle.");
-        return;
-    }
-}
 
 void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
     if (myRoomScreen) {
@@ -580,21 +608,28 @@ void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
     layout->addWidget(leaveBtn);
 
     connect(forceStartBtn, &QPushButton::clicked, this, [this]() {
-        sendForceStart(); // define this
+        controller->sendForceStart(); // define this
     });
 
     connect(refreshBtn, &QPushButton::clicked, this, [this]() {
-        requestRoomUpdate(); // define this
+        controller->requestRoomUpdate(); // define this
     });
 
     connect(leaveBtn, &QPushButton::clicked, this, [this]() {
-        sendLeaveRoom(); // define this
+        controller->sendLeaveRoom();
+        if (myRoomScreen) {
+            stackedWidget->removeWidget(myRoomScreen);
+            delete myRoomScreen;
+            myRoomScreen = nullptr;
+        }
+
     });
 
     stackedWidget->addWidget(myRoomScreen);
     stackedWidget->setCurrentWidget(myRoomScreen);
 }
 
+<<<<<<< HEAD
 void MainWindow::joinRoom(int roomID) {
     int type = MessageType::T_Join;
     int size = sizeof(int);
@@ -966,6 +1001,8 @@ void* MainWindow::threadRoutineQtView(void* arg) {
     return nullptr;
 }
 
+=======
+>>>>>>> feature/gui-clean
 void MainWindow::addMalusButtonsIfRoyal() {
     if (threadData && threadData->gameMode == Modes::Royal_ && gameScreen) {
         QHBoxLayout* malusBonusLayout = new QHBoxLayout();
@@ -986,7 +1023,7 @@ void MainWindow::addMalusButtonsIfRoyal() {
             malusBonusLayout->addWidget(btn);
 
             connect(btn, &QPushButton::clicked, this, [this, i]() {
-                handleMalusBonus(i + 1);
+                controller->handleMalusBonus(i + 1);
             });
         }
 
@@ -997,70 +1034,15 @@ void MainWindow::addMalusButtonsIfRoyal() {
     }
 }
 
-
-void MainWindow::handleMalusBonus(int malusId) {
-    static int chosenMalus = 0;
-    static int chosenPlayer = 0;
-
-    chosenMalus = malusId;
-
-    if (chosenMalus == 6 || chosenMalus == 7) {
-        int myself = -1;
-        for (size_t i = 0; i < threadData->playersData.size(); ++i) {
-            if (threadData->playersData[i].playerId == -1) {
-                myself = static_cast<int>(i);
-                break;
-            }
-        }
-        if (myself == -1) return;
-
-        sendMalusBonus(chosenMalus, myself);
-        chosenMalus = 0;
-        chosenPlayer = 0;
-    } else {
-
-        QStringList playerOptions;
-        std::vector<int> playerIndices;
-        for (size_t i = 0; i < threadData->playersData.size(); ++i) {
-            if (threadData->playersData[i].playerId != -1) {
-                playerOptions.push_back(QString::number(i));
-                playerIndices.push_back(static_cast<int>(i));
-            }
-        }
-
-        bool ok = false;
-        QString chosen = QInputDialog::getItem(this, "Select Target", "Choose target:", playerOptions, 0, false, &ok);
-
-        if (!ok || chosen.isEmpty()) {
-            return;
-        }
-
-        int selected = chosen.toInt();
-        chosenPlayer = selected;
-
-        sendMalusBonus(chosenMalus, chosenPlayer);
-
-        chosenMalus = 0;
-        chosenPlayer = 0;
+void MainWindow::showGameOverPopup() {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Game Over", 
+            "Game has ended. Return to the main menu?",
+            QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        showMainMenuScreen();
     }
 }
-
-
-void MainWindow::sendMalusBonus(int malusId, int targetPlayerIndex) {
-    MalBonus mb;
-    mb.malusB = Player::intToMalusBonus(malusId);
-    mb.target = targetPlayerIndex;
-
-    int type = MessageType::T_MalusBonus;
-    int size = sizeof(MalBonus);
-
-    if (!sendAll(sock, &type, sizeof(int)) ||
-        !sendAll(sock, &size, sizeof(int)) ||
-        !sendAll(sock, &mb, sizeof(MalBonus))) {
-        QMessageBox::critical(this, "Error", "Failed to send malus/bonus.");
-    }
-}
-
 
 /**
  * @brief Gère l'affichage et la mise à jour du menu d'amis.
@@ -1107,7 +1089,6 @@ void MainWindow::handleFriendsMenu() {
     layout->insertWidget(0, friendsHandler);
     stackedWidget->setCurrentWidget(friendsScreen);
 }
-
 
 void MainWindow::handleChatMenu() {
     // Supprimera l'ancien friendsHandler s'il existe
