@@ -68,5 +68,5 @@ make clean-client
 - **src/Common** : Contains all the source code that's common between the client and the server
 - **Makefile** : Builds the C++ program in `src/`
 - **server.exe & tetris.exe** : executables
-- **createtables.sql** : sql script to build the sql-lite file
-- **statements.sql** : contains the queries doable on the db
+- **createtables.sql** : sql script to build "tables" in the SQLite file
+- **statements.sql** : contains the necessary statements (and queries) for the CRUD operations
