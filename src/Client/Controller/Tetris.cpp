@@ -2,7 +2,7 @@
 
 
 //Constructor
-Tetris::Tetris():socketServer{-1}, isInGame{false}, username{""}{};
+Tetris::Tetris():socketServer{-1}, username{""}{};
 
 //Destructor
 Tetris::~Tetris()
@@ -17,15 +17,13 @@ Tetris::~Tetris()
  */
 void Tetris::exitTetris() {
     if(socketServer != -1){
-        if(isInGame){
-            int type = MessageType::T_Input;
-            int size = sizeof(InputMessage);
-            InputMessage inputMessage;
-            inputMessage.input = EXIT_KEY;
-            sendAll(socketServer, &type, sizeof(int));
-            sendAll(socketServer, &size, sizeof(int));
-            sendAll(socketServer, &inputMessage, sizeof(InputMessage));
-        }
+        int type = MessageType::T_Input;
+        int size = sizeof(InputMessage);
+        InputMessage inputMessage;
+        inputMessage.input = EXIT_KEY;
+        sendAll(socketServer, &type, sizeof(int));
+        sendAll(socketServer, &size, sizeof(int));
+        sendAll(socketServer, &inputMessage, sizeof(InputMessage));
     int exitType = MessageType::T_ForcedExit;
     int size_ = sizeof(int);
     sendAll(socketServer, &exitType, sizeof(int));
@@ -89,13 +87,13 @@ int Tetris::runTetris(int argc, char** argv) {
         vector<std::string> dataConnexion = terminal.handleConnexionOption();
         bool retFlag;
         int retVal = authentification(dataConnexion, threadData, socketServer, threadID, retFlag);
-        if (retFlag)
+        if (retFlag) {
             return retVal;
-        while(isInGame && keepRunning){
-            MenuController menuController (terminal, threadData);
-            menuController.handleMenu();
         }
 
+        MenuController menuController (terminal, threadData);
+        menuController.handleMenu();
+            
         keepRunning = false;//thread principal a terminé et va demander à threadLecture de se terminer.
         shutdown(socketServer, SHUT_RD);
         pthread_join(threadID, nullptr);

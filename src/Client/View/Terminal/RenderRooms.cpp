@@ -59,6 +59,7 @@ int RenderRooms::handleMyRoom(const RoomInfo room) {
     int ch = getch();
     switch (ch) {
         case 'f':
+            printw("SARTSTARTSTARTSTARTSTRATSRAYSRYTARSUYTARSa\n");
             return 1;
         case 'q':
         case 'Q':

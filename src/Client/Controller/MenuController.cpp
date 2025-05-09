@@ -11,15 +11,7 @@ MenuController::MenuController(InterfaceTerminal interfaceTerminal, std::shared_
                 vector<shared_ptr<MenuOption>>{
                     make_shared<MenuOption>(Menus::LaunchEndless, vector<shared_ptr<MenuOption>>{}, nullptr),
                     make_shared<MenuOption>(Menus::JoinCreateMenu, vector<shared_ptr<MenuOption>>{
-                        make_shared<MenuOption>(Menus::maxMembers, vector<shared_ptr<MenuOption>>{
-                            make_shared<MenuOption>(Menus::C_D3, vector<shared_ptr<MenuOption>>{}, nullptr),
-                            make_shared<MenuOption>(Menus::C_D4, vector<shared_ptr<MenuOption>>{}, nullptr),
-                            make_shared<MenuOption>(Menus::C_D5, vector<shared_ptr<MenuOption>>{}, nullptr),
-                            make_shared<MenuOption>(Menus::C_D6, vector<shared_ptr<MenuOption>>{}, nullptr),
-                            make_shared<MenuOption>(Menus::C_D7, vector<shared_ptr<MenuOption>>{}, nullptr),
-                            make_shared<MenuOption>(Menus::C_D8, vector<shared_ptr<MenuOption>>{}, nullptr),
-                            make_shared<MenuOption>(Menus::C_D9, vector<shared_ptr<MenuOption>>{}, nullptr)
-                        }, nullptr),
+                        make_shared<MenuOption>(Menus::CreateDuel, vector<shared_ptr<MenuOption>>{}, nullptr),
                         make_shared<MenuOption>(Menus::JoinDuel, vector<shared_ptr<MenuOption>>{}, nullptr)
                     }, nullptr),
                     make_shared<MenuOption>(Menus::JoinCreateMenu, vector<shared_ptr<MenuOption>>{
@@ -118,13 +110,10 @@ void MenuController::handleMenu() {
                 break;
 
             // Duel submenu leaves
-            case Menus::C_D3: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 3); threadData->userInLobby = true; break;
-            case Menus::C_D4: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 4); threadData->userInLobby = true; break;
-            case Menus::C_D5: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 5); threadData->userInLobby = true; break;
-            case Menus::C_D6: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 6); threadData->userInLobby = true; break;
-            case Menus::C_D7: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 7); threadData->userInLobby = true; break;
-            case Menus::C_D8: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 8); threadData->userInLobby = true; break;
-            case Menus::C_D9: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 9); threadData->userInLobby = true; break;
+            case Menus::CreateDuel:
+                comm.sendMenuRequest(MenuActions::A_CreateRoom,   Modes::Duel_, 2);
+                threadData->userInLobby = true;
+                break;
             case Menus::JoinDuel:
                 comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Duel_, -1);
                 threadData->userInLobby = true;
@@ -146,7 +135,7 @@ void MenuController::handleMenu() {
             default:
                 break;
         }
-
+        
         if (threadData->userInGame || threadData->userInLobby) {
             while (!threadData->userInGame) {
                 napms(1000);

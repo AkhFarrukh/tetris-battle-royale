@@ -58,7 +58,7 @@ void InterfaceTerminal::display(int selectedOption, Menus menuChoosen) {
         }
         case Menus::GameModeMenu:
         {
-            vector<string> menuOptions = { "Select a Game Mode :", "Endless Mode", "Classic Mode", "Duel Mode", "Royal Competition Mode" };
+            vector<string> menuOptions = { "Select a Game Mode :", "Endless Mode", "Duel Mode", "Classic Mode", "Royal Competition Mode" };
             Menu menuGameMode(Menus::GameModeMenu, menuOptions, COLS, LINES, 50, 18);
             menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
             break;
@@ -102,11 +102,9 @@ void InterfaceTerminal::display(int selectedOption, Menus menuChoosen) {
         }
         case Menus::maxMembers:
         {
-            clear();
             vector<string> menuOptions = {"Select the limit of players: ", "3", "4", "5", "6", "7", "8", "9" };
             Menu menuGameMode(Menus::LoginMenu, menuOptions, COLS, LINES, 60, 12);
             menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
-            refresh();
             break;
         }
         default:

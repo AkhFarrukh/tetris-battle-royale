@@ -503,6 +503,7 @@ void Server::handleForceStart(Server* server, shared_ptr<ClientSession> client, 
             break;
         }
      }
+     cout <<"force start received"<<endl;
     if(!room)userIsOnline = false;
     if (room->checkGameReady()){
     room->broadcastGameStart();
