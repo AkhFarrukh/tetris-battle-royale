@@ -60,6 +60,7 @@ void MenuController::handleMenu() {
                 }
                 break;
             case KEY_BACKSPACE:
+            case 127: // backspace key for macOS
                 if (selectedOptions.size() > 1) {
                     selectedOptions.pop_back(); // Go back to the previous menu
                 } 
