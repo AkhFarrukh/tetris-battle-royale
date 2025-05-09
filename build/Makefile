@@ -89,7 +89,7 @@ MOC_OBJS := $(patsubst %.cpp, %.o, $(MOC_CPP))
 CLIENT_OBJS += $(MOC_OBJS)
 
 # Commandes principales
-.PHONY: all clean run
+.PHONY: all clean run clean-gui clean-server clean-client
 
 all: $(SERVER_TARGET) $(CLIENT_TARGET)
 
@@ -117,7 +117,18 @@ $(BUILD_GUI_DIR)/%.o: $(BUILD_GUI_DIR)/%.cpp
 # --- CLEAN ---
 clean:
 	rm -rf $(SERVER_OBJS)/* $(CLIENT_OBJS)/* $(BUILD_GUI_DIR)/moc_*.cpp $(BUILD_GUI_DIR)/moc_*.o $(SERVER_TARGET) $(CLIENT_TARGET)
+	@echo "Cleaned all files"
 
 run: all
 	LD_LIBRARY_PATH=$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LIB_DIR):$$LD_LIBRARY_PATH ./$(CLIENT_TARGET)
 
+clean-gui:
+	rm -rf $(BUILD_GUI_DIR)/moc_*.cpp $(BUILD_GUI_DIR)/moc_*.o
+	@echo "Cleaned GUI files"
+
+clean-server:
+	rm -rf $(SERVER_OBJS)/*
+	@echo "Cleaned server files"
+clean-client:
+	rm -rf $(CLIENT_OBJS)/*
+	@echo "Cleaned client files"

@@ -49,7 +49,6 @@ void Menu::displayMenu(int optHov, std::vector<std::pair<std::string, int>> scor
     displayMenuControls(menuWindow); // Afficher les controles du menu
     wrefresh(menuWindow); // Refresh la window
     refresh();
-    werase(menuWindow); // Effacer la window
     delwin(menuWindow); // detruire pour liberer memoire
 }
 
