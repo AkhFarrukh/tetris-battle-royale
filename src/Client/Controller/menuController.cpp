@@ -113,10 +113,11 @@ void MenuController::handleMenu() {
                 break;
         }
 
-        while (threadData->userInGame || threadData->userInLobby) {
+        if (threadData->userInGame || threadData->userInLobby) {
             Player::sendInput(threadData);
+            selectedOptions.pop_back();
         }
-        selectedOptions.pop_back();
+        
     }
 }
 

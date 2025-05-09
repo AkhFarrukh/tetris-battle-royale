@@ -25,7 +25,7 @@ class Tetris
 {
     private:
         int socketServer;
-
+        bool isInGame;
         string username;
     public:
         Tetris();
