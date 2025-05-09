@@ -31,7 +31,7 @@ class Tetris
         Tetris();
         ~Tetris();
         
-        void exitTetris();
+        void exitTetris(bool inGame);
         int createSocket();
         int runTetris(int argc, char **argv);
 

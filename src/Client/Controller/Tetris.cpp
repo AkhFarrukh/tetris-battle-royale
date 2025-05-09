@@ -7,7 +7,7 @@ Tetris::Tetris():socketServer{-1}, username{""}{};
 //Destructor
 Tetris::~Tetris()
 {
-    exitTetris();
+    exitTetris(false);
 }
 
 //Methods
@@ -15,8 +15,8 @@ Tetris::~Tetris()
  * @brief Properly notify the server that the player's app is closing
  * 
  */
-void Tetris::exitTetris() {
-    if(socketServer != -1){
+void Tetris::exitTetris(bool inGame) {
+    if(inGame){
         int type = MessageType::T_Input;
         int size = sizeof(InputMessage);
         InputMessage inputMessage;
@@ -24,11 +24,11 @@ void Tetris::exitTetris() {
         sendAll(socketServer, &type, sizeof(int));
         sendAll(socketServer, &size, sizeof(int));
         sendAll(socketServer, &inputMessage, sizeof(InputMessage));
+    }
     int exitType = MessageType::T_ForcedExit;
     int size_ = sizeof(int);
     sendAll(socketServer, &exitType, sizeof(int));
     sendAll(socketServer, &size_, sizeof(int));
-    }
 }
 
 /**
@@ -97,6 +97,8 @@ int Tetris::runTetris(int argc, char** argv) {
         keepRunning = false;//thread principal a terminé et va demander à threadLecture de se terminer.
         shutdown(socketServer, SHUT_RD);
         pthread_join(threadID, nullptr);
+
+        exitTetris(threadData->userInGame);
 
         //on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec un SIGINT)
         nocbreak();

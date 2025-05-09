@@ -152,6 +152,7 @@ bool Room::removeSpectator(int spectatorFd) {
         playersThread.end()
     );
     cv.notify_all();
+    cout<<"successfully erased"<<endl;
     return true;
 
 }

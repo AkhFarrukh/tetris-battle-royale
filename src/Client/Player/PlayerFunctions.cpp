@@ -122,36 +122,31 @@ return 0;
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
-    while (keepRunning && threadData->userInGame) {
-        if (!keepRunning or !threadData->userInGame) {break;
-        } else if(threadData->userInGame && !keepRunning) continue;
-        else{
-            threadData->displayMut.lock();
-            KeyboardAction currentAction = Input::getKeyboardInput();
-            threadData->displayMut.unlock();
-            if(currentAction != KeyboardAction::NO_ACTION){
-                if(currentAction == KeyboardAction::EXIT_KEY) {
-                    //todo idk if it is possible to use sendMessage function here
-                    if (!sendExitMessage(threadData)) {
-                        keepRunning = false;
-                        break;
-                    }
-                    threadData->userInLobby = false;
-                    threadData->userInGame = false;
-                    threadData->isSpectator = false;
+    while (keepRunning && (threadData->userInLobby or threadData->userInGame)) {
+        threadData->displayMut.lock();
+        KeyboardAction currentAction = Input::getKeyboardInput();
+        threadData->displayMut.unlock();
+        if(currentAction != KeyboardAction::NO_ACTION){
+            if(currentAction == KeyboardAction::EXIT_KEY) {
+                if (!sendExitMessage(threadData)) {
+                    keepRunning = false;
+                    break;
                 }
+                threadData->userInLobby = false;
+                threadData->userInGame = false;
+                threadData->isSpectator = false;
+            }
 
-                int numberKey = keyboardActionToInt(currentAction);
-                if (numberKey != -1 and threadData->gameMode == Modes::Royal_) {
-                    if (!handleMalBonMessageSending(threadData, numberKey, chosenPlayer, chosenMalus)) {
-                        keepRunning = false;
-                        break;
-                    }
+            int numberKey = keyboardActionToInt(currentAction);
+            if (numberKey != -1 and threadData->gameMode == Modes::Royal_) {
+                if (!handleMalBonMessageSending(threadData, numberKey, chosenPlayer, chosenMalus)) {
+                    keepRunning = false;
+                    break;
                 }
-                else {
-                    if (!handleStandardInput(threadData, currentAction)) {
-                        break;
-                    }
+            }
+            else {
+                if (!handleStandardInput(threadData, currentAction)) {
+                    break;
                 }
             }
         }
@@ -466,7 +461,7 @@ bool Player::setupRoomSession(int socket, ThreadData* threadData, int messageSiz
  * @return bool Success status of the operation
  */
 bool Player::processRoomInteractions(int socket, ThreadData* threadData, int messageType, int& flags) {
-    while (keepRunning) {
+    while (keepRunning && threadData->userInLobby) {
         // Handle user actions in room
         if (!handleRoomUserActions(socket, threadData, messageType)) {
             break;
@@ -528,6 +523,7 @@ bool Player::handleRoomSpectatorActions(int socket, ThreadData *threadData, int 
         // Go back to room list
         if (!sendMessage(socket, MessageType::T_LeftRoom)) {
             keepRunning = true;
+
             return false;
         }
         threadData->isSpectator = false;
@@ -576,6 +572,7 @@ bool Player::handleRoomPlayerActions(int socket, ThreadData* threadData, int act
             return false;
         }
         threadData->userInLobby = false;
+        threadData->userInGame = false;
         return false;
     }
     return true;
