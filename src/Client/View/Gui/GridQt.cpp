@@ -1,7 +1,7 @@
 #include "GridQt.hpp"
 #include <QPainter>
 #include <QKeyEvent>
-#include "input.hpp"
+#include "Input.hpp"
 
 GridQt::GridQt(QWidget* parent)
     : QWidget(parent) {

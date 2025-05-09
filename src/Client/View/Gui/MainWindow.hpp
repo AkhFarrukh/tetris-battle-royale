@@ -22,12 +22,12 @@
 #include <QTextEdit>
 #include <QTimer>
 #include <atomic>
-#include "communication.hpp"
-#include "playerFunctions.hpp"
+#include "Communication.hpp"
+#include "PlayerFunctions.hpp"
 #include "GridQt.hpp"
 #include "FriendsHandler.hpp"
 #include "ChatHandler.hpp"
-#include "guiControlleur.hpp"
+#include "GuiControlleur.hpp"
 #include <memory>
 
 class guiControlleur;  // ✅ forward declaration

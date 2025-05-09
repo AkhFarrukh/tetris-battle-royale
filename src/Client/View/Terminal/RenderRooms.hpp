@@ -2,7 +2,7 @@
 #define RENDERROOMS_HPP
 
 #include "ServerData.hpp"
-#include "communication.hpp"
+#include "Communication.hpp"
 #include <ncurses.h>
 #include <memory>
 #include <vector>

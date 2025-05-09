@@ -3,7 +3,7 @@
 
 
 #include "ComponentEnum.hpp"
-#include "coordinates.hpp"
+#include "Coordinates.hpp"
 
 /**
  * @brief Class representing a single block of a tetromino figure.

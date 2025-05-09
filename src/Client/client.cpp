@@ -1,5 +1,5 @@
-#include "tetris.hpp"
-#include "global.hpp"
+#include "Tetris.hpp"
+#include "Global.hpp"
 #include <atomic>
 
 using namespace std;

@@ -25,7 +25,7 @@
 #include <QInputDialog>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
-#include "../Database/database.hpp" 
+#include "Database.hpp" 
 
 extern std::atomic<bool> flag;
 
