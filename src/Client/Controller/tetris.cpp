@@ -92,102 +92,13 @@ int Tetris::runTetris(int argc, char** argv) {
         if (retFlag)
             return retVal;
         while(isInGame && keepRunning){
-            //Getting the selected MenuMessage in terminal
-            //int selectedMode = terminal.start();
-            //int selectedMode = 0;
-
             MenuController menuController (terminal, threadData);
             menuController.handleMenu();
-
-            /*
-            if (selectedMode == -1){
-                //Quit game
-                int exitType = MessageType::T_ForcedExit;
-                int size_ = sizeof(int);
-                sendAll(socketServer, &exitType, sizeof(int));
-                sendAll(socketServer, &size_, sizeof(int));
-                isInGame = false;
-            }
-            else{
-                
-                *SHOULD BE ELSE IF AND CHANGE DEPENDING ON MenuMessage CLICKED
-                
-                //Ask to start a game
-                int type = MessageType::T_Menu;
-                int size = sizeof(MenuMessage);
-                //Defining the struct we will send  
-                MenuMessage MenuMessage;
-                MenuMessage.action = MenuActions::A_Play;
-                if(selectedMode == 0){
-                    MenuMessage.mode = Modes::Endless_;
-                    //napms(500);
-                }
-                else if(selectedMode == 10){
-                    MenuMessage.mode = Modes::Classic_;
-                    MenuMessage.action = MenuActions::A_CreateRoom;
-                }
-                else if(selectedMode == 11){
-                    MenuMessage.mode = Modes::Classic_;
-                    MenuMessage.action = MenuActions::A_JoinRoom;
-                }
-                else if(selectedMode == 20){
-                    MenuMessage.mode = Modes::Duel_;
-                    MenuMessage.action = MenuActions::A_CreateRoom;
-                }
-                else if(selectedMode == 21){
-                    MenuMessage.mode = Modes::Duel_;
-                    MenuMessage.action = MenuActions::A_JoinRoom;
-                }
-                else if(selectedMode == 30){
-                    MenuMessage.mode = Modes::Royal_;
-                    MenuMessage.action = MenuActions::A_CreateRoom;
-                }
-                else if(selectedMode == 31){
-                    MenuMessage.mode = Modes::Royal_;
-                    MenuMessage.action = MenuActions::A_JoinRoom;
-                }
-                //Sending info to server
-                if(sendAll(socketServer, &type, sizeof(int)) == false){
-                    perror("Error sending MenuMessage info : ");
-                    return 1;
-                }
-                if(sendAll(socketServer, &size, sizeof(int)) == false){
-                    perror("Error sending MenuMessage info : ");
-                    return 1;
-                }
-                if(sendAll(socketServer, &MenuMessage, sizeof(MenuMessage)) == false){
-                    perror("Error sending MenuMessage info : ");
-                    return 1;
-                }
-                threadData->mux.lock();
-                threadData->userInLobby = true;
-                threadData->gameMode = MenuMessage.mode;
-                threadData->mux.unlock();
-
-                Player::sendInput(threadData);
-                threadData->mux.lock();
-                threadData->userInGame = false;
-                threadData->userInLobby = false;
-                threadData->mux.unlock();
-                napms(600);
-                if(MenuMessage.action == MenuActions::A_CreateRoom){
-                    int sendType = MessageType::T_RoomDeleted;
-                    int sendSize = sizeof(int);
-                    if(!sendAll(socketServer, &sendType, sizeof(sendType))){keepRunning = false; break;}
-                    if(!sendAll(socketServer, &sendSize, sizeof(sendSize))){keepRunning = false; break;}
-                }
-
-            }
-        */
         }
 
         keepRunning = false;//thread principal a terminé et va demander à threadLecture de se terminer.
         shutdown(socketServer, SHUT_RD);
         pthread_join(threadID, nullptr);
-
-        ///**********************************************************************************
-        // * START GAME
-        // *********************************************************************************/
 
         //on remet ces fct dans leurs etats initiaux (utile notamment si on a fermé le programme avec un SIGINT)
         nocbreak();
