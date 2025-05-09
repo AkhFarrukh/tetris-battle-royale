@@ -85,7 +85,7 @@ void guiControlleur::requestRoomList() {
     sendAll(sock, &menu, sizeof(MenuMessage));
 }
 
-void guiControlleur::handleAuth(const QString& username, const QString& password, bool isRegister, const QString& confirmPassword, bool isRegisterMode) {
+void guiControlleur::handleAuth(const QString& username, const QString& password, const QString& confirmPassword, bool isRegisterMode) {
 
     Connexion connexion;
     std::strncpy(connexion.username, username.toStdString().c_str(), sizeof(connexion.username) - 1); // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -243,7 +243,7 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
             // threadData->clinetPlayerID = -1; 
             for (size_t i = 0; i < playersData.size(); ++i) {
                 if (playersData.at(i).playerId == -1) {
-                    threadData->clinetPlayerID = i;
+                    threadData->clinetPlayerID = static_cast<int>(i);
                     break;
                 }
             }            
@@ -295,7 +295,7 @@ void* guiControlleur::threadRoutineQtView(void* arg) {
                     if (threadData->isSpectator == 1) {
                         mw->setupSpectatorWaitingScreen(info.roomID);
                     } else {
-                        mw->setupMyRoomScreen(info, isOwner);
+                        mw->setupMyRoomScreen(info);
                     }
                 },
                 Qt::QueuedConnection

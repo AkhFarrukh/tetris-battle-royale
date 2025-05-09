@@ -89,8 +89,10 @@ int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms, int& highlightInde
             break;
         case '\n':
             if(rooms.size() > 0)return highlightIndex;
+            break;
         case 's':
             if(rooms.size() > 0)return highlightIndex + (int)rooms.size();
+            break;
         case 'q':
         case 'Q':
             return -1;

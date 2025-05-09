@@ -47,7 +47,7 @@ public:
     void setupSpectatorWaitingScreen(int roomID);
     FriendsHandler* friendsHandler = nullptr;
     ChatHandler* chatHandler = nullptr;
-    void setupMyRoomScreen(const RoomInfo& room, bool isOwner);
+    void setupMyRoomScreen(const RoomInfo& room);
     void setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo);
 
 private slots:

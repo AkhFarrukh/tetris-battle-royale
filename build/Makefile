@@ -66,7 +66,7 @@ export LD_LIBRARY_PATH := $(LIB_DIR):$(NCURSES_DIR)/lib:$(SQLITE_DIR)/lib:$(LD_L
 
 # Compilateur
 CXX = g++
-COMMON_CXXFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Winline -Wconversion -g
+COMMON_CXXFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -std=c++2b -pthread -O2 -Wpedantic -march=native -Wnull-dereference -Wconversion -g
 # Include directories
 INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d)
 COMMON_CXXFLAGS += $(foreach dir,$(INCLUDE_DIRS),-I$(dir))

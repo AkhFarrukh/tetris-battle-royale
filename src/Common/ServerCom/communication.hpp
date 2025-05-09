@@ -50,8 +50,8 @@ struct MenuMessage{
 
 
 struct Connexion{
-    char username[32];
-    char password[32];
+    char username[100];
+    char password[100];
 };
 
 

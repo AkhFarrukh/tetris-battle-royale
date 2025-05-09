@@ -171,7 +171,7 @@ void MainWindow::handleAuth() {
     }
 
 
-    controller->handleAuth(username, password, isRegisterMode, confirmPassword, isRegisterMode);
+    controller->handleAuth(username, password, confirmPassword, isRegisterMode);
     
     //Start periodic UI refresh from threadData
     auto timer = new QTimer(nullptr);
@@ -179,7 +179,7 @@ void MainWindow::handleAuth() {
         std::lock_guard<std::mutex> lock(threadData->mux);
         if (threadData->roomInfoUpdated) {
             threadData->roomInfoUpdated = false;
-            setupMyRoomScreen(threadData->roomInfo, threadData->isOwner);
+            setupMyRoomScreen(threadData->roomInfo);
         }
         if (threadData->userInGame) {
             renderQt->renderGames(threadData->playersData);
@@ -209,8 +209,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
     int exitType = MessageType::T_ForcedExit;
     int size_ = sizeof(int);
-    int bytesSentType = sendAll(sock, &exitType, sizeof(int));
-    int bytesSentSize = sendAll(sock, &size_, sizeof(int));
+    sendAll(sock, &exitType, sizeof(int));
+    sendAll(sock, &size_, sizeof(int));
     event->accept();
 }
 
@@ -553,7 +553,7 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
 
     // Keep existing
     // connect(refreshBtn, &QPushButton::clicked, controller, &guiControlleur::requestRoomList);
-    connect(refreshBtn, &QPushButton::clicked, this, [=]() {
+    connect(refreshBtn, &QPushButton::clicked, this, [this]() {
         controller->requestRoomList();
     });
     
@@ -570,7 +570,7 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
 }
 
 
-void MainWindow::setupMyRoomScreen(const RoomInfo& room, bool isOwner) {
+void MainWindow::setupMyRoomScreen(const RoomInfo& room) {
     if (myRoomScreen) {
         stackedWidget->removeWidget(myRoomScreen);
         delete myRoomScreen;
@@ -922,7 +922,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
             // threadData->clinetPlayerID = -1; 
             for (size_t i = 0; i < playersData.size(); ++i) {
                 if (playersData.at(i).playerId == -1) {
-                    threadData->clinetPlayerID = i;
+                    threadData->clinetPlayerID = static_cast<int>(i);
                     break;
                 }
             }            
@@ -950,7 +950,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
             RoomInfo info;
             recvAll(sock, &info, size);
             QMetaObject::invokeMethod(parent, [=]() {
-              parent->setupMyRoomScreen(info, /*isOwner=*/true);
+              parent->setupMyRoomScreen(info);
             });
         }
         else if (type == MessageType::T_RoomJoinInfo) {
@@ -969,7 +969,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
               if (spect)
                 parent->setupSpectatorWaitingScreen(info.roomID);
               else
-                parent->setupMyRoomScreen(info, /*isOwner=*/false);
+                parent->setupMyRoomScreen(info);
             });
         }
 

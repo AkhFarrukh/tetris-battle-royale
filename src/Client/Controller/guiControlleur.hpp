@@ -40,7 +40,7 @@ private:
 public:
     guiControlleur(int sock, std::shared_ptr<Player::ThreadData> threadData);
     ~guiControlleur();
-    void handleAuth(const QString& username, const QString& password, bool isRegister, const QString& confirmPassword = "", bool isRegisterMode = false);
+    void handleAuth(const QString& username, const QString& password, const QString& confirmPassword = "", bool isRegisterMode = false);
     void sendCreateRoom();
     void joinRoom(int roomID);
     void sendForceStart();

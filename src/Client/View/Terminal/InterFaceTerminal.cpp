@@ -83,6 +83,7 @@ void InterfaceTerminal::display(int selectedOption, Menus menuChoosen) {
             vector<string> requestsSent = udm.getSentRequestsList(user);
             Menu menuFriendRequest(Menus::FriendRequestMenu, menuOptions, COLS, LINES, 50, 18);
             menuFriendRequest.displayFriendRequestsMenu(selectedOption, requestsReceived, requestsSent); // Affiche le menu des demandes
+            break;
         }
         case Menus::LeaderboardMenu:
         {
@@ -176,8 +177,6 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
     vector<std::string> connexionData;
     curs_set(1);  // Afficher le curseur
     nodelay(stdscr, false);  // Désactiver le mode non-bloquant
-    bool firstTry = true;
-
     while (!flag) {
         erase();  
         echo();
@@ -224,11 +223,9 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
             wgetnstr(passwordWindow, passwordPlayer, 99);
 
             if (strlen(passwordPlayer) == 0) {
-                firstTry = true;
                 delwin(passwordWindow);
                 break;  // Retour à la saisie du nom d'utilisateur
             }
-            firstTry = false;
 
             // --- COMMUNICATION AVEC LE SERVEUR ---
             int type = MessageType::T_Connexion;
@@ -322,7 +319,6 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
     vector<std::string> connexionData;
     curs_set(1);  // Afficher le curseur
     nodelay(stdscr, false);  // Désactiver le mode non-bloquant
-    bool repetedPasswordHandle = false;
     char repetedPasswordPlayer[100];
     
     while (!flag) {  // Boucle principale qui continue tant que 'flag' est faux
@@ -465,7 +461,6 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
                 refresh();
                 napms(1000);
             } else {
-                repetedPasswordHandle = false;
                 memset(repetedPasswordPlayer, 0, sizeof(repetedPasswordPlayer));
 
                 move(startY + 20, startX);
@@ -537,8 +532,8 @@ vector<std::string> InterfaceTerminal::handleConnexionOption() {
               int sock = getSock();
               int exitType = MessageType::T_Exit;
               int size = sizeof(int);
-              int bytesSentType = sendAll(sock, &exitType, sizeof(int));
-              int bytesSentSize = sendAll(sock, &size, sizeof(int));
+              sendAll(sock, &exitType, sizeof(int));
+              sendAll(sock, &size, sizeof(int));
                 endwin();
             return dataConnexion;
         }

@@ -105,13 +105,16 @@ int Tetris::runTetris(int argc, char** argv) {
         keypad(stdscr, false);
         curs_set(1);
         nodelay(stdscr, false);
-        int ret = system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
-        if (WIFEXITED(ret) == -1) {
+        retVal = system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
+        if (!WIFEXITED(retVal)) {
             std::cout << "stty echo failed" << std::endl;
         }
         close(socketServer); // Fermer le socket après utilisation
         std::string command = "clear";
-        system(command.c_str());
+        retVal = system(command.c_str());
+        if (!WIFEXITED(retVal)) {
+            std::cout << "clear failed" << std::endl;
+        }
         return 0;
 
     }
@@ -142,12 +145,15 @@ int Tetris::authentification(std::vector<std::string> &dataConnexion, std::share
         curs_set(1);
         nodelay(stdscr, false);
         int ret = system("stty echo"); // Pour que le client réaffiche ce qu'on ecrit
-        if (WIFEXITED(ret) == -1) {
+        if (!WIFEXITED(ret)) {
             std::cout << "stty echo failed" << std::endl;
         }
         close(socketServer);         // Fermer le socket après utilisation
         std::string command = "clear";
-        system(command.c_str());
+        ret = system(command.c_str());
+        if (!WIFEXITED(ret)) {
+            std::cout << "clear failed" << std::endl;
+        }
         return 0;
     }
     retFlag = false;

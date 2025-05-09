@@ -4,7 +4,7 @@
 Menu::Menu(Menus menuName_, vector<string> menuOptions_, int windowWidth_, int windowHeight_, int menuWidth_, int menuHeight_) :
     menuName(menuName_), menuOptions(menuOptions_), windowWidth(windowWidth_), windowHeight(windowHeight_), menuWidth(menuWidth_), menuHeight(menuHeight_)
     {
-        numberOfOptions = menuOptions.size();
+        numberOfOptions = static_cast<int>(menuOptions.size());
     }
 
 /**
@@ -23,7 +23,7 @@ void Menu::displayMenu(int optHov, std::vector<std::pair<std::string, int>> scor
     int startY = (windowHeight - menuHeight) / 2;
 
     string title = menuOptions[0]; // titre du menu
-    int titleLength = title.size(); // longueur du titre
+    int titleLength = static_cast<int>(title.size()); // longueur du titre
 
     attron(A_BOLD); // mettre en gras (via ncurses)
     mvprintw(startY - 8, (windowWidth - titleLength) / 2, "%s", title.c_str());  // titre Afficher au-dessus du cadre
@@ -120,7 +120,7 @@ void Menu::displayLeaderboard(WINDOW* menuWindow, std::vector<std::pair<std::str
         mvwprintw(menuWindow, 3, 2, "No scores recorded yet.");
     } else {
         for (size_t i = 0; i < scores.size(); i++) {
-            mvwprintw(menuWindow, 3 + i, 2, "%d. %-15s - %d points", i + 1, scores[i].first.c_str(), scores[i].second);
+            mvwprintw(menuWindow, static_cast<int>(3 + i), 2, "%d. %-15s - %d points", static_cast<int>(i + 1), scores[i].first.c_str(), scores[i].second);
         }
     }
     wrefresh(menuWindow); // Refresh la window
@@ -148,25 +148,26 @@ void Menu::displayFriendRequestsMenu(int selectedOption, vector<string>& request
     vector<string> requestsSentSentences = {"No requests sent !", "-> Friend request sent to %s", "   Friend request sent to %s" };
     vector<vector<string>> requestsSentences = { requestsReceivedSentences, requestsSentSentences };
 
-    for (int j = 0; j<menuOptions.size(); j++)
+    for (int j = 0; j<static_cast<int>(menuOptions.size()); j++)
     {
         // Titre "Requests received" en vert
         wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
-        mvwprintw(requestWindow, (9 * j) + 1, 2, menuOptions[j].c_str());
+        mvwprintw(requestWindow, (9 * j) + 1, 2, "%s", menuOptions[j].c_str());
         wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
 
         int numberRequests = requests[j].size();
 
         if (numberRequests == 0) {
-            mvwprintw(requestWindow, (9 * j ) + 3, 4, requestsSentences[j][0].c_str());
+            mvwprintw(requestWindow, (9 * j) + 3, 4, "%s", requestsSentences[j][0].c_str());
         } else {
             for (int i = 0; i < numberRequests; ++i) {
                 if (i == selectedOption) {
                     wattron(requestWindow, A_REVERSE);
-                    mvwprintw(requestWindow, (9 * j ) + 3 + i, 4, requestsSentences[j][1].c_str(), requestsReceived[i].c_str());
+                    mvwprintw(requestWindow, (9 * j) + 3 + i, 4, "%s %s", requestsSentences[j][1].c_str(), requestsReceived[i].c_str());
                     wattroff(requestWindow, A_REVERSE);
                 } else {
-                    mvwprintw(requestWindow, (9 * j ) + 3 + i, 4, requestsSentences[j][2].c_str(), requestsReceived[i].c_str());
+                    mvwprintw(requestWindow, (9 * j) + 3 + i, 4, "%s %s", requestsSentences[j][2].c_str(), requestsReceived[i].c_str());
+
                 }
             }
         }
