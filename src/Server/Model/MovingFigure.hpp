@@ -44,8 +44,6 @@ private:
     //shared pointer to grid
     std::shared_ptr<Grid> grid_;
 
-    unsigned int rotationState = 0; //todo remove because rotation state is now in figure
-
     Coordinates getSpawnPosition();
     void updateBlocks();
     void updateBlocks(
@@ -96,11 +94,6 @@ public:
     bool spawnSucceeded();
 
     Color getMovingFigureBlockColor(Coordinates coordinates);
-
-    //todo remove next 3 methods because rotation state is now in figure
-    unsigned int getCurrentRotationState();
-    void rotateRight();
-    void rotateLeft();
 
 };
 

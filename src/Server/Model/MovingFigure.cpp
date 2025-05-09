@@ -337,23 +337,3 @@ Color MovingFigure::getMovingFigureBlockColor(Coordinates coordinates) {
 }
 
 
-
-unsigned int MovingFigure::getCurrentRotationState(){
-  //todo remove because rotation state is now in figure
-
-  /* Returns the number of current rotation state that is 0 by default
-   * consult the chart to understand which state corresponds to what position
-   * of blocks
-   * https://tetris.wiki/Super_Rotation_System
-   */
-  return rotationState;
-}
-
-void MovingFigure::rotateRight() {
-  rotationState = (rotationState + 1) % 4;
-}
-
-
-void MovingFigure::rotateLeft(){
-  rotationState = (rotationState - 1) % 4;
-}

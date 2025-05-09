@@ -82,8 +82,6 @@ if [ ! -d "$QT_INSTALL_DIR" ]; then
 
   echo "Building Qt6 (this will take a while)..."
   cd "$LIB_DIR/qt-$QT_VERSION"
-
-  # Configure with minimal components needed for your project
   ./configure -prefix "$QT_INSTALL_DIR" \
               -release \
               -opensource -confirm-license \

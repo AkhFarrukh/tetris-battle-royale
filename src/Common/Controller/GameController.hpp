@@ -17,7 +17,6 @@ using namespace std;
 
 class Game; // foreward declaration
 
-//todo remake with observer pattern maybe?
 
 class GameController {
 private:
