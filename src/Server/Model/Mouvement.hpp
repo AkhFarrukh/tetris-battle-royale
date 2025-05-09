@@ -1,12 +1,12 @@
 #ifndef MOUVEMENT_HPP
 #define MOUVEMENT_HPP
 
-#include "input.hpp"
-#include "movingfigure.hpp"
+#include "Input.hpp"
+#include "MovingFigure.hpp"
 #include "ControllerEnum.hpp"
-#include "figure.hpp"
-#include "coordinates.hpp"
-#include "rotationstate.hpp"
+#include "Figure.hpp"
+#include "Coordinates.hpp"
+#include "RotationState.hpp"
 
 #include <memory>
 #include <vector>

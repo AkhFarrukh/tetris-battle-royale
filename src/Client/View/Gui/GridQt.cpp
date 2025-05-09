@@ -1,7 +1,7 @@
 #include "GridQt.hpp"
 #include <QPainter>
 #include <QKeyEvent>
-#include "input.hpp"
+#include "Input.hpp"
 
 GridQt::GridQt(QWidget* parent)
     : QWidget(parent) {
@@ -80,7 +80,7 @@ void GridQt::paintEvent(QPaintEvent*) {
 
     for (size_t i = 0; i < currentPlayers.size(); ++i) {
         const auto& player = currentPlayers[i];
-        QPoint playerOffset = offset + QPoint(i * (gridWidth + 2) * (blockSize + spacing), 0);
+        QPoint playerOffset = offset + QPoint(static_cast<int>(i * (gridWidth + 2) * (blockSize + spacing)), 0);
 
         // Draw player score
         painter.setPen(Qt::white);
@@ -116,7 +116,7 @@ void GridQt::paintEvent(QPaintEvent*) {
         for (int y = 0; y < gridHeight; ++y) {
             for (int x = 0; x < gridWidth; ++x) {
                 int index = y * gridWidth + x;
-                if (index >= player.grid.size()) continue;
+                if (index >= static_cast<int>(player.grid.size())) continue;
 
                 Color color = player.grid[index];
                 if (color == Color::nullcolor) continue;

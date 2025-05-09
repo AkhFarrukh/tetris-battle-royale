@@ -9,7 +9,7 @@
 #include <ncurses.h>
 #include <memory>
 #include "GameController.hpp"
-#include "playerData.hpp"
+#include "PlayerData.hpp"
 
 using namespace std;
 
@@ -31,7 +31,7 @@ public:
 
     void renderGame(std::shared_ptr<NetPlayerData> player);
 
-    int getClientPlayerIndex(const vector<NetPlayerData> &players, bool targetPlayerMenu);
+    int getClientPlayerIndex(const vector<NetPlayerData> &players);
 
     void drawTitleWithBorder(Coordinates offset, string title);
 

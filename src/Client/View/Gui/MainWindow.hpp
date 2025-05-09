@@ -22,12 +22,12 @@
 #include <QTextEdit>
 #include <QTimer>
 #include <atomic>
-#include "communication.hpp"
-#include "playerFunctions.hpp"
+#include "Communication.hpp"
+#include "PlayerFunctions.hpp"
 #include "GridQt.hpp"
 #include "FriendsHandler.hpp"
 #include "ChatHandler.hpp"
-#include "guiControlleur.hpp"
+#include "GuiControlleur.hpp"
 #include <memory>
 
 class guiControlleur;  // ✅ forward declaration
@@ -47,7 +47,7 @@ public:
     void setupSpectatorWaitingScreen(int roomID);
     FriendsHandler* friendsHandler = nullptr;
     ChatHandler* chatHandler = nullptr;
-    void setupMyRoomScreen(const RoomInfo& room, bool isOwner);
+    void setupMyRoomScreen(const RoomInfo& room);
     void setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo);
 
 private slots:

@@ -1,9 +1,9 @@
 #pragma once
 #include <QWidget>
 #include <vector>
-#include "playerData.hpp"
-#include "keyboardAction.hpp"
-#include "playerFunctions.hpp"
+#include "PlayerData.hpp"
+#include "KeyboardAction.hpp"
+#include "PlayerFunctions.hpp"
 
 class GridQt : public QWidget {
     Q_OBJECT

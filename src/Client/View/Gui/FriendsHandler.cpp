@@ -112,7 +112,7 @@ void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsL
     // Tableau des amis (existant)
     friendsTableWidget = new QTableWidget(this);
     friendsTableWidget->setColumnCount(3);
-    friendsTableWidget->setRowCount(friendsList.size());
+    friendsTableWidget->setRowCount(static_cast<int>(friendsList.size()));
     
     //cacche en-tetes de colonnes
     friendsTableWidget->horizontalHeader()->setVisible(false);  
@@ -127,9 +127,9 @@ void FriendsHandler::setupFriendsListScreen(const std::vector<QString>& friendsL
         deleteButton->setProperty("username", friendsList[i]);
         connect(deleteButton, &QPushButton::clicked, this, &FriendsHandler::removeFriend);
        
-        friendsTableWidget->setItem(i, 0, itemNumber);   // col 0  le numero de l ami
-        friendsTableWidget->setItem(i, 1, itemName);    // col 1   le username de lami
-        friendsTableWidget->setCellWidget(i, 2, deleteButton);
+        friendsTableWidget->setItem(static_cast<int>(i), 0, itemNumber);   // col 0  le numero de l ami
+        friendsTableWidget->setItem(static_cast<int>(i), 1, itemName);    // col 1   le username de lami
+        friendsTableWidget->setCellWidget(static_cast<int>(i), 2, deleteButton);
 
     } 
     layout->addWidget(friendsTableWidget);
@@ -233,7 +233,7 @@ void FriendsHandler::showFriendsRequests(const std::vector<std::string>& request
         }
     }
     // Créé la table pour pouvoir afficher demandes d amiis
-    QTableWidget* requestsTable = new QTableWidget(requestsReceivedList.size() + requestSentList.size(), 3 , this) ;
+    QTableWidget* requestsTable = new QTableWidget(static_cast<int>(requestsReceivedList.size() + requestSentList.size()), 3 , this) ;
     requestsTable->horizontalHeader()->setVisible(false);
     requestsTable->horizontalHeader()->setStretchLastSection(true);
 
@@ -355,7 +355,7 @@ void FriendsHandler::acceptFriendRequest() {
     }
 
     friendsTableWidget->clearContents();
-    friendsTableWidget->setRowCount(qtFriends.size());
+    friendsTableWidget->setRowCount(static_cast<int>(qtFriends.size()));
 
     for(size_t i = 0; i < qtFriends.size(); ++i) {
         QTableWidgetItem* itemNumber = new QTableWidgetItem(QString::number(i + 1));
@@ -365,9 +365,9 @@ void FriendsHandler::acceptFriendRequest() {
         deleteButton->setProperty("username", qtFriends[i]);
         connect(deleteButton, &QPushButton::clicked, this, &FriendsHandler::removeFriend);
         
-        friendsTableWidget->setItem(i, 0, itemNumber);
-        friendsTableWidget->setItem(i, 1, itemName);
-        friendsTableWidget->setCellWidget(i, 2, deleteButton);
+        friendsTableWidget->setItem(static_cast<int>(i), 0, itemNumber);
+        friendsTableWidget->setItem(static_cast<int>(i), 1, itemName);
+        friendsTableWidget->setCellWidget(static_cast<int>(i), 2, deleteButton);
     }
     handleFriendsRequests(); // Rafraîchir aussi les demandes
     stackedWidget->setCurrentWidget(friendsListScreen);
@@ -431,9 +431,9 @@ void FriendsHandler::removeFriend(){
         connect(deleteButton, &QPushButton::clicked, this, &FriendsHandler::removeFriend);
 
         //les 3 colonnes de l'affichage
-        friendsTableWidget->setItem(i, 0, itemNumber);
-        friendsTableWidget->setItem(i, 1, itemName);
-        friendsTableWidget->setCellWidget(i, 2, deleteButton);
+        friendsTableWidget->setItem(static_cast<int>(i), 0, itemNumber);
+        friendsTableWidget->setItem(static_cast<int>(i), 1, itemName);
+        friendsTableWidget->setCellWidget(static_cast<int>(i), 2, deleteButton);
     
     }
     

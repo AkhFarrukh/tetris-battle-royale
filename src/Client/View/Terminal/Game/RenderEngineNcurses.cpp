@@ -53,10 +53,10 @@ const char* bonuses[] = {
 /*
  * @brief find index of the client player in the players vector.
  */
-int RenderEngineNcurses::getClientPlayerIndex(const vector<NetPlayerData>& players, bool targetPlayerMenu) {
+int RenderEngineNcurses::getClientPlayerIndex(const vector<NetPlayerData>& players) {
     for (size_t i = 0; i < players.size(); ++i) {
         if (players.at(i).playerId == -1) {
-            return i;
+            return static_cast<int>(i);
         }
     }
     return 0; // Return 0 if no player no client player found (spectator mode)
@@ -133,16 +133,16 @@ void RenderEngineNcurses::renderGamesRoyal(const vector<NetPlayerData>& players,
     erase();
     // Render the regular games grid
     renderGames(players);
-    int clientPlayerIndex = getClientPlayerIndex(players, targetPlayerMenu);
+    int clientPlayerIndex = getClientPlayerIndex(players);
     if (clientPlayerIndex == -1) {
         // Handle the case where no client player is found
         return;
     }
     NetPlayerData playerClient = players.at(clientPlayerIndex);
     if (!targetPlayerMenu) {
-        drawMalusMenu(playerClient, players.size()); // Draw the malus menu
+        drawMalusMenu(playerClient, static_cast<int>(players.size())); // Draw the malus menu
     } else {
-        drawPlayerSelectionMenu(players, players.size()); // Draw the player selection menu
+        drawPlayerSelectionMenu(players, static_cast<int>(players.size())); // Draw the player selection menu
     }
 }
 

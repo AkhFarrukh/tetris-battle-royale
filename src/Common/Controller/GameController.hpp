@@ -5,9 +5,9 @@
 #ifndef GAMECONTROLLER_HPP
 #define GAMECONTROLLER_HPP
 
-#include "input.hpp"
+#include "Input.hpp"
 #include "ControllerEnum.hpp"
-#include "game.hpp"
+#include "Game.hpp"
 #include "RenderEngineNcurses.hpp"
 #include "EventQueue.hpp"
 #include "MovementActionEvent.hpp"
@@ -17,7 +17,6 @@ using namespace std;
 
 class Game; // foreward declaration
 
-//todo remake with observer pattern maybe?
 
 class GameController {
 private:
