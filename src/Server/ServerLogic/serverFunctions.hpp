@@ -45,20 +45,20 @@ class Server{
         bool userIsInLobby = false;
 
         /* Methods handling the different message received from the client */
-        void handleDisconnect(Server* server, ClientSession& client, pthread_t& threadPID);
-        void handleForcedExit(Server* server, ClientSession& client);
-        void handleJoin(Server* server, ClientSession& client, bool& userIsOnline, int& size, shared_ptr<EventQueue> eventQueue);
-        void handleLeftRoom(Server* server, ClientSession& client);
-        void handleRefresh(Server* server, ClientSession& client, bool& userIsOnline, bool& owner);
-        void handleForceStart(Server* server, ClientSession& client, bool& userIsOnline, pthread_t& threadGamePID);
-        void handleGetRoom(Server* server, ClientSession& client, bool& userIsOnline, MenuMessage& MenuMessage);
-        void handleCreateRoom(Server* server, ClientSession& client, bool& userIsOnline, MenuMessage& MenuMessage, shared_ptr<EventQueue> eventQueue);
-        void handleDeleteRoom(Server* server, ClientSession& client);
-        void handlePlay(Server* server, ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, ThreadGameData& threadGameData);
-        void handleMalusBonus(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue);
-        void handleInput(ClientSession& client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, GameController& gameController);
-        void handleConnexion(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion);
-        void handleRegister(Server* server, ClientSession& client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion);
+        void handleDisconnect(Server* server, shared_ptr<ClientSession> client, pthread_t& threadPID);
+        void handleForcedExit(Server* server, shared_ptr<ClientSession> client);
+        void handleJoin(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, int& size, shared_ptr<EventQueue> eventQueue);
+        void handleLeftRoom(Server* server, shared_ptr<ClientSession> client);
+        void handleRefresh(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, bool& owner);
+        void handleForceStart(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, pthread_t& threadGamePID);
+        void handleGetRoom(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, MenuMessage& MenuMessage);
+        void handleCreateRoom(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, MenuMessage& MenuMessage, shared_ptr<EventQueue> eventQueue);
+        void handleDeleteRoom(Server* server, shared_ptr<ClientSession> client);
+        void handlePlay(Server* server, shared_ptr<ClientSession> client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, ThreadGameData& threadGameData);
+        void handleMalusBonus(shared_ptr<ClientSession> client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue);
+        void handleInput(shared_ptr<ClientSession> client, bool& userIsOnline, shared_ptr<EventQueue> eventQueue, GameController& gameController);
+        void handleConnexion(Server* server, shared_ptr<ClientSession> client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion);
+        void handleRegister(Server* server, shared_ptr<ClientSession> client, Connexion& connexionData, int& size, bool& successfulLogin, bool& flagConnexion);
 
 
 
@@ -72,10 +72,10 @@ class Server{
         static void* threadRoutineGame(void* arg);
 
         /* Login Methods */
-        void notifySuccessfulLogin(Server* server, ClientSession& client, Connexion& connexion, string& username, 
+        void notifySuccessfulLogin(Server* server, shared_ptr<ClientSession> client, Connexion& connexion, string& username, 
                         bool& successfulLogin, int& typeConnexion, int& doubleSession, bool& flagConnexion);
-        void notifyRefusedLogin(ClientSession& client);
-        void notifyAcceptConnexion(Server* server, ClientSession& client, Connexion& connexionData, bool& successfulLogin); 
+        void notifyRefusedLogin(shared_ptr<ClientSession> client);
+        void notifyAcceptConnexion(Server* server, shared_ptr<ClientSession> client, Connexion& connexionData, bool& successfulLogin); 
         
 };
 
