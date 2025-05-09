@@ -455,7 +455,7 @@ void Server::handleLeftRoom(Server* server, shared_ptr<ClientSession> client) {
             // Remove from players
             if (chosenRoom->getRoomID() == client->client_fd) {
                 chosenRoom->broadcastDeleteRoom();
-                rooms.erase(it);
+                //rooms.erase(it);
                 std::cout << "Host left—deleted room " << client->inRoom << std::endl;
             }
             else {
