@@ -74,6 +74,7 @@ int Tetris::runTetris(int argc, char** argv) {
 
     pthread_t threadID;
     std::shared_ptr<Player::ThreadData> threadData = std::make_shared<Player::ThreadData>();
+    threadData->servSocket = socketServer;
     //Game loop
     if (argc > 1 && std::string(argv[1]) == "--gui") 
     {
@@ -93,14 +94,12 @@ int Tetris::runTetris(int argc, char** argv) {
         while(isInGame && keepRunning){
             //Getting the selected MenuMessage in terminal
             //int selectedMode = terminal.start();
-            int selectedMode = 0;
-            MenuController menuController (terminal);
+            //int selectedMode = 0;
+
+            MenuController menuController (terminal, threadData);
             menuController.handleMenu();
 
-
-
-
-            
+            /*
             if (selectedMode == -1){
                 //Quit game
                 int exitType = MessageType::T_ForcedExit;
@@ -110,9 +109,9 @@ int Tetris::runTetris(int argc, char** argv) {
                 isInGame = false;
             }
             else{
-                /*
+                
                 *SHOULD BE ELSE IF AND CHANGE DEPENDING ON MenuMessage CLICKED
-                */
+                
                 //Ask to start a game
                 int type = MessageType::T_Menu;
                 int size = sizeof(MenuMessage);
@@ -179,6 +178,7 @@ int Tetris::runTetris(int argc, char** argv) {
                 }
 
             }
+        */
         }
 
         keepRunning = false;//thread principal a terminé et va demander à threadLecture de se terminer.

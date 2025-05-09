@@ -33,6 +33,7 @@ class Player {
     
         struct ThreadData {
             int socket;
+            int servSocket;
 	        mutex mux;
 	        mutex displayMut;
 	        atomic<bool> userInGame = false;

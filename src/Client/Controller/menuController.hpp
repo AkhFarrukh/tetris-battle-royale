@@ -7,6 +7,9 @@
 #include "menu.hpp" // Menu class (rendering part)
 #include "InterFaceTerminal.hpp"
 #include <memory>
+#include "communication.hpp"    //sendAll & recvAll
+#include "playerFunctions.hpp" //Functions for main
+#include "clientCommunicator.hpp"
 
 using namespace std;
 
@@ -56,16 +59,18 @@ class MenuController {
         MenuOption allMenus; 
         shared_ptr<MenuOption> currentMenu; // Current menu being displayed
         vector<int> selectedOptions; // Vector to store the selected options for each menu
+        std::shared_ptr<Player::ThreadData> threadData;
+        ClientCommunicator comm;
 
         
         
     public:
         
         // Constructor
-        MenuController(InterfaceTerminal interfaceTerminal);
+        MenuController(InterfaceTerminal interfaceTerminal, std::shared_ptr<Player::ThreadData> threadData);
 
         // Destructor
-        ~MenuController() noexcept __attribute_noinline__ =  default;
+        ~MenuController() noexcept = default;
 
         void handleMenu();
         void updateCurrentMenu();

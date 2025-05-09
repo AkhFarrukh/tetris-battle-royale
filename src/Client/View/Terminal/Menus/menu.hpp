@@ -19,9 +19,12 @@ enum class Menus {
     FriendsMenu,
 
     LaunchEndless,
-    LaunchClassic,
-    LaunchDuel,
-    LaunchRoyalCompetition,
+    JoinClassic,
+    CreateClassic,
+    JoinDuel,
+    CreateDuel,
+    JoinRoyalCompetition,
+    CreateRoyalCompetition
 };
 
 

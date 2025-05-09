@@ -100,12 +100,11 @@ void InterfaceTerminal::display(int selectedOption, Menus menuChoosen) {
             break;
         }
         default:
-        {
+        { 
             printw("Invalid menu choice");
             break;
         }
     }
-
 }
 /**
  *@brief Affiche le menu principal et l'option sélectionnée.
@@ -122,8 +121,6 @@ void InterfaceTerminal::display(int selectedOption, Menus menuChoosen) {
     Menu menuMain(Menus::MainMenu, menuOptions, COLS, LINES, 40, 10);
     menuMain.displayMenu(selectedOption); // Affiche le menu principal
 }
-
-
 
 
 /**

@@ -1,18 +1,27 @@
 #include "menuController.hpp"
 
-MenuController::MenuController(InterfaceTerminal interfaceTerminal) : interfaceTerminal(interfaceTerminal), runningMenu(true) {
+MenuController::MenuController(InterfaceTerminal interfaceTerminal, std::shared_ptr<Player::ThreadData> threadData) : interfaceTerminal(interfaceTerminal), runningMenu(true),
+ threadData(threadData) {
     interfaceTerminal.initNcurses();
 
     allMenus = MenuOption(
         Menus::MainMenu,
         {
-            make_shared<MenuOption>(
-                Menus::GameModeMenu,
+            make_shared<MenuOption>(Menus::GameModeMenu,
                 vector<shared_ptr<MenuOption>>{
                     make_shared<MenuOption>(Menus::LaunchEndless, vector<shared_ptr<MenuOption>>{}, nullptr),
-                    make_shared<MenuOption>(Menus::JoinCreateMenu, vector<shared_ptr<MenuOption>>{}, nullptr),
-                    make_shared<MenuOption>(Menus::LaunchRoyalCompetition, vector<shared_ptr<MenuOption>>{}, nullptr),
-                    make_shared<MenuOption>(Menus::LaunchDuel, vector<shared_ptr<MenuOption>>{}, nullptr)
+                    make_shared<MenuOption>(Menus::JoinCreateMenu, vector<shared_ptr<MenuOption>>{
+                        make_shared<MenuOption>(Menus::CreateDuel, vector<shared_ptr<MenuOption>>{}, nullptr),
+                        make_shared<MenuOption>(Menus::JoinDuel, vector<shared_ptr<MenuOption>>{}, nullptr)
+                    }, nullptr),
+                    make_shared<MenuOption>(Menus::JoinCreateMenu, vector<shared_ptr<MenuOption>>{
+                        make_shared<MenuOption>(Menus::CreateClassic, vector<shared_ptr<MenuOption>>{}, nullptr),
+                        make_shared<MenuOption>(Menus::JoinClassic, vector<shared_ptr<MenuOption>>{}, nullptr)
+                    }, nullptr),
+                    make_shared<MenuOption>(Menus::JoinCreateMenu, vector<shared_ptr<MenuOption>>{
+                        make_shared<MenuOption>(Menus::CreateRoyalCompetition, vector<shared_ptr<MenuOption>>{}, nullptr),
+                        make_shared<MenuOption>(Menus::JoinRoyalCompetition, vector<shared_ptr<MenuOption>>{}, nullptr)
+                    }, nullptr)
                 },
                 nullptr
             ),
@@ -23,8 +32,7 @@ MenuController::MenuController(InterfaceTerminal interfaceTerminal) : interfaceT
     );    
     currentMenu = make_shared<MenuOption>(allMenus); // Initialize the current menu to the main menu
     selectedOptions.push_back(0); // Initialize the selected options vector with the first menu option
-
-    
+    comm.setSock(threadData->servSocket); 
 }
 
 void MenuController::handleMenu() {
@@ -61,6 +69,56 @@ void MenuController::handleMenu() {
                 break;
             default:
                 break;
+        }
+
+        Menus leaf = currentMenu->menuName;
+
+        switch (leaf) {
+            case Menus::LaunchEndless:
+                comm.sendMenuRequest(MenuActions::A_Play, Modes::Endless_);
+                threadData->userInLobby = false;
+                threadData->userInGame  = true;
+                break;
+
+            // Classic submenu leaves
+            case Menus::CreateClassic:
+                comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_);
+                threadData->userInLobby = true;
+                break;
+            case Menus::JoinClassic:
+                comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Classic_);
+                threadData->userInLobby = true;
+                break;
+
+            // Duel submenu leaves
+            case Menus::CreateDuel:
+                comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_);
+                threadData->userInLobby = true;
+                break;
+            case Menus::JoinDuel:
+                comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Duel_);
+                threadData->userInLobby = true;
+                break;
+
+            // Royal Competition submenu leaves
+            case Menus::CreateRoyalCompetition:
+                comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_);
+                threadData->userInLobby = true;
+                break;
+            case Menus::JoinRoyalCompetition:
+                comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Royal_);
+                threadData->userInLobby = true;
+                break;
+
+            default:
+                break;
+        }
+
+        clear(); 
+        refresh();
+
+        while (threadData->userInLobby || threadData->userInGame) {
+            napms(50);
         }
     }
 }
