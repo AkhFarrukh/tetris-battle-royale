@@ -76,49 +76,47 @@ void MenuController::handleMenu() {
         switch (leaf) {
             case Menus::LaunchEndless:
                 comm.sendMenuRequest(MenuActions::A_Play, Modes::Endless_);
-                threadData->IG  = true;
+                threadData->userInGame  = true;
                 break;
 
             // Classic submenu leaves
             case Menus::CreateClassic:
                 comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_);
-                threadData->IL = true;
+                threadData->userInLobby = true;
                 break;
             case Menus::JoinClassic:
                 comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Classic_);
-                threadData->IL = true;
+                threadData->userInLobby = true;
                 break;
 
             // Duel submenu leaves
             case Menus::CreateDuel:
                 comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_);
-                threadData->IL = true;
+                threadData->userInLobby = true;
                 break;
             case Menus::JoinDuel:
                 comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Duel_);
-                threadData->IL = true;
+                threadData->userInLobby = true;
                 break;
 
             // Royal Competition submenu leaves
             case Menus::CreateRoyalCompetition:
                 comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_);
-                threadData->IL = true;
+                threadData->userInLobby = true;
                 break;
             case Menus::JoinRoyalCompetition:
                 comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Royal_);
-                threadData->IL = true;
+                threadData->userInLobby = true;
                 break;
 
             default:
                 break;
         }
 
-        //clear(); 
-        //refresh();
-
-        while (threadData->IG || threadData->IL) {
+        while (threadData->userInGame || threadData->userInLobby) {
             Player::sendInput(threadData);
         }
+        selectedOptions.pop_back();
     }
 }
 

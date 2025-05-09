@@ -50,7 +50,6 @@ void* Player::threadRoutineView (void* arg){
     int sock = threadData->socket;
     RenderEngineNcurses render;
     while (keepRunning) {
-        bool inGame = threadData->userInGame;
         //To have info on the data received
         int messageType;
         int messageSize;
@@ -62,6 +61,7 @@ void* Player::threadRoutineView (void* arg){
         if (bytesReceivedType <= 0 || bytesReceivedSize <= 0) {
             perror("Client disconnected : ");
             threadData->userInGame = false; // Stop the loop
+            threadData->userInLobby = false;
             keepRunning = false;
             break;
         }
@@ -93,7 +93,7 @@ void* Player::threadRoutineView (void* arg){
         }
         else if (messageType == MessageType::T_GameStart) {
             threadData->userInGame = true;
-            threadData->userInLobby = true;
+            threadData->userInLobby = false;
             continue;
         }
         else if (messageType == MessageType::T_RoomInfo || messageType == MessageType::T_RoomJoinInfo) {
@@ -122,14 +122,9 @@ return 0;
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
-    bool inLobby = threadData->userInLobby;
-    while (keepRunning && inLobby) {
-
-        bool keepRunning = threadData->userInGame;
-        inLobby = threadData->userInLobby;
-
-        if (!keepRunning && !inLobby) {break;
-        } else if(inLobby && !keepRunning) continue;
+    while (keepRunning && threadData->userInGame.load()) {
+        if (!keepRunning or !threadData->userInGame.load()) {break;
+        } else if(threadData->userInGame.load() && !keepRunning) continue;
         else{
             threadData->displayMut.lock();
             KeyboardAction currentAction = Input::getKeyboardInput();
@@ -196,6 +191,10 @@ bool Player::handleStandardInput(std::shared_ptr<Player::ThreadData> threadData,
  */
 bool Player::handlePlayerDataEndgameMessage(int socket, ThreadData* threadData, int messageSize, int messageType, RenderEngineNcurses& render) {
     vector<NetPlayerData> playersData;
+    if (messageType == MessageType::T_EndGame) {
+        threadData->userInGame  = false;
+        threadData->userInLobby = false;
+    }
     if (!receivePlayersData(socket, messageSize, messageType, playersData)) {
         return false;
     }

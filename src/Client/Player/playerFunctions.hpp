@@ -37,11 +37,8 @@ class Player {
 	        mutex mux;
 	        mutex displayMut;
 	        atomic<bool> userInGame = false;
-            atomic<bool> userInLobby;
+            atomic<bool> userInLobby = false;
             atomic<bool> isSpectator = false;
-
-            atomic<bool> IG = false;
-            atomic<bool> IL = false;
 
             bool isGui = false;
             void* qtParent = nullptr;
