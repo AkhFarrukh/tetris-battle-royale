@@ -122,9 +122,9 @@ return 0;
 int Player::sendInput (std::shared_ptr<Player::ThreadData> threadData) {
     int chosenMalus = 0;
     int chosenPlayer = 0;
-    while (keepRunning && threadData->userInGame.load()) {
-        if (!keepRunning or !threadData->userInGame.load()) {break;
-        } else if(threadData->userInGame.load() && !keepRunning) continue;
+    while (keepRunning && threadData->userInGame) {
+        if (!keepRunning or !threadData->userInGame) {break;
+        } else if(threadData->userInGame && !keepRunning) continue;
         else{
             threadData->displayMut.lock();
             KeyboardAction currentAction = Input::getKeyboardInput();

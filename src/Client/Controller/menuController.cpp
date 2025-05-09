@@ -115,6 +115,9 @@ void MenuController::handleMenu() {
         }
 
         if (threadData->userInGame || threadData->userInLobby) {
+            while (!threadData->userInGame) {
+                napms(1000);
+            }
             Player::sendInput(threadData);
             selectedOptions.pop_back();
         }
