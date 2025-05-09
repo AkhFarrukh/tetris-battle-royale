@@ -37,7 +37,7 @@
 #include <sys/types.h>
 #include <string.h>
 
-#include "node_blf.h"
+#include "NodeBlf.h"
 
 #include "Bcrypt.h"
 #include "Openbsd.h"

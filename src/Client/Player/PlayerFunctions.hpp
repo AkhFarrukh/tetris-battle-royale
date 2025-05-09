@@ -20,7 +20,7 @@
 #include "PlayerData.hpp"
 #include <algorithm> 
 #include <atomic>
-#include "InterFaceTerminal.hpp"
+#include "InterfaceTerminal.hpp"
 #include "RenderRooms.hpp"
 #include "Input.hpp"
 #include <fcntl.h>

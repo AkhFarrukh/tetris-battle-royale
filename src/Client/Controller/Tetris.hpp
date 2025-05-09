@@ -1,5 +1,5 @@
 #include "ServerFunctions.hpp"
-#include "InterFaceTerminal.hpp"
+#include "InterfaceTerminal.hpp"
 #include <sys/types.h>      //socket
 #include <sys/socket.h>     //socket management
 #include <unistd.h>         //socket

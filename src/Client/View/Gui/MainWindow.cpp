@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget* parent, int sock, std::shared_ptr<Player::Thread
     resize(600, 500);
     move(QGuiApplication::primaryScreen()->geometry().center() - frameGeometry().center());
 
-    controller = new guiControlleur(sock, threadData);
+    controller = new GuiController(sock, threadData);
     threadData->qtParent = this;
     
     auto timer = new QTimer(this);
@@ -552,7 +552,7 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
     });
 
     // Keep existing
-    // connect(refreshBtn, &QPushButton::clicked, controller, &guiControlleur::requestRoomList);
+    // connect(refreshBtn, &QPushButton::clicked, controller, &GuiController::requestRoomList);
     connect(refreshBtn, &QPushButton::clicked, this, [this]() {
         controller->requestRoomList();
     });

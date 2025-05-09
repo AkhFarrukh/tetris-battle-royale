@@ -27,10 +27,10 @@
 #include "GridQt.hpp"
 #include "FriendsHandler.hpp"
 #include "ChatHandler.hpp"
-#include "GuiControlleur.hpp"
+#include "GuiController.hpp"
 #include <memory>
 
-class guiControlleur;  // ✅ forward declaration
+class GuiController;  // ✅ forward declaration
 
 
 
@@ -119,7 +119,7 @@ private:
     pthread_t threadID;
 
     UserDatabaseManager udm;
-    guiControlleur* controller;
+    GuiController* controller;
 
     QWidget* roomListScreen = nullptr;
     QWidget* myRoomScreen = nullptr;

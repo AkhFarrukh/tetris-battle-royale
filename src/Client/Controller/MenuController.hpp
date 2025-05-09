@@ -5,7 +5,7 @@
 #include <vector>
 #include <functional>
 #include "Menu.hpp" // Menu class (rendering part)
-#include "InterFaceTerminal.hpp"
+#include "InterfaceTerminal.hpp"
 #include <memory>
 #include "Communication.hpp"    //sendAll & recvAll
 #include "PlayerFunctions.hpp" //Functions for main
