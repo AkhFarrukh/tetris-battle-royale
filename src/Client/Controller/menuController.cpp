@@ -11,15 +11,39 @@ MenuController::MenuController(InterfaceTerminal interfaceTerminal, std::shared_
                 vector<shared_ptr<MenuOption>>{
                     make_shared<MenuOption>(Menus::LaunchEndless, vector<shared_ptr<MenuOption>>{}, nullptr),
                     make_shared<MenuOption>(Menus::JoinCreateMenu, vector<shared_ptr<MenuOption>>{
-                        make_shared<MenuOption>(Menus::CreateDuel, vector<shared_ptr<MenuOption>>{}, nullptr),
+                        make_shared<MenuOption>(Menus::maxMembers, vector<shared_ptr<MenuOption>>{
+                            make_shared<MenuOption>(Menus::C_D3, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_D4, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_D5, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_D6, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_D7, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_D8, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_D9, vector<shared_ptr<MenuOption>>{}, nullptr)
+                        }, nullptr),
                         make_shared<MenuOption>(Menus::JoinDuel, vector<shared_ptr<MenuOption>>{}, nullptr)
                     }, nullptr),
                     make_shared<MenuOption>(Menus::JoinCreateMenu, vector<shared_ptr<MenuOption>>{
-                        make_shared<MenuOption>(Menus::CreateClassic, vector<shared_ptr<MenuOption>>{}, nullptr),
+                        make_shared<MenuOption>(Menus::maxMembers, vector<shared_ptr<MenuOption>>{
+                            make_shared<MenuOption>(Menus::C_C3, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_C4, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_C5, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_C6, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_C7, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_C8, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_C9, vector<shared_ptr<MenuOption>>{}, nullptr)
+                        }, nullptr),
                         make_shared<MenuOption>(Menus::JoinClassic, vector<shared_ptr<MenuOption>>{}, nullptr)
                     }, nullptr),
                     make_shared<MenuOption>(Menus::JoinCreateMenu, vector<shared_ptr<MenuOption>>{
-                        make_shared<MenuOption>(Menus::CreateRoyalCompetition, vector<shared_ptr<MenuOption>>{}, nullptr),
+                        make_shared<MenuOption>(Menus::maxMembers, vector<shared_ptr<MenuOption>>{
+                            make_shared<MenuOption>(Menus::C_R3, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_R4, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_R5, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_R6, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_R7, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_R8, vector<shared_ptr<MenuOption>>{}, nullptr),
+                            make_shared<MenuOption>(Menus::C_R9, vector<shared_ptr<MenuOption>>{}, nullptr)
+                        }, nullptr),
                         make_shared<MenuOption>(Menus::JoinRoyalCompetition, vector<shared_ptr<MenuOption>>{}, nullptr)
                     }, nullptr)
                 },
@@ -76,37 +100,46 @@ void MenuController::handleMenu() {
 
         switch (leaf) {
             case Menus::LaunchEndless:
-                comm.sendMenuRequest(MenuActions::A_Play, Modes::Endless_);
+                comm.sendMenuRequest(MenuActions::A_Play, Modes::Endless_, 1);
                 threadData->userInGame  = true;
                 break;
 
             // Classic submenu leaves
-            case Menus::CreateClassic:
-                comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_);
-                threadData->userInLobby = true;
-                break;
+            case Menus::C_C3: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 3); threadData->userInLobby = true; break;
+            case Menus::C_C4: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 4); threadData->userInLobby = true; break;
+            case Menus::C_C5: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 5); threadData->userInLobby = true; break;
+            case Menus::C_C6: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 6); threadData->userInLobby = true; break;
+            case Menus::C_C7: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 7); threadData->userInLobby = true; break;
+            case Menus::C_C8: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 8); threadData->userInLobby = true; break;
+            case Menus::C_C9: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 9); threadData->userInLobby = true; break;
             case Menus::JoinClassic:
-                comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Classic_);
+                comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Classic_, -1);
                 threadData->userInLobby = true;
                 break;
 
             // Duel submenu leaves
-            case Menus::CreateDuel:
-                comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_);
-                threadData->userInLobby = true;
-                break;
+            case Menus::C_D3: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 3); threadData->userInLobby = true; break;
+            case Menus::C_D4: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 4); threadData->userInLobby = true; break;
+            case Menus::C_D5: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 5); threadData->userInLobby = true; break;
+            case Menus::C_D6: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 6); threadData->userInLobby = true; break;
+            case Menus::C_D7: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 7); threadData->userInLobby = true; break;
+            case Menus::C_D8: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 8); threadData->userInLobby = true; break;
+            case Menus::C_D9: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_, 9); threadData->userInLobby = true; break;
             case Menus::JoinDuel:
-                comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Duel_);
+                comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Duel_, -1);
                 threadData->userInLobby = true;
                 break;
 
             // Royal Competition submenu leaves
-            case Menus::CreateRoyalCompetition:
-                comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_);
-                threadData->userInLobby = true;
-                break;
+            case Menus::C_R3: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 3); threadData->userInLobby = true; break;
+            case Menus::C_R4: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 4); threadData->userInLobby = true; break;
+            case Menus::C_R5: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 5); threadData->userInLobby = true; break;
+            case Menus::C_R6: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 6); threadData->userInLobby = true; break;
+            case Menus::C_R7: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 7); threadData->userInLobby = true; break;
+            case Menus::C_R8: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 8); threadData->userInLobby = true; break;
+            case Menus::C_R9: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 9); threadData->userInLobby = true; break;
             case Menus::JoinRoyalCompetition:
-                comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Royal_);
+                comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Royal_, -1);
                 threadData->userInLobby = true;
                 break;
 

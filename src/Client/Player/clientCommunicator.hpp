@@ -14,10 +14,11 @@ public:
         sock_ = socket;
     }
 
-    bool sendMenuRequest(MenuActions action, Modes mode) {
+    bool sendMenuRequest(MenuActions action, Modes mode, int maxPlayers_) {
         MenuMessage msg;
         msg.action = action;
         msg.mode   = mode;
+        msg.maxPlayers = maxPlayers_;
 
         int type = MessageType::T_Menu;
         if (!sendAll(sock_, &type, sizeof(type)))   return false;

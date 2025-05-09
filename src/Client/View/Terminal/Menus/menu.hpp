@@ -17,14 +17,22 @@ enum class Menus {
     LeaderboardMenu,
     FriendRequestMenu,
     FriendsMenu,
+    
+    maxMembers,
 
     LaunchEndless,
+
     JoinClassic,
+    C_C3, C_C4, C_C5, C_C6, C_C7, C_C8, C_C9,
     CreateClassic,
+
     JoinDuel,
+    C_D3, C_D4, C_D5, C_D6, C_D7, C_D8, C_D9,
     CreateDuel,
+
     JoinRoyalCompetition,
-    CreateRoyalCompetition
+    C_R3, C_R4, C_R5, C_R6, C_R7, C_R8, C_R9,
+    CreateRoyalCompetition,
 };
 
 

@@ -99,6 +99,13 @@ void InterfaceTerminal::display(int selectedOption, Menus menuChoosen) {
             menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
             break;
         }
+        case Menus::maxMembers:
+        {
+            vector<string> menuOptions = {"Select the limit of players: ", "3", "4", "5", "6", "7", "8", "9" };
+            Menu menuGameMode(Menus::LoginMenu, menuOptions, COLS, LINES, 60, 12);
+            menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
+            break;
+        }
         default:
         { 
             printw("Invalid menu choice");
