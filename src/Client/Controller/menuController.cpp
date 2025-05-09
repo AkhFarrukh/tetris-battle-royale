@@ -76,49 +76,48 @@ void MenuController::handleMenu() {
         switch (leaf) {
             case Menus::LaunchEndless:
                 comm.sendMenuRequest(MenuActions::A_Play, Modes::Endless_);
-                threadData->userInLobby = false;
-                threadData->userInGame  = true;
+                threadData->IG  = true;
                 break;
 
             // Classic submenu leaves
             case Menus::CreateClassic:
                 comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_);
-                threadData->userInLobby = true;
+                threadData->IL = true;
                 break;
             case Menus::JoinClassic:
                 comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Classic_);
-                threadData->userInLobby = true;
+                threadData->IL = true;
                 break;
 
             // Duel submenu leaves
             case Menus::CreateDuel:
                 comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Duel_);
-                threadData->userInLobby = true;
+                threadData->IL = true;
                 break;
             case Menus::JoinDuel:
                 comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Duel_);
-                threadData->userInLobby = true;
+                threadData->IL = true;
                 break;
 
             // Royal Competition submenu leaves
             case Menus::CreateRoyalCompetition:
                 comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_);
-                threadData->userInLobby = true;
+                threadData->IL = true;
                 break;
             case Menus::JoinRoyalCompetition:
                 comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Royal_);
-                threadData->userInLobby = true;
+                threadData->IL = true;
                 break;
 
             default:
                 break;
         }
 
-        clear(); 
-        refresh();
+        //clear(); 
+        //refresh();
 
-        while (threadData->userInLobby || threadData->userInGame) {
-            napms(50);
+        while (threadData->IG || threadData->IL) {
+            Player::sendInput(threadData);
         }
     }
 }

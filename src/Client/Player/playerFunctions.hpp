@@ -39,6 +39,10 @@ class Player {
 	        atomic<bool> userInGame = false;
             atomic<bool> userInLobby;
             atomic<bool> isSpectator = false;
+
+            atomic<bool> IG = false;
+            atomic<bool> IL = false;
+
             bool isGui = false;
             void* qtParent = nullptr;
             std::vector<NetPlayerData> playersData;
