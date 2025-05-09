@@ -453,8 +453,15 @@ void Server::handleLeftRoom(Server* server, shared_ptr<ClientSession> client) {
             std::cout << "Spectator left room " << client->inRoom << std::endl;
         } else {
             // Remove from players
-            chosenRoom->removePlayer(client->client_fd);
-            std::cout << "Player left room " << client->inRoom << std::endl;
+            if (chosenRoom->getRoomID() == client->client_fd) {
+                chosenRoom->broadcastDeleteRoom();
+                rooms.erase(it);
+                std::cout << "Host left—deleted room " << client->inRoom << std::endl;
+            }
+            else {
+                chosenRoom->removePlayer(client->client_fd);
+                std::cout << "Player left room " << client->inRoom << std::endl;
+            }
         }
     } else {
         std::cerr << "ERROR: Tried to leave room, but no matching room for ID " << client->inRoom << std::endl;
