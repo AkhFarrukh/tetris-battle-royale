@@ -15,7 +15,7 @@ void RenderRooms::myRoom(const RoomInfo room)
     printw("\n--------------------------------\n");
     printw(" [Instructions]\n");
     printw("  - Press 'f' to force-start (only if you are the room owner).\n");
-    printw("  - Press 'q' to go back/leave the room.\n");
+    printw("  - Press 'BACKSPACE' to go back/leave the room.\n");
     printw("  - Press 'r' to refresh.\n");
 
     refresh();
@@ -28,7 +28,7 @@ void RenderRooms::listRooms(const std::vector<RoomInfo>& roomsInfo, int highligh
     
     if (roomsInfo.empty()) {
         printw("No rooms available.\n\n");
-        printw("Press 'q' to go back.\n");
+        printw("Press 'BACKSPACE' to go back.\n");
         refresh();
         return;
     }
@@ -49,7 +49,7 @@ void RenderRooms::listRooms(const std::vector<RoomInfo>& roomsInfo, int highligh
         }
     }
 
-    printw("\nUse UP/DOWN to navigate, [ENTER] to select, [r] to refresh, [q] to cancel, [s] to spectate\n");
+    printw("\nUse UP/DOWN to navigate, [ENTER] to select, [r] to refresh, [BACKSPACE] to cancel, [s] to spectate\n");
     refresh();
 }
 
@@ -59,10 +59,9 @@ int RenderRooms::handleMyRoom(const RoomInfo room) {
     int ch = getch();
     switch (ch) {
         case 'f':
-            printw("SARTSTARTSTARTSTARTSTRATSRAYSRYTARSUYTARSa\n");
             return 1;
-        case 'q':
-        case 'Q':
+        case KEY_BACKSPACE:
+        case 127: // backspace key for macOS
             return -1;
         case 'r':
             return -2;
@@ -94,8 +93,8 @@ int RenderRooms::handleListRooms(std::vector<RoomInfo> rooms, int& highlightInde
         case 's':
             if(rooms.size() > 0)return highlightIndex + (int)rooms.size();
             break;
-        case 'q':
-        case 'Q':
+        case KEY_BACKSPACE:
+        case 127: // backspace key for macOS
             return -1;
         case 'r':
             return -2;
@@ -115,7 +114,7 @@ void RenderRooms::spectatorRoom(const RoomInfo& room) {
            room.isStarted ? "YES" : "NO");
     printw("\n[Instructions]\n");
     printw(" - Press 'r' to refresh.\n");
-    printw(" - Press 'q' to stop spectating.\n");
+    printw(" - Press 'BACKSPACE' to stop spectating.\n");
     if (room.isStarted) {
         printw("\nGame is starting… just sit tight!\n");
     }
@@ -129,7 +128,8 @@ int RenderRooms::handleSpectatorRoom(const RoomInfo& room) {
     switch (ch) {
         case 'r': case 'R':
             return -2;
-        case 'q': case 'Q':
+        case KEY_BACKSPACE:
+        case 127: // backspace key for macOS
             return -1;
         default:
             return 0;
@@ -165,8 +165,8 @@ int RenderRooms::selectMaxPlayers() {
                 break;
             case '\n':
                 return highlightIndex;
-            case 'q':
-            case 'Q':
+            case KEY_BACKSPACE:
+            case 127: // backspace key for macOS
                 return -1;
             default:
                 return -3;

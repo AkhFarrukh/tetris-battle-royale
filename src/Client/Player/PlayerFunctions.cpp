@@ -111,8 +111,6 @@ return 0;
 }
 
 
-
-
 /**
  * @brief Capture the inputs and send it to the server
  * 
@@ -461,9 +459,10 @@ bool Player::setupRoomSession(int socket, ThreadData* threadData, int messageSiz
  * @return bool Success status of the operation
  */
 bool Player::processRoomInteractions(int socket, ThreadData* threadData, int messageType, int& flags) {
+    RenderRooms renderR;
     while (keepRunning && threadData->userInLobby) {
         // Handle user actions in room
-        if (!handleRoomUserActions(socket, threadData, messageType)) {
+        if (!handleRoomUserActions(socket, threadData, messageType, renderR)) {
             break;
         }
 
@@ -488,17 +487,20 @@ bool Player::processRoomInteractions(int socket, ThreadData* threadData, int mes
  * @param messageType Type of the message received
  * @return bool Success status of the operation
  */
-bool Player::handleRoomUserActions(int socket, ThreadData* threadData, int messageType) {
-    RenderRooms renderR; //room renderer function
+bool Player::handleRoomUserActions(int socket, ThreadData* threadData, int messageType, RenderRooms renderR) {
     int action; //todo rename and fix its magic values
 
     if (threadData->isSpectator) {
         // ─── Spectator Waiting Room ───────────────────────
+        threadData->displayMut.lock();
         action = renderR.handleSpectatorRoom(threadData->roomInfo);
+        threadData->displayMut.unlock();
         return handleRoomSpectatorActions(socket, threadData, action);
     } else {
         // ─── Player Lobby ───────────────────────────────────
+        threadData->displayMut.lock();
         action = renderR.handleMyRoom(threadData->roomInfo);
+        threadData->displayMut.unlock();
         return handleRoomPlayerActions(socket, threadData, action, messageType);
     }
 }

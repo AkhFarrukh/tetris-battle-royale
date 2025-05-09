@@ -85,7 +85,7 @@ class Player {
 
         static bool processRoomInteractions(int socket, ThreadData *threadData, int messageType, int &flags);
 
-        static bool handleRoomUserActions(int socket, ThreadData *threadData, int messageType);
+        static bool handleRoomUserActions(int socket, ThreadData *threadData, int messageType, RenderRooms renderR);
 
         static bool handleRoomSpectatorActions(int socket, ThreadData *threadData, int action);
 
