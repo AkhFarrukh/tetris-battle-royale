@@ -45,8 +45,12 @@ void InterfaceTerminal::initNcurses() {
 }
 
 
-void InterfaceTerminal::display(int selectedOption, Menus menuChoosen) {
-    refresh();
+void InterfaceTerminal::display(int selectedOption, Menus menuChoosen, bool& flagChangedMenu) {
+    if (flagChangedMenu){
+        erase();
+        refresh();
+        flagChangedMenu = false;
+    }
     switch (menuChoosen)
     {
         case Menus::MainMenu:
