@@ -65,7 +65,7 @@ void Menu::displayMenuControls(WINDOW* menuWindow)
         mvwprintw(menuWindow, 1, 2, "Log in or Register here:");
         mvprintw(startY + menuHeight+ 3, (windowWidth - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
         mvprintw(startY + menuHeight + 4, (windowWidth - 45) / 2, "Press ENTER to select an action");
-        mvprintw(startY + menuHeight + 5, (windowWidth - 45) / 2, "Press 'q' to quit");
+        mvprintw(startY + menuHeight + 5, (windowWidth - 45) / 2, "Press 'BACKSPACE' to quit");
         mvprintw(startY + menuHeight + 6, (windowWidth - 45) / 2, "Press 't' to open the chat");
     }
     else if(menuName == Menus::FriendRequestMenu)
@@ -74,14 +74,14 @@ void Menu::displayMenuControls(WINDOW* menuWindow)
         mvprintw(startY + menuHeight + 2, (COLS - 50) / 2, "Press 'A' to accept the request");
         mvprintw(startY + menuHeight + 3, (COLS - 50) / 2, "Press 'R' to refuse");
         mvprintw(startY + menuHeight + 4, (COLS - 50) / 2, "Press 'C' to cancel a sent friend request");
-        mvprintw(startY + menuHeight + 5, (COLS - 50) / 2, "Press 'q' to quit");
+        mvprintw(startY + menuHeight + 5, (COLS - 50) / 2, "Press 'BACKSPACE' to quit");
         mvprintw(startY + menuHeight + 6, (COLS - 50) / 2, "Press 't' to open the message box");
     }
     else 
     {
         mvprintw(startY + menuHeight+ 3, (windowWidth - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
         mvprintw(startY + menuHeight + 4, (windowWidth - 45) / 2, "Press ENTER to select an action");
-        mvprintw(startY + menuHeight + 5, (windowWidth - 45) / 2, "Press 'q' to quit");
+        mvprintw(startY + menuHeight + 5, (windowWidth - 45) / 2, "Press 'BACKSPACE' to quit");
         mvprintw(startY + menuHeight + 6, (windowWidth - 45) / 2, "Press 't' to open the chat");
     }
 }
