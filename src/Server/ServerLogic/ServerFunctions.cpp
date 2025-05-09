@@ -104,7 +104,7 @@ void* Server::threadRoutineClient(void* arg){
     ThreadGameData threadGameData;
     GameController gameController;
     Server* server = threadData->serverInstance;
-    shared_ptr<ClientSession> client = shared_ptr<ClientSession>(&(threadData->client));
+    auto client = std::shared_ptr<ClientSession>(threadData,&(threadData->client) );
     server->lockThread = true;
     server->cv.notify_one();
 
