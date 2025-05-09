@@ -375,6 +375,7 @@ void UserDatabaseManager::deleteFriend(const std::string& user, const std::strin
     database.bindText(user.c_str(), 4);
 
     database.execute();
+    database.destructStatement();
 }
 
 void UserDatabaseManager::addFriend(const std::string& user, const std::string& newFriend){
@@ -387,6 +388,7 @@ void UserDatabaseManager::addFriend(const std::string& user, const std::string& 
     database.bindText(user.c_str(), 4);
 
     database.execute();
+    database.destructStatement();
 }
 
 int UserDatabaseManager::verifyFriendRequest(const std::string& user, const std::string& newFriend){
@@ -425,8 +427,9 @@ int UserDatabaseManager::sendFriendRequest(const std::string& user, const std::s
     database.bindText(user.c_str(), 1);
     database.bindText(newFriend.c_str(), 2);
     database.execute();
+    database.destructStatement();
 
-    return(database.getReturnCode() != SQLITE_ERROR);
+    return (database.getReturnCode() != SQLITE_ERROR);
 }
 
 void UserDatabaseManager::deleteRequestFriend(const std::string& user, const std::string& friendDelete){
@@ -439,6 +442,7 @@ void UserDatabaseManager::deleteRequestFriend(const std::string& user, const std
     database.bindText(user.c_str(), 4);
     
     database.execute();
+    database.destructStatement();
 }
 
 int UserDatabaseManager::getNumberFriendRequestsReceived(const std::string& user){
