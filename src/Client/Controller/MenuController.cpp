@@ -1,6 +1,6 @@
 #include "MenuController.hpp"
 
-MenuController::MenuController(InterfaceTerminal interfaceTerminal, std::shared_ptr<Player::ThreadData> threadData) : interfaceTerminal(interfaceTerminal), runningMenu(true),
+MenuController::MenuController(InterfaceTerminal interfaceTerminal, std::shared_ptr<Player::ThreadData> threadData) : flagChangedMenu(true), interfaceTerminal(interfaceTerminal), runningMenu(true),
  threadData(threadData) {
     interfaceTerminal.initNcurses();
 
@@ -73,12 +73,14 @@ void MenuController::handleMenu() {
                 else if (!currentMenu->options.empty()) {
                     selectedOptions.push_back(0); 
                     updateCurrentMenu(); // Update the current menu based on the selected options
+                    flagChangedMenu = true; // The menu has changed
                 }
                 break;
             case KEY_BACKSPACE:
             case 127: // backspace key for macOS
                 if (selectedOptions.size() > 1) {
                     selectedOptions.pop_back(); // Go back to the previous menu
+                    flagChangedMenu = true; // The menu has changed
                 } 
                 else {
                     runningMenu = false; // Exit the menu
@@ -149,7 +151,7 @@ void MenuController::handleMenu() {
 
 void MenuController::displayMenu() {
     updateCurrentMenu(); // Update the current menu based on the selected options
-    interfaceTerminal.display(selectedOptions.back(), currentMenu->menuName);
+    interfaceTerminal.display(selectedOptions.back(), currentMenu->menuName, flagChangedMenu);
 }
 
 void MenuController::updateCurrentMenu() {

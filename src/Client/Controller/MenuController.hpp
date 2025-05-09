@@ -54,6 +54,7 @@ class MenuController {
 
         };
 
+        bool flagChangedMenu; // Flag to indicate if the menu has changed
         InterfaceTerminal interfaceTerminal;
         bool runningMenu;
         MenuOption allMenus; 
