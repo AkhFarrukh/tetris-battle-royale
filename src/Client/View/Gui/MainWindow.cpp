@@ -171,7 +171,7 @@ void MainWindow::handleAuth() {
     }
 
 
-    controller->handleAuth(username, password, confirmPassword, isRegisterMode);
+    if(controller->handleAuth(username, password, confirmPassword, isRegisterMode)){
     
     //Start periodic UI refresh from threadData
     auto timer = new QTimer(nullptr);
@@ -191,7 +191,7 @@ void MainWindow::handleAuth() {
     // passwordInput->clear();
     // confirmPasswordInput->clear();
     showMainMenuScreen();
-
+}
 }
 
 
@@ -1080,7 +1080,7 @@ void MainWindow::handleFriendsMenu() {
     friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), qtFriends, requestCount);
     // pour recuperer le layout deja existant
     QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
-    
+
     if (!layout) {   // si aucun existe, creer un nouveau
         layout = new QVBoxLayout(friendsScreen);
         friendsScreen->setLayout(layout);

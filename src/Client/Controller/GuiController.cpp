@@ -85,7 +85,7 @@ void GuiController::requestRoomList() {
     sendAll(sock, &menu, sizeof(MenuMessage));
 }
 
-void GuiController::handleAuth(const QString& username, const QString& password, const QString& confirmPassword, bool isRegisterMode) {
+bool GuiController::handleAuth(const QString& username, const QString& password, const QString& confirmPassword, bool isRegisterMode) {
 
     Connexion connexion;
     std::strncpy(connexion.username, username.toStdString().c_str(), sizeof(connexion.username) - 1); // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -97,7 +97,7 @@ void GuiController::handleAuth(const QString& username, const QString& password,
         // Vérifie la confirmation du mot de passe
         if (password != confirmPassword) {
             QMessageBox::warning(nullptr, "Erreur", "Les mots de passe ne correspondent pas.");
-            return;
+            return false;
         }
 
         // Envoi d'une demande d'inscription
@@ -109,12 +109,12 @@ void GuiController::handleAuth(const QString& username, const QString& password,
         int typeResponse, sizeResponse;
         if (!recvAll(sock, &typeResponse, sizeof(int)) || !recvAll(sock, &sizeResponse, sizeof(int))) {
             QMessageBox::critical(nullptr, "Erreur", "Erreur de communication avec le serveur.");
-            return;
+            return false;
         }
 
         if (typeResponse != MessageType::T_AcceptConnexion) {
             QMessageBox::warning(nullptr, "Erreur", "Échec de l'inscription. Essayez un autre nom.");
-            return;
+            return false;
         }
 
     } else {
@@ -127,12 +127,12 @@ void GuiController::handleAuth(const QString& username, const QString& password,
         int typeResponse, sizeResponse;
         if (!recvAll(sock, &typeResponse, sizeof(int)) || !recvAll(sock, &sizeResponse, sizeof(int))) {
             QMessageBox::critical(nullptr, "Erreur", "Erreur de communication avec le serveur.");
-            return;
+            return false;
         }
 
         if (typeResponse != MessageType::T_AcceptConnexion) {
             QMessageBox::warning(nullptr, "Erreur", "Nom d'utilisateur ou mot de passe incorrect.");
-            return;
+            return false;
         }
     }
 
@@ -141,12 +141,12 @@ void GuiController::handleAuth(const QString& username, const QString& password,
     int size_;
     if (!recvAll(sock, &doubleSession, sizeof(int)) || !recvAll(sock, &size_, sizeof(int))) {
         QMessageBox::critical(nullptr, "Erreur", "Erreur lors de la vérification de session.");
-        return;
+        return false;
     }
 
     if (doubleSession == MessageType::T_RefuseConnexion) {
         QMessageBox::warning(nullptr, "Erreur", "Vous êtes déjà connecté sur une autre session.");
-        return;
+        return false;
     }
 
     this->threadData->socket = sock;
@@ -157,7 +157,7 @@ void GuiController::handleAuth(const QString& username, const QString& password,
     // this->threadData->qtParent = this;
 
     pthread_create(&threadID, nullptr, GuiController::threadRoutineQtView, threadData.get());
-
+    return true;
     // Connexion réussie !
     // QMessageBox::information(this, "Succès", isRegisterMode ? "Inscription et connexion réussies !" : "Connexion réussie !");
     
