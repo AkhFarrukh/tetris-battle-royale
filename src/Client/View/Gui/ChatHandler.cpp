@@ -42,7 +42,7 @@ void ChatHandler::setupFriendsListScreen(const std::vector<QString>& friendsList
     friendsList->addItems(list);
 
     if (friendsList->count() == 0) {
-        QLabel *noFriendsLabel = new QLabel(QString("You don't have any friends yet. ") + currentUser + " " + QString::number(userId_), this);
+        QLabel *noFriendsLabel = new QLabel(QString("You don't have any friends yet. "), this);
         layout->addWidget(noFriendsLabel);
     }
     friendsList->setStyleSheet("font-size: 16px;");

@@ -5,6 +5,10 @@
 
 atomic<bool> flag = false; // informer thread de se terminer (Ctrl + C notamment)
 std::mutex interfaceMutex;
+std::mutex queueMutex;
+std::condition_variable cv;
+std::queue<std::vector<std::pair<std::string, int>>> messageQueue;
+std::queue<std::vector<std::string>> messageVectQueue;
 
 const char* InterfaceTerminal::modeNames[] = {
                                             "Endless Mode",  
@@ -76,22 +80,63 @@ void InterfaceTerminal::display(int selectedOption, Menus menuChoosen, bool& fla
         }
         case Menus::FriendsMenu:
         {
-            vector<string> friendsList = udm.getFriendsList(user);
+            int type_ = MessageType::T_FriendListRequest;
+            int size_ = sizeof(int);
+            sendAll(sock_, &type_, sizeof(int));
+            sendAll(sock_, &size_, sizeof(int));
+            vector<string> friendsList;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                cv.wait(lock, []{ return !messageVectQueue.empty(); });  // Attend un message
+                friendsList = messageVectQueue.front();
+                messageVectQueue.pop();
+            }
             displayFriendsMenu(selectedOption, friendsList); // Affiche le menu des amis
             break;
         }
         case Menus::FriendRequestMenu:
         {
             vector<string> menuOptions = { "Friend Requests", "Received requests", "Sent requests" };
-            vector<string> requestsReceived = udm.getReceivedRequestsList(user);
-            vector<string> requestsSent = udm.getSentRequestsList(user);
+            int type = MessageType::T_FriendListReceivedRequest;
+            int size = sizeof(int);
+            sendAll(sock_, &type, sizeof(int));
+            sendAll(sock_, &size, sizeof(int));
+            vector<string> requestsReceived;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                cv.wait(lock, []{ return !messageVectQueue.empty(); });  // Attend un message
+                requestsReceived = messageVectQueue.front();
+                messageVectQueue.pop();
+            }
+            int type_ = MessageType::T_FriendListSentRequest;
+            int size_ = sizeof(int);
+            sendAll(sock_, &type_, sizeof(int));
+            sendAll(sock_, &size_, sizeof(int));
+            vector<string> requestsSent;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                cv.wait(lock, []{ return !messageVectQueue.empty(); });  // Attend un message
+                requestsSent = messageVectQueue.front();
+                messageVectQueue.pop();
+            }
             Menu menuFriendRequest(Menus::FriendRequestMenu, menuOptions, COLS, LINES, 50, 18);
             menuFriendRequest.displayFriendRequestsMenu(selectedOption, requestsReceived, requestsSent); // Affiche le menu des demandes
             break;
         }
         case Menus::LeaderboardMenu:
         {
-            std::vector<std::pair<std::string, int>> scores = udm.getTopScores(5);
+            int type = MessageType::T_TopLeaderBoardRequest;
+            int size = sizeof(int);
+            sendAll(sock_, &type, sizeof(int));
+            sendAll(sock_, &size, sizeof(int));
+            std::vector<std::pair<std::string, int>> scores;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                cv.wait(lock, []{ return !messageQueue.empty(); });  // Attend un message
+                scores = messageQueue.front();
+                messageQueue.pop();
+            }
+
             vector<string> menuOptions = { "Leaderboard: Top Endless Mode Players" };
             Menu menuGameMode(Menus::LeaderboardMenu, menuOptions, COLS, LINES, 50, 12);
             menuGameMode.displayMenu(0, scores); // Affiche le menu principal
@@ -167,8 +212,8 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
     }
     Menu menuGameMode(Menus::FriendsMenu, menuOptions, COLS, LINES, 50, 20);
 
-    int numberFRR = udm.getNumberFriendRequestsReceived(user);
-
+    //int numberFRR = udm.getNumberFriendRequestsReceived(user);
+    int numberFRR = 0;
     menuGameMode.displayMenu(selectedOption, {}, numberFRR); // Affiche le menu principal
 }
 

@@ -207,7 +207,57 @@ void* Server::threadRoutineClient(void* arg){
                 client->isSpectating = true;
                 server->handleJoin(server, client, userIsOnline, size, eventQueue);
             }
-
+            else if (type == MessageType::T_TopLeaderBoardRequest) {
+                std::vector<std::pair<std::string, int>> scores = server->udbm.getTopScores(5);
+                int type = MessageType::T_TopLeaderBoardReponse;
+                int size = sizeof(int);
+                sendAll(client->client_fd, &type, sizeof(type));
+                sendAll(client->client_fd, &size, sizeof(int));
+                int nbPairs = (int)scores.size();
+                sendAll(client->client_fd, &nbPairs, sizeof(nbPairs));
+                for (const auto& p : scores) {
+                    int len = (int)p.first.size();
+                    sendAll(client->client_fd, &len, sizeof(len));
+                    sendAll(client->client_fd, p.first.c_str(), len);
+                    sendAll(client->client_fd, &p.second, sizeof(p.second));
+                }
+            }
+            else if(type == MessageType::T_FriendListReceivedRequest){
+                vector<string> requestsReceived = server->udbm.getReceivedRequestsList(client->username);
+                int type = MessageType::T_FriendListReceivedRequestReponse;
+                int size = requestsReceived.size();
+                sendAll(client->client_fd, &type, sizeof(type));
+                sendAll(client->client_fd, &size, sizeof(size));
+                for (const std::string& str : requestsReceived) {
+                    int len = str.size();
+                    sendAll(client->client_fd, &len, sizeof(len));
+                    sendAll(client->client_fd, str.c_str(), len);
+                }
+            }
+            else if(type == MessageType::T_FriendListSentRequest){
+                vector<string> requestsSent = server->udbm.getSentRequestsList(client->username);
+                int type = MessageType::T_FriendListSentRequestReponse;
+                int size = requestsSent.size();
+                sendAll(client->client_fd, &type, sizeof(type));
+                sendAll(client->client_fd, &size, sizeof(size));
+                for (const std::string& str : requestsSent) {
+                    int len = str.size();
+                    sendAll(client->client_fd, &len, sizeof(len));
+                    sendAll(client->client_fd, str.c_str(), len);
+                }
+            }
+            else if(type == MessageType::T_FriendListRequest){
+                vector<string> friendsList = server->udbm.getFriendsList(client->username);
+                int type = MessageType::T_FriendListReponse;
+                int size = friendsList.size();
+                sendAll(client->client_fd, &type, sizeof(type));
+                sendAll(client->client_fd, &size, sizeof(size));
+                for (const std::string& str : friendsList) {
+                    int len = str.size();
+                    sendAll(client->client_fd, &len, sizeof(len));
+                    sendAll(client->client_fd, str.c_str(), len);
+                }
+            }
             else if (type == MessageType::T_FriendsListRequest) {
                 auto allFriends = server->udbm.getFriendsList(client->username);
             

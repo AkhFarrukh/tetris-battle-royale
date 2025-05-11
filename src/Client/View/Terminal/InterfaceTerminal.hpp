@@ -12,6 +12,10 @@
 #include "Menu.hpp"
 
 extern std::mutex interfaceMutex;
+extern std::mutex queueMutex;
+extern std::condition_variable cv;
+extern std::queue<std::vector<std::pair<std::string, int>>> messageQueue;
+extern std::queue<std::vector<std::string>> messageVectQueue;
 
 class InterfaceTerminal {
 

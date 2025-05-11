@@ -9,7 +9,6 @@ FriendsHandler::FriendsHandler(QWidget* parent, const QString& currentUser, cons
     : QWidget(parent), currentUser(currentUser), countRequests(countRequests) {
     
     stackedWidget = new QStackedWidget(this);
-    
     // Créer les différents écrans
     setupFriendsListScreen(friendsList);
     setupAddFriendScreen();
@@ -216,7 +215,7 @@ void FriendsHandler::setupAddFriendScreen() {
  * 
  */
 void FriendsHandler::showFriendsRequests(const std::vector<std::string>& requestsReceivedList, const std::vector<string>& requestSentList) {
-    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(requestsScreen->layout());
+    QVBoxLayout* layout = static_cast<QVBoxLayout*>(requestsScreen->layout());
     
     if(!layout){
         layout = new QVBoxLayout(requestsScreen);
@@ -293,7 +292,7 @@ void FriendsHandler::showFriendsRequests(const std::vector<std::string>& request
     bool hasButtonBack = false; // pour savoir si il y a un bouton de retour present à l ecran
     // verifie si un bouton de type QPushButton et de nom "backButton" est present dans layout
     for (int i = 0; i < layout->count(); ++i) {
-        if (qobject_cast<QPushButton*>(layout->itemAt(i)->widget()) && layout->itemAt(i)->widget()->objectName() == "backButton") {
+        if (static_cast<QPushButton*>(layout->itemAt(i)->widget()) && layout->itemAt(i)->widget()->objectName() == "backButton") {
             hasButtonBack = true;
             break;
         }
@@ -338,7 +337,7 @@ void FriendsHandler::setupRequestsScreen() {
 void FriendsHandler::acceptFriendRequest() {
 
     // Récupère le bouton ayant émis le signal
-    auto* button = qobject_cast<QPushButton*>(sender());
+    auto* button = static_cast<QPushButton*>(sender());
     if (!button){ 
         return;  // Si il n est pas valide, on stop
     }
@@ -385,7 +384,7 @@ void FriendsHandler::acceptFriendRequest() {
 void FriendsHandler::refuseFriendRequest() {
     
     // Récupère le bouton ayant émis le signal
-    auto* button = qobject_cast<QPushButton*>(sender());
+    auto* button = static_cast<QPushButton*>(sender());
     if (!button){
         return;  // Si il n est pas valide, on stop
     }   
@@ -406,7 +405,7 @@ void FriendsHandler::refuseFriendRequest() {
  * on met à jour la liste d'ami et l affichage des amis.
  */
 void FriendsHandler::removeFriend(){
-    auto* button = qobject_cast<QPushButton*>(sender());
+    auto* button = static_cast<QPushButton*>(sender());
     if (!button) return;
 
     QString friendToDelete = button->property("username").toString();   // recupere le nom de la personne

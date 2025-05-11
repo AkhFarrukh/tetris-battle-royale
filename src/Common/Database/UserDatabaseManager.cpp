@@ -328,10 +328,10 @@ std::vector<std::pair<std::string, int>> UserDatabaseManager::getTopScores(int l
         std::string username = reinterpret_cast<const char*>(database.getTextValueFromColumn(0));
         int score = database.getIntValueFromColumn(1);
         topScores.push_back({username, score});
-        
+
         database.execute();  // Move to next row
     }
-    
+
     database.destructStatement();
     return topScores;
 }

@@ -30,7 +30,7 @@
 #include "GuiController.hpp"
 #include <memory>
 
-class GuiController;  // ✅ forward declaration
+class GuiController;
 
 
 

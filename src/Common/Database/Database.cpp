@@ -119,6 +119,9 @@ std::string Database::getStatement(const std::string key){
 void Database::prepareStatement(const char* statement){
     int returnCode = sqlite3_prepare_v2(db, statement, 10000, &stmt, nullptr);
     if (returnCode != SQLITE_OK)  fprintf(stderr, "ERROR PREPARING STATEMENT! ");
+    if (returnCode != SQLITE_OK) {
+        fprintf(stderr, "ERROR PREPARING STATEMENT: %s\n", sqlite3_errmsg(db));
+    }
 }
 
 
@@ -151,7 +154,6 @@ void Database::bindInt(int value, int index){
 void Database::destructStatement(){
     sqlite3_finalize(stmt);
 }
-
 
 /**
  * @brief execute the statement: needed to be called at least once after preparing
