@@ -6,6 +6,11 @@
 #include <errno.h>          //errror management
 #include <netinet/in.h>     //ip management
 
+#include <arpa/inet.h>
+#include <ifaddrs.h>
+#include <netdb.h>
+
+
 #include "ServerFunctions.hpp"
 #include "Room.hpp"
 
@@ -17,6 +22,52 @@ const int MAX_PENDING_CONNECTION = 10;
 
 Server server;
 int server_sock = -1;
+
+
+// Add this function to get the server's IP addresses
+void displayServerIPs() {
+    struct ifaddrs *ifaddr, *ifa;
+    int family, s;
+    char host[NI_MAXHOST];
+
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs");
+        return;
+    }
+
+    std::cout << "Server IP Addresses:" << std::endl;
+    std::cout << "-------------------" << std::endl;
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL) {
+            continue;
+        }
+
+        family = ifa->ifa_addr->sa_family;
+
+        // Only show IPv4 addresses
+        if (family == AF_INET) {
+            s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in),
+                            host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+            if (s != 0) {
+                printf("getnameinfo() failed: %s\n", gai_strerror(s));
+                continue;
+            }
+
+            // Skip loopback interfaces (127.0.0.1)
+            if (strcmp(host, "127.0.0.1") != 0) {
+                std::cout << ifa->ifa_name << ": " << host << std::endl;
+            }
+        }
+    }
+
+    std::cout << "-------------------" << std::endl;
+    std::cout << "Use one of these IPs when connecting with the client." << std::endl;
+    std::cout << "Example: ./tetris --ip " << host<< std::endl;
+
+    freeifaddrs(ifaddr);
+}
+
 
 void handle_sigint(int sig) {
     if (sig == SIGINT) {
@@ -44,6 +95,8 @@ void handle_sigint(int sig) {
 int main () {
     signal(SIGINT, handle_sigint);
     cout << "Launching server..." << endl;
+
+    displayServerIPs();
 
     //Create socket and return fd val
     int server_fd = socket(domain, type, protocol);
