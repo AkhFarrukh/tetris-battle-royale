@@ -12,13 +12,6 @@ void handleSigint(int sig)
     keepRunning = false;
 }
 
-void printUsage(const char* programName) {
-    std::cout << "Usage: " << programName << " [options]" << std::endl;
-    std::cout << "Options:" << std::endl;
-    std::cout << "  --gui                         Launch with GUI interface" << std::endl;
-    std::cout << "  --ip <server_ip>              Connect to a specific server IP (default: 127.0.0.1)" << std::endl;
-    std::cout << "Example: " << programName << " --ip 192.168.129.8 --gui" << std::endl;
-}
 
 int main(int argc, char** argv)
 {
@@ -40,12 +33,8 @@ int main(int argc, char** argv)
             // Found IP argument, store it
             serverIP = argv[i + 1];
             i++; // Skip the value in the next iteration
-        } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-            printUsage(argv[0]);
-            delete[] newArgv;
-            return 0;
         } else {
-            // Keep other arguments (e.g., --gui)
+            // Keep other arguments (--gui)
             newArgv[newArgc++] = argv[i];
         }
     }
