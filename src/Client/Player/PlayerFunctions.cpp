@@ -86,7 +86,7 @@ void* Player::threadRoutineView (void* arg){
                 break;
             }
         }
-        if (messageType == MessageType::T_ForcedExit){
+        else if (messageType == MessageType::T_ForcedExit){
             keepRunning = false;
             napms(300);
             break;
@@ -105,6 +105,70 @@ void* Player::threadRoutineView (void* arg){
             if (!roomJoinHandler(sock, threadData, messageSize)) {
                 break;
             }
+        }
+        else if(messageType == MessageType::T_TopLeaderBoardReponse){
+            int nbPairs;
+            recvAll(sock, &nbPairs, sizeof(nbPairs));
+            std::vector<std::pair<std::string, int>> scores;
+            for (int i = 0; i < nbPairs; ++i) {
+                int len;
+                recvAll(sock, &len, sizeof(len));
+                std::string name(len, '\0');
+                recvAll(sock, &name[0], len);
+                int score;
+                recvAll(sock, &score, sizeof(score));
+                scores.emplace_back(name, score);
+            }
+        {
+            std::lock_guard<std::mutex> lock(queueMutex);
+            messageQueue.push(scores);
+        }
+        cv.notify_all();
+        }
+        else if(messageType == MessageType::T_FriendListReceivedRequestReponse){
+            vector<string> requestsReceived;
+            for (int i = 0; i < messageSize; ++i) {
+                int len;
+                recvAll(sock, &len, sizeof(len));
+                std::string str(len, '\0');
+                recvAll(sock, &str[0], len);
+                requestsReceived.push_back(str);
+            }
+            {
+                std::lock_guard<std::mutex> lock(queueMutex);
+                messageVectQueue.push(requestsReceived);
+            }
+            cv.notify_all();
+        }
+        else if(messageType == MessageType::T_FriendListSentRequestReponse){
+            vector<string> requestsSent;
+            for (int i = 0; i < messageSize; ++i) {
+                int len;
+                recvAll(sock, &len, sizeof(len));
+                std::string str(len, '\0');
+                recvAll(sock, &str[0], len);
+                requestsSent.push_back(str);
+            }
+            {
+                std::lock_guard<std::mutex> lock(queueMutex);
+                messageVectQueue.push(requestsSent);
+            }
+            cv.notify_all();
+        }
+        else if(messageType == MessageType::T_FriendListReponse){
+            vector<string> friendsList;
+            for (int i = 0; i < messageSize; ++i) {
+                int len;
+                recvAll(sock, &len, sizeof(len));
+                std::string str(len, '\0');
+                recvAll(sock, &str[0], len);
+                friendsList.push_back(str);
+            }
+            {
+                std::lock_guard<std::mutex> lock(queueMutex);
+                messageVectQueue.push(friendsList);
+            }
+            cv.notify_all();
         }
     }
 return 0;

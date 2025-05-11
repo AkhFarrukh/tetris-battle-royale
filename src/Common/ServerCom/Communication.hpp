@@ -97,7 +97,15 @@ enum MessageType {
     T_FriendsListRequest,
     T_FriendsListResponse,
     T_InvitedFriend,
-    T_RoomInvitation
+    T_RoomInvitation,
+    T_TopLeaderBoardRequest,
+    T_TopLeaderBoardReponse,
+    T_FriendListReceivedRequest,
+    T_FriendListSentRequest,
+    T_FriendListReceivedRequestReponse,
+    T_FriendListSentRequestReponse,
+    T_FriendListReponse,
+    T_FriendListRequest
 };
 
 struct RoomInfo {

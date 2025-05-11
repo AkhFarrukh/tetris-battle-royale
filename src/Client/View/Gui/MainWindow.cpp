@@ -161,18 +161,18 @@ void MainWindow::setupAuthScreen() {
 }
 
 void MainWindow::handleAuth() {
-    QString username = usernameInput->text();
+    QString username_ = usernameInput->text();
     QString password = passwordInput->text();
     QString confirmPassword = confirmPasswordInput ? confirmPasswordInput->text() : "";
 
-    if (username.isEmpty() || password.isEmpty()) {
+    if (username_.isEmpty() || password.isEmpty()) {
         QMessageBox::warning(this, "Error", "Please fill in all fields.");
         return;
     }
 
 
-    if(controller->handleAuth(username, password, confirmPassword, isRegisterMode)){
-    
+    if(controller->handleAuth(username_, password, confirmPassword, isRegisterMode)){
+    username = username_.toStdString();
     //Start periodic UI refresh from threadData
     auto timer = new QTimer(nullptr);
     connect(timer, &QTimer::timeout, this, [this]() {
@@ -1059,7 +1059,7 @@ void MainWindow::showGameOverPopup() {
 void MainWindow::handleFriendsMenu() {
     // Supprimera l'ancien friendsHandler s'il existe
     if (friendsHandler) {
-        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
+        QVBoxLayout* layout = static_cast<QVBoxLayout*>(friendsScreen->layout());
         if (layout){
             layout->removeWidget(friendsHandler);
         }
@@ -1079,7 +1079,7 @@ void MainWindow::handleFriendsMenu() {
     // Créer le nouveau handler
     friendsHandler = new FriendsHandler(friendsScreen, QString::fromStdString(username), qtFriends, requestCount);
     // pour recuperer le layout deja existant
-    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsScreen->layout());
+    QVBoxLayout* layout = static_cast<QVBoxLayout*>(friendsScreen->layout());
 
     if (!layout) {   // si aucun existe, creer un nouveau
         layout = new QVBoxLayout(friendsScreen);
@@ -1093,7 +1093,7 @@ void MainWindow::handleFriendsMenu() {
 void MainWindow::handleChatMenu() {
     // Supprimera l'ancien friendsHandler s'il existe
     if (chatHandler) {
-        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsListScreen->layout());
+        QVBoxLayout* layout = static_cast<QVBoxLayout*>(friendsListScreen->layout());
         if (layout){
             layout->removeWidget(chatHandler);
         }
@@ -1112,7 +1112,7 @@ void MainWindow::handleChatMenu() {
     QWidget* currentWidget = stackedWidget->currentWidget();
     chatHandler = new ChatHandler(sock, this, friendsListScreen, QString::fromStdString(username), qtFriends, currentWidget);
     // pour recuperer le layout deja existant
-    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(friendsListScreen->layout());
+    QVBoxLayout* layout = static_cast<QVBoxLayout*>(friendsListScreen->layout());
 
     if (!layout) {   // si aucun existe, creer un nouveau
         layout = new QVBoxLayout(friendsListScreen);

@@ -38,11 +38,11 @@ DELETE FROM sessions WHERE user_id = ?
 INSERT INTO Scores (user_id, mode, score) VALUES (?, 'Endless', ?)
 
 -- getTopScores
-SELECT Users.username, MAX(Scores.score) FROM Scores 
-        JOIN Users ON Scores.user_id = Users.id 
-        WHERE Scores.mode = 'Endless' 
-        GROUP BY Users.username 
-        ORDER BY MAX(Scores.score) DESC 
+SELECT Users.username, MAX(Scores.score) FROM Scores
+        JOIN Users ON Scores.user_id = Users.id
+        WHERE Scores.mode = 'Endless'
+        GROUP BY Users.username
+        ORDER BY MAX(Scores.score) DESC
         LIMIT ?
 
 -- getFriendsList

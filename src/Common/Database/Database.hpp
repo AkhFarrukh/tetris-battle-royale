@@ -22,9 +22,10 @@
  */
 class Database{
     private:
-        sqlite3 *db;        // A database handle
+
         int returnCode;
         char* errorMessage;
+        sqlite3 *db;        // A database handle
 
         // All SQL statements that will be executed in SQLite shall be stored
         // in this attribute in a form of "unordered_map" (similar to Python dict)
@@ -35,10 +36,8 @@ class Database{
         Database(const char* databaseFileName);
         ~Database();
         sqlite3_stmt* stmt; // A prepared statement
-
         void setReturnCode(int newReturnCode);
         int  getReturnCode();
-
         void loadStatements(const std::string statementsFileName);
         std::string getStatement(const std::string key);
 
