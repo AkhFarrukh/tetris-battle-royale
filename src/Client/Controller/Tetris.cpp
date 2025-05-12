@@ -2,7 +2,7 @@
 
 
 //Constructor
-Tetris::Tetris():socketServer{-1}, username{""}{};
+Tetris::Tetris(const string& ip) : socketServer{-1}, username{""}, serverIP{ip} {};
 
 //Destructor
 Tetris::~Tetris()
@@ -49,17 +49,20 @@ int Tetris::createSocket() {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(8080);
 
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, serverIP.c_str(), &serv_addr.sin_addr) <= 0) {
         perror("Adresse invalide : ");
         close(socketServer);
         return -1;
     }
+
+    std::cout << "Connecting to server at " << serverIP << "..." << std::endl;
 
     if (connect(socketServer, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("Échec de la connexion : ");
         close(socketServer);
         return -1;
     }
+    std::cout << "Connected to server!" << std::endl;
     return socketServer;
 }
 
