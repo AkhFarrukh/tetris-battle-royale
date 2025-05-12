@@ -27,8 +27,10 @@ class Tetris
         int socketServer;
         bool isInGame;
         string username;
+        string serverIP;
+
     public:
-        Tetris();
+        Tetris(const string& ip = "127.0.0.1");
         ~Tetris();
         
         void exitTetris(bool inGame);
