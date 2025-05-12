@@ -58,7 +58,7 @@ void MainWindow::setupUI() {
 
     // Création du widget central avec QStackedWidget
     auto centralWidget = new QWidget(this);
-    centralWidget->setStyleSheet("background-color: #a066cc;"); // violet doux
+    centralWidget->setStyleSheet("background-color:rgb(35, 34, 43);"); // violet doux
     auto layout = new QVBoxLayout(centralWidget);
 
     stackedWidget = new QStackedWidget(this);
@@ -90,18 +90,18 @@ void MainWindow::setupUI() {
 
 void MainWindow::setupLoginScreen() {
     loginScreen = new QWidget(this);
-    loginScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
+    loginScreen->setStyleSheet("background-color:rgb(35, 34, 43);"); // fond violet
     auto layout = new QVBoxLayout(loginScreen);
 
     QLabel *titleLabel = new QLabel("TETRIS ROYALE !", this);
-    titleLabel->setStyleSheet("font-size: 28px; font-weight: bold; color: black;"); // mettre en gras
+    titleLabel->setStyleSheet("font-size: 28px; font-weight: bold; color: white;"); // mettre en gras
     titleLabel->setAlignment(Qt::AlignCenter);  //  Centrer
     layout->addWidget(titleLabel, 0, Qt::AlignCenter);  // centrer dans layout
 
     QPushButton *loginButton = new QPushButton("Login", this);
-    loginButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    loginButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 8px;"); // bouton vert
     QPushButton *registerButton = new QPushButton("Register", this);
-    registerButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    registerButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 8px;"); // bouton vert
 
     layout->addWidget(loginButton);
     layout->addWidget(registerButton);
@@ -121,7 +121,7 @@ void MainWindow::setupLoginScreen() {
 
 void MainWindow::setupAuthScreen() {
     authScreen = new QWidget(this);
-    authScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
+    authScreen->setStyleSheet("background-color:rgb(35, 34, 43);"); // fond violet
     auto layout = new QVBoxLayout(authScreen);
 
     QLabel *usernameLabel = new QLabel("Username:", this);
@@ -147,9 +147,9 @@ void MainWindow::setupAuthScreen() {
     }
 
     QPushButton *submitButton = new QPushButton(isRegisterMode ? "Register" : "Login", this);
-    submitButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    submitButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 8px;"); // bouton vert
     QPushButton *backButton = new QPushButton("Retour", this);
-    backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    backButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 8px;"); // bouton vert
     layout->addWidget(submitButton);
     layout->addWidget(backButton);
 
@@ -235,28 +235,28 @@ void MainWindow::showAuthScreen() {
 
 void MainWindow::setupMainMenuScreen() {
     mainMenuScreen = new QWidget(this);
-    mainMenuScreen->setStyleSheet("background-color: #a066cc;"); // fond violet
+    mainMenuScreen->setStyleSheet("background-color:rgb(35, 34, 43);"); // fond violet
     auto layout = new QVBoxLayout(mainMenuScreen);
 
     QLabel *titleLabel = new QLabel("Main MenuMessage", this);
-    titleLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: black;"); 
+    titleLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: white;"); 
     titleLabel->setAlignment(Qt::AlignCenter);  
     layout->addWidget(titleLabel, 0, Qt::AlignCenter);  
     
 
     QPushButton *playButton = new QPushButton("Play", this);
-    playButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    playButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 8px;"); // bouton vert
     QPushButton *friendsButton = new QPushButton("Handle Friends", this);
-    friendsButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    friendsButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 8px;"); // bouton vert
     QPushButton *leaderboardButton = new QPushButton("Leaderboard (Endless Mode)", this);
-    leaderboardButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"); // bouton vert
+    leaderboardButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 8px;"); // bouton vert
 
     QPushButton *chatButton = new QPushButton(this);
 	chatButton->setText(" Chat");
 
 	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
 
-	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 4px; border-radius: 6px;");
 	chatButton->setIconSize(QSize(20, 20));
     chatButton->setFixedSize(80, 30);
 
@@ -280,7 +280,7 @@ void MainWindow::setupMainMenuScreen() {
 
 void MainWindow::setupGameModeScreen() {
     gameModeScreen = new QWidget(this);
-    gameModeScreen->setStyleSheet("background-color: #a066cc;");
+    gameModeScreen->setStyleSheet("background-color:rgb(35, 34, 43);");
     auto layout = new QVBoxLayout(gameModeScreen);
 
     QLabel *titleLabel = new QLabel("Select a Game Mode:", this);
@@ -297,7 +297,7 @@ void MainWindow::setupGameModeScreen() {
 
 	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
 
-	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 4px; border-radius: 6px;");
 	chatButton->setIconSize(QSize(20, 20));
     chatButton->setFixedSize(80, 30);
 
@@ -305,7 +305,7 @@ void MainWindow::setupGameModeScreen() {
 
     QList<QPushButton*> buttons = {endlessButton, classicButton, duelButton, royalButton, backButton};
     for (auto* btn : buttons) {
-        btn->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
+        btn->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 8px;");
         layout->addWidget(btn);
     }
 
@@ -350,7 +350,7 @@ void MainWindow::setupFriendsScreen(){
     QVBoxLayout* layout = new QVBoxLayout(friendsScreen);
 
     QPushButton* backButton = new QPushButton("Back to MenuMessage", this);
-    backButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;");
+    backButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 8px;");
     
     layout->addWidget(backButton);
     connect(backButton, &QPushButton::clicked, this, &MainWindow::showMainMenuScreen);   // connecte bouton "back to menu" pour pouvoir retourner en arriere, au menu
@@ -450,7 +450,7 @@ void MainWindow::setupSpectatorWaitingScreen(int roomID) {
 
 	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
 
-	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 4px; border-radius: 6px;");
 	chatButton->setIconSize(QSize(20, 20));
     chatButton->setFixedSize(80, 30);
 
@@ -532,7 +532,7 @@ void MainWindow::setupRoomListScreen(const std::vector<RoomInfo>& roomsInfo) {
 
 	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
 
-	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 4px; border-radius: 6px;");
 	chatButton->setIconSize(QSize(20, 20));
     chatButton->setFixedSize(80, 30);
 
@@ -587,7 +587,7 @@ void MainWindow::setupMyRoomScreen(const RoomInfo& room) {
 
 	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
 
-	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 4px; border-radius: 6px;");
 	chatButton->setIconSize(QSize(20, 20));
     chatButton->setFixedSize(80, 30);
 
@@ -1157,7 +1157,7 @@ void MainWindow::showLeaderboardScreen() {
 
 	chatButton->setIcon(QIcon::fromTheme("mail-message-new"));
 
-	chatButton->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px; border-radius: 6px;");
+	chatButton->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold; padding: 4px; border-radius: 6px;");
 	chatButton->setIconSize(QSize(20, 20));
     chatButton->setFixedSize(80, 30);
 
@@ -1165,7 +1165,7 @@ void MainWindow::showLeaderboardScreen() {
 
 	connect(chatButton, &QPushButton::clicked, this, &MainWindow::handleChatMenu);
     QPushButton* backBtn = new QPushButton("Back", this);
-    backBtn->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;");
+    backBtn->setStyleSheet("background-color:rgb(13, 154, 201); color: black; font-weight: bold;");
     connect(backBtn, &QPushButton::clicked, this, &MainWindow::showMainMenuScreen);
     layout->addWidget(backBtn);
 
