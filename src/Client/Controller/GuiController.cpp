@@ -20,6 +20,7 @@ void GuiController::sendCreateRoom() {
         QMessageBox::critical(nullptr, "Erreur", "Échec de la création de la salle.");
         return;
     }
+    threadData->isOwner = true;
 }
 
 void GuiController::joinRoom(int roomID) {
@@ -32,6 +33,7 @@ void GuiController::joinRoom(int roomID) {
 
 void GuiController::sendForceStart() {
     MenuMessage menu;
+    if(!threadData->isOwner)return;
     menu.action = MenuActions::A_ForceStart;
     // menu.mode = threadData->gameMode;
     int type = MessageType::T_Menu;
@@ -44,7 +46,6 @@ void GuiController::sendForceStart() {
 void GuiController::sendLeaveRoom() {
     int type;
     int size = sizeof(int);
-
     if (threadData->isOwner) {
         type = MessageType::T_RoomDeleted;
     } else {

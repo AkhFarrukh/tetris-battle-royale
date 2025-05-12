@@ -890,12 +890,13 @@ void* MainWindow::threadRoutineQtView(void* arg) {
 
             QMetaObject::invokeMethod(
                 static_cast<QObject*>(parent),
-                [parent]() {
+                [parent, this]() {
                     QMessageBox::StandardButton reply;
-                    reply = QMessageBox::question(parent, "Game Over", 
+                    reply = QMessageBox::question(parent, "Game Over",
                             "Game has ended. Return to the main menu?",
                             QMessageBox::Yes | QMessageBox::No);
                     if (reply == QMessageBox::Yes) {
+                        controller->sendLeaveRoom();
                         parent->showMainMenuScreen();
                     }
                 }
@@ -1042,6 +1043,7 @@ void MainWindow::showGameOverPopup() {
             "Game has ended. Return to the main menu?",
             QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::Yes) {
+        controller->sendLeaveRoom();
         showMainMenuScreen();
     }
 }

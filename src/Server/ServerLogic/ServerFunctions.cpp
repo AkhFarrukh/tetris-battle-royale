@@ -196,6 +196,7 @@ void* Server::threadRoutineClient(void* arg){
                 server->handleLeftRoom(server, client);
             }
             else if (type == MessageType::T_RoomDeleted){
+                std::cout<<"delete received"<<std::endl;
                 server->handleDeleteRoom(server, client);
             }
             //JOIN ROOM
@@ -498,7 +499,9 @@ void* Server::threadRoutineGame(void* arg){
 void Server::handleDisconnect(Server* server, shared_ptr<ClientSession> client, pthread_t& threadGamePID){
     std::cout << "Client déconnecté : " << client->client_fd << std::endl;
     close(client->client_fd);
+    std::cout << "thread close 2 " << client->client_fd << std::endl;
     pthread_cancel(threadGamePID);
+    std::cout << "thread cancel 2 " << client->client_fd << std::endl;
         while(server->udbm.isLoggedIn(client->username.c_str())){
       	server->udbm.logOut(client->userId);} //on marque la personne comme deconnecté
         server->udbm.setNotInConversation(client->userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
@@ -525,21 +528,24 @@ void Server::handleDisconnect(Server* server, shared_ptr<ClientSession> client, 
 void Server::handleForcedExit(Server* server, shared_ptr<ClientSession> client){
     std::cout << "Client déconnecté : " << client->client_fd << std::endl;
     close(client->client_fd);
+    std::cout << "thread close 1 " << client->client_fd << std::endl;
     while(server->udbm.isLoggedIn(client->username.c_str())){
   	server->udbm.logOut(client->userId);} //on marque la personne comme deconnecté
     server->udbm.setNotInConversation(client->userId); //si la personne etait sur une conv cela permet qu'elle n'y soit plus marqué
-                                                                                             //comme telle
-  	while(server->udbm.isUserInSession(client->userId)){
-  		server->udbm.deleteSession(client->userId);}
+    std::cout << "wsh1" << client->client_fd << std::endl;                                                                                         //comme telle
+  	server->udbm.deleteSession(client->userId);
     server->clientMutex.lock();
+    std::cout << "ok1" << client->client_fd << std::endl;
     auto it = std::find_if(server->clients.begin(), server->clients.end(),
                            [client](const ClientSession& c) {
                            return c.client_fd == client->client_fd;
                            });
     if (it != server->clients.end()) {
+        std::cout << "ok2 " << client->client_fd << std::endl;
         server->clients.erase(it);
     }
     server->clientMutex.unlock();
+    std::cout << "ok3" << client->client_fd << std::endl;
 }
 
 /**
