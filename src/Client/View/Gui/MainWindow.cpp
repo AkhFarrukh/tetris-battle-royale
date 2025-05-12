@@ -375,15 +375,23 @@ void MainWindow::setGameScreen() {
 
 void MainWindow::setupGameScreens() {
     gameScreen = new QWidget(this);
-    auto layout = new QVBoxLayout(gameScreen);
+    auto mainLayout = new QVBoxLayout(gameScreen);
+
+    QWidget* centerContainer = new QWidget(this);
+    QVBoxLayout* centerLayout = new QVBoxLayout(centerContainer);
 
     renderQt = new GridQt(gameScreen);
     renderQt->setThreadData(threadData);
-    layout->addWidget(renderQt);
+    centerLayout->addWidget(renderQt);
 
-    gameScreen->setLayout(layout);
+    malusBonusLayout = new QHBoxLayout();
+    centerLayout->addLayout(malusBonusLayout);
+
+    mainLayout->addWidget(centerContainer);
+    gameScreen->setLayout(mainLayout);
     stackedWidget->addWidget(gameScreen);
 }
+
 
 void MainWindow::updateGameScreen() {
     if (!renderQt || !threadData) return;
@@ -1004,9 +1012,7 @@ void* MainWindow::threadRoutineQtView(void* arg) {
 //=======
 //>>>>>>> feature/gui-clean
 void MainWindow::addMalusButtonsIfRoyal() {
-    if (threadData && threadData->gameMode == Modes::Royal_ && gameScreen) {
-        QHBoxLayout* malusBonusLayout = new QHBoxLayout();
-
+    if (threadData && threadData->gameMode == Modes::Royal_ && gameScreen && malusBonusLayout) {
         QStringList labels = {
             "1. Speed Up Enemy",
             "2. Reverse Controls",
@@ -1026,13 +1032,9 @@ void MainWindow::addMalusButtonsIfRoyal() {
                 controller->handleMalusBonus(i + 1);
             });
         }
-
-        QVBoxLayout* mainLayout = qobject_cast<QVBoxLayout*>(gameScreen->layout());
-        if (mainLayout) {
-            mainLayout->addLayout(malusBonusLayout);
-        }
     }
 }
+
 
 void MainWindow::showGameOverPopup() {
     QMessageBox::StandardButton reply;
