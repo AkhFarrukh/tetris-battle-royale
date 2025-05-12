@@ -75,9 +75,16 @@ void* Player::threadRoutineView (void* arg){
             affichageMessage(message);
         }
         else if(messageType == MessageType::T_Exit){
+            if (threadData->isOwner) {
+            int type;
+            int size = sizeof(int);
+            type = MessageType::T_RoomDeleted;
+            sendAll(sock, &type, sizeof(int));
+            sendAll(sock, &size, sizeof(int));
+            }
+            napms(1000);
             threadData->userInGame = false;
             threadData->userInLobby = false;
-            napms(300);
             continue;
         }
         else if(messageType == MessageType::T_PlayerData || messageType == MessageType::T_EndGame){
@@ -680,7 +687,7 @@ bool Player::handleRoomPlayerActions(int socket, ThreadData* threadData, int act
 
     } else if (action == -2) {
         // refresh
-        int msgType = (messageType == MessageType::T_RoomInfo) ?
+        int msgType = (threadData->isOwner) ?
                       MessageType::T_Refresh :
                       MessageType::T_RoomJoinRefresh;
         if (!sendMessage(socket, msgType)) {
@@ -690,7 +697,7 @@ bool Player::handleRoomPlayerActions(int socket, ThreadData* threadData, int act
         return false;
     } else if (action == -1) {
         // exit
-        int msgType = (messageType == MessageType::T_RoomInfo) ?
+        int msgType = (threadData->isOwner) ?
                       MessageType::T_RoomDeleted :
                       MessageType::T_LeftRoom;
         if (!sendMessage(socket, msgType)) {

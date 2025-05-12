@@ -128,15 +128,16 @@ void MenuController::handleMenu() {
                 break;
 
             // Classic submenu leaves
-            case Menus::C_C3: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 3); threadData->userInLobby = true; threadData->gameMode = Modes::Classic_;break;
-            case Menus::C_C4: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 4); threadData->userInLobby = true; threadData->gameMode = Modes::Classic_;break;
-            case Menus::C_C5: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 5); threadData->userInLobby = true; threadData->gameMode = Modes::Classic_;break;
-            case Menus::C_C6: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 6); threadData->userInLobby = true; threadData->gameMode = Modes::Classic_;break;
-            case Menus::C_C7: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 7); threadData->userInLobby = true; threadData->gameMode = Modes::Classic_;break;
-            case Menus::C_C8: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 8); threadData->userInLobby = true; threadData->gameMode = Modes::Classic_;break;
-            case Menus::C_C9: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 9); threadData->userInLobby = true; threadData->gameMode = Modes::Classic_;break;
+            case Menus::C_C3: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 3); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Classic_;break;
+            case Menus::C_C4: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 4); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Classic_;break;
+            case Menus::C_C5: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 5); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Classic_;break;
+            case Menus::C_C6: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 6); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Classic_;break;
+            case Menus::C_C7: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 7); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Classic_;break;
+            case Menus::C_C8: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 8); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Classic_;break;
+            case Menus::C_C9: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Classic_, 9); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Classic_;break;
             case Menus::JoinClassic:
                 comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Classic_, -1);
+                threadData->isOwner = false;
                 threadData->userInLobby = true;
                 threadData->gameMode = Modes::Classic_;
                 break;
@@ -144,26 +145,29 @@ void MenuController::handleMenu() {
             // Duel submenu leaves
             case Menus::CreateDuel:
                 comm.sendMenuRequest(MenuActions::A_CreateRoom,   Modes::Duel_, 2);
+                threadData->isOwner = true;
                 threadData->gameMode = Modes::Duel_;
                 threadData->userInLobby = true;
                 break;
             case Menus::JoinDuel:
                 comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Duel_, -1);
                 threadData->userInLobby = true;
+                threadData->isOwner = false;
                 threadData->gameMode = Modes::Duel_;
                 break;
 
             // Royal Competition submenu leaves
-            case Menus::C_R3: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 3); threadData->userInLobby = true; threadData->gameMode = Modes::Royal_; break;
-            case Menus::C_R4: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 4); threadData->userInLobby = true; threadData->gameMode = Modes::Royal_;break;
-            case Menus::C_R5: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 5); threadData->userInLobby = true; threadData->gameMode = Modes::Royal_;break;
-            case Menus::C_R6: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 6); threadData->userInLobby = true; threadData->gameMode = Modes::Royal_;break;
-            case Menus::C_R7: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 7); threadData->userInLobby = true; threadData->gameMode = Modes::Royal_;break;
-            case Menus::C_R8: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 8); threadData->userInLobby = true; threadData->gameMode = Modes::Royal_;break;
-            case Menus::C_R9: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 9); threadData->userInLobby = true; threadData->gameMode = Modes::Royal_;break;
+            case Menus::C_R3: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 3); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Royal_; break;
+            case Menus::C_R4: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 4); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Royal_;break;
+            case Menus::C_R5: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 5); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Royal_;break;
+            case Menus::C_R6: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 6); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Royal_;break;
+            case Menus::C_R7: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 7); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Royal_;break;
+            case Menus::C_R8: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 8); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Royal_;break;
+            case Menus::C_R9: comm.sendMenuRequest(MenuActions::A_CreateRoom, Modes::Royal_, 9); threadData->userInLobby = true; threadData->isOwner = true;threadData->gameMode = Modes::Royal_;break;
             case Menus::JoinRoyalCompetition:
                 comm.sendMenuRequest(MenuActions::A_JoinRoom,   Modes::Royal_, -1);
                 threadData->gameMode = Modes::Royal_;
+                threadData->isOwner = false;
                 threadData->userInLobby = true;
                 break;
 
