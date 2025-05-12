@@ -126,8 +126,7 @@ int Tetris::runTetris(int argc, char** argv) {
 int Tetris::authentification(std::vector<std::string> &dataConnexion, std::shared_ptr<Player::ThreadData> &threadData, int socketServer, pthread_t &threadID, bool &retFlag)
 {
     retFlag = true;
-    if (dataConnexion.size() == 2)
-    {
+    if (dataConnexion.size() == 2) {
         username = dataConnexion[0];
         isInGame = true;
         threadData->userInGame = false;
@@ -139,9 +138,7 @@ int Tetris::authentification(std::vector<std::string> &dataConnexion, std::share
             close(socketServer); // Fermer le socket après utilisation
             return 0;
         }
-    }
-    else
-    {
+    } else {
         std::cout << "Echec de la connexion au compte.\n";
         nocbreak();
         keypad(stdscr, false);

@@ -103,6 +103,7 @@ private:
     QLineEdit* passwordInput = nullptr;
     QLineEdit* confirmPasswordInput = nullptr;
     QWidget* spectatorWaitingScreen = nullptr;
+    QHBoxLayout* malusBonusLayout;
 
     QPushButton* playButton = nullptr;
     QPushButton* handleFriendsButton = nullptr;
