@@ -278,7 +278,132 @@ void* Server::threadRoutineClient(void* arg){
                 sendAll(client->client_fd, &replySize, sizeof(replySize));
                 sendAll(client->client_fd, &payload,   replySize);
             }
+            else if(type == MessageType::T_RefuseRequestFriend){
+                int len;
+                recvAll(client->client_fd, &len, sizeof(int));
+                std::string friendName(len, '\0');
+                recvAll(client->client_fd, friendName.data(), len);
+                server->udbm.deleteRequestFriend(client->username, friendName);
+            }
+            else if(type == MessageType::T_AcceptRequestFriend){
+                int len;
+                recvAll(client->client_fd, &len, sizeof(int));
+                std::string friendName(len, '\0');
+                recvAll(client->client_fd, friendName.data(), len);
+                server->udbm.addFriend(client->username, friendName);
+                server->udbm.deleteRequestFriend(client->username, friendName);
 
+            }
+            else if(type == MessageType::T_VerifyRequestFriend){
+                int len;
+                recvAll(client->client_fd, &len, sizeof(int));
+                std::string friendName(len, '\0');
+                recvAll(client->client_fd, friendName.data(), len);
+                int returnValue = server->udbm.verifyFriendRequest(client->username, friendName);
+                int replyType = MessageType::T_VerifyRequestFriendReponse;
+                int replySize = sizeof(int);
+                sendAll(client->client_fd, &replyType, sizeof(replyType));
+                sendAll(client->client_fd, &replySize, sizeof(replySize));
+                sendAll(client->client_fd, &returnValue,   replySize);
+
+            }
+            else if(type == MessageType::T_SendRequestFriend){
+                int len;
+                recvAll(client->client_fd, &len, sizeof(int));
+                std::string friendName(len, '\0');
+                recvAll(client->client_fd, friendName.data(), len);
+                int returnValue = server->udbm.sendFriendRequest(client->username, friendName);
+                int replyType = MessageType::T_SendRequestFriendReponse;
+                int replySize = sizeof(int);
+                sendAll(client->client_fd, &replyType, sizeof(replyType));
+                sendAll(client->client_fd, &replySize, sizeof(replySize));
+                sendAll(client->client_fd, &returnValue,   replySize);
+            }
+            else if(type == MessageType::T_NumberFriendRequestsRequest){
+                int returnValue = server->udbm.getNumberFriendRequestsReceived(client->username);
+                int replyType = MessageType::T_NumberFriendRequestsReponse;
+                int replySize = sizeof(int);
+                sendAll(client->client_fd, &replyType, sizeof(replyType));
+                sendAll(client->client_fd, &replySize, sizeof(replySize));
+                sendAll(client->client_fd, &returnValue,   replySize);
+            }
+            else if(type == MessageType::T_GetMessageNoReadRequest){
+                int len;
+                recvAll(client->client_fd, &len, sizeof(int));
+                std::string friendName(len, '\0');
+                recvAll(client->client_fd, friendName.data(), len);
+                int userId = server->udbm.getUserId(client->username.c_str());
+                int friendId = server->udbm.getUserId(friendName.c_str());
+                vector<std::string> messagesNoRead = server->udbm.getMessages(friendId, userId);
+                int replyType = MessageType::T_GetMessageNoReadReponse;
+                int size = messagesNoRead.size();
+                sendAll(client->client_fd, &replyType, sizeof(replyType));
+                sendAll(client->client_fd, &size, sizeof(size));
+                for (const std::string& str : messagesNoRead) {
+                    int len = str.size();
+                    sendAll(client->client_fd, &len, sizeof(len));
+                    sendAll(client->client_fd, str.c_str(), len);
+                }
+            }
+            else if(type == MessageType::T_OpenConvRequest){
+                int len;
+                recvAll(client->client_fd, &len, sizeof(int));
+                std::string friendName(len, '\0');
+                recvAll(client->client_fd, friendName.data(), len);
+                int userId = server->udbm.getUserId(client->username.c_str());
+                int friendId = server->udbm.getUserId(friendName.c_str());
+                server->udbm.deleteMessages(friendId, userId);
+                server->udbm.conversationOpen(userId, friendId);
+            }
+            else if(type == MessageType::T_CloseConvRequest){
+                int len;
+                recvAll(client->client_fd, &len, sizeof(int));
+                std::string friendName(len, '\0');
+                recvAll(client->client_fd, friendName.data(), len);
+                int userId = server->udbm.getUserId(client->username.c_str());
+                int friendId = server->udbm.getUserId(friendName.c_str());
+                server->udbm.conversationClose(userId, friendId);
+            }
+            else if(type == MessageType::T_IsLoggedRequest){
+                int len;
+                recvAll(client->client_fd, &len, sizeof(int));
+                std::string friendName(len, '\0');
+                recvAll(client->client_fd, friendName.data(), len);
+                bool value = server->udbm.isLoggedIn(friendName.c_str());
+                int replyType = MessageType::T_IsLoggedReponse;
+                int replySize = sizeof(bool);
+                sendAll(client->client_fd, &replyType, sizeof(replyType));
+                sendAll(client->client_fd, &replySize, sizeof(replySize));
+                sendAll(client->client_fd, &value,   replySize);
+            }
+            else if(type == MessageType::T_IsInConvRequest){
+                int len;
+                recvAll(client->client_fd, &len, sizeof(int));
+                std::string friendName(len, '\0');
+                recvAll(client->client_fd, friendName.data(), len);
+                int userId = server->udbm.getUserId(client->username.c_str());
+                int friendId = server->udbm.getUserId(friendName.c_str());
+                int value = server->udbm.getInConversation(userId, friendId);
+                int replyType = MessageType::T_IsInConvReponse;
+                int replySize = sizeof(int);
+                sendAll(client->client_fd, &replyType, sizeof(replyType));
+                sendAll(client->client_fd, &replySize, sizeof(replySize));
+                sendAll(client->client_fd, &value,   replySize);
+            }
+            else if(type == MessageType::T_AddMessage){
+                int len;
+                recvAll(client->client_fd, &len, sizeof(int));
+                std::string friendName(len, '\0');
+                recvAll(client->client_fd, friendName.data(), len);
+                int len_;
+                recvAll(client->client_fd, &len_, sizeof(int));
+                std::string message(len_, '\0');
+                recvAll(client->client_fd, message.data(), len_);
+                int userId = server->udbm.getUserId(client->username.c_str());
+                int friendId = server->udbm.getUserId(friendName.c_str());
+
+                server->udbm.addMessage(userId, friendId, message);
+            }
             else if (type == MessageType::T_InvitedFriend) {
                 InvitedFriend req;
                 if (!recvAll(client->client_fd, &req, sizeof(req))) {

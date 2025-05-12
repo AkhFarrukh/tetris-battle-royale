@@ -9,6 +9,7 @@ std::mutex queueMutex;
 std::condition_variable cv;
 std::queue<std::vector<std::pair<std::string, int>>> messageQueue;
 std::queue<std::vector<std::string>> messageVectQueue;
+std::queue<int> messageIntQueue;
 
 const char* InterfaceTerminal::modeNames[] = {
                                             "Endless Mode",  
@@ -49,7 +50,7 @@ void InterfaceTerminal::initNcurses() {
 }
 
 
-void InterfaceTerminal::display(int selectedOption, Menus menuChoosen, bool& flagChangedMenu) {
+void InterfaceTerminal::display(int selectedOption, Menus menuChoosen, bool& flagChangedMenu, int& number) {
     if (flagChangedMenu){
         erase();
         refresh();
@@ -92,6 +93,7 @@ void InterfaceTerminal::display(int selectedOption, Menus menuChoosen, bool& fla
                 messageVectQueue.pop();
             }
             displayFriendsMenu(selectedOption, friendsList); // Affiche le menu des amis
+            number = friendsList.size()+2;
             break;
         }
         case Menus::FriendRequestMenu:
@@ -120,7 +122,12 @@ void InterfaceTerminal::display(int selectedOption, Menus menuChoosen, bool& fla
                 messageVectQueue.pop();
             }
             Menu menuFriendRequest(Menus::FriendRequestMenu, menuOptions, COLS, LINES, 50, 18);
-            menuFriendRequest.displayFriendRequestsMenu(selectedOption, requestsReceived, requestsSent); // Affiche le menu des demandes
+            int returnValue = 0;
+            int selected = 0;
+            while(returnValue != -1){
+                menuFriendRequest.displayFriendRequestsMenu(selected, requestsReceived, requestsSent); // Affiche le menu des demandes
+                returnValue = handleFriendRequests(requestsReceived, requestsSent, selected);
+            }
             break;
         }
         case Menus::LeaderboardMenu:
@@ -154,6 +161,11 @@ void InterfaceTerminal::display(int selectedOption, Menus menuChoosen, bool& fla
             vector<string> menuOptions = {"Select the limit of players: ", "3", "4", "5", "6", "7", "8", "9" };
             Menu menuGameMode(Menus::LoginMenu, menuOptions, COLS, LINES, 80, 50);
             menuGameMode.displayMenu(selectedOption); // Affiche le menu principal
+            break;
+        }
+        case Menus::FriendAddMenu:
+        {
+            enterName();
             break;
         }
         default:
@@ -212,12 +224,564 @@ void InterfaceTerminal::displayFriendsMenu(int selectedOption, vector<string> fr
     }
     Menu menuGameMode(Menus::FriendsMenu, menuOptions, COLS, LINES, 50, 20);
 
-    //int numberFRR = udm.getNumberFriendRequestsReceived(user);
-    int numberFRR = 0;
+
+    int type = MessageType::T_NumberFriendRequestsRequest;
+    int size = sizeof(int);
+    sendAll(sock_, &type, sizeof(int));
+    sendAll(sock_, &size, sizeof(int));
+    int numberFRR;
+    {
+        std::unique_lock<std::mutex> lock(queueMutex);
+        cv.wait(lock, []{ return !messageIntQueue.empty(); });  // Attend un message
+        numberFRR = messageIntQueue.front();
+        messageIntQueue.pop();
+    }
+
     menuGameMode.displayMenu(selectedOption, {}, numberFRR); // Affiche le menu principal
 }
 
 
+/**
+ * @brief Affiche la boîte de messagerie.
+ *
+ * Méthode affiche la liste des amis de l'utilisateur et indique le nombre de messages non lus pour chacun.
+ * L'utilisateur peut naviguer dans la liste et sélectionner un ami pour ouvrir une conversation.
+ *
+ * @param selectedOption L'option actuellement sélectionnée par l'utilisateur.
+ * @param friends Liste des amis de l'utilisateur.
+ */
+
+void InterfaceTerminal::displayMessageBox(int selectedOption, vector<string> friends) {
+    erase();
+    printw("Message box : \n\n");
+    int numberFriends = std::size(friends);   // taille du tableau contenant les amis
+    if(numberFriends == 0) {printw("Empty friends list \n");}
+    else{
+        for (int i = 0; i < numberFriends; ++i) {
+            if (i == selectedOption) {
+                printw("-> %d. %s", i + 1, friends[i].c_str());
+            } else {
+                printw("   %d. %s", i + 1, friends[i].c_str());
+            }
+            printw("\n");
+        }
+    }
+
+    printw("\nUse UP and DOWN arrow keys to navigate\nPress ENTER to select a friend\nPress 'BACKSPACE' to quit\n");
+    refresh();
+}
+
+
+
+/**
+ * @brief Gère la boîte de messagerie de l'utilisateur.
+ *
+ * Cette fonction affiche la liste des amis de l'utilisateur et lui permet de sélectionner
+ * un contact pour discuter via une interface ncurses. L'utilisateur peut naviguer dans la liste,
+ * ouvrir une conversation ou quitter l'interface.
+ *
+ * @return 0 si l'utilisateur quitte normalement, -1 en cas d'erreur lors du chat.
+ */
+
+int InterfaceTerminal::handleMessageBox() {
+
+    int selectedOption = 0;
+    while (!flag) {
+        int type_ = MessageType::T_FriendListRequest;
+        int size_ = sizeof(int);
+        sendAll(sock_, &type_, sizeof(int));
+        sendAll(sock_, &size_, sizeof(int));
+        vector<string> friendsList;
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            cv.wait(lock, []{ return !messageVectQueue.empty(); });  // Attend un message
+            friendsList = messageVectQueue.front();
+            messageVectQueue.pop();
+        }
+        displayMessageBox(selectedOption, friendsList);  // affiche le menu avec les options
+        nodelay(stdscr, true);
+        int ch = getch();    // récupère l'entrée utilisateur
+        switch (ch) {
+
+            case KEY_UP:     // aller vers le haut
+                if (selectedOption > 0) {
+                    selectedOption--;
+                }
+            break;
+            case KEY_DOWN: // descendre
+                if (selectedOption < friendsList.size()-1) {
+                    selectedOption++;
+                }
+            break;
+
+            // touche 'entrée'
+            case '\n':
+                    if(chatWith(user, friendsList[selectedOption])<0)return -1;
+                    scrollok(stdscr, false);
+                    noecho();
+                    curs_set(0);
+                    nodelay(stdscr, true);
+            break;
+            case KEY_BACKSPACE:
+            case 127:
+                erase();
+                nodelay(stdscr, true);
+                refresh();
+                endwin();
+            return 0;
+        }
+    }
+    nodelay(stdscr, true);
+    erase();
+    refresh();
+    return -1;
+}
+
+
+/**
+ * @brief Affiche les messages non lus.
+ *
+ * Affiche tous les messages non lus envoyés par l'ami `friendName` à l'utilisateur `user`.
+ * Si l'affichage dépasse la taille de la fenêtre, un défilement automatique est appliqué.
+ *
+ * @param user Nom de l'utilisateur actuel.
+ * @param friendName Nom de l'ami dont on affiche les messages non lus.
+ */
+void InterfaceTerminal::displayMessageNoRead(const std::string& user, const string& friendName, std::vector<std::string>& messagesNoRead){
+
+    nodelay(stdscr, false);
+    printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+    printw("\nDiscussion with %s : \n", friendName.c_str());
+    refresh();
+    curs_set(0);
+    for (const auto message : messagesNoRead){
+    int currentLine = LINES-1;
+    while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
+        currentLine--;
+    }
+    move(currentLine, 0);
+    printw("%s : %s\n", friendName.c_str(), message.c_str());
+    if (LINES-currentLine<5) {
+        move(LINES-1, 0);
+        clrtoeol();
+        scrollok(stdscr, true);
+        scroll(stdscr);
+        scrollok(stdscr, false);
+        move(3, 0);clrtoeol();
+        move(2, 0);clrtoeol();
+        move(1, 0);clrtoeol();
+        move(0, 0);clrtoeol();
+        printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+        printw("\nDiscussion with %s : \n", friendName.c_str());
+    }
+    refresh();
+    curs_set(1);}
+}
+
+
+
+/**
+ * @brief Permet à l'utilisateur de discuter avec un ami via une interface terminal.
+ *
+ * Cette fonction affiche la conversation avec un ami et permet d'envoyer des messages.
+ * Les messages sont envoyés immédiatement si l'ami est en ligne et dans la conversation,
+ * sinon, ils sont stockés, et on peut y avoir acces par apres.
+ *
+ * @param user Nom de l'utilisateur.
+ * @param friendName Nom de l'ami avec qui discuter.
+ * @return 0 en cas de succès, -1 en cas d'erreur de connexion.
+ */
+
+int InterfaceTerminal::chatWith(const std::string& user, const string& friendName){
+    erase();
+    refresh();
+    int typeMes = MessageType::T_GetMessageNoReadRequest;
+    int sizeMes = sizeof(int);
+    sendAll(sock_, &typeMes, sizeof(int));
+    sendAll(sock_, &sizeMes, sizeof(int));
+    int lenMes = (int)friendName.size();
+    sendAll(sock_, &lenMes, sizeof(lenMes));
+    sendAll(sock_, friendName.c_str(), lenMes);
+    vector<std::string> messagesNoRead;
+    {
+        std::unique_lock<std::mutex> lock(queueMutex);
+        cv.wait(lock, []{ return !messageVectQueue.empty(); });  // Attend un message
+        messagesNoRead = messageVectQueue.front();
+        messageVectQueue.pop();
+    }
+    refresh();
+    interfaceMutex.lock();
+    displayMessageNoRead(user, friendName, messagesNoRead);
+    interfaceMutex.unlock();
+    int type = MessageType::T_OpenConvRequest;
+    int size = sizeof(int);
+    sendAll(sock_, &type, sizeof(int));
+    sendAll(sock_, &size, sizeof(int));
+    int len_ = (int)friendName.size();
+    sendAll(sock_, &len_, sizeof(len_));
+    sendAll(sock_, friendName.c_str(), len_);
+    refresh();
+    echo();
+    curs_set(1);
+    nodelay(stdscr, false);
+    bool windowFull = false;
+    while(!flag){
+        if (windowFull) {
+            move(3, 0);clrtoeol();
+            move(2, 0);clrtoeol();
+            move(1, 0);clrtoeol();
+            move(0, 0);clrtoeol();
+            printw("Press ENTER to send the message\nPress 'ENTER' with an empty entry to quit\n");
+            printw("\nDiscussion with %s : \n", friendName.c_str());
+        }
+        char buffer[1024];
+        move(LINES- 1, 0);
+        clrtoeol();
+        printw("Enter your message : ");
+        refresh();
+        wgetnstr(stdscr,buffer,1023-friendName.size()-1);
+        if(strlen(buffer)==0){
+            int type = MessageType::T_CloseConvRequest;
+            int size = sizeof(int);
+            sendAll(sock_, &type, sizeof(int));
+            sendAll(sock_, &size, sizeof(int));
+            int len_ = (int)friendName.size();
+            sendAll(sock_, &len_, sizeof(len_));
+            sendAll(sock_, friendName.c_str(), len_);
+          return 0;
+        }
+        else{
+        ///
+        /// MUTEX DEB
+        interfaceMutex.lock();
+        refresh();
+        curs_set(0);
+        int currentLine = LINES-1;
+        while(mvinch(currentLine-1, 0) == ' ' || mvinch(currentLine-1, 0) == ERR){ //tant que ligne est vide
+            currentLine--;
+            }
+        move(currentLine, 0);
+        printw("%s : %s\n", user.c_str(), buffer);
+
+        refresh();
+        if(LINES-1-currentLine < 5){ //bcp de msg donc on arrive proche de la ligne de fin
+          windowFull = true;
+          move(LINES-1, 0);
+          clrtoeol();
+          scrollok(stdscr, true);
+          scroll(stdscr);
+          scrollok(stdscr, false);
+        }
+        refresh();
+        curs_set(1);
+        interfaceMutex.unlock();
+        /// MUTEX FIN
+        ///
+        int socket = getSock();
+        int type = MessageType::T_IsLoggedRequest;
+        int size = sizeof(int);
+        sendAll(sock_, &type, sizeof(int));
+        sendAll(sock_, &size, sizeof(int));
+        int len_ = (int)friendName.size();
+        sendAll(sock_, &len_, sizeof(len_));
+        sendAll(sock_, friendName.c_str(), len_);
+        bool isLogged;
+            {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            cv.wait(lock, []{ return !messageIntQueue.empty(); });  // Attend un message
+            isLogged = messageIntQueue.front();
+            messageIntQueue.pop();
+            }
+        if(isLogged){
+            int type = MessageType::T_IsInConvRequest;
+            int size = sizeof(int);
+            sendAll(sock_, &type, sizeof(int));
+            sendAll(sock_, &size, sizeof(int));
+            int len_ = (int)friendName.size();
+            sendAll(sock_, &len_, sizeof(len_));
+            sendAll(sock_, friendName.c_str(), len_);
+            int isInConv;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                cv.wait(lock, []{ return !messageIntQueue.empty(); });  // Attend un message
+                isInConv = messageIntQueue.front();
+                messageIntQueue.pop();
+            }
+        if(isInConv == 1){ //si le destinataire est sur la conv
+        int messageSent = MessageType::T_Message;
+        int size_ = sizeof(struct Message);
+        Message messageToSent;
+        std::strncpy(messageToSent.expediteur, user.c_str(), sizeof(messageToSent.expediteur) - 1);
+        messageToSent.expediteur[sizeof(messageToSent.expediteur) - 1] =  '\0';
+        std::strncpy(messageToSent.message, buffer, sizeof(messageToSent.message) - 1);
+        messageToSent.message[sizeof(messageToSent.message) - 1] =  '\0';
+        std::strncpy(messageToSent.destinataire, friendName.c_str(), sizeof(messageToSent.destinataire) - 1);
+        messageToSent.destinataire[sizeof(messageToSent.destinataire) - 1] =  '\0';
+        if(!sendAll(socket, &messageSent, sizeof(int))){flag=true; break;}
+        if(!sendAll(socket, &size_, sizeof(int))){flag=true; break;}
+        if(!sendAll(socket, &messageToSent, sizeof(Message))){flag=true; break;}
+    }
+    else{ //si le correspondant n'est pas dans la conv T_AddMessage
+        std::string message(buffer, strnlen(buffer, sizeof(buffer)));
+        int type = MessageType::T_AddMessage;
+        int size = sizeof(int);
+        sendAll(sock_, &type, sizeof(int));
+        sendAll(sock_, &size, sizeof(int));
+        int len_ = (int)friendName.size();
+        sendAll(sock_, &len_, sizeof(len_));
+        sendAll(sock_, friendName.c_str(), len_);
+        int messageLen_ = (int)message.size();
+        sendAll(sock_, &messageLen_, sizeof(messageLen_));
+        sendAll(sock_, message.c_str(), messageLen_);
+    }
+}
+        }
+    }
+    erase();
+    refresh();
+    int type_ = MessageType::T_CloseConvRequest;
+    int size_ = sizeof(int);
+    sendAll(sock_, &type_, sizeof(int));
+    sendAll(sock_, &size_, sizeof(int));
+    int len = (int)friendName.size();
+    sendAll(sock_, &len, sizeof(len));
+    sendAll(sock_, friendName.c_str(), len);
+    return -1;
+}
+
+
+/**
+ * @brief Gère l'affichage et l'interaction avec les demandes d'amis.
+ *
+ * Cette fonction affiche les demandes d'amis reçues et envoyées, et permet à l'utilisateur
+ * de naviguer dans la liste avec les flèches haut/bas. Il peut accepter, refuser ou annuler
+ * une demande via les touches correspondantes. L'utilisateur peut également ouvrir la boîte
+ * de messagerie ou quitter l'interface.
+ *
+ * @return Retourne 0 si l'utilisateur quitte normalement, ou -1 en cas d'erreur lors de l'ouverture.
+ */
+int InterfaceTerminal::handleFriendRequests(vector<string> requestsReceivedList, vector<string> requestsSentList, int& selectedOption) {
+        int numberRequestReceived = std::size(requestsReceivedList);
+        int numberRequestSent = std::size(requestsSentList);
+
+        int ch = getch();    // récupère l'entrée utilisateur
+        switch (ch) {
+
+            case KEY_UP:     // aller vers le haut
+                if (selectedOption > 0) {
+                    selectedOption--;
+                }
+            break;
+            case KEY_DOWN: // descendre
+                if (selectedOption < numberRequestSent + numberRequestReceived-1) {
+                    selectedOption++;
+                }
+            break;
+
+            // touche 'entrée'
+            case 'A':
+            case 'a':
+              if(selectedOption < numberRequestReceived){
+                  int type = MessageType::T_AcceptRequestFriend;
+                  int size = sizeof(int);
+                  sendAll(sock_, &type, sizeof(int));
+                  sendAll(sock_, &size, sizeof(int));
+                  int len = (int)requestsReceivedList[selectedOption].size();
+                  sendAll(sock_, &len, sizeof(len));
+                  sendAll(sock_, requestsReceivedList[selectedOption].c_str(), len);
+                  erase();
+                  return -1;
+              }
+            break;
+            case 'R':
+            case 'r':
+              if(selectedOption < numberRequestReceived){
+                  int type = MessageType::T_RefuseRequestFriend;
+                  int size = sizeof(int);
+                  sendAll(sock_, &type, sizeof(int));
+                  sendAll(sock_, &size, sizeof(int));
+                  int len = (int)requestsReceivedList[selectedOption].size();
+                  sendAll(sock_, &len, sizeof(len));
+                  sendAll(sock_, requestsReceivedList[selectedOption].c_str(), len);
+                  erase();
+                  return -1;
+              }
+            break;
+            case 'C':
+            case 'c':
+              if(numberRequestReceived <= selectedOption && selectedOption < numberRequestSent){
+                  int type = MessageType::T_RefuseRequestFriend;
+                  int size = sizeof(int);
+                  sendAll(sock_, &type, sizeof(int));
+                  sendAll(sock_, &size, sizeof(int));
+                  int len = (int)requestsSentList[selectedOption].size();
+                  sendAll(sock_, &len, sizeof(len));
+                  sendAll(sock_, requestsSentList[selectedOption].c_str(), len);
+                  erase();
+                  return -1;
+              }
+            break;
+            case KEY_BACKSPACE:
+            case 127:
+                erase();
+                endwin();
+            return -1;
+        }
+    return 0;
+}
+
+
+/**
+ * @brief Permet à l'utilisateur de rechercher un autre utilisateur en en entrant le username de celui -ci.
+ *
+ * L'utilisateur entre un nom de joueur. Si le champ est vide, la fonction se termine.
+ * Sinon, elle vérifie si l'utilisateur peut envoyer une demande d'ami :
+ * - Envoie la demande si possible.
+ * - Informe si le joueur est déjà ami.
+ * - Informe si une demande a déjà été envoyée.
+ * - Si le joueur avait déjà envoyé une demande, la demande d'ami est acceptée.
+*/
+void InterfaceTerminal::enterName() {
+    erase();  // Nettoyer tout l'écran AVANT d'afficher le cadre
+
+    int width = COLS;
+    int height = LINES;
+    int menuWidth = 50;
+    int menuHeight = 5;
+    int startX = (width - menuWidth) / 2;
+    int startY = (height - menuHeight) / 2;
+
+    refresh();
+    echo();
+    curs_set(1);
+    nodelay(stdscr, false);
+
+    char namePlayer[100];
+
+    while (!flag) {
+        //erase();  // Nettoyer tout l'affichage à chaque itération
+
+        // Affichage des instructions
+        attron(COLOR_PAIR(2) | A_BOLD);
+        mvprintw(startY - 4, startX, "Press ENTER to research the player name");
+        mvprintw(startY - 3, startX, "Press 'ENTER' with an empty entry to quit");
+        attroff(COLOR_PAIR(2) | A_BOLD);
+
+        // Création du cadre pour entrer le nom
+        WINDOW* nameWindow = newwin(menuHeight, menuWidth, startY, startX);
+        box(nameWindow, 0, 0);
+        wattron(nameWindow, COLOR_PAIR(2) | A_BOLD);
+        mvwprintw(nameWindow, 0, 2, " ENTER NAME ");
+        wattroff(nameWindow, COLOR_PAIR(2) | A_BOLD);
+        wrefresh(nameWindow);
+
+        // Saisie utilisateur
+        mvwgetnstr(nameWindow, 2, 2, namePlayer, 99);
+        delwin(nameWindow);
+        refresh();
+
+        // Si l'entrée est vide, quitter et réafficher le menu des amis
+        if (strlen(namePlayer) == 0) {
+            erase();  // Effacer proprement avant de retourner au menu
+            curs_set(0);
+            nodelay(stdscr, true);
+            noecho();
+            return;
+        }
+
+        // Effacer avant d'afficher le message suivant
+        erase();
+
+        // Vérifier si le nom est celui de l'utilisateur
+        if (strcmp(namePlayer, user.c_str()) == 0) {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "Please enter a name different from yours!");
+            attroff(COLOR_PAIR(1) | A_BOLD);
+            refresh();
+            napms(1500);
+            continue;
+        }
+
+        // Afficher la recherche en cours
+        attron(COLOR_PAIR(2) | A_BOLD);
+        mvprintw(startY + 6, startX, "Researching player...");
+        attroff(COLOR_PAIR(2) | A_BOLD);
+        refresh();
+        napms(1000);
+
+        std::string user(namePlayer, strnlen(namePlayer, sizeof(namePlayer)));
+
+        // Vérifier si la demande d'ami est possible
+        int type = MessageType::T_VerifyRequestFriend;
+        int size = sizeof(int);
+        sendAll(sock_, &type, sizeof(int));
+        sendAll(sock_, &size, sizeof(int));
+        int len = (int)user.size();
+        sendAll(sock_, &len, sizeof(len));
+        sendAll(sock_, user.c_str(), len);
+
+
+        int returnValue;
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            cv.wait(lock, []{ return !messageIntQueue.empty(); });  // Attend un message
+            returnValue = messageIntQueue.front();
+            messageIntQueue.pop();
+        }
+        erase();  // Efface tout avant d'afficher le résultat
+
+        // Afficher le résultat de la recherche
+        if (returnValue == 0) {
+            int type = MessageType::T_SendRequestFriend;
+            int size = sizeof(int);
+            sendAll(sock_, &type, sizeof(int));
+            sendAll(sock_, &size, sizeof(int));
+            int len = (int)user.size();
+            sendAll(sock_, &len, sizeof(len));
+            sendAll(sock_, user.c_str(), len);
+            int returnValue_;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                cv.wait(lock, []{ return !messageIntQueue.empty(); });  // Attend un message
+                returnValue_ = messageIntQueue.front();
+                messageIntQueue.pop();
+            }
+
+            if (returnValue_) {
+                attron(COLOR_PAIR(2) | A_BOLD);
+                mvprintw(startY + 6, startX, "Friend request sent!");
+                attroff(COLOR_PAIR(2) | A_BOLD);
+            }
+        } else if (returnValue == 2) {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "%s is already your friend", namePlayer);
+            attroff(COLOR_PAIR(1) | A_BOLD);
+        } else if (returnValue == 3) {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "You have already sent a request to %s", namePlayer);
+            attroff(COLOR_PAIR(1) | A_BOLD);
+        } else if (returnValue == 4) {
+            int type = MessageType::T_AcceptRequestFriend;
+            int size = sizeof(int);
+            sendAll(sock_, &type, sizeof(int));
+            sendAll(sock_, &size, sizeof(int));
+            int len = (int)user.size();
+            sendAll(sock_, &len, sizeof(len));
+            sendAll(sock_, user.c_str(), len);
+            attron(COLOR_PAIR(2) | A_BOLD);
+            mvprintw(startY + 6, startX, "%s already requested you, now you're friends!", namePlayer);
+            attroff(COLOR_PAIR(2) | A_BOLD);
+        } else {
+            attron(COLOR_PAIR(1) | A_BOLD);
+            mvprintw(startY + 6, startX, "Invalid username!");
+            attroff(COLOR_PAIR(1) | A_BOLD);
+        }
+
+        refresh();
+        napms(1500);
+        erase();
+    }
+}
 
 /**
  * @brief Gère la connexion d'un utilisateur via le terminal.
@@ -583,8 +1147,8 @@ vector<std::string> InterfaceTerminal::handleConnexionOption() {
                     nodelay(stdscr, true);
                 }
             break;
-            case 'q':
-            case 'Q':
+            case KEY_BACKSPACE:
+            case 127:
               int sock = getSock();
               int exitType = MessageType::T_Exit;
               int size = sizeof(int);

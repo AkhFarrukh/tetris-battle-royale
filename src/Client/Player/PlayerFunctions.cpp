@@ -170,6 +170,66 @@ void* Player::threadRoutineView (void* arg){
             }
             cv.notify_all();
         }
+        else if(messageType == MessageType::T_VerifyRequestFriendReponse){
+            int returnValue;
+            recvAll(sock, &returnValue, messageSize);
+            {
+                std::lock_guard<std::mutex> lock(queueMutex);
+                messageIntQueue.push(returnValue);
+            }
+            cv.notify_all();
+        }
+        else if(messageType == MessageType::T_SendRequestFriendReponse){
+            int returnValue;
+            recvAll(sock, &returnValue, messageSize);
+            {
+                std::lock_guard<std::mutex> lock(queueMutex);
+                messageIntQueue.push(returnValue);
+            }
+            cv.notify_all();
+        }
+        else if(messageType == MessageType::T_NumberFriendRequestsReponse){
+            int returnValue;
+            recvAll(sock, &returnValue, messageSize);
+            {
+                std::lock_guard<std::mutex> lock(queueMutex);
+                messageIntQueue.push(returnValue);
+            }
+            cv.notify_all();
+        }
+        else if(messageType == MessageType::T_GetMessageNoReadReponse){
+            vector<string> MessagesNoRead;
+            for (int i = 0; i < messageSize; ++i) {
+                int len;
+                recvAll(sock, &len, sizeof(len));
+                std::string str(len, '\0');
+                recvAll(sock, &str[0], len);
+                MessagesNoRead.push_back(str);
+            }
+            {
+                std::lock_guard<std::mutex> lock(queueMutex);
+                messageVectQueue.push(MessagesNoRead);
+            }
+            cv.notify_all();
+        }
+        else if(messageType == MessageType::T_IsLoggedReponse){
+            bool returnValue;
+            recvAll(sock, &returnValue, messageSize);
+            {
+                std::lock_guard<std::mutex> lock(queueMutex);
+                messageIntQueue.push(returnValue);
+            }
+            cv.notify_all();
+        }
+        else if(messageType == MessageType::T_IsInConvReponse){
+            int returnValue;
+            recvAll(sock, &returnValue, messageSize);
+            {
+                std::lock_guard<std::mutex> lock(queueMutex);
+                messageIntQueue.push(returnValue);
+            }
+            cv.notify_all();
+        }
     }
 return 0;
 }

@@ -16,8 +16,10 @@ enum class Menus {
     LoginMenu,
     LeaderboardMenu,
     FriendRequestMenu,
+    FriendAddMenu,
     FriendsMenu,
-    
+    FriendAcceptRequest,
+    FriendRefuseRequest,
     maxMembers,
 
     LaunchEndless,
@@ -57,7 +59,7 @@ class Menu
         void displayLeaderboard(WINDOW* menuWindow, std::vector<std::pair<std::string, int>>& scores);
         void displayFriendRequestsMenu(int selectedOption, vector<string>& requestsReceived, vector<string>& requestsSent);
         void displayFriendsMenu(WINDOW* menuWindow, int& optionHovered, int& numberFRR);
-
+        void setNumberOptions(int number){numberOfOptions = number;}
 };
 
 

@@ -105,7 +105,24 @@ enum MessageType {
     T_FriendListReceivedRequestReponse,
     T_FriendListSentRequestReponse,
     T_FriendListReponse,
-    T_FriendListRequest
+    T_FriendListRequest,
+    T_RefuseRequestFriend,
+    T_AcceptRequestFriend,
+    T_VerifyRequestFriend,
+    T_SendRequestFriend,
+    T_VerifyRequestFriendReponse,
+    T_SendRequestFriendReponse,
+    T_NumberFriendRequestsRequest,
+    T_NumberFriendRequestsReponse,
+    T_GetMessageNoReadRequest,
+    T_GetMessageNoReadReponse,
+    T_OpenConvRequest,
+    T_CloseConvRequest,
+    T_IsLoggedRequest,
+    T_IsLoggedReponse,
+    T_IsInConvRequest,
+    T_IsInConvReponse,
+    T_AddMessage
 };
 
 struct RoomInfo {

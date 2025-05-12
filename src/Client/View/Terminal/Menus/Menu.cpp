@@ -66,7 +66,6 @@ void Menu::displayMenuControls(WINDOW* menuWindow)
         mvprintw(startY + menuHeight+ 3, (windowWidth - 45) / 2, "Use UP and DOWN arrow keys to navigate");           // TODO -- gerer les nombres magiques présents (qui permettent le bon cadrage des elements)
         mvprintw(startY + menuHeight + 4, (windowWidth - 45) / 2, "Press ENTER to select an action");
         mvprintw(startY + menuHeight + 5, (windowWidth - 45) / 2, "Press 'BACKSPACE' to quit");
-        mvprintw(startY + menuHeight + 6, (windowWidth - 45) / 2, "Press 't' to open the chat");
     }
     else if(menuName == Menus::FriendRequestMenu)
     {
@@ -75,7 +74,6 @@ void Menu::displayMenuControls(WINDOW* menuWindow)
         mvprintw(startY + menuHeight + 3, (COLS - 50) / 2, "Press 'R' to refuse");
         mvprintw(startY + menuHeight + 4, (COLS - 50) / 2, "Press 'C' to cancel a sent friend request");
         mvprintw(startY + menuHeight + 5, (COLS - 50) / 2, "Press 'BACKSPACE' to quit");
-        mvprintw(startY + menuHeight + 6, (COLS - 50) / 2, "Press 't' to open the message box");
     }
     else 
     {
@@ -143,12 +141,11 @@ void Menu::displayFriendRequestsMenu(int selectedOption, vector<string>& request
     WINDOW* requestWindow = newwin(menuHeight, menuWidth, startY, startX);
     box(requestWindow, 0, 0);
 
-    vector<vector<string>> requests = { requestsReceived, requestsSent };
-    vector<string> requestsReceivedSentences = {"No request received !", "-> %s wants to be your friend!", "   %s wants to be your friend!" };
-    vector<string> requestsSentSentences = {"No requests sent !", "-> Friend request sent to %s", "   Friend request sent to %s" };
-    vector<vector<string>> requestsSentences = { requestsReceivedSentences, requestsSentSentences };
-
-    for (int j = 0; j<static_cast<int>(menuOptions.size()); j++)
+    vector<vector<string>> requests = { requestsSent, requestsReceived };
+    vector<string> requestsReceivedSentences = {"No request received !", "-> Friend request sent by ", "   Friend request sent by " };
+    vector<string> requestsSentSentences = {"No requests sent !", "-> Friend request sent to ", "   Friend request sent to " };
+    vector<vector<string>> requestsSentences = { requestsSentSentences, requestsReceivedSentences };
+    for (int j = 0; j<static_cast<int>(menuOptions.size()-1); j++)
     {
         // Titre "Requests received" en vert
         wattron(requestWindow, COLOR_PAIR(2) | A_BOLD);
@@ -156,22 +153,25 @@ void Menu::displayFriendRequestsMenu(int selectedOption, vector<string>& request
         wattroff(requestWindow, COLOR_PAIR(2) | A_BOLD);
 
         int numberRequests = requests[j].size();
-
         if (numberRequests == 0) {
             mvwprintw(requestWindow, (9 * j) + 3, 4, "%s", requestsSentences[j][0].c_str());
         } else {
             for (int i = 0; i < numberRequests; ++i) {
-                if (i == selectedOption) {
+                std::string user;
+                if(j == 0)user=requestsSent[i];
+                else user=requestsReceived[i];
+                if ((i == selectedOption && j == 0) || (i == selectedOption - requestsSent.size() && j == 1)) {
                     wattron(requestWindow, A_REVERSE);
-                    mvwprintw(requestWindow, (9 * j) + 3 + i, 4, "%s %s", requestsSentences[j][1].c_str(), requestsReceived[i].c_str());
+                    mvwprintw(requestWindow, (9 * j) + 3 + i, 4, "%s %s", requestsSentences[j][1].c_str(), user.c_str());
                     wattroff(requestWindow, A_REVERSE);
                 } else {
-                    mvwprintw(requestWindow, (9 * j) + 3 + i, 4, "%s %s", requestsSentences[j][2].c_str(), requestsReceived[i].c_str());
+                    mvwprintw(requestWindow, (9 * j) + 3 + i, 4, "%s %s", requestsSentences[j][2].c_str(), user.c_str());
 
                 }
             }
         }
     }
+    displayMenuControls(requestWindow);
     wrefresh(requestWindow);
     refresh();
     delwin(requestWindow);

@@ -23,7 +23,7 @@ class MenuController {
             Menus menuName;
             std::vector<std::shared_ptr<MenuOption>> options;
             std::function<void()> callback;
-        
+            int numberOptions;
             MenuOption() = default;
             MenuOption(Menus name, std::vector<std::shared_ptr<MenuOption>> opts, std::function<void()> cb)
                 : menuName(name), options(opts), callback(cb) {}

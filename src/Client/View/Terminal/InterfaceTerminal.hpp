@@ -16,6 +16,7 @@ extern std::mutex queueMutex;
 extern std::condition_variable cv;
 extern std::queue<std::vector<std::pair<std::string, int>>> messageQueue;
 extern std::queue<std::vector<std::string>> messageVectQueue;
+extern std::queue<int> messageIntQueue;
 
 class InterfaceTerminal {
 
@@ -37,17 +38,18 @@ class InterfaceTerminal {
     ~InterfaceTerminal();
 
     void initNcurses();
-    void display(int selectedOption, Menus menuChoosen, bool& flagChangedMenu);
+    void display(int selectedOption, Menus menuChoosen, bool& flagChangedMenu, int& number);
     void displayMenu(int selectedOption) const;
     void displayConnexionOption(int selectedOption);
     vector<std::string> handleConnexionOption();
     vector<std::string> handleLogin();
     vector<std::string> handleRegister();
-    //int handleMessageBox();
-    //void displayMessageBox(int selectedOption, vector<string> friends);
+    int handleMessageBox();
+    void displayMessageBox(int selectedOption, vector<string> friends);
     int getSock(){return sock_;};
     void setSock(int sock){sock_ = sock;};
     int chatWith(const std::string& user, const string& Friend);
+    void enterName();
 
     //void displayFriendOptions(int selectedOption);
     //void displayGameModeMenu(int selectedMode) const;
@@ -55,13 +57,14 @@ class InterfaceTerminal {
 
     //int handleGameModeSelection(int& selectedMode);
     void displayFriendsMenu(int selectedOption, vector<string> friends);
+    int handleFriendRequests(vector<string> requestsReceivedList, vector<string> requestsSentList, int& selectedOption);
     //int handleFriends();
     //int handleFriendsOptionSelection(const string friendName);
     //int handleOptionSelection(int &selectedOption);
     //void enterName();
     //void displayFriendRequests(int selectedOption, vector<string> requestsReceived, vector<string> requestsSent);
     //int handleFriendRequests();
-    //void displayMessageNoRead(const std::string& user, const string& friendName);
+    void displayMessageNoRead(const std::string& user, const string& friendName, std::vector<std::string>& messagesNoRead);
     //void displayLeaderboard();
 
     int start();

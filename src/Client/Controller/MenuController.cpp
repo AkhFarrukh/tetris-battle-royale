@@ -41,11 +41,14 @@ MenuController::MenuController(InterfaceTerminal interfaceTerminal, std::shared_
                 },
                 nullptr
             ),
-            make_shared<MenuOption>(Menus::FriendsMenu, vector<shared_ptr<MenuOption>>{}, nullptr),
+            make_shared<MenuOption>(Menus::FriendsMenu, vector<shared_ptr<MenuOption>>{
+                make_shared<MenuOption>(Menus::FriendAddMenu, vector<shared_ptr<MenuOption>>{}, nullptr),
+                make_shared<MenuOption>(Menus::FriendRequestMenu, vector<shared_ptr<MenuOption>>{}, nullptr)
+            }, nullptr),
             make_shared<MenuOption>(Menus::LeaderboardMenu, vector<shared_ptr<MenuOption>>{}, nullptr)
         },
         nullptr
-    );    
+    );
     currentMenu = make_shared<MenuOption>(allMenus); // Initialize the current menu to the main menu
     selectedOptions.push_back(0); // Initialize the selected options vector with the first menu option
     comm.setSock(threadData->servSocket); 
@@ -54,6 +57,10 @@ MenuController::MenuController(InterfaceTerminal interfaceTerminal, std::shared_
 void MenuController::handleMenu() {
     while (runningMenu) {
         displayMenu();
+        if (currentMenu != nullptr && (currentMenu->menuName == Menus::FriendRequestMenu || currentMenu->menuName == Menus::FriendAddMenu) && selectedOptions.size() > 1) {
+            selectedOptions.pop_back(); // Go back to the previous menu
+        }
+        //nodelay(stdscr, false);
         int ch = getch();
         switch (ch) {
             case KEY_UP:
@@ -62,17 +69,34 @@ void MenuController::handleMenu() {
                 }
                 break;
             case KEY_DOWN:
-                if (selectedOptions.back() < static_cast<int>(currentMenu->options.size() - 1)) {
+                if (selectedOptions.back() < static_cast<int>(currentMenu->options.size() - 1) || (currentMenu->menuName == Menus::FriendsMenu && selectedOptions.back() < static_cast<int>(currentMenu->numberOptions - 1))) {
                     selectedOptions.back()++; // Move down in the menu
                 }
                 break;
             case '\n':
-                if (currentMenu->callback != nullptr) {
+                if(currentMenu->menuName == Menus::FriendsMenu){
+                    if(selectedOptions.back() == currentMenu->numberOptions - 1){
+                        selectedOptions.back()=1;
+                        selectedOptions.push_back(0);
+                        updateCurrentMenu(); // Update the current menu based on the selected options
+
+                        flagChangedMenu = true;
+                    }
+                    else if(selectedOptions.back() == currentMenu->numberOptions - 2){
+                        selectedOptions.back()=0;
+                        selectedOptions.push_back(0);
+                        updateCurrentMenu(); // Update the current menu based on the selected options
+
+                        flagChangedMenu = true;
+                    }
+                }
+                else if (currentMenu->callback != nullptr) {
                     currentMenu->callback(); // Execute the callback function
                 }
                 else if (!currentMenu->options.empty()) {
                     selectedOptions.push_back(0); 
                     updateCurrentMenu(); // Update the current menu based on the selected options
+
                     flagChangedMenu = true; // The menu has changed
                 }
                 break;
@@ -86,6 +110,10 @@ void MenuController::handleMenu() {
                     runningMenu = false; // Exit the menu
                 }
                 break;
+            case 'T':
+            case 't':
+                interfaceTerminal.handleMessageBox();
+            break;
             default:
                 break;
         }
@@ -148,7 +176,10 @@ void MenuController::handleMenu() {
 
 void MenuController::displayMenu() {
     updateCurrentMenu(); // Update the current menu based on the selected options
-    interfaceTerminal.display(selectedOptions.back(), currentMenu->menuName, flagChangedMenu);
+    int number = 0;
+    interfaceTerminal.display(selectedOptions.back(), currentMenu->menuName, flagChangedMenu, number);
+    if(currentMenu->menuName == Menus::FriendsMenu)currentMenu->numberOptions = number;
+
 }
 
 void MenuController::updateCurrentMenu() {
