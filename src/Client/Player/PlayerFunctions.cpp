@@ -75,7 +75,7 @@ void* Player::threadRoutineView (void* arg){
             affichageMessage(message);
         }
         else if(messageType == MessageType::T_Exit){
-            if (threadData->isOwner) {
+            if (threadData->gameMode != Modes::Endless_ && threadData->isOwner) {
             int type;
             int size = sizeof(int);
             type = MessageType::T_RoomDeleted;
